@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <%- message %>
+    <h1><%= title %></h1>
+    <form action="" method="post">
+            <div class="fuzq_input_wrap">
+                <label for="">用户名：</label>
+                <input type="text" id="username" name="username" autofocus="" required="" />
+            </div>
+            <div class="fuzq_input_wrap">
+                <label for="">密码：</label>
+                <input type="password" id="password" name="password" required="" />
+            </div>
+            <div class="fuzq_btn_wrap">
+                <button type="submit">提交</button>
+            </div>
+            <div class="fuzq_input_wrap">
+                <a href="/register">还没有账号？去注册！</a>
+            </div>
+        </form>
+  </body>
+</html>
