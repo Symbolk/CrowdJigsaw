@@ -1,33 +1,77 @@
 <% include header.html %>
-<%-message%>
-<h1><%= title %></h1>
-<p>Welcome<span class="fuzq_home_name"><%= user.username %></span>to <%= title %></p>
-<a href="/logout">注销</a>
-<div class="fuzq_home_manage">
-    <h3>用户管理</h3>
-    <table class="fuzq_home_manage_table">
-        <tr>
-            <th>用户名</th>
-            <th>操作</th>
-        </tr>
-        <% Allusers.forEach(function(u){
-            if(u.username===user.username){%>
-            <tr>
-                <td style="color:#3c3;"><%-u.username%></td>
-                <td>
-                    <span style="color:#3c3;">当前用户</span>
-                </td>
-            </tr>
-            <%}
-            else{%>
-            <tr>
-                <td><%-u.username%></td>
-                <td>
-                    <span><a href="/delete/<%-u.username%>">删除</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="/resetPwd/<%-u.username%>">重置密码</a></span>
-                </td>
-            </tr>
-            <%}
-        })%>
-    </table>
-</div>
-<% include footer.html %>
+
+        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header
+mdl-layout--fixed-tabs">
+            <header class="mdl-layout__header">
+                <div class="mdl-layout__header-row">
+                    <!-- Title -->
+                    <span class="mdl-layout-title"><%= title %></span>
+                </div>
+                <!-- Tabs -->
+                <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+                    <a href="#fixed-tab-1" class="mdl-layout__tab is-active">Level 1</a>
+                    <a href="#fixed-tab-2" class="mdl-layout__tab">Level 2</a>
+                    <a href="#fixed-tab-3" class="mdl-layout__tab">Level 3</a>
+                    <a href="#fixed-tab-3" class="mdl-layout__tab">Level 4</a>
+                </div>
+            </header>
+            <div class="mdl-layout__drawer">
+                <span class="mdl-layout-title"><%= title %></span>
+                <nav class="mdl-navigation">
+                        <a class="/logout" href="">登出</a>
+                        <a class="mdl-navigation__link" href="">账户设置</a>
+                        <a class="mdl-navigation__link" href="">在线用户</a>
+                        <a class="mdl-navigation__link" href="">排行榜</a>
+                </nav>
+            </div>
+            <main class="mdl-layout__content">
+                <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
+                    <div class="page-content">
+                        <div class="fuzq_home_manage">
+                            <h3>用户管理</h3>
+                            <table class="fuzq_home_manage_table">
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>操作</th>
+                                </tr>
+                                <% Allusers.forEach(function(u){
+                                            if(u.username===user.username){%>
+                                    <tr>
+                                        <td style="color:#3c3;">
+                                            <%-u.username%>
+                                        </td>
+                                        <td>
+                                            <span style="color:#3c3;">当前用户</span>
+                                        </td>
+                                    </tr>
+                                    <%}
+                                            else{%>
+                                        <tr>
+                                            <td>
+                                                <%-u.username%>
+                                            </td>
+                                            <td>
+                                                <span><a href="/delete/<%-u.username%>">删除</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="/resetPwd/<%-u.username%>">重置密码</a></span>
+                                            </td>
+                                        </tr>
+                                        <%}
+                                        })%>
+                            </table>
+                        </div>
+                        <!-- Your content goes here -->
+                    </div>
+                </section>
+                <section class="mdl-layout__tab-panel" id="fixed-tab-2">
+                    <div class="page-content">
+                        <!-- Your content goes here -->
+                    </div>
+                </section>
+                <section class="mdl-layout__tab-panel" id="fixed-tab-3">
+                    <div class="page-content">
+                        <!-- Your content goes here -->
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <% include footer.html %>

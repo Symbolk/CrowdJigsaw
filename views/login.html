@@ -1,27 +1,38 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <%- message %>
-    <h1><%= title %></h1>
-    <form action="" method="post">
-            <div class="fuzq_input_wrap">
-                <label for="">用户名：</label>
-                <input type="text" id="username" name="username" autofocus="" required="" />
-            </div>
-            <div class="fuzq_input_wrap">
-                <label for="">密码：</label>
-                <input type="password" id="password" name="password" required="" />
-            </div>
-            <div class="fuzq_btn_wrap">
-                <button type="submit">提交</button>
-            </div>
-            <div class="fuzq_input_wrap">
-                <a href="/register">还没有账号？去注册！</a>
-            </div>
-        </form>
-  </body>
-</html>
+<% include header.html %>
+<div id="page-splash">
+        <%- message %>
+            <h1>
+                <%= title %>
+            </h1>
+            <h2 class="mdl-color-text--white">Crowd Jigsaw Puzzle</h2>
+            <form action="" method="post">
+                <div class="mdl-grid">
+                    <div class="mdl-cell mdl-cell--3-col"></div>
+                    <div class="mdl-card mdl-shadow--8dp mdl-cell--8-col mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-cell--6-col-desktop">
+                        <div class="mdl-card__title mdl-color--light-blue-600 mdl-color-text--white">
+                            <h2 class="mdl-card__title-text">邮件 &amp; 密码登录</h2>
+                        </div>
+                        <div class="mdl-card__supporting-text mdl-color-text--grey-600">
+                            <p>已注册用户？请输入邮箱地址和密码登录</p>
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input mdl-cell--middle" type="text" id="username" name="username">
+                                <label class="mdl-textfield__label" for="username">Username</label>
+                            </div>
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input mdl-cell--middle" type="password" id="password" name="password">
+                                <label class="mdl-textfield__label" for="password">Password</label>
+                            </div>
+                            <br />
+                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="margin:0 auto;" id="signin" name="signin">登录</button>                            &nbsp;&nbsp;&nbsp;
+                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent" id="reset-password" name="reset_password">忘记密码</button>
+                            <hr style="height:5px;border:none;border-top:5px groove skyblue;" />
+                            <div class="fuzq_input_wrap">
+                                <a href="/register">还没有账号？去注册！</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <% include footer.html %>

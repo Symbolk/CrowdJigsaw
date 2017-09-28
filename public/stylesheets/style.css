@@ -6,3 +6,21 @@ body {
 a {
   color: #00B7FF;
 }
+
+/* Background page */
+#page-splash {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0288D1;
+  background: radial-gradient(circle, #039BE5, #01579b);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  flex-direction: column;
+}
+

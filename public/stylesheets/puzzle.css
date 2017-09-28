@@ -1,0 +1,143 @@
+﻿body 
+{
+    background-color: #fff;
+    overflow: hidden;  
+    margin: 0;     
+}
+
+
+
+#canvas
+{
+    overflow: hidden;    
+    position: absolute;
+    margin: 20px;  
+    /* top: 10px;
+    right:10px; 
+    left:10px; 
+     bottom: 10px;  
+    /* */  
+    border: 2px dashed #000;
+}
+
+.puzzle-image
+{
+    overflow: hidden;   
+    position: absolute;
+    left: 50%;
+    top: 50%;
+}
+
+
+.zoomIn,
+.zoomOut,
+.help,
+.restart,
+.settings,
+.user
+{
+    z-index: 100;
+    position: absolute;
+    opacity: 1.0 ;
+    cursor: pointer;
+}
+
+
+#progress{
+    position: absolute;
+    left: 765px;
+    bottom: 48px;
+}
+#percentage{
+    position: absolute;
+    left: 700px;
+    bottom: 32px;
+}
+
+.charms
+{
+    overflow: hidden;   
+    position: absolute;
+    background: #f0f3f9;
+    left: 20px;
+    /*opacity: 0.75;*/
+    bottom: 0%;
+    width: 625px;
+    height: 96px;  
+}
+.help:hover,
+.user.hover,
+.zoomIn:hover,
+.zoomOut:hover,
+.restart.hover,
+.settings.hover
+{
+    opacity: 1.0;
+}
+
+.user
+{
+    top: 0%;
+    left: 50%;
+    margin: 25px 0  0 -275px;
+    background-size:100% 100%;  
+}
+
+.help
+{
+    top: 0%;
+    left: 50%;
+    margin:25px 0 0 -175px;
+}
+
+.zoomIn
+{
+    top: 0%;
+    left: 50%;
+    margin: 25px 0 0 -75px;
+}
+
+
+.zoomOut
+{
+    top: 0%;
+    left: 50%;
+    margin: 25px 0 0 25px;
+}
+
+.restart
+{
+    top: 0%;
+    left: 50%;
+    margin: 25px 0 0 125px;
+}
+
+.settings
+{
+    top: 0%;
+    left: 50%;
+    margin: 25px 0 0 225px;
+}
+
+.info{
+    position: absolute;
+	right: 20px;
+	bottom: 20px;
+    /* border:1px dashed #000; */
+    display: block;
+    background-color:#f0f3f9;
+}
+
+.mode{
+    position: absolute;
+    right: 20px;
+    top: 40px;
+}
+
+
+.mdl-switch{
+    display:inline;
+    margin-left: 10px;
+    margin-right: 10px;   
+}
+

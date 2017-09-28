@@ -5,7 +5,7 @@ const DBHelp=require('./DBHelp');
 /* GET home page. */
 router.get('/', function(req, res, next)
 {
-  res.render('index', { title: 'Index' });
+  res.render('index', { title: 'Crowd Jigsaw Puzzle' });
 });
 
 
@@ -48,7 +48,7 @@ router.route('/login').all(Logined).get(function(req,res)
 //注册
 router.route('/register').all(Logined).get(function(req,res)
 {
-    res.render('register',{title:'Register123'});
+    res.render('register',{title:'Register'});
 }).post(function(req,res)
 {
     //从前端获取到的用户填写的数据
@@ -102,6 +102,14 @@ router.route('/home').all(LoginFirst).get(function(req,res)
         }
     });
 });
+
+// Puzzle
+router.route('/puzzle').all(LoginFirst).get(function(req,res)
+{
+    let selectStr={username:1,_id:0}
+    res.render('puzzle', {title:'Puzzle'});
+});
+
 
 //删除
 router.route('/delete/:URLusername').get(function(req,res)

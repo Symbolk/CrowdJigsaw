@@ -1,12 +1,13 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-    <a href="/login">登录</a>
-  </body>
-</html>
+<% include header.html %>
+<div id="page-splash">
+        <%- message %>
+            <h2 class="mdl-color-text--white">Welcome to
+                <%= title %>
+            </h2>
+            <h4 class="mdl-color-text--white">Crowd Jigsaw is an online game, where multiple players work together to figure out a complex jigsaw puzzle.</h4>
+            &nbsp;&nbsp;&nbsp;
+            <a href="/login"><button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="margin:0 auto;">登录</button></a>            &nbsp;&nbsp;&nbsp;
+            <a href="/register"><button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="margin:0 auto;">注册</button></a>
+        </div>
+
+<% include footer.html %>
