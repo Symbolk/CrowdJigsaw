@@ -22,10 +22,59 @@ Based on :
 
 Requirements :
 
-> Chrome Browser
+> Chrome Browser ~59.0
 
-> Node.js and npm
+> Node.js ~6.11.0
 
-> Express and Mongodb
+> Express ~4.15.0
+
+> Mongodb ~3.4.7
+
+_P.S. See npm dependencies in package.json_
  
 ---
+
+## How to Run(Windows)
+
+1, Start mongodb service with the command:
+
+```shell
+# Make a new folder as your database, e.g. d:\database
+mongod --dbpath d:\database
+```
+2, Create the database required in another CMD:
+
+```sh
+# get into the interactive shell of mongodb
+mongo
+# create the userinfo database
+> use userinfo;
+# check the current database
+> show dbs;
+> db;
+
+```
+3, Under the project folder, install the package dependencies:
+
+```sh
+cd CrowdJigsaw
+npm install
+```
+
+4, Start it in 1 of the following 3 ways:
+
+```sh
+# to test or debug it locally, with nodemon
+npm test
+# or use nodemon directly
+nodemon app.js
+# to start it before a release
+npm start
+
+```
+5, Go http://localhost:3000/ in Chrome to see it.
+
+
+## How to Deploy(Windows Server)
+
+(Later， Linux and macOS)

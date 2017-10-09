@@ -6,11 +6,11 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const session=require('express-session');
 
-var index = require('./routes/index');
-var users = require('./routes/users');
-
+// 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
+//var pkg = require('./package');
 
+// 没有挂载路径的中间件，应用的每个请求都会执行该中间件
 // config session
 app.use(session({
   secret:'secret',
@@ -41,14 +41,18 @@ app.set('view engine', 'html');
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
+//Node.js body parsing middleware. req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+// 加载用于解析 cookie 的第三方中间件
 app.use(cookieParser());
+// Express 唯一内置的中间件。它基于 serve-static，负责在 Express 应用中提托管静态资源。
 // set the static folder as the public
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
-app.use('/users', users);
+// 定义应用级路由
+app.use('/', require('./routes/index'));
+app.use('/users', require('./routes/users'));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -57,6 +61,7 @@ app.use(function(req, res, next) {
   next(err);
 });
 
+//错误处理中间件和其他中间件定义类似，只是要使用 4 个参数
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
@@ -68,5 +73,11 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-// module.exports = app;
-app.listen(3000);
+// module.exports = app; //npm start
+/* app.listen(config.port, function(){
+   console.log(`${pkg.name} listening on port ${config.port}`);
+});*/
+
+  console.log(process.env.NODE_ENV);
+
+app.listen(3000);//nodemon

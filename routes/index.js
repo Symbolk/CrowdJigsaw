@@ -1,3 +1,7 @@
+/**
+ * 使用 express.Router 类创建模块化、可挂载的路由句柄。
+ * 路由级中间件和应用级中间件一样，只是它绑定的对象为 express.Router()。
+ */
 var express = require('express');
 var router = express.Router();
 const DBHelp=require('./DBHelp');
@@ -10,6 +14,7 @@ router.get('/', function(req, res, next)
 
 
 //登录
+//返回一个路由的一个实例，你可以用于处理HTTP动态请求使用可选的中间件。使用router.route()是一种推荐的方法来避免重复路由命名和拼写错误.。
 router.route('/login').all(Logined).get(function(req,res)
 {
     res.render('login',{title:'Login'});
@@ -166,6 +171,7 @@ function Logined(req,res,next)
         req.session.error='您已登录！';
         return res.redirect('/home');
     }
+    //如果当前中间件没有终结请求-响应循环，则必须调用 next() 方法将控制权交给下一个中间件，否则请求就会挂起。
     next();
 }
 
@@ -175,6 +181,7 @@ function LoginFirst(req,res,next)
     {
         req.session.error='请先登录!';
         return res.redirect('/login');
+        //return res.redirect('back');//返回之前的页面
     }
     next();
 }
