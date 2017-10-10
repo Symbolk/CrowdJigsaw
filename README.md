@@ -33,8 +33,11 @@ Requirements :
 _P.S. See npm dependencies in package.json_
  
 ---
+## Usage
 
-## How to Run(Windows)
+![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home.jpg)
+
+## Development(Windows)
 
 1, Start mongodb service with the command:
 
@@ -75,6 +78,6 @@ npm start
 5, Go http://localhost:3000/ in Chrome to see it.
 
 
-## How to Deploy(Windows Server)
+## Delpoyment(Windows Server)
 
-(Later， Linux and macOS)
+(Linux and macOS comes soon.)

@@ -13,6 +13,7 @@ DBHelp.prototype.FindOne=function(tableName,selectStr,callback)
 {
     MongoClient.connect(DB_CONN_STR,function(err,db)
     {
+        // create a collection and retrieve data
         db.collection(tableName).findOne(selectStr,function(err,result)
         {
             if(err)

@@ -1,77 +1,169 @@
 <% include header.html %>
 
-        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header
-mdl-layout--fixed-tabs">
-            <header class="mdl-layout__header">
-                <div class="mdl-layout__header-row">
-                    <!-- Title -->
-                    <span class="mdl-layout-title"><%= title %></span>
-                </div>
-                <!-- Tabs -->
-                <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-                    <a href="#fixed-tab-1" class="mdl-layout__tab is-active">Level 1</a>
-                    <a href="#fixed-tab-2" class="mdl-layout__tab">Level 2</a>
-                    <a href="#fixed-tab-3" class="mdl-layout__tab">Level 3</a>
-                    <a href="#fixed-tab-3" class="mdl-layout__tab">Level 4</a>
-                </div>
-            </header>
-            <div class="mdl-layout__drawer">
+    <div class="navbar mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <header class="mdl-layout__header">
+            <div class="mdl-layout__header-row">
+                <!-- Title -->
                 <span class="mdl-layout-title"><%= title %></span>
+                <div class="mdl-layout-spacer"></div>
+                <!-- Navigation. We hide it in small screens. -->
                 <nav class="mdl-navigation">
-                        <a class="/logout" href="">登出</a>
-                        <a class="mdl-navigation__link" href="">账户设置</a>
-                        <a class="mdl-navigation__link" href="">在线用户</a>
-                        <a class="mdl-navigation__link" href="">排行榜</a>
+                    <a class="mdl-navigation__link" href="">Game</a>
+                    <a class="mdl-navigation__link" href="">Account Settings</a>
+                    <a class="mdl-navigation__link" href="">Personal Records</a>
+                    <a class="mdl-navigation__link" href="">Ranks</a>
                 </nav>
             </div>
-            <main class="mdl-layout__content">
-                <section class="mdl-layout__tab-panel is-active" id="fixed-tab-1">
-                    <div class="page-content">
-                        <div class="fuzq_home_manage">
-                            <h3>用户管理</h3>
-                            <table class="fuzq_home_manage_table">
-                                <tr>
-                                    <th>用户名</th>
-                                    <th>操作</th>
-                                </tr>
-                                <% Allusers.forEach(function(u){
+        </header>
+        <!-- <div class="mdl-layout__drawer">
+            <span class="mdl-layout-title"><%= title %></span>
+            <nav class="mdl-navigation">
+                <a class="mdl-navigation__link" href="/logout">登出</a>
+                <a class="mdl-navigation__link" href="">账户设置</a>
+                <a class="mdl-navigation__link" href="">在线用户</a>
+                <a class="mdl-navigation__link" href="">排行榜</a>
+            </nav>
+        </div> -->
+        <main class="mdl-layout__content">
+            <!-- <div class="page-content">
+                    <div class="fuzq_home_manage">
+                        <h3>用户管理</h3>
+                        <table class="fuzq_home_manage_table">
+                            <tr>
+                                <th>用户名</th>
+                                <th>操作</th>
+                            </tr>
+                            <% Allusers.forEach(function(u){
                                             if(u.username===user.username){%>
+                                <tr>
+                                    <td style="color:#3c3;">
+                                        <%-u.username%>
+                                    </td>
+                                    <td>
+                                        <span style="color:#3c3;">当前用户</span>
+                                    </td>
+                                </tr>
+                                <%}
+                                            else{%>
                                     <tr>
-                                        <td style="color:#3c3;">
+                                        <td>
                                             <%-u.username%>
                                         </td>
                                         <td>
-                                            <span style="color:#3c3;">当前用户</span>
+                                            <span><a href="/delete/<%-u.username%>">删除</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="/resetPwd/<%-u.username%>">重置密码</a></span>
                                         </td>
                                     </tr>
                                     <%}
-                                            else{%>
-                                        <tr>
-                                            <td>
-                                                <%-u.username%>
-                                            </td>
-                                            <td>
-                                                <span><a href="/delete/<%-u.username%>">删除</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="/resetPwd/<%-u.username%>">重置密码</a></span>
-                                            </td>
-                                        </tr>
-                                        <%}
                                         })%>
-                            </table>
-                        </div>
-                        <!-- Your content goes here -->
+                        </table>
                     </div>
-                </section>
-                <section class="mdl-layout__tab-panel" id="fixed-tab-2">
-                    <div class="page-content">
-                        <!-- Your content goes here -->
-                    </div>
-                </section>
-                <section class="mdl-layout__tab-panel" id="fixed-tab-3">
-                    <div class="page-content">
-                        <!-- Your content goes here -->
-                    </div>
-                </section>
-            </main>
-        </div>
+                -->
+            <div class="mdl-grid">
+                <div class="mdl-cell mdl-cell--3-col">
+                    <div class="mdl-cell mdl-cell--3-col">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 1</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Square</li>
+                                    <li class="mdl-list__item">Size : 10 * 10</li>
+                                    <li class="mdl-list__item">Pictorial : Yes</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                                                                            Learn More
+                                                                          </a>
 
-        <% include footer.html %>
+                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                                                                <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
+                                                                                <span class="visuallyhidden">play_arrow</span>
+                                                    </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mdl-cell mdl-cell--3-col">
+                    <div class="mdl-cell mdl-cell--3-col">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 2</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Jagged</li>
+                                    <li class="mdl-list__item">Size : 50 * 50</li>
+                                    <li class="mdl-list__item">Pictorial : Yes</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                                                                                Learn More
+                                                                              </a>
+
+                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                                                                    <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
+                                                                                    <span class="visuallyhidden">play_arrow</span>
+                                                        </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mdl-cell mdl-cell--3-col">
+                    <div class="mdl-cell mdl-cell--3-col">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 3</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Voronoi</li>
+                                    <li class="mdl-list__item">Size : 50 * 50</li>
+                                    <li class="mdl-list__item">Pictorial : No</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                                                                                    Learn More
+                                                                                  </a>
+
+                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                                                                        <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
+                                                                                        <span class="visuallyhidden">play_arrow</span>
+                                                            </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mdl-cell mdl-cell--3-col">
+                    <div class="mdl-cell mdl-cell--3-col">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 4</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Random</li>
+                                    <li class="mdl-list__item">Size : unlimited</li>
+                                    <li class="mdl-list__item">Pictorial : Color</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Learn More</a>
+                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                                                                            <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
+                                                                                            <span class="visuallyhidden">play_arrow</span>
+                                                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <% include footer.html %>

@@ -5,11 +5,31 @@
 var express = require('express');
 var router = express.Router();
 const DBHelp=require('./DBHelp');
+const mongoose=require('./db.js');
 
 /* GET home page. */
 router.get('/', function(req, res, next)
 {
   res.render('index', { title: 'Crowd Jigsaw Puzzle' });
+      // UserSchema.set('collection', 'users');
+      let User=mongoose.model('User', UserSchema, 'users');
+      
+          let newuser=new User({username:'sfs'});
+          newuser.save(function(err, res){
+              if(err){
+                  console.log(err);
+              }else{
+                  console.log('Saved '+newuser.username);
+              }
+          });
+
+          User.findOne({username: 'sfs'}, function(err, res){
+            if(err){
+                console.log(err);
+            }else{
+                console.log(res);
+            }
+        });
 });
 
 
