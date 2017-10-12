@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const session=require('express-session');
+require('./db');
 
 // 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
@@ -61,7 +62,6 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-//错误处理中间件和其他中间件定义类似，只是要使用 4 个参数
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
@@ -77,7 +77,5 @@ app.use(function(err, req, res, next) {
 /* app.listen(config.port, function(){
    console.log(`${pkg.name} listening on port ${config.port}`);
 });*/
-
-  console.log(process.env.NODE_ENV);
 
 app.listen(3000);//nodemon

@@ -1,0 +1,58 @@
+<% include header.html %>
+    <h1 class="mdl-color-text--black">
+        <%= title %>
+    </h1>
+    <div class="mdl-grid">
+        <div class="mdl-cell mdl-cell--4-col">
+            <form action="create">
+                <div class="mdl-textfield mdl-js-textfield">
+                    <input class="mdl-textfield__input" type="text" id="from">
+                    <label class="mdl-textfield__label" for="from">From</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield">
+                    <input class="mdl-textfield__input" type="text" id="to">
+                    <label class="mdl-textfield__label" for="to">To</label>
+                </div>
+                <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+                        <i class="material-icons">add</i>
+                      </button>
+            </form>
+        </div>
+        <div class="mdl-cell mdl-cell--4-col">
+
+            <form action="#">
+                <div class="mdl-textfield mdl-js-textfield">
+                    <input class="mdl-textfield__input" type="text" id="from2">
+                    <label class="mdl-textfield__label" for="from2">From</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield">
+                    <input class="mdl-textfield__input" type="text" id="to2">
+                    <label class="mdl-textfield__label" for="to2">To</label>
+                </div>
+                <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+                        <i class="material-icons">clear</i>
+                      </button>
+            </form>
+        </div>
+        <div class="mdl-cell mdl-cell--4-col">
+            <form action="#">
+                <div class="mdl-textfield mdl-js-textfield">
+                    <input class="mdl-textfield__input" type="text" id="from3">
+                    <label class="mdl-textfield__label" for="from3">From</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield">
+                    <input class="mdl-textfield__input" type="text" id="to3">
+                    <label class="mdl-textfield__label" for="to3">To</label>
+                </div>
+                <div class="mdl-textfield mdl-js-textfield">
+                    <input class="mdl-textfield__input" type="text" id="to33">
+                    <label class="mdl-textfield__label" for="to33">To2</label>
+                </div>
+                <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+                                <i class="material-icons">create</i>
+                              </button>
+            </form>
+        </div>
+    </div>
+
+    <% include footer.html %>

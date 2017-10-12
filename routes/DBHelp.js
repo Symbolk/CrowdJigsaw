@@ -1,5 +1,5 @@
 const MongoClient=require('mongodb').MongoClient;
-const DB_CONN_STR='mongodb://localhost:27017/userinfo';
+const DB_CONN_STR='mongodb://localhost:27017/CrowdJigsaw';
 
 function DBHelp(){}
 

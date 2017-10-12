@@ -1,6 +1,6 @@
 <% include header.html %>
 
-    <div class="navbar mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
         <header class="mdl-layout__header">
             <div class="mdl-layout__header-row">
                 <!-- Title -->
@@ -9,60 +9,18 @@
                 <!-- Navigation. We hide it in small screens. -->
                 <nav class="mdl-navigation">
                     <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
-                            <i class="material-icons mdl-color-text--white" role="presentation">extension</i>
-                </button>
+                                    <i class="material-icons mdl-color-text--white" role="presentation">extension</i>
+                        </button>
                     <a class="mdl-navigation__link" href="">Account Settings</a>
                     <a class="mdl-navigation__link" href="">Personal Records</a>
-                    <a class="mdl-navigation__link" href="">Ranks</a>
+                    <a class="mdl-navigation__link" href="/rank">Ranks</a>
                     <a href='/logout'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
-                            <i class="material-icons mdl-color-text--white" role="presentation">exit_to_app</i>
-                </button></a>
+                                    <i class="material-icons mdl-color-text--white" role="presentation">exit_to_app</i>
+                        </button></a>
                 </nav>
             </div>
         </header>
-        <!-- <div class="mdl-layout__drawer">
-            <span class="mdl-layout-title"><%= title %></span>
-            <nav class="mdl-navigation">
-                <a class="mdl-navigation__link" href="/logout">登出</a>
-                <a class="mdl-navigation__link" href="">账户设置</a>
-                <a class="mdl-navigation__link" href="">在线用户</a>
-                <a class="mdl-navigation__link" href="">排行榜</a>
-            </nav>
-        </div> -->
         <main class="mdl-layout__content">
-            <!-- <div class="page-content">
-                    <div class="fuzq_home_manage">
-                        <h3>用户管理</h3>
-                        <table class="fuzq_home_manage_table">
-                            <tr>
-                                <th>用户名</th>
-                                <th>操作</th>
-                            </tr>
-                            <% Allusers.forEach(function(u){
-                                            if(u.username===user.username){%>
-                                <tr>
-                                    <td style="color:#3c3;">
-                                        <%-u.username%>
-                                    </td>
-                                    <td>
-                                        <span style="color:#3c3;">当前用户</span>
-                                    </td>
-                                </tr>
-                                <%}
-                                            else{%>
-                                    <tr>
-                                        <td>
-                                            <%-u.username%>
-                                        </td>
-                                        <td>
-                                            <span><a href="/delete/<%-u.username%>">删除</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="/resetPwd/<%-u.username%>">重置密码</a></span>
-                                        </td>
-                                    </tr>
-                                    <%}
-                                        })%>
-                        </table>
-                    </div>
-                -->
             <div class="mdl-grid">
                 <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
                     <div class="demo-card-wide mdl-card mdl-shadow--2dp">
@@ -81,10 +39,10 @@
                                                                             Learn More
                                                                           </a>
 
-                            <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                            <a href='/apitest'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                                                                 <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
                                                                                 <span class="visuallyhidden">play_arrow</span>
-                                                    </button>
+                                                    </button></a>
                         </div>
                     </div>
                 </div>
