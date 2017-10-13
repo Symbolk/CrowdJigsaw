@@ -18,5 +18,17 @@
     "morgan": "~1.8.1",
     "nodemon": "~1.12.0",
     "serve-favicon": "~2.4.2"
-  }
+  },
+  "description": "---",
+  "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/weiyuhan/CrowdJigsaw.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/weiyuhan/CrowdJigsaw/issues"
+  },
+  "homepage": "https://github.com/weiyuhan/CrowdJigsaw#readme"
 }
