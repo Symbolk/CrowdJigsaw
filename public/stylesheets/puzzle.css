@@ -57,13 +57,13 @@
 .charms
 {
     overflow: hidden;   
-    position: absolute;
     background: #f0f3f9;
-    left: 20px;
     /*opacity: 0.75;*/
-    bottom: 0%;
-    width: 625px;
-    height: 96px;  
+    position: absolute;
+    left: 10px;
+    bottom : 10px;
+    width: 325px;
+    height: 45px;  
 }
 .help:hover,
 .user.hover,
@@ -77,47 +77,35 @@
 
 .user
 {
-    top: 0%;
-    left: 50%;
-    margin: 25px 0  0 -275px;
-    background-size:100% 100%;  
+    margin: 10px 0  0 25px;
 }
 
 .help
 {
-    top: 0%;
-    left: 50%;
-    margin:25px 0 0 -175px;
+    margin:10px 0 0 75px;
 }
 
 .zoomIn
 {
-    top: 0%;
-    left: 50%;
-    margin: 25px 0 0 -75px;
+    margin: 10px 0 0 125px;
 }
 
 
 .zoomOut
 {
-    top: 0%;
-    left: 50%;
-    margin: 25px 0 0 25px;
+    margin: 10px 0 0 175px;
 }
 
 .restart
 {
-    top: 0%;
-    left: 50%;
-    margin: 25px 0 0 125px;
+    margin: 10px 0 0 225px;
 }
 
 .settings
 {
-    top: 0%;
-    left: 50%;
-    margin: 25px 0 0 225px;
+    margin: 10px 0 0 275px;
 }
+
 
 .info{
     position: absolute;
