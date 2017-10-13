@@ -203,11 +203,12 @@ function LoginFirst(req,res,next)
 
 router.route('/create').get(function(req,res)
 {
-    LinkModel.create({from:1, to:5}, function(err, doc){
+    LinkModel.create({from:3, to:6}, function(err, doc){
         if(err){
             console.log(err);
         }else{
-            req.session.error='Saved!';
+            console.log('Saved!');
+            // req.session.error='Saved!';
             LinkModel.find({}, function(err, doc){
                 console.log(doc);
             });
@@ -216,6 +217,59 @@ router.route('/create').get(function(req,res)
     return res.redirect('/apitest');
 });
 
+// router.route('/remove').get(function(req,res){
+//     res.render('apitest',{title:'apitest'});
+// }).post(function(req, res)
+// {
+//     console.log(req.body);
+//     var conditions={ from : req.body.from2, to : req.body.to2};
+//     LinkModel.remove(conditions, function(err){
+//         if(err){
+//             console.log(err);
+//         }else{
+//             // req.session.error='Saved!';
+//             console.log('Removed ' + conditions.from + '->' + conditions.to);
+//             LinkModel.find({}, function(err, doc){
+//                 console.log(doc);
+//             });
+//         }
+//     });
+//     return res.redirect('/apitest');
+// });
+router.route('/remove').get(function(req,res)
+{
+    LinkModel.remove({from:2, to:6}, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            console.log('Removed!');
+            // req.session.error='Saved!';
+            LinkModel.find({}, function(err, doc){
+                console.log(doc);
+            });
+        }
+    });
+    return res.redirect('/apitest');
+});
 
+router.route('/update').get(function(req,res)
+{
+
+    var conditions = {from : 3};
+    var update = {$set : { to : 16 }};
+    
+    LinkModel.update(conditions, update, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            console.log('Updated!');
+            // req.session.error='Saved!';
+            LinkModel.find({}, function(err, doc){
+                console.log(doc);
+            });
+        }
+    });
+    return res.redirect('/apitest');
+});
 
 module.exports = router;

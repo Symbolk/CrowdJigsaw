@@ -25,14 +25,15 @@ a {
   flex-direction: column;
 }
 
-.demo-card-wide.mdl-card {
-  width: 450px;
+.demo-card-wide .mdl-card {
+  /* width: 450px; */
 }
 .demo-card-wide > .mdl-card__title {
   color: #fff;
-  height: 500px;
+  /* height: 100%; */
   background: url('/images/welcome_card.jpg') center / cover;
 }
 .demo-card-wide > .mdl-card__menu {
   color: #fff;
 }
+

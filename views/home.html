@@ -1,124 +1,107 @@
 <% include header.html %>
 
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <header class="mdl-layout__header">
-            <div class="mdl-layout__header-row">
-                <!-- Title -->
-                <span class="mdl-layout-title"><%= title %></span>
-                <div class="mdl-layout-spacer"></div>
-                <!-- Navigation. We hide it in small screens. -->
-                <nav class="mdl-navigation">
-                    <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
-                                    <i class="material-icons mdl-color-text--white" role="presentation">extension</i>
-                        </button>
-                    <a class="mdl-navigation__link" href="">Account Settings</a>
-                    <a class="mdl-navigation__link" href="">Personal Records</a>
-                    <a class="mdl-navigation__link" href="/rank">Ranks</a>
-                    <a href='/logout'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
-                                    <i class="material-icons mdl-color-text--white" role="presentation">exit_to_app</i>
-                        </button></a>
-                </nav>
-            </div>
-        </header>
-        <main class="mdl-layout__content">
-            <div class="mdl-grid">
-                <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
-                    <div class="demo-card-wide mdl-card mdl-shadow--2dp">
-                        <div class="mdl-card__title">
-                            <h2 class="mdl-card__title-text mdl-color-text--teal">Level 1</h2>
-                        </div>
-                        <div class="mdl-card__supporting-text">
-                            <ul class="mdl-list">
-                                <li class="mdl-list__item">Tiles: Square</li>
-                                <li class="mdl-list__item">Size : 10 * 10</li>
-                                <li class="mdl-list__item">Pictorial : Yes</li>
-                            </ul>
-                        </div>
-                        <div class="mdl-card__actions mdl-card--border">
-                            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+            <% include navigation.html %>
+            
+            <main class="mdl-layout__content mdl-color--grey-100">
+                <div class="mdl-grid">
+                    <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 1</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Square</li>
+                                    <li class="mdl-list__item">Size : 10 * 10</li>
+                                    <li class="mdl-list__item">Pictorial : Yes</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
                                                                             Learn More
                                                                           </a>
 
-                            <a href='/apitest'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                <a href='/apitest'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                                                                 <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
                                                                                 <span class="visuallyhidden">play_arrow</span>
-                                                    </button></a>
+                                                    </button>
+                                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
-                    <div class="demo-card-wide mdl-card mdl-shadow--2dp">
-                        <div class="mdl-card__title">
-                            <h2 class="mdl-card__title-text mdl-color-text--teal">Level 2</h2>
-                        </div>
-                        <div class="mdl-card__supporting-text">
-                            <ul class="mdl-list">
-                                <li class="mdl-list__item">Tiles: Jagged</li>
-                                <li class="mdl-list__item">Size : 50 * 50</li>
-                                <li class="mdl-list__item">Pictorial : Yes</li>
-                            </ul>
-                        </div>
-                        <div class="mdl-card__actions mdl-card--border">
-                            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                    <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 2</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Jagged</li>
+                                    <li class="mdl-list__item">Size : 50 * 50</li>
+                                    <li class="mdl-list__item">Pictorial : Yes</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
                                                                                 Learn More
                                                                               </a>
 
-                            <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                                                                     <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
                                                                                     <span class="visuallyhidden">play_arrow</span>
                                                         </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
-                    <div class="demo-card-wide mdl-card mdl-shadow--2dp">
-                        <div class="mdl-card__title">
-                            <h2 class="mdl-card__title-text mdl-color-text--teal">Level 3</h2>
-                        </div>
-                        <div class="mdl-card__supporting-text">
-                            <ul class="mdl-list">
-                                <li class="mdl-list__item">Tiles: Voronoi</li>
-                                <li class="mdl-list__item">Size : 50 * 50</li>
-                                <li class="mdl-list__item">Pictorial : No</li>
-                            </ul>
-                        </div>
-                        <div class="mdl-card__actions mdl-card--border">
-                            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                    <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 3</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Voronoi</li>
+                                    <li class="mdl-list__item">Size : 50 * 50</li>
+                                    <li class="mdl-list__item">Pictorial : No</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
                                                                                     Learn More
                                                                                   </a>
 
-                            <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                                                                         <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
                                                                                         <span class="visuallyhidden">play_arrow</span>
                                                             </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="mdl-cell mdl-cell--3-col mdl-cell--12-col-phone">
-                    <div class="demo-card-wide mdl-card mdl-shadow--2dp">
-                        <div class="mdl-card__title">
-                            <h2 class="mdl-card__title-text mdl-color-text--teal">Level 4</h2>
-                        </div>
-                        <div class="mdl-card__supporting-text">
-                            <ul class="mdl-list">
-                                <li class="mdl-list__item">Tiles: Random</li>
-                                <li class="mdl-list__item">Size : unlimited</li>
-                                <li class="mdl-list__item">Pictorial : Color</li>
-                            </ul>
-                        </div>
-                        <div class="mdl-card__actions mdl-card--border">
-                            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Learn More</a>
-                            <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                    <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
+                        <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text mdl-color-text--teal">Level 4</h2>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <ul class="mdl-list">
+                                    <li class="mdl-list__item">Tiles: Random</li>
+                                    <li class="mdl-list__item">Size : unlimited</li>
+                                    <li class="mdl-list__item">Pictorial : Color</li>
+                                </ul>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Learn More</a>
+                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                                                                             <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
                                                                                             <span class="visuallyhidden">play_arrow</span>
                                                                 </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
 
+        </div>
 
-        </main>
-    </div>
-
-    <% include footer.html %>
+        <% include footer.html %>
