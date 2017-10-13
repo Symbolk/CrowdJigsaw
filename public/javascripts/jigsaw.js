@@ -1,5 +1,6 @@
 
 // auto hide and show some components when the user switch focus between workspace and sidespace
+/*
 $('.charms, .title, .info, .progress-bar').mouseleave(function () {
     $('.charms').animate({ opacity: 0 });
     $('.title').animate({ opacity: 0 });
@@ -12,8 +13,60 @@ $('.charms, .title, .info, .progress-bar').mouseover(function () {
     $('.title').animate({ opacity: 1.0 });
     $('.info').animate({ opacity: 1.0 });
     $('.progress-bar').animate({ opacity: 1.0 });
+});*/
+
+// add functions to the charms(e.g. toolbox)
+$('.zoomIn').click(function () {
+    puzzle.zoom(.1);
 });
 
+$('.zoomOut').click(function () {
+    puzzle.zoom(-.1);
+});
+
+$('.help').mousedown(function () {
+    if ($('.canvas').css('display') == 'none') {
+        $('.canvas').show();
+        $('.puzzle-image').hide();
+        $('.logo').hide();
+    } else {
+        $('.canvas').hide();
+        $('.puzzle-image').show();
+        $('.logo').show();
+    }
+});
+
+var charmsselected = false;
+
+$('.charms').mousedown(function (event) {
+    console.log("mousedown")
+    charmsselected = true;
+});
+
+$('.puzzle-html-body').mouseup(function (event) {
+    console.log("mouseup")
+    charmsselected = false;
+});
+
+$('.puzzle-html-body').mousemove(function (event) {
+    if(charmsselected)
+    {
+        var x = event.pageX;
+        var y = event.pageY;
+        console.log("top : " + y + "px", "left : " + x + "px")
+        $('.charms').css("position", "absolute"); 
+        $('.charms').css("top", y+"px"); 
+        $('.charms').css("left", x+"px");
+    }
+});
+
+$('.restart').click(function () {
+    // document.execCommand('Refresh');
+    window.location.reload();
+    // var puzzle = new JigsawPuzzle(config);
+});
+
+var charmsWidth = $('.charms').css('width').replace('px', '');
 
 Array.prototype.remove = function (start, end) {
     this.splice(start, end);
@@ -56,28 +109,6 @@ var puzzle = new JigsawPuzzle(config);
 puzzle.zoom(-.1);
 var path;
 var movePath = false;
-
-
-// add functions to the charms(e.g. toolbox)
-$('.zoomIn').click(function () {
-    puzzle.zoom(.1);
-});
-
-$('.zoomOut').click(function () {
-    puzzle.zoom(-.1);
-});
-
-$('.help').mousedown(function () {
-    if ($('.canvas').css('display') == 'none') {
-        $('.canvas').show();
-        $('.puzzle-image').hide();
-        $('.logo').hide();
-    } else {
-        $('.canvas').hide();
-        $('.puzzle-image').show();
-        $('.logo').show();
-    }
-});
 
 /**
  * click the settings button and show the puzzle settings
@@ -124,14 +155,6 @@ $('.help').mousedown(function () {
     });
 }());
 
-
-$('.restart').click(function () {
-    // document.execCommand('Refresh');
-    window.location.reload();
-    // var puzzle = new JigsawPuzzle(config);
-});
-
-var charmsWidth = $('.charms').css('width').replace('px', '');
 $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2 + 'px');
 
 var downTime, alreadyDragged, dragTime, draggingGroup;
