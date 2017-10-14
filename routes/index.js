@@ -123,10 +123,17 @@ router.route('/home').all(LoginFirst).get(function(req,res)
 });
 
 // Puzzle
-router.route('/puzzle').all(LoginFirst).get(function(req,res)
+router.route('/puzzle').get(function(req,res)
 {
     let selectStr={username:1,_id:0}
     res.render('puzzle', {title:'Puzzle'});
+});
+
+// Test
+router.route('/test').get(function(req,res)
+{
+    let selectStr={username:1,_id:0}
+    res.render('test', {title:'Test'});
 });
 
 

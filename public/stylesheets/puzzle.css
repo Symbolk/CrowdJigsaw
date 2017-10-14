@@ -7,7 +7,7 @@
 
 
 
-#canvas
+.canvas
 {
     overflow: hidden;    
     position: absolute;
@@ -18,6 +18,12 @@
      bottom: 10px;  
     /* */  
     border: 2px dashed #000;
+}
+
+/* Scale canvas with resize attribute to full size */
+canvas[resize] {
+    width: 100%;
+    height: 100%;
 }
 
 .puzzle-image

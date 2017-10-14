@@ -43,12 +43,12 @@ $('.charms').mousedown(function (event) {
     charmsselected = true;
 });
 
-$('.puzzle-html-body').mouseup(function (event) {
+$('*').mouseup(function (event) {
     console.log("mouseup")
     charmsselected = false;
 });
 
-$('.puzzle-html-body').mousemove(function (event) {
+$('*').mousemove(function (event) {
     if(charmsselected)
     {
         var x = event.pageX;
@@ -67,48 +67,6 @@ $('.restart').click(function () {
 });
 
 var charmsWidth = $('.charms').css('width').replace('px', '');
-
-Array.prototype.remove = function (start, end) {
-    this.splice(start, end);
-    return this;
-}
-
-view.currentScroll = new Point(0, 0);
-var scrollVector = new Point(0, 0);
-var scrollMargin = 32;
-
-$('#puzzle-image').attr('src', 'images/cat.jpg');
-
-var imgWidth = $('.puzzle-image').css('width').replace('px', '');
-var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 64;
-
-var config = ({
-    zoomScaleOnDrag: 1.25,
-    imgName: 'puzzle-image',
-    tileShape: 'straight', // curved or straight
-    tileWidth: tileWidth,
-    tilesPerRow: Math.ceil(imgWidth / tileWidth), //returns min int >= arg
-    tilesPerColumn: Math.ceil(imgHeight / tileWidth),
-    imgWidth: imgWidth,
-    imgHeight: imgHeight,
-    shadowWidth: 120,
-});
-
-var directions = [
-    new Point(0, -1),
-    new Point(1, 0),
-    new Point(0, 1),
-    new Point(-1, 0)
-];
-
-/**
- * Start building the puzzle
- */
-var puzzle = new JigsawPuzzle(config);
-puzzle.zoom(-.1);
-var path;
-var movePath = false;
 
 /**
  * click the settings button and show the puzzle settings
@@ -155,40 +113,57 @@ var movePath = false;
     });
 }());
 
+Array.prototype.remove = function (start, end) {
+    this.splice(start, end);
+    return this;
+}
+
+view.currentScroll = new Point(0, 0);
+var scrollVector = new Point(0, 0);
+var scrollMargin = 32;
+
+$('#puzzle-image').attr('src', 'images/cat.jpg');
+
+var imgWidth = $('.puzzle-image').css('width').replace('px', '');
+var imgHeight = $('.puzzle-image').css('height').replace('px', '');
+var tileWidth = 64;
+
+var config = ({
+    zoomScaleOnDrag: 1.25,
+    imgName: 'puzzle-image',
+    tileShape: 'curved', // curved or straight
+    tileWidth: tileWidth,
+    tilesPerRow: Math.ceil(imgWidth / tileWidth), //returns min int >= arg
+    tilesPerColumn: Math.ceil(imgHeight / tileWidth),
+    imgWidth: imgWidth,
+    imgHeight: imgHeight,
+    shadowWidth: 120,
+});
+
+var directions = [
+    new Point(0, -1),
+    new Point(1, 0),
+    new Point(0, 1),
+    new Point(-1, 0)
+];
+/**
+ * Start building the puzzle
+ */
+var puzzle = new JigsawPuzzle(config);
+puzzle.zoom(-.1);
+var path;
+var movePath = false;
+
 $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2 + 'px');
 
 var downTime, alreadyDragged, dragTime, draggingGroup;
 function onMouseDown(event) {
-    switch (event.event.button) {
-        case 0: {
-            downTime = event.event.timeStamp;
-            alreadyDragged = false;
-            draggingGroup = false;
-            puzzle.pickTile();
-            break;
-        }
-        // case 2: {
-        //     // test hint function
-        //     puzzle.showRecommendTiles();
-        //     break;
-        // }
-    }
+    puzzle.pickTile();
 }
 
 
 function onMouseUp(event) {
-    // restrict to the left click
-    switch (event.event.button) {
-        case 0: {
-            if (draggingGroup) {
-                puzzle.releaseGroup();
-            } else {
-                puzzle.releaseTile();
-            }
-            break;
-        }
-
-    }
+    puzzle.releaseTile();
 }
 
 function onMouseMove(event) {
@@ -202,25 +177,7 @@ function onMouseMove(event) {
 }
 
 function onMouseDrag(event) {
-    switch (event.event.button) {
-        case 0: {
-            if (!alreadyDragged) {
-                dragTime = event.event.timeStamp;
-                alreadyDragged = true;
-            }
-            if (dragTime - downTime < 500) {
-                if (!draggingGroup) {
-                    puzzle.pickGroup();// once
-                }
-                draggingGroup = true;
-                puzzle.dragGroup(event.delta);
-            } else {
-                draggingGroup = false;
-                puzzle.dragTile(event.delta);
-            }
-            break;
-        }
-    }
+    puzzle.dragTile(event.delta);
 }
 
 function onKeyUp(event) {
@@ -263,7 +220,6 @@ function JigsawPuzzle(config) {
 
     this.shadowScale = 1.5;
     this.tiles = createTiles(this.tilesPerRow, this.tilesPerColumn);
-
     // keep track of the steps of the current user
     this.steps = 0;
 
@@ -272,6 +228,7 @@ function JigsawPuzzle(config) {
         var tileRatio = instance.tileWidth / 100.0;
 
         var shapeArray = getRandomShapes(xTileCount, yTileCount);
+        console.log("getRandomShapes : " + xTileCount + ", " + yTileCount);
         var tileIndexes = new Array();
         for (var y = 0; y < yTileCount; y++) {
             for (var x = 0; x < xTileCount; x++) {
@@ -281,7 +238,6 @@ function JigsawPuzzle(config) {
                 var mask = getMask(tileRatio, shape.topTab, shape.rightTab, shape.bottomTab, shape.leftTab, instance.tileWidth);
                 mask.opacity = 0.01;
                 mask.strokeColor = '#fff'; //white
-
                 var cloneImg = instance.puzzleImage.clone();
                 var img = getTileRaster(
                     cloneImg,
@@ -291,10 +247,10 @@ function JigsawPuzzle(config) {
 
                 var border = mask.clone();
                 border.strokeColor = '#ccc'; //grey
-                border.strokeWidth = 5;
+                border.strokeWidth = 0;
 
                 // each tile is a group of
-                var tile = new Group(mask, border, img, border);
+                var tile = new Group(mask, img);
                 tile.clipped = true;
                 tile.opacity = .5;
 
@@ -333,6 +289,7 @@ function JigsawPuzzle(config) {
                 tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
                 tile.groupID = -1; // to which group the tile belongs(-1 by default
                 tile.grouped = false;
+
             }
         }
         return tiles;
@@ -411,7 +368,9 @@ function JigsawPuzzle(config) {
                 break;
             }
             case 'curved': {
-                return Math.pow(-1, Math.floor(Math.random() * 2));
+                var ret = Math.pow(-1, Math.floor(Math.random() * 2));
+                console.log("" + ret);
+                return ret;
                 break;
             }
             default: {
@@ -434,7 +393,7 @@ function JigsawPuzzle(config) {
         var mask = new Path();
         var tileCenter = view.center;
 
-        var topLeftEdge = new Point(-4, 4);
+        var topLeftEdge = new Point(0, 0);
 
         mask.moveTo(topLeftEdge);
 
@@ -473,7 +432,7 @@ function JigsawPuzzle(config) {
 
             mask.cubicCurveTo(p1, p2, p3);
         }
-
+        mask.position = new Point(32,32);
         return mask;
     }
 
@@ -484,85 +443,59 @@ function JigsawPuzzle(config) {
         tolerance: 5
     };
 
+
     function getTileRaster(sourceRaster, size, offset) {
         var targetRaster = new Raster('empty');
         var tileWithMarginWidth = size.width + instance.tileMarginWidth * 2;
-        var data = sourceRaster.getData(new Rectangle(
+        var data = sourceRaster.getImageData(new Rectangle(
             offset.x - instance.tileMarginWidth,
             offset.y - instance.tileMarginWidth,
             tileWithMarginWidth,
             tileWithMarginWidth));
-        targetRaster.setData(data, new Point(0, 0))
-        targetRaster.position = new Point(28, 36);
+        targetRaster.setImageData(data, new Point(0, 0))
+        targetRaster.position = new Point(32, 32);
         return targetRaster;
     }
 
-    this.pickTile = function () {
+    this.pickTile = function() {
         if (instance.selectedTile) {
-
-            // whether the tile is moved or just selected
-            instance.selectedTile.moved = false;
-            // get all linked tiles and group them together
-            var cellPosition = instance.selectedTile.cellPosition;
-
-            instance.selectedGroup = new Group(instance.selectedTile);
-
-            // the index of the selected tile
-            console.log('@ ' + instance.selectedTile.findex + ' in ' + instance.selectedTile.groupID);
+            if (!instance.selectedTile.lastScale) {
+                instance.selectedTile.lastScale = instance.zoomScaleOnDrag;
+                //instance.selectedTile.scale(instance.selectedTile.lastScale);
+            }
+            else {
+                if (instance.selectedTile.lastScale > 1) {
+                    instance.releaseTile();
+                    return;
+                }
+            }
 
             instance.selectedTile.cellPosition = undefined;
+
+            instance.selectionGroup = new Group(instance.selectedTile);
+
             var pos = new Point(instance.selectedTile.position.x, instance.selectedTile.position.y);
+            instance.selectedTile.position = new Point(0, 0);
 
-            instance.selectedGroup.position = pos;
+            instance.selectionGroup.position = pos;
         }
     }
 
-    this.showRecommendTiles = function () {
-        if (instance.selectedTile && instance.selectedTile.moved) {
-            showHints(instance.selectedTile, 4);
-        }
-    }
-
-    this.releaseGroup = function () {
-        // set new position for every grouped tile
-        console.log('RG');
-        for (var i = 0; i < instance.selectedGroup.children.length; i++) {
-            console.log('After' + instance.selectedGroup.children[i].findex);
-            var childTile = instance.tiles[instance.selectedGroup.children[i].findex];
-            var childCP = new Point(
-                Math.round(childTile.tempPosition.x / instance.tileWidth),
-                Math.round(childTile.tempPosition.y / instance.tileWidth));
-            // update the actual position of the tiles
-            var childP = childCP * instance.tileWidth;
-            childTile.position = childP;
-            childTile.cellPosition = childCP;
-            childTile.opacity = 1.0;
-        }
-
-        for (var i = 0; i < instance.selectedGroup.children.length; i++) {
-            var childTile = instance.tiles[instance.selectedGroup.children[i].findex];
-            instance.selectedGroup.remove();
-            project.activeLayer.addChild(childTile);
-        }
-
-        instance.selectedTile = instance.selectedGroup = null;        
-        draggingGroup = false;
-    }
-
-    this.releaseTile = function () {
-        console.log('RT');
+    this.releaseTile = function() {
         if (instance.selectedTile) {
-            // the release position
+
             var cellPosition = new Point(
-                Math.round(instance.selectedGroup.position.x / instance.tileWidth),
-                Math.round(instance.selectedGroup.position.y / instance.tileWidth));
+                Math.round(instance.selectionGroup.position.x / instance.tileWidth),
+                Math.round(instance.selectionGroup.position.y / instance.tileWidth));
+
+            console.log("cellPosition : x : " + cellPosition.x + " y : " + cellPosition.y);
 
             var roundPosition = cellPosition * instance.tileWidth;
 
+            console.log("cellPosition : x : " + roundPosition.x + " y : " + roundPosition.y);
+            
             var hasConflict = false;
-            var aroundTiles = new Array();
-
-            // get the tile already placed in the currenct position
+            
             var alreadyPlacedTile = getTileAtCellPosition(cellPosition);
 
             hasConflict = alreadyPlacedTile;
@@ -572,211 +505,49 @@ function JigsawPuzzle(config) {
             var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
             var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
-            // check if tiles around(if exists) fit in the tab( for curved tile puzzle )
-            // if there exists the top tile
-            // position means that: start from the selected tile, walk one step in the direction
             if (topTile) {
-                // hasConflict = hasConflict || !(topTile.shape.bottomTab + instance.selectedTile.shape.topTab == 0);
-                aroundTiles.push({
-                    tile: topTile,
-                    direction: 'T'
-                });
+                hasConflict = hasConflict || !(topTile.shape.bottomTab + instance.selectedTile.shape.topTab == 0);
             }
 
             if (bottomTile) {
-                // hasConflict = hasConflict || !(bottomTile.shape.topTab + instance.selectedTile.shape.bottomTab == 0);
-                aroundTiles.push({
-                    tile: bottomTile,
-                    direction: 'B'
-                });
+                hasConflict = hasConflict || !(bottomTile.shape.topTab + instance.selectedTile.shape.bottomTab == 0);
             }
 
             if (rightTile) {
-                // hasConflict = hasConflict || !(rightTile.shape.leftTab + instance.selectedTile.shape.rightTab == 0);
-                aroundTiles.push({
-                    tile: rightTile,
-                    direction: 'R'
-                });
+                hasConflict = hasConflict || !(rightTile.shape.leftTab + instance.selectedTile.shape.rightTab == 0);
             }
 
             if (leftTile) {
-                // hasConflict = hasConflict || !(leftTile.shape.rightTab + instance.selectedTile.shape.leftTab == 0);
-                aroundTiles.push({
-                    tile: leftTile,
-                    direction: 'L'
-                });
+                hasConflict = hasConflict || !(leftTile.shape.rightTab + instance.selectedTile.shape.leftTab == 0);
             }
 
-
-            // current no tile&&4 sides no conficts, a successful release
-            // fitted(has tiles around it)
             if (!hasConflict) {
-                // if the released tile has tiles around but no conflict
-                if (aroundTiles.length > 0) {
-                    if (instance.selectedTile.moved) {
-                        // release and update the database
-                        updateLinks(instance.selectedTileIndex, aroundTiles);
-                    }
-                } else if (aroundTiles.length === 0) {
-                    // isolated
-                    if (instance.selectedTile.moved) {
-                        removeLinks(instance.selectedTileIndex);// to be done
-                        // meaning that all around links are removed 
-                        console.log(instance.selectedTileIndex + '-= 0');
-                    }
+
+                if (instance.selectedTile.lastScale) {
+                    //instance.selectedTile.scale(1 / instance.selectedTile.lastScale);
+                    instance.selectedTile.lastScale = undefined;
                 }
 
-                // every pick and release is counted as one step
-                // real time update the step counter
-                instance.steps += 1;
-                document.getElementById("steps").innerText = instance.steps;
-
-                instance.selectedGroup.remove();
+                instance.selectionGroup.remove();
                 var tile = instance.tiles[instance.selectedTileIndex];
                 tile.position = roundPosition;
                 tile.cellPosition = cellPosition;
-                instance.selectedGroup.remove();
+                instance.selectionGroup.remove();
+                instance.selectedTile =
+                instance.selectionGroup = null;
                 project.activeLayer.addChild(tile);
 
-                // recommend tiles once the tile is released
-                instance.showRecommendTiles();
-
-                instance.selectedTile = instance.selectedGroup = null;
-                // group all linked tiles together with DFS(Floodfill Alg)
-                updateGroups();
-                // check num of errors every release
                 var errors = checkTiles();
-
                 if (errors == 0) {
                     alert('Congratulations!!!');
                 }
-            } else {
-                // hasConflict = alreadyPlacedTile
-                // if the cell already has tile in it, just switch the 2 tiles
-                console.log('Conflict');
-                var tile = instance.tiles[instance.selectedTileIndex];
-
-                alreadyPlacedTile.position = instance.selectedTile.position;
-                alreadyPlacedTile.cellPosition = instance.selectedTile.position / instance.tileWidth;
-
-                tile.cellPosition = cellPosition;
-                tile.position = roundPosition;
-
-                instance.selectedGroup.remove();
-                instance.selectedTile = instance.selectedGroup = null;
-                project.activeLayer.addChild(tile);
-            }
-        }
-
-    }
-
-    this.dragTile = function (delta) {
-        if (instance.selectedTile) {
-            instance.selectedTile.moved = true;
-            instance.selectedGroup.position += delta;
-            instance.selectedTile.opacity = 1;
-        } else {
-            var currentScroll = view.currentScroll - delta * instance.currentZoom;
-            view.scrollBy(currentScroll);
-            view.currentScroll = currentScroll;
-        }
-    }
-
-    this.pickGroup = function () {
-        if (instance.selectedTile) {
-            if (instance.selectedTile.groupID < 0) {
-                instance.selectedGroup = new Group(instance.selectedTile);
-                instance.selectedTile.tempPosition = instance.selectedTile.position;
-            } else {
-                for (var i = 0; i < instance.tiles.length; i++) {
-                    if (instance.tiles[i].grouped && instance.tiles[i].groupID == instance.selectedTile.groupID) {
-                        instance.selectedGroup.addChild(instance.tiles[i]);
-                        instance.tiles[i].tempPosition = instance.tiles[i].position;
-                    }
-                }
-            }
-            for (var i = 0; i < instance.selectedGroup.children.length; i++) {
-                console.log('Before' + instance.selectedGroup.children[i].findex);
             }
         }
     }
 
-    this.dragGroup = function (delta) {
-        if (instance.selectedTile) {
-            instance.selectedTile.moved = true;
-            instance.selectedTile.opacity = 1;
-
-            for (var i = 0; i < instance.selectedGroup.children.length; i++) {
-                var childTile = instance.tiles[instance.selectedGroup.children[i].findex];
-                childTile.moved = true;
-                childTile.opacity = 1;
-                childTile.tempPosition += delta;
-            }
-
-            instance.selectedGroup.position += delta;
-        } else {
-            var currentScroll = view.currentScroll - delta * instance.currentZoom;
-            view.scrollBy(currentScroll);
-            view.currentScroll = currentScroll;
-        }
-    }
-
-    this.mouseMove = function (point, delta) {
-        if (!instance.selectedGroup) {
-            // if not selected group, move the whole canvas
-            project.activeLayer.selected = false;
-            if (delta.x < 8 && delta.y < 8) {
-                var tolerance = instance.tileWidth * .5;
-                var hit = false; // onMouseEnter
-                for (var index = 0; index < instance.tiles.length; index++) {
-                    var tile = instance.tiles[index];
-                    // [row, col] coordinate of the tile
-                    var row = parseInt(index / config.tilesPerRow);
-                    var col = index % config.tilesPerRow;
-
-                    var tileCenter = tile.position;
-
-                    var deltaPoint = tileCenter - point;
-                    hit = (deltaPoint.x * deltaPoint.x +
-                        deltaPoint.y * deltaPoint.y) < tolerance * tolerance;
-
-                    // opacity effect of the mose move
-                    if (hit) {
-                        instance.selectedTile = tile;
-                        instance.selectedTileIndex = index;
-                        tile.opacity = 1;
-                        project.activeLayer.addChild(tile);
-                        return;
-                    } else {
-                        if (!tile.moved) {
-                            tile.opacity = 0.5;
-                        }
-                    }
-                }
-                if (!hit) {
-                    instance.selectedTile = null;
-                }
-            }
-        } else {
-            instance.dragTile(delta);
-        }
-    }
-
-    this.zoom = function (zoomDelta) {
-        var newZoom = instance.currentZoom + zoomDelta;
-        if (newZoom >= 0.3 && newZoom <= 1) {
-            view.zoom =
-                instance.currentZoom = newZoom;
-        }
-    }
-
-    /**
-     * Get the tile at the give cell position
-     * @param {*} point 
-     */
     function getTileAtCellPosition(point) {
-        //var width = instance.tilesPerRow;
-        //var height = instance.tilesPerColumn;
+        var width = instance.tilesPerRow;
+        var height = instance.tilesPerColumn;
         var tile = undefined;
         for (var i = 0; i < instance.tiles.length; i++) {
             if (instance.tiles[i].cellPosition == point) {
@@ -786,51 +557,64 @@ function JigsawPuzzle(config) {
         }
         return tile;
     }
-
-    /**
-     * DFS to get all linked tiles of the selected tile
-     * @param {*} tile 
-     */
-    function DFS(tile, groupID) {
-        tile.groupID = groupID;
-        tile.grouped = true;
-        for (var i = 0; i < 4; i++) {
-            var nextCellPosition = tile.cellPosition + directions[i];
-            var nextTile = getTileAtCellPosition(nextCellPosition);
-            if (nextTile != undefined && !nextTile.grouped) {
-                DFS(nextTile, groupID);
-            }
+    
+    this.dragTile = function(delta) {
+        if (instance.selectedTile) {
+            instance.selectionGroup.position += delta;
+            instance.selectedTile.opacity = 1;
         }
-        return;
+        else {
+            var currentScroll = view.currentScroll - delta * instance.currentZoom;
+            view.scrollBy(currentScroll);
+            view.currentScroll = currentScroll;
+        }
     }
 
+    this.mouseMove = function(point, delta) {
+        if (!instance.selectionGroup) {
+            project.activeLayer.selected = false;
+            if (delta.x < 8 && delta.y < 8) {
+                var tolerance = instance.tileWidth * .5;
+                var hit = false;
+                for (var index = 0; index < instance.tiles.length; index++) {
+                    var tile = instance.tiles[index];
+                    var row = parseInt(index / config.tilesPerRow);
+                    var col = index % config.tilesPerRow;
 
-    /**
-     * Update the group stats of the map
-     */
-    function updateGroups() {
-        var groupID = -1;
-        for (var y = 0; y < instance.tilesPerColumn; y++) {
-            for (var x = 0; x < instance.tilesPerRow; x++) {
-                var tile = instance.tiles[y * instance.tilesPerRow + x];
-                tile.grouped = false;
-                tile.groupID = -1;
-            }
-        }
-        for (var y = 0; y < instance.tilesPerColumn; y++) {
-            for (var x = 0; x < instance.tilesPerRow; x++) {
-                var tile = instance.tiles[y * instance.tilesPerRow + x];
-                if (!tile.grouped) {
-                    groupID++; // find a new group
-                    DFS(tile, groupID);
+                    var tileCenter = tile.position;
+
+                    var deltaPoint = tileCenter - point;
+                    hit = (deltaPoint.x * deltaPoint.x + 
+                                deltaPoint.y * deltaPoint.y) < tolerance * tolerance;
+
+                    if (hit) {
+                        instance.selectedTile = tile;
+                        instance.selectedTileIndex = index;
+                        tile.opacity = .5;
+                        project.activeLayer.addChild(tile);
+                        return;
+                    }
+                    else {
+                        tile.opacity = 1;
+                    }
                 }
+                if (!hit)
+                    instance.selectedTile = null;
             }
+        }
+        else {
+            instance.dragTile(delta);
         }
     }
 
-    /**
-     * Only checks the global errors 
-     */
+    this.zoom = function(zoomDelta) {
+        var newZoom = instance.currentZoom + zoomDelta;
+        if (newZoom >= 0.3 && newZoom <= 1) {
+            view.zoom = 
+            instance.currentZoom = newZoom;
+        }
+    }
+
     function checkTiles() {
         var errors = 0;
         var firstTile = instance.tiles[0];
@@ -838,88 +622,15 @@ function JigsawPuzzle(config) {
 
         for (var y = 0; y < instance.tilesPerColumn; y++) {
             for (var x = 0; x < instance.tilesPerRow; x++) {
-                var tile = instance.tiles[y * instance.tilesPerRow + x];
-                var cellPosition = tile.cellPosition;
-                tile.grouped = false;
+                var index = y * instance.tilesPerRow + x;
+                var cellPosition = instance.tiles[index].cellPosition;
 
                 if (cellPosition != firstCellPosition + new Point(x, y)) {
                     errors++;
                 }
             }
         }
-        uploadScore();
+
         return errors;
-    }
-
-
-
-    /**
-     * Move the recommended tiles into the hint box, and move them back when the user "focus" on another tile
-     * Called in recommendTiles() then()
-     * @param {*} selectedTile
-     * @param {*} n 
-     */
-    function showHints(selectedTile, n) {
-        var selectedTileIndex = selectedTile.findex;
-        getHints(selectedTileIndex, n).then(function (hintTiles) {
-            var once = {
-                'T': false,
-                'R': false,
-                'B': false,
-                'L': false
-            };
-            // from the highest score to the lowest score
-            for (var i = hintTiles.length - 1; i >= 0; i--) {
-                var tile = instance.tiles[Number(hintTiles[i].index)];
-                var direction = hintTiles[i].direction;
-                var selectedCellPosition = instance.tiles[selectedTileIndex].cellPosition;
-                var newCellPosition = undefined;
-                if (direction != undefined && !once[direction]) {
-                    switch (direction) {
-                        case 'T':
-                            newCellPosition = selectedCellPosition + new Point(0, -1);
-                            break;
-                        case 'R':
-                            newCellPosition = selectedCellPosition + new Point(1, 0);
-                            break;
-                        case 'B':
-                            newCellPosition = selectedCellPosition + new Point(0, 1);
-                            break;
-                        case 'L':
-                            newCellPosition = selectedCellPosition + new Point(-1, 0);
-                            break;
-                        default:
-                            break;
-                    }
-                    once[direction] = true;
-                    // only combine the empty cell around the selected one
-                    if (newCellPosition != undefined && getTileAtCellPosition(newCellPosition) == undefined) {
-                        // tile.animate({
-                        //     properties: {
-                        //         position: {
-                        //             x: (newCellPosition * instance.tileWidth).x,
-                        //             y: (newCellPosition * instance.tileWidth).y
-                        //         },
-                        //     },
-                        //     settings: {
-                        //         duration: 1000
-                        //     }
-                        // });
-
-                        // update the tile position after the animation
-                        // TOFIX(the cell position is not updated in time)
-                        // setTimeout(function () {
-                        tile.cellPosition = newCellPosition;
-                        tile.position = newCellPosition * instance.tileWidth;
-                        tile.moved = true;
-                        tile.opacity = 1;
-                        updateGroups();
-                        // }, 1000);
-                    }
-                }
-            }
-        }).catch(function () {
-            console.log('No recommendations.');
-        });
     }
 }

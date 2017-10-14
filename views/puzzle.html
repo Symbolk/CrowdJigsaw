@@ -1,5 +1,4 @@
 <% include header.html %>
-<div class = "puzzle-html-body">
     <main class="puzzle">
         <canvas id="canvas" class="canvas" resize></canvas>
     </main>
@@ -25,7 +24,7 @@
             <button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
         </div>
     </div>
-    <% include toolbar.html %>
+
     <div class="progress-bar">
         <div id="progress" class="mdl-progress mdl-js-progress">
         </div>
@@ -77,6 +76,5 @@
         <img width="512" height="512" id="puzzle-image" class="puzzle-image" style="display: none;" src="images/cat.jpg" />
         <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
     </div>
-</div>
-
+    <% include toolbar.html %>
     <% include footer.html %>
