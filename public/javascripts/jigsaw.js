@@ -253,6 +253,7 @@ function JigsawPuzzle(config) {
                 var tile = new Group(mask, img);
                 tile.clipped = true;
                 tile.opacity = .5;
+                tile.pivot = new Point(32, 32);
 
                 tile.shape = shape;
                 tile.imagePosition = new Point(x, y);
@@ -432,7 +433,6 @@ function JigsawPuzzle(config) {
 
             mask.cubicCurveTo(p1, p2, p3);
         }
-        mask.position = new Point(32,32);
         return mask;
     }
 
