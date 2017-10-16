@@ -39,12 +39,10 @@ $('.help').mousedown(function () {
 var charmsselected = false;
 
 $('.charms').mousedown(function (event) {
-    console.log("mousedown")
     charmsselected = true;
 });
 
 $('*').mouseup(function (event) {
-    console.log("mouseup")
     charmsselected = false;
 });
 
@@ -215,7 +213,6 @@ function JigsawPuzzle(config) {
 
     this.tileMarginWidth = this.tileWidth * 0.203125;
     this.selectedTile = undefined;
-    this.selectedTileIndex = undefined;
     this.selectedGroup = undefined;
 
     this.shadowScale = 1.5;
@@ -261,8 +258,8 @@ function JigsawPuzzle(config) {
                 // tile fixed index/unique id
                 tile.findex = y * xTileCount + x;
                 //console.log(tile.findex);
-
                 tiles.push(tile);
+                tile.name = "tile-" + tileIndexes.length;
                 tileIndexes.push(tileIndexes.length);
             }
         }
@@ -287,6 +284,7 @@ function JigsawPuzzle(config) {
 
                 tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
                 tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
+                tile.relativePosition = new Point(0,0);
                 tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
                 tile.groupID = -1; // to which group the tile belongs(-1 by default
                 tile.grouped = false;
@@ -457,85 +455,102 @@ function JigsawPuzzle(config) {
         return targetRaster;
     }
 
+    function getTileIndex(tile){
+        return new Number(tile.name.substr(5));
+    }
+
     this.pickTile = function() {
         if (instance.selectedTile) {
-            if (!instance.selectedTile.lastScale) {
-                instance.selectedTile.lastScale = instance.zoomScaleOnDrag;
-                //instance.selectedTile.scale(instance.selectedTile.lastScale);
+            console.log(instance.selectedTile);
+            if (!instance.selectedTile[0].lastScale) {
+                for(var i = 0; i < instance.selectedTile.length; i++){
+                    instance.selectedTile[i].lastScale = instance.zoomScaleOnDrag;
+                }
             }
             else {
-                if (instance.selectedTile.lastScale > 1) {
+                if (instance.selectedTile[0].lastScale > 1) {
                     instance.releaseTile();
                     return;
                 }
             }
 
-            instance.selectedTile.cellPosition = undefined;
+            instance.selecting = true;
 
-            instance.selectionGroup = new Group(instance.selectedTile);
-
-            var pos = new Point(instance.selectedTile.position.x, instance.selectedTile.position.y);
-            instance.selectedTile.position = new Point(0, 0);
-
-            instance.selectionGroup.position = pos;
+            var pos = new Point(instance.selectedTile[0].position.x, instance.selectedTile[0].position.y);
+            for(var i = 0; i < instance.selectedTile.length; i++){
+                var tile = instance.selectedTile[i];
+                tile.position = pos + tile.relativePosition * instance.tileWidth;
+            }
         }
     }
 
     this.releaseTile = function() {
-        if (instance.selectedTile) {
+        if (instance.selecting) {
 
-            var cellPosition = new Point(
-                Math.round(instance.selectionGroup.position.x / instance.tileWidth),
-                Math.round(instance.selectionGroup.position.y / instance.tileWidth));
+            var centerCellPosition = new Point(
+                Math.round(instance.selectedTile[0].position.x / instance.tileWidth),
+                Math.round(instance.selectedTile[0].position.y / instance.tileWidth));
 
-            console.log("cellPosition : x : " + cellPosition.x + " y : " + cellPosition.y);
+            console.log("cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
 
-            var roundPosition = cellPosition * instance.tileWidth;
-
-            console.log("cellPosition : x : " + roundPosition.x + " y : " + roundPosition.y);
-            
             var hasConflict = false;
             
-            var alreadyPlacedTile = getTileAtCellPosition(cellPosition);
+            for(var i = 0; i < instance.selectedTile.length; i++){
+                var tile = instance.selectedTile[i];
 
-            hasConflict = alreadyPlacedTile;
+                var cellPosition = centerCellPosition + tile.relativePosition;
 
-            var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
-            var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
-            var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
-            var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
+                var roundPosition = cellPosition * instance.tileWidth;
+            
+                var alreadyPlacedTile = getTileAtCellPosition(cellPosition);
 
-            if (topTile) {
-                hasConflict = hasConflict || !(topTile.shape.bottomTab + instance.selectedTile.shape.topTab == 0);
-            }
+                hasConflict = alreadyPlacedTile;
 
-            if (bottomTile) {
-                hasConflict = hasConflict || !(bottomTile.shape.topTab + instance.selectedTile.shape.bottomTab == 0);
-            }
+                var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
+                var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
+                var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
+                var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
-            if (rightTile) {
-                hasConflict = hasConflict || !(rightTile.shape.leftTab + instance.selectedTile.shape.rightTab == 0);
-            }
 
-            if (leftTile) {
-                hasConflict = hasConflict || !(leftTile.shape.rightTab + instance.selectedTile.shape.leftTab == 0);
+                if (topTile) {
+                    hasConflict = hasConflict || !(topTile.shape.bottomTab + tile.shape.topTab == 0);
+                }
+
+                if (bottomTile) {
+                    hasConflict = hasConflict || !(bottomTile.shape.topTab + tile.shape.bottomTab == 0);
+                }
+
+                if (rightTile) {
+                    hasConflict = hasConflict || !(rightTile.shape.leftTab + tile.shape.rightTab == 0);
+                }
+
+                if (leftTile) {
+                    hasConflict = hasConflict || !(leftTile.shape.rightTab + tile.shape.leftTab == 0);
+                }
             }
 
             if (!hasConflict) {
 
-                if (instance.selectedTile.lastScale) {
-                    //instance.selectedTile.scale(1 / instance.selectedTile.lastScale);
-                    instance.selectedTile.lastScale = undefined;
+                if (instance.selectedTile[0].lastScale) {
+                    for(var i = 0; i < instance.selectedTile.length; i++){
+                        instance.selectedTile[i].lastScale = undefined;
+                    }
                 }
 
-                instance.selectionGroup.remove();
-                var tile = instance.tiles[instance.selectedTileIndex];
-                tile.position = roundPosition;
-                tile.cellPosition = cellPosition;
-                instance.selectionGroup.remove();
-                instance.selectedTile =
-                instance.selectionGroup = null;
-                project.activeLayer.addChild(tile);
+                for(var i = 0; i < instance.selectedTile.length; i++){
+                    var tile = instance.selectedTile[i];
+
+                    var cellPosition = centerCellPosition + tile.relativePosition;
+
+                    var roundPosition = cellPosition * instance.tileWidth;
+
+                    tile.position = roundPosition;
+                    
+                    tile.cellPosition = cellPosition;
+                }
+
+                instance.selectedTile = null;
+                instance.selecting = false;
 
                 var errors = checkTiles();
                 if (errors == 0) {
@@ -559,9 +574,14 @@ function JigsawPuzzle(config) {
     }
     
     this.dragTile = function(delta) {
-        if (instance.selectedTile) {
-            instance.selectionGroup.position += delta;
-            instance.selectedTile.opacity = 1;
+        if (instance.selecting) {
+            instance.selectedTile[0].position += delta;
+            var centerPosition = instance.selectedTile[0].position;
+            for(var i = 0; i < instance.selectedTile.length; i++){
+                var tile = instance.selectedTile[i];
+                tile.opacity = 1;
+                tile.position = centerPosition + tile.relativePosition * instance.tileWidth;
+            }
         }
         else {
             var currentScroll = view.currentScroll - delta * instance.currentZoom;
@@ -570,9 +590,24 @@ function JigsawPuzzle(config) {
         }
     }
 
+    function dfsTiles(tile, array, relativePosition){
+        for(var i = 0; i <array.length; i++){
+            if(array[i] == tile)
+                return;
+        }
+        tile.relativePosition = relativePosition;
+        array.push(tile);
+        for(var i = 0; i < 4; i++){
+            var newPos = tile.cellPosition + directions[i];
+            newTile = getTileAtCellPosition(newPos);
+            if(newTile){
+                dfsTiles(newTile, array, relativePosition + directions[i]);
+            }
+        }
+    }
+
     this.mouseMove = function(point, delta) {
-        if (!instance.selectionGroup) {
-            project.activeLayer.selected = false;
+        if (!instance.selecting) {
             if (delta.x < 8 && delta.y < 8) {
                 var tolerance = instance.tileWidth * .5;
                 var hit = false;
@@ -588,18 +623,23 @@ function JigsawPuzzle(config) {
                                 deltaPoint.y * deltaPoint.y) < tolerance * tolerance;
 
                     if (hit) {
-                        instance.selectedTile = tile;
-                        instance.selectedTileIndex = index;
-                        tile.opacity = .5;
-                        project.activeLayer.addChild(tile);
+                        instance.selectedTile = new Array();
+                        dfsTiles(tile, instance.selectedTile, new Point(0,0));
+                        for(var i = 0; i < instance.selectedTile.length; i++){
+                            instance.selectedTile[i].opacity = .5;
+                        }
                         return;
                     }
                     else {
-                        tile.opacity = 1;
+                        if(instance.selectedTile){
+                            instance.selectedTile = null;
+                        }
+                        tile.opacity = 1
                     }
                 }
-                if (!hit)
+                if (!hit){
                     instance.selectedTile = null;
+                }
             }
         }
         else {
