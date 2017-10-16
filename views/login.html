@@ -1,5 +1,5 @@
 <% include header.html %>
-<div class="page-splash">
+    <div class="page-splash">
         <%- message %>
             <h1>
                 <%= title %>
@@ -23,10 +23,11 @@
                                 <label class="mdl-textfield__label" for="password">Password</label>
                             </div>
                             <br />
-                            
-                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" style="margin:0 auto;" id="signin" name="signin">Login!</button>                           
-                            &nbsp;&nbsp;&nbsp;
-                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect" id="trouble" name="trouble">Trouble?</button>
+
+                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored mdl-js-ripple-effect" style="margin:0 auto;"
+                                id="signin" name="signin">Login!</button> &nbsp;&nbsp;&nbsp;
+                                <a href="/reset"><button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent mdl-js-ripple-effect"
+                            type="button" id="trouble" name="trouble">Trouble?</button></a>
                             <hr style="height:5px;border:none;border-top:5px groove skyblue;" />
                             <div class="fuzq_input_wrap">
                                 New Player?<a href="/register">Register</a>
@@ -35,11 +36,7 @@
                     </div>
                 </div>
             </form>
-            <div class="mdl-snackbar mdl-js-snackbar">
-                <div class="mdl-snackbar__text"></div>
-                <button class="mdl-snackbar__action" type="button"></button>
-            </div>
-            
-        </div>
+            <% include toast.html %>
+    </div >
 
-        <% include footer.html %>
+    <% include footer.html %>

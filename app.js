@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const session=require('express-session');
+const ejs=require('ejs');
 require('./db');
 
 // 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
@@ -29,14 +30,15 @@ app.use(function(req,res,next)
     res.locals.message='';
     if(err)
     {
-        res.locals.message='<div class="message">'+err+'</div>';
+        res.locals.message=''+err;
     }
     next();
 });
 
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.engine('.html', require('ejs').__express);
+app.engine('.html', ejs.__express);
 app.set('view engine', 'html');
 
 
@@ -78,5 +80,6 @@ app.use(function(err, req, res, next) {
 /* app.listen(config.port, function(){
    console.log(`${pkg.name} listening on port ${config.port}`);
 });*/
+
 
 app.listen(3000);//nodemon
