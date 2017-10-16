@@ -1,80 +1,53 @@
 <% include header.html %>
-    <main class="puzzle">
-        <canvas id="canvas" class="canvas" resize></canvas>
-    </main>
+<% include newToolbar.html %>
 
-    <div class="info mdl-shadow--8dp">
-        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_steps">
-            <span class="mdl-switch__label"></span>
-            <input type="checkbox" id="show_steps" class="mdl-switch__input" checked>
-        </label>
-        <span id="steps_chip" class="mdl-chip mdl-chip--contact">
-            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">S</span>
-        <span id="steps" class="mdl-chip__text">0</span>
-        <button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
-        </span>
-        <div class="mdl-layout-spacer"></div>
-        <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_timer">
-            <span class="mdl-switch__label"></span>
-            <input type="checkbox" id="show_timer" class="mdl-switch__input" checked>
-        </label>
-        <div id="timer_chip" class="mdl-chip mdl-chip--contact">
-            <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">T</span>
-            <span id="timer" class="mdl-chip__text">00:00:00</span>
-            <button type="button" class="mdl-chip__action"><i class="material-icons">cancel</i></button>
-        </div>
-    </div>
-
-    <div class="progress-bar">
-        <div id="progress" class="mdl-progress mdl-js-progress">
-        </div>
-        <button id="percentage" type="button" class="mdl-chip">
-            <span class="mdl-chip__text">30%</span>
-        </button>
-    </div>
-
-    <dialog class="mdl-dialog" id="settings">
-        <div class="mdl-dialog__content">
-            <p>
-                游戏设置
-                <i class="material-icons md-48">settings</i>
-            </p>
-            <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-1">
+<dialog class="mdl-dialog" id="settings">
+    <div class="mdl-dialog__content">
+        <p>
+            游戏设置
+            <i class="material-icons md-48">settings</i>
+        </p>
+        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-1">
             <input type="radio" id="option-1" class="mdl-radio__button" name="options" value="1" checked>
             <span class="mdl-radio__label">Level 1</span>
-            </label>
-            <br/>
-            <br/>
+        </label>
+        <br/>
+        <br/>
             <!-- <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-2">
             <input type="radio" id="option-2" class="mdl-radio__button" name="options" value="2">
             <span class="mdl-radio__label">Level 2</span>
-            </label> -->
-            <div class="mdl-dialog__actions mdl-card--border">
-                <button type="button" class="mdl-button" id="cancel-button">取消</button>
-                <button type="button" class="mdl-button" id="apply-button">应用</button>
-            </div>
+        </label> -->
+        <div class="mdl-dialog__actions mdl-card--border">
+            <button type="button" class="mdl-button" id="cancel-button">取消</button>
+            <button type="button" class="mdl-button" id="apply-button">应用</button>
         </div>
-    </dialog>
-
-    <dialog class="mdl-dialog" id="user-profile">
-        <div class="mdl-dialog__content">
-            <p>
-                当前用户
-                <i class="material-icons md-48">account_circle</i>
-            </p>
-            <div id="user-name"></div>
-            <img id='user-pic' src='images/profile_placeholder.png'></img>
-            <div class="mdl-dialog__actions mdl-card--border">
-                <button type="button" class="mdl-button" id="close-button">关闭</button>
-                <button type="button" class="mdl-button" id="sign-out-button">登出</button>
-            </div>
-        </div>
-    </dialog>
-
-
-    <div class="solution">
-        <img width="512" height="512" id="puzzle-image" class="puzzle-image" style="display: none;" src="images/cat.jpg" />
-        <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
     </div>
-    <% include toolbar.html %>
-    <% include footer.html %>
+</dialog>
+
+<dialog class="mdl-dialog" id="user-profile">
+    <div class="mdl-dialog__content">
+        <p>
+            当前用户
+            <i class="material-icons md-48">account_circle</i>
+        </p>
+        <div id="user-name"></div>
+        <img id='user-pic' src='images/profile_placeholder.png'></img>
+        <div class="mdl-dialog__actions mdl-card--border">
+            <button type="button" class="mdl-button" id="close-button">关闭</button>
+            <button type="button" class="mdl-button" id="sign-out-button">登出</button>
+        </div>
+    </div>
+</dialog>
+
+
+<div class="solution">
+    <img width="512" height="512" id="puzzle-image" class="puzzle-image" style="display: none;" src="images/cat.jpg" />
+    <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
+</div>
+
+
+<main class="puzzle">
+    <canvas id="canvas" class="canvas" resize></canvas>
+</main>
+
+<% include footer.html %>

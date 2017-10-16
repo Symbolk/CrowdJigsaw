@@ -1,21 +1,22 @@
 
 // auto hide and show some components when the user switch focus between workspace and sidespace
-/*
-$('.charms, .title, .info, .progress-bar').mouseleave(function () {
+
+$('.title').mouseleave(function () {
     $('.charms').animate({ opacity: 0 });
     $('.title').animate({ opacity: 0 });
     $('.info').animate({ opacity: 0 });
     $('.progress-bar').animate({ opacity: 0 });
 });
 
-$('.charms, .title, .info, .progress-bar').mouseover(function () {
+$('.title').mouseover(function () {
     $('.charms').animate({ opacity: 1.0 });
     $('.title').animate({ opacity: 1.0 });
     $('.info').animate({ opacity: 1.0 });
     $('.progress-bar').animate({ opacity: 1.0 });
-});*/
+});
 
 // add functions to the charms(e.g. toolbox)
+
 $('.zoomIn').click(function () {
     puzzle.zoom(.1);
 });
@@ -36,27 +37,7 @@ $('.help').mousedown(function () {
     }
 });
 
-var charmsselected = false;
 
-$('.charms').mousedown(function (event) {
-    charmsselected = true;
-});
-
-$('*').mouseup(function (event) {
-    charmsselected = false;
-});
-
-$('*').mousemove(function (event) {
-    if(charmsselected)
-    {
-        var x = event.pageX;
-        var y = event.pageY;
-        console.log("top : " + y + "px", "left : " + x + "px")
-        $('.charms').css("position", "absolute"); 
-        $('.charms').css("top", y+"px"); 
-        $('.charms').css("left", x+"px");
-    }
-});
 
 $('.restart').click(function () {
     // document.execCommand('Refresh');
@@ -64,11 +45,11 @@ $('.restart').click(function () {
     // var puzzle = new JigsawPuzzle(config);
 });
 
-var charmsWidth = $('.charms').css('width').replace('px', '');
 
 /**
  * click the settings button and show the puzzle settings
  */
+
 (function () {
     var showButton = document.querySelector('#show-settings');
     var dialog = document.querySelector('#settings');
@@ -157,6 +138,7 @@ $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2
 var downTime, alreadyDragged, dragTime, draggingGroup;
 function onMouseDown(event) {
     puzzle.pickTile();
+    console.log("mouse down");
 }
 
 
@@ -165,6 +147,7 @@ function onMouseUp(event) {
 }
 
 function onMouseMove(event) {
+    console.log("mouse move");
     puzzle.mouseMove(event.point, event.delta);
 
     if (event.point.x < scrollMargin) {
