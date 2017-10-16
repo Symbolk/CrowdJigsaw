@@ -46,6 +46,7 @@ router.route('/login').all(Logined).get(function(req,res)
                 {
                     //出于安全，只把包含用户名的对象存入session
                     req.session.user=selectStr;
+                    req.session.error='Welcome! '+user.username;
                     return res.redirect('/home');
                 }
                 else
@@ -174,6 +175,7 @@ router.route('/rank').all(LoginFirst).get(function(req,res)
 router.get('/logout',function(req,res)
 {
     req.session.user=null;
+    req.session.error=null;
     return res.redirect('/');
 });
 

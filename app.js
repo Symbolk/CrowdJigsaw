@@ -17,18 +17,19 @@ app.use(session({
   secret:'secret',
   cookie:{maxAge:1000*60*30},
   resave:false,
-  saveUninitialized:true
+  saveUninitialized:false
 }));
 
 app.use(function(req,res,next)
 {
     res.locals.user=req.session.user;
-    let err=req.session.error;
+    var err=req.session.error;
     delete req.session.error;
+    // res.locals对象保存在一次请求范围内的响应体中的本地变量值。
     res.locals.message='';
     if(err)
     {
-        res.locals.message='<div class="fuzq_message">'+err+'</div>';
+        res.locals.message='<div class="message">'+err+'</div>';
     }
     next();
 });

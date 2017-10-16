@@ -1,5 +1,4 @@
 <% include header.html %>
-
     <main class="puzzle">
         <canvas id="canvas" class="canvas" resize></canvas>
     </main>
@@ -26,17 +25,6 @@
         </div>
     </div>
 
-
-    <div class="charms mdl-shadow--8dp">
-        <!-- <button type="button" id="show-user" class="user material-icons md-48 mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
-            </button> -->
-        <img width="50" height="50" id="show-user" src="images/user.png" class="user" />
-        <img width="50" height="50" src="images/help.png" class="help" />
-        <img width="50" height="50" src="images/zoomout.png" class="zoomOut" />
-        <img width="50" height="50" src="images/zoomin.png" class="zoomIn" />
-        <img width="50" height="50" src="images/restart.png" class="restart" />
-        <img width="50" height="50" id="show-settings" src="images/settings.png" class="settings" />
-    </div>
     <div class="progress-bar">
         <div id="progress" class="mdl-progress mdl-js-progress">
         </div>
@@ -88,6 +76,5 @@
         <img width="512" height="512" id="puzzle-image" class="puzzle-image" style="display: none;" src="images/cat.jpg" />
         <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
     </div>
-
-
+    <% include toolbar.html %>
     <% include footer.html %>
