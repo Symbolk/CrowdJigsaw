@@ -170,6 +170,20 @@ router.route('/rank').all(LoginFirst).get(function(req,res)
     });
 });
 
+// Account Settings
+router.route('/settings').all(LoginFirst).get(function(req,res)
+{
+    // TODO
+    res.render('settings',{title:'Account Settings'});    
+});
+
+// Personal Records
+router.route('/records').all(LoginFirst).get(function(req,res)
+{
+    // TODO    
+    res.render('records',{title:'Personal Records'});        
+});
+
 
 // Log out
 router.get('/logout',function(req,res)
@@ -203,9 +217,10 @@ function LoginFirst(req,res,next)
 
 // Graph Operations
 
-router.route('/create').get(function(req,res)
+router.route('/create').post(function(req,res)
 {
-    LinkModel.create({from:3, to:6}, function(err, doc){
+    console.log(req.body);
+    LinkModel.create({from:req.body.from, to:req.body.to}, function(err, doc){
         if(err){
             console.log(err);
         }else{
