@@ -136,6 +136,7 @@ var config = ({
     imgWidth: imgWidth,
     imgHeight: imgHeight,
     shadowWidth: 120,
+    dragMode: 'tile-First' // tile-First or group-First
 });
 
 var directions = [
@@ -157,7 +158,7 @@ $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
-    timeoutFunction=window.setTimeout(puzzle.dragOnlyTile,500); 
+    timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500); 
     puzzle.pickTile();
 }
 
@@ -208,6 +209,8 @@ function JigsawPuzzle(config) {
 
     this.puzzleImage.visible = false;
     this.tileWidth = config.tileWidth;
+
+    this.dragMode = config.dragMode;
 
     this.tilesPerRow = config.tilesPerRow;
     this.tilesPerColumn = config.tilesPerColumn;
@@ -549,6 +552,8 @@ function JigsawPuzzle(config) {
                     tile.position = roundPosition;
                     
                     tile.cellPosition = cellPosition;
+
+                    tile.relativePosition = new Point(0, 0);
                 }
 
                 instance.selectedTile = null;
@@ -591,7 +596,7 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function dfsTiles(tile, array, relativePosition){
+    function DFSTiles(tile, array, relativePosition){
         for(var i = 0; i <array.length; i++){
             if(array[i] == tile)
                 return;
@@ -602,7 +607,7 @@ function JigsawPuzzle(config) {
             var newPos = tile.cellPosition + directions[i];
             newTile = getTileAtCellPosition(newPos);
             if(newTile){
-                dfsTiles(newTile, array, relativePosition + directions[i]);
+                DFSTiles(newTile, array, relativePosition + directions[i]);
             }
         }
     }
@@ -624,7 +629,12 @@ function JigsawPuzzle(config) {
                                 deltaPoint.y * deltaPoint.y) < tolerance * tolerance;
                     if (hit) {
                         instance.selectedTile = new Array();
-                        dfsTiles(tile, instance.selectedTile, new Point(0,0));
+                        if(instance.dragMode == "tile-First"){
+                            instance.selectedTile.push(tile);
+                        }
+                        else{
+                            DFSTiles(tile, instance.selectedTile, new Point(0,0));
+                        }
                         for(var i = 0; i < instance.selectedTile.length; i++){
                             instance.selectedTile[i].opacity = .5;
                         }
@@ -647,8 +657,17 @@ function JigsawPuzzle(config) {
         }
     }
 
+    this.dragTileOrTiles = function(){
+        if(instance.dragMode == "tile-First"){
+            instance.dragDFSTile();
+        }
+        else{
+            instance.dragOnlyTile();
+        }
+    }
+
     this.dragOnlyTile = function(){
-        if(instance.selectedTile){;
+        if(instance.selectedTile){
             for(var i = 1; i < instance.selectedTile.length; i++){
                 instance.selectedTile[i].opacity = 1;
                 instance.selectedTile[i].picking = false;
@@ -656,6 +675,17 @@ function JigsawPuzzle(config) {
             var tile = instance.selectedTile[0];
             instance.selectedTile = new Array();
             instance.selectedTile.push(tile);
+        }
+    }
+
+    this.dragDFSTile = function(){
+        if(instance.selectedTile){
+            var tile = instance.selectedTile[0];
+            instance.selectedTile = new Array();
+            DFSTiles(tile, instance.selectedTile, new Point(0, 0));
+            for(var i = 0; i < instance.selectedTile.length; i++){
+                instance.selectedTile[i].opacity = .5;
+            }
         }
     }
 

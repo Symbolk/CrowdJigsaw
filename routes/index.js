@@ -46,6 +46,7 @@ router.route('/login').all(Logined).get(function(req,res)
                 {
                     //出于安全，只把包含用户名的对象存入session
                     req.session.user=selectStr;
+                    req.session.error='Welcome! '+user.username;
                     return res.redirect('/home');
                 }
                 else
@@ -176,11 +177,26 @@ router.route('/rank').all(LoginFirst).get(function(req,res)
     });
 });
 
+// Account Settings
+router.route('/settings').all(LoginFirst).get(function(req,res)
+{
+    // TODO
+    res.render('settings',{title:'Account Settings'});    
+});
+
+// Personal Records
+router.route('/records').all(LoginFirst).get(function(req,res)
+{
+    // TODO    
+    res.render('records',{title:'Personal Records'});        
+});
+
 
 // Log out
 router.get('/logout',function(req,res)
 {
     req.session.user=null;
+    req.session.error=null;
     return res.redirect('/');
 });
 
@@ -208,13 +224,15 @@ function LoginFirst(req,res,next)
 
 // Graph Operations
 
-router.route('/create').get(function(req,res)
+router.route('/create').post(function(req,res)
 {
-    LinkModel.create({from:1, to:5}, function(err, doc){
+    console.log(req.body);
+    LinkModel.create({from:req.body.from, to:req.body.to}, function(err, doc){
         if(err){
             console.log(err);
         }else{
-            req.session.error='Saved!';
+            console.log('Saved!');
+            // req.session.error='Saved!';
             LinkModel.find({}, function(err, doc){
                 console.log(doc);
             });
@@ -223,6 +241,59 @@ router.route('/create').get(function(req,res)
     return res.redirect('/apitest');
 });
 
+// router.route('/remove').get(function(req,res){
+//     res.render('apitest',{title:'apitest'});
+// }).post(function(req, res)
+// {
+//     console.log(req.body);
+//     var conditions={ from : req.body.from2, to : req.body.to2};
+//     LinkModel.remove(conditions, function(err){
+//         if(err){
+//             console.log(err);
+//         }else{
+//             // req.session.error='Saved!';
+//             console.log('Removed ' + conditions.from + '->' + conditions.to);
+//             LinkModel.find({}, function(err, doc){
+//                 console.log(doc);
+//             });
+//         }
+//     });
+//     return res.redirect('/apitest');
+// });
+router.route('/remove').get(function(req,res)
+{
+    LinkModel.remove({from:2, to:6}, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            console.log('Removed!');
+            // req.session.error='Saved!';
+            LinkModel.find({}, function(err, doc){
+                console.log(doc);
+            });
+        }
+    });
+    return res.redirect('/apitest');
+});
 
+router.route('/update').get(function(req,res)
+{
+
+    var conditions = {from : 3};
+    var update = {$set : { to : 16 }};
+    
+    LinkModel.update(conditions, update, function(err){
+        if(err){
+            console.log(err);
+        }else{
+            console.log('Updated!');
+            // req.session.error='Saved!';
+            LinkModel.find({}, function(err, doc){
+                console.log(doc);
+            });
+        }
+    });
+    return res.redirect('/apitest');
+});
 
 module.exports = router;

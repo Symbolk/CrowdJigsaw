@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 var UserSchema = new mongoose.Schema({
 	username: { type:String, required:true, unique:true, index:true },
-	avatar:   { type:String, default:'images/profile_placeholder.png'},
+	avatar:   { type:String, default:'images/placeholder.png'},
 	password: { type:String },
 	joindate: { type:Date, default:Date.now },
 	points:   { type:Number },

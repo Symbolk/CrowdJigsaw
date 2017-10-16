@@ -36,6 +36,9 @@ _P.S. See npm dependencies in package.json_
 ## Usage
 
 ![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home.jpg)
+![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone.jpg)
+![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer.jpg)
+
 
 ## Development(Windows)
 
