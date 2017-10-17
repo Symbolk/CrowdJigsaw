@@ -129,12 +129,13 @@ var tileWidth = 64;
 var config = ({
     zoomScaleOnDrag: 1.25,
     imgName: 'puzzle-image',
-    tileShape: 'curved', // curved or straight
+    tileShape: 'straight', // curved or straight
     tileWidth: tileWidth,
     tilesPerRow: Math.ceil(imgWidth / tileWidth), //returns min int >= arg
     tilesPerColumn: Math.ceil(imgHeight / tileWidth),
     imgWidth: imgWidth,
     imgHeight: imgHeight,
+    showHints: true,
     shadowWidth: 120,
     dragMode: 'tile-First' // tile-First or group-First
 });
@@ -212,6 +213,8 @@ function JigsawPuzzle(config) {
 
     this.dragMode = config.dragMode;
 
+    this.showHints = config.showHints;
+
     this.tilesPerRow = config.tilesPerRow;
     this.tilesPerColumn = config.tilesPerColumn;
     this.tileNum = this.tilesPerRow * this.tilesPerColumn;
@@ -249,9 +252,9 @@ function JigsawPuzzle(config) {
                     new Point(instance.tileWidth * x, instance.tileWidth * y)
                 );
 
-                var border = mask.clone();
-                border.strokeColor = '#ccc'; //grey
-                border.strokeWidth = 0;
+                //var border = mask.clone();
+                //border.strokeColor = 'red'; //grey
+                //border.strokeWidth = 0;
 
                 // each tile is a group of
                 var tile = new Group(mask, img);
@@ -489,6 +492,37 @@ function JigsawPuzzle(config) {
         }
     }
 
+    function checkConflict(tiles, centerCellPosition){
+        var hasConflict = false;
+        for(var i = 0; i < tiles.length; i++){
+            var tile = tiles[i];
+
+            var cellPosition = centerCellPosition + tile.relativePosition;
+            var roundPosition = cellPosition * instance.tileWidth;
+            
+            var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
+
+            var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
+            var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
+            var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
+            var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
+
+            var topTileConflict = (topTile != undefined) && !(topTile.shape.bottomTab + tile.shape.topTab == 0);
+            var bottomTileConflict = (bottomTile != undefined) && !(bottomTile.shape.topTab + tile.shape.bottomTab == 0);
+            var rightTileConflict = (rightTile != undefined) && !(rightTile.shape.leftTab + tile.shape.rightTab == 0);
+            var leftTileConflict = (leftTile != undefined) && !(leftTile.shape.rightTab + tile.shape.leftTab == 0);
+            hasConflict = hasConflict || alreadyPlacedTile || topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
+        }
+        return hasConflict;
+    }
+
+    function placeTile(tile, cellPosition){
+        var roundPosition = cellPosition * instance.tileWidth;
+        tile.position = roundPosition;        
+        tile.cellPosition = cellPosition;
+        tile.relativePosition = new Point(0, 0);
+    }
+
     this.releaseTile = function() {
         if (instance.draging) {
 
@@ -498,29 +532,8 @@ function JigsawPuzzle(config) {
 
             console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
 
-            var hasConflict = false;
+            var hasConflict = checkConflict(instance.selectedTile, centerCellPosition);
             
-            for(var i = 0; i < instance.selectedTile.length; i++){
-                var tile = instance.selectedTile[i];
-
-                var cellPosition = centerCellPosition + tile.relativePosition;
-
-                var roundPosition = cellPosition * instance.tileWidth;
-            
-                var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
-
-                var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
-                var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
-                var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
-                var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
-
-                var topTileConflict = (topTile != undefined) && !(topTile.shape.bottomTab + tile.shape.topTab == 0);
-                var bottomTileConflict = (bottomTile != undefined) && !(bottomTile.shape.topTab + tile.shape.bottomTab == 0);
-                var rightTileConflict = (rightTile != undefined) && !(rightTile.shape.leftTab + tile.shape.rightTab == 0);
-                var leftTileConflict = (leftTile != undefined) && !(leftTile.shape.rightTab + tile.shape.leftTab == 0);
-                
-                hasConflict = hasConflict || alreadyPlacedTile || topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
-            }
             if (!hasConflict) {
                 if (instance.selectedTile[0].picking) {
                     for(var i = 0; i < instance.selectedTile.length; i++){
@@ -530,16 +543,13 @@ function JigsawPuzzle(config) {
 
                 for(var i = 0; i < instance.selectedTile.length; i++){
                     var tile = instance.selectedTile[i];
-
                     var cellPosition = centerCellPosition + tile.relativePosition;
+                    placeTile(tile, cellPosition);
+                }
 
-                    var roundPosition = cellPosition * instance.tileWidth;
-
-                    tile.position = roundPosition;
-                    
-                    tile.cellPosition = cellPosition;
-
-                    tile.relativePosition = new Point(0, 0);
+                if(instance.showHints && instance.selectedTile.length == 1){
+                    var tile = instance.selectedTile[0];
+                    showHints(tile);
                 }
 
                 instance.selectedTile = null;
@@ -548,6 +558,41 @@ function JigsawPuzzle(config) {
                 var errors = checkTiles();
                 if (errors == 0) {
                     alert('Congratulations!!!');
+                }
+            }
+        }
+    }
+
+    function showHints(tile){
+        var cellPosition = tile.cellPosition;
+        var tileIndex = getTileIndex(tile);
+        var correctPlaced = true;
+        var nearTilesCount = 0; 
+        for(var i = 0; i < 4; i++){
+            var nearTile = getTileAtCellPosition(cellPosition + directions[i]);
+            if(nearTile){
+                nearTilesCount += 1;
+                var nearTileIndex = getTileIndex(nearTile);
+                var correctIndex = tileIndex + directions[i].x + instance.tilesPerRow * directions[i].y;
+                if(correctIndex != nearTileIndex)
+                    correctPlaced = false;
+            }
+        }
+        if(nearTilesCount == 0 || !correctPlaced)
+            return;
+
+        for(var i = 0; i < 4; i++){
+            if(((tileIndex % instance.tilesPerRow == instance.tilesPerRow - 1) && i == 1)//right
+                || ((tileIndex % instance.tilesPerRow == 0) && i == 3)){//left
+                continue;
+            }
+            var correctIndex = tileIndex + directions[i].x + instance.tilesPerRow * directions[i].y;
+            if(correctIndex >= 0 && correctIndex < instance.tiles.length){
+                var correctTile = instance.tiles[correctIndex];
+                var correctCellposition = cellPosition + directions[i];
+                var hasConflict = checkConflict(new Array(correctTile), correctCellposition);
+                if(!hasConflict){
+                    placeTile(correctTile, correctCellposition);
                 }
             }
         }
