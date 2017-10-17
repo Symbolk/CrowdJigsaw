@@ -1,0 +1,25 @@
+<button id="show-toast" class="mdl-button mdl-js-button mdl-button--raised" type="button">Show Toast</button>
+<div id="toast" class="mdl-js-snackbar mdl-snackbar">
+    <div class="mdl-snackbar__text"></div>
+    <button class="mdl-snackbar__action" type="button"></button>
+</div>
+
+<script>
+    // (function () {
+        'use strict';
+        // var snackbarContainer = document.getElementById('#toast');
+        var snackbarContainer = document.querySelector('#toast');
+        var showToastButton = document.querySelector('#show-toast');
+        showToastButton.addEventListener('click', function () {
+        // window.addEventListener('beforeunload', function(event){
+            'use strict';
+            console.log('ge');
+            var data = { message: '<%- message %>', timeout: 3000 };
+            console.log(data.message);
+            snackbarContainer.MaterialSnackbar.showSnackbar(data);
+        });
+        // var data = { message: '<%- message %>' };
+        // snackbarContainer.MaterialSnackbar.showSnackbar(data);
+    // }());
+
+</script>
