@@ -1,16 +1,16 @@
 <% include header.html %>
-<% include newToolbar.html %>
+<% include drawer.html %>
 
-<dialog class="mdl-dialog" id="settings">
+<dialog class="mdl-dialog" id="ensure_quit_dialog">
     <div class="mdl-dialog__content">
         <p>
-            游戏设置
+            Are You Sure?
             <i class="material-icons md-48">settings</i>
         </p>
-        <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-1">
+        <!-- <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-1">
             <input type="radio" id="option-1" class="mdl-radio__button" name="options" value="1" checked>
             <span class="mdl-radio__label">Level 1</span>
-        </label>
+        </label> -->
         <br/>
         <br/>
             <!-- <label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="option-2">
@@ -18,8 +18,8 @@
             <span class="mdl-radio__label">Level 2</span>
         </label> -->
         <div class="mdl-dialog__actions mdl-card--border">
-            <button type="button" class="mdl-button" id="cancel-button">取消</button>
-            <button type="button" class="mdl-button" id="apply-button">应用</button>
+            <button type="button" class="mdl-button" id="cancel-button">Cancel</button>
+            <button type="button" class="mdl-button" id="apply-button">Apply</button>
         </div>
     </div>
 </dialog>

@@ -38,7 +38,7 @@ canvas[resize] {
 .zoomOut,
 .help,
 .restart,
-.settings,
+.quit,
 .user
 {
     z-index: 100;
@@ -48,25 +48,12 @@ canvas[resize] {
 }
 
 
-
-/*
-.charms
-{
-    overflow: hidden;   
-    background: #f0f3f9;
-    position: absolute;
-    left: 10px;
-    bottom : 10px;
-    width: 325px;
-    height: 45px;  
-}
-*/
 .help:hover,
 .user.hover,
 .zoomIn:hover,
 .zoomOut:hover,
 .restart.hover,
-.settings.hover
+.quit.hover
 {
     opacity: 1.0;
 }
@@ -93,7 +80,7 @@ canvas[resize] {
     margin: 180px 0 0 50px;
 }
 
-.settings
+.quit
 {
     margin: 240px 0 0 50px;
 }
@@ -126,15 +113,11 @@ canvas[resize] {
 #stepButton{
     margin-left: 50px;
 }
-.demo-layout-transparent {
-}
 
 .demo-layout-transparent .mdl-layout__drawer-button {
-  /* This background is dark, so we set text to white. Use 87% black instead if
-     your background is light. */
   color: black;
 }
 
-.mdl-layout__drawer{
+#drawer{
     width:135px;
 }

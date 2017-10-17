@@ -45,14 +45,12 @@ $('.restart').click(function () {
     // var puzzle = new JigsawPuzzle(config);
 });
 
-
 /**
- * click the settings button and show the puzzle settings
+ * Ensure quit
  */
-
 (function () {
-    var showButton = document.querySelector('#show-settings');
-    var dialog = document.querySelector('#settings');
+    var showButton = document.querySelector('#ensure_quit');
+    var dialog = document.querySelector('#ensure_quit_dialog');
     var cancelButton = document.querySelector('#cancel-button');
     var applyButton = document.querySelector('#apply-button');
 
@@ -68,29 +66,55 @@ $('.restart').click(function () {
         dialog.showModal();
     });
 
-    /**
-     * Disabled for now
-     */
     applyButton.addEventListener('click', function (event) {
-        if (document.querySelector('#option-1').checked === true) {
-            // console.log('Level 1');
-            // config.tileShape = 'straight';
-            // var c = document.querySelector("#canvas");
-            // var cxt = c.getContext("2d");
-            // cxt.fillStyle = "white";
-            // puzzle = new JigsawPuzzle(config);
-
-        } else {
-            // console.log('Level 2');
-            // config.tileShape = 'curved';
-            // $('.canvas').remove();
-            // var newC=$('<canvas id="canvas" class="canvas" resize></canvas>');
-            // $('.puzzle').append(newC);
-            // var puzzle = new JigsawPuzzle(config);
-        }
-        dialog.close();
+        dialog.close();        
+        window.location.href='/home';
     });
 }());
+/**
+ * Settings of the game
+ */
+// (function () {
+//     var showButton = document.querySelector('#ensure-quit');
+//     var dialog = document.querySelector('#quit');
+//     var cancelButton = document.querySelector('#cancel-button');
+//     var applyButton = document.querySelector('#apply-button');
+
+//     if (!dialog.showModal) {
+//         dialogPolyfill.registerDialog(dialog);
+//     }
+
+//     cancelButton.addEventListener('click', function (event) {
+//         dialog.close();
+//     });
+
+//     showButton.addEventListener('click', function (event) {
+//         dialog.showModal();
+//     });
+
+//     /**
+//      * Disabled for now
+//      */
+//     applyButton.addEventListener('click', function (event) {
+//         if (document.querySelector('#option-1').checked === true) {
+//             // console.log('Level 1');
+//             // config.tileShape = 'straight';
+//             // var c = document.querySelector("#canvas");
+//             // var cxt = c.getContext("2d");
+//             // cxt.fillStyle = "white";
+//             // puzzle = new JigsawPuzzle(config);
+
+//         } else {
+//             // console.log('Level 2');
+//             // config.tileShape = 'curved';
+//             // $('.canvas').remove();
+//             // var newC=$('<canvas id="canvas" class="canvas" resize></canvas>');
+//             // $('.puzzle').append(newC);
+//             // var puzzle = new JigsawPuzzle(config);
+//         }
+//         dialog.close();
+//     });
+// }());
 
 Array.prototype.remove = function (start, end) {
     this.splice(start, end);
@@ -141,7 +165,6 @@ var timeoutFunction;
 function onMouseDown(event) {
     timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500); 
     puzzle.pickTile();
-    console.log("mouse down");
 }
 
 function onMouseUp(event) {
@@ -450,7 +473,7 @@ function JigsawPuzzle(config) {
     this.pickTile = function() {
         if (instance.selectedTile) {
             if (!instance.selectedTile[0].picking) {
-                for(var i = 0; i < instance.selectedTile; i++){
+                for(var i = 0; i < instance.selectedTile.length; i++){
                     instance.selectedTile[i].picking = true;
                 }
             }
@@ -478,7 +501,7 @@ function JigsawPuzzle(config) {
                 Math.round(instance.selectedTile[0].position.x / instance.tileWidth),
                 Math.round(instance.selectedTile[0].position.y / instance.tileWidth));
 
-            console.log("cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
+            console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
 
             var hasConflict = false;
             
@@ -489,35 +512,21 @@ function JigsawPuzzle(config) {
 
                 var roundPosition = cellPosition * instance.tileWidth;
             
-                var alreadyPlacedTile = getTileAtCellPosition(cellPosition);
-
-                hasConflict = alreadyPlacedTile;
+                var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
 
                 var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
                 var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
                 var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
                 var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
-
-                if (topTile && !topTile.picking) {
-                    hasConflict = hasConflict || !(topTile.shape.bottomTab + tile.shape.topTab == 0);
-                }
-
-                if (bottomTile && !bottomTile.picking) {
-                    hasConflict = hasConflict || !(bottomTile.shape.topTab + tile.shape.bottomTab == 0);
-                }
-
-                if (rightTile && !rightTile.picking) {
-                    hasConflict = hasConflict || !(rightTile.shape.leftTab + tile.shape.rightTab == 0);
-                }
-
-                if (leftTile && !leftTile.picking) {
-                    hasConflict = hasConflict || !(leftTile.shape.rightTab + tile.shape.leftTab == 0);
-                }
+                var topTileConflict = (topTile != undefined) && !(topTile.shape.bottomTab + tile.shape.topTab == 0);
+                var bottomTileConflict = (bottomTile != undefined) && !(bottomTile.shape.topTab + tile.shape.bottomTab == 0);
+                var rightTileConflict = (rightTile != undefined) && !(rightTile.shape.leftTab + tile.shape.rightTab == 0);
+                var leftTileConflict = (leftTile != undefined) && !(leftTile.shape.rightTab + tile.shape.leftTab == 0);
+                
+                hasConflict = hasConflict || alreadyPlacedTile || topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
             }
-
             if (!hasConflict) {
-
                 if (instance.selectedTile[0].picking) {
                     for(var i = 0; i < instance.selectedTile.length; i++){
                         instance.selectedTile[i].picking = false;
@@ -554,7 +563,7 @@ function JigsawPuzzle(config) {
         var height = instance.tilesPerColumn;
         var tile = undefined;
         for (var i = 0; i < instance.tiles.length; i++) {
-            if (instance.tiles[i].cellPosition == point) {
+            if (instance.tiles[i].cellPosition == point && !instance.tiles[i].picking) {
                 tile = instance.tiles[i];
                 break;
             }
@@ -665,8 +674,9 @@ function JigsawPuzzle(config) {
             var tile = instance.selectedTile[0];
             instance.selectedTile = new Array();
             DFSTiles(tile, instance.selectedTile, new Point(0, 0));
-            for(var i = 0; i < instance.selectedTile.length; i++){
+            for(var i = 1; i < instance.selectedTile.length; i++){
                 instance.selectedTile[i].opacity = .5;
+                instance.selectedTile[i].picking = instance.selectedTile[0].picking;
             }
         }
     }
