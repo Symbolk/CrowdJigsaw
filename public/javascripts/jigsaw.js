@@ -468,7 +468,7 @@ function JigsawPuzzle(config) {
     this.pickTile = function() {
         if (instance.selectedTile) {
             if (!instance.selectedTile[0].picking) {
-                for(var i = 0; i < instance.selectedTile; i++){
+                for(var i = 0; i < instance.selectedTile.length; i++){
                     instance.selectedTile[i].picking = true;
                 }
             }
@@ -496,7 +496,7 @@ function JigsawPuzzle(config) {
                 Math.round(instance.selectedTile[0].position.x / instance.tileWidth),
                 Math.round(instance.selectedTile[0].position.y / instance.tileWidth));
 
-            console.log("cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
+            console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
 
             var hasConflict = false;
             
@@ -507,35 +507,21 @@ function JigsawPuzzle(config) {
 
                 var roundPosition = cellPosition * instance.tileWidth;
             
-                var alreadyPlacedTile = getTileAtCellPosition(cellPosition);
-
-                hasConflict = alreadyPlacedTile;
+                var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
 
                 var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
                 var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
                 var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
                 var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
-
-                if (topTile && !topTile.picking) {
-                    hasConflict = hasConflict || !(topTile.shape.bottomTab + tile.shape.topTab == 0);
-                }
-
-                if (bottomTile && !bottomTile.picking) {
-                    hasConflict = hasConflict || !(bottomTile.shape.topTab + tile.shape.bottomTab == 0);
-                }
-
-                if (rightTile && !rightTile.picking) {
-                    hasConflict = hasConflict || !(rightTile.shape.leftTab + tile.shape.rightTab == 0);
-                }
-
-                if (leftTile && !leftTile.picking) {
-                    hasConflict = hasConflict || !(leftTile.shape.rightTab + tile.shape.leftTab == 0);
-                }
+                var topTileConflict = (topTile != undefined) && !(topTile.shape.bottomTab + tile.shape.topTab == 0);
+                var bottomTileConflict = (bottomTile != undefined) && !(bottomTile.shape.topTab + tile.shape.bottomTab == 0);
+                var rightTileConflict = (rightTile != undefined) && !(rightTile.shape.leftTab + tile.shape.rightTab == 0);
+                var leftTileConflict = (leftTile != undefined) && !(leftTile.shape.rightTab + tile.shape.leftTab == 0);
+                
+                hasConflict = hasConflict || alreadyPlacedTile || topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
             }
-
             if (!hasConflict) {
-
                 if (instance.selectedTile[0].picking) {
                     for(var i = 0; i < instance.selectedTile.length; i++){
                         instance.selectedTile[i].picking = false;
@@ -572,7 +558,7 @@ function JigsawPuzzle(config) {
         var height = instance.tilesPerColumn;
         var tile = undefined;
         for (var i = 0; i < instance.tiles.length; i++) {
-            if (instance.tiles[i].cellPosition == point) {
+            if (instance.tiles[i].cellPosition == point && !instance.tiles[i].picking) {
                 tile = instance.tiles[i];
                 break;
             }
@@ -683,8 +669,9 @@ function JigsawPuzzle(config) {
             var tile = instance.selectedTile[0];
             instance.selectedTile = new Array();
             DFSTiles(tile, instance.selectedTile, new Point(0, 0));
-            for(var i = 0; i < instance.selectedTile.length; i++){
+            for(var i = 1; i < instance.selectedTile.length; i++){
                 instance.selectedTile[i].opacity = .5;
+                instance.selectedTile[i].picking = instance.selectedTile[0].picking;
             }
         }
     }
