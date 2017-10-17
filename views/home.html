@@ -1,8 +1,10 @@
+<!-- Home Playground Page -->
+
 <% include header.html %>
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
             <% include navigation.html %>
-            
+
             <main class="mdl-layout__content mdl-color--grey-100">
                 <div class="mdl-grid">
                     <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
@@ -27,7 +29,7 @@
                                                                             Learn More
                                                                           </a>
 
-                                <a href='/puzzle'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                <a href='/apitest'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                                                                 <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
                                                                                 <span class="visuallyhidden">play_arrow</span>
                                                     </button>
@@ -52,10 +54,10 @@
                                                                                 Learn More
                                                                               </a>
 
-                                <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
+                                 <a href='/puzzle'><button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                                                                     <i class="material-icons mdl-color-text--white" role="presentation">play_arrow</i>
                                                                                     <span class="visuallyhidden">play_arrow</span>
-                                                        </button>
+                                                        </button></a>
                             </div>
                         </div>
                     </div>
@@ -106,7 +108,7 @@
                     </div>
                 </div>
             </main>
-
+        <% include toast.html %>
         </div>
 
         <% include footer.html %>
