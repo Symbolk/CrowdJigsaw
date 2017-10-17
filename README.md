@@ -16,9 +16,13 @@ Language :
 
 Based on :
 
-> [paper.js](http://www.paperjs.org/ "Paper.js offical site") 
 > [Express](http://www.expressjs.com.cn/ "Express offical site") 
 > [Mongodb](https://www.mongodb.com/ "Mongodb offical site")
+
+> [paper.js](http://www.paperjs.org/ "Paper.js") 
+
+> [MDL](https://getmdl.io/ "Material Design Lite")
+> [FontAwesome](http://fontawesome.dashgame.com/ "FontAwesome")
 
 Requirements :
 
@@ -38,6 +42,7 @@ _P.S. See npm dependencies in package.json_
 ![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home.jpg)
 ![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone.jpg)
 ![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer.jpg)
+![Puzzle](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/puzzle.jpg)
 
 
 ## Development(Windows)
@@ -67,20 +72,35 @@ cd CrowdJigsaw
 npm install
 ```
 
-4, Start it in 1 of the following 3 ways:
+4, Start the server:
 
 ```sh
-# to test or debug it locally, with nodemon
+# test or debug it locally(automatically restart server once code changed)
 npm test
 # or use nodemon directly
 nodemon app.js
-# to start it before a release
-npm start
-
 ```
-5, Go http://localhost:3000/ in Chrome to see it.
+5, Go http://localhost:3000/ in Chrome to see the client.
 
 
 ## Delpoyment(Windows Server)
+
+1, Edit app.js in the end:
+```javascript
+// nodemon or npm test
+// app.listen(3000);
+// npm start
+app.listen(4000);
+module.exports = app; 
+```
+2, Start the server:
+```sh
+# start it before a release
+npm start
+# forever will be used later
+
+```
+
+3, Go http://localhost:4000/ in Chrome to see the client.
 
 (Linux and macOS comes soon.)
