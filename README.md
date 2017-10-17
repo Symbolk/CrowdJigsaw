@@ -17,11 +17,13 @@ Language :
 Based on :
 
 > [Express](http://www.expressjs.com.cn/ "Express offical site") 
+
 > [Mongodb](https://www.mongodb.com/ "Mongodb offical site")
 
 > [paper.js](http://www.paperjs.org/ "Paper.js") 
 
 > [MDL](https://getmdl.io/ "Material Design Lite")
+
 > [FontAwesome](http://fontawesome.dashgame.com/ "FontAwesome")
 
 Requirements :
@@ -86,6 +88,7 @@ nodemon app.js
 ## Delpoyment(Windows Server)
 
 1, Edit app.js in the end:
+
 ```javascript
 // nodemon or npm test
 // app.listen(3000);
@@ -94,13 +97,12 @@ app.listen(4000);
 module.exports = app; 
 ```
 2, Start the server:
+
 ```sh
 # start it before a release
 npm start
 # forever will be used later
-
 ```
-
 3, Go http://localhost:4000/ in Chrome to see the client.
 
 (Linux and macOS comes soon.)
