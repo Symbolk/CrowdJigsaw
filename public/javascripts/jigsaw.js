@@ -1,22 +1,6 @@
-
-// auto hide and show some components when the user switch focus between workspace and sidespace
-
-$('.title').mouseleave(function () {
-    $('.charms').animate({ opacity: 0 });
-    $('.title').animate({ opacity: 0 });
-    $('.info').animate({ opacity: 0 });
-    $('.progress-bar').animate({ opacity: 0 });
-});
-
-$('.title').mouseover(function () {
-    $('.charms').animate({ opacity: 1.0 });
-    $('.title').animate({ opacity: 1.0 });
-    $('.info').animate({ opacity: 1.0 });
-    $('.progress-bar').animate({ opacity: 1.0 });
-});
-
-// add functions to the charms(e.g. toolbox)
-
+/*
+* Drawer functions
+*/
 $('.zoomIn').click(function () {
     puzzle.zoom(.1);
 });
@@ -36,8 +20,6 @@ $('.help').mousedown(function () {
         $('.logo').show();
     }
 });
-
-
 
 $('.restart').click(function () {
     // document.execCommand('Refresh');
@@ -68,54 +50,13 @@ $('.restart').click(function () {
 
     applyButton.addEventListener('click', function (event) {
         dialog.close();        
-        window.location.href='/home';
+        window.location='/home';
     });
 }());
-/**
- * Settings of the game
- */
-// (function () {
-//     var showButton = document.querySelector('#ensure-quit');
-//     var dialog = document.querySelector('#quit');
-//     var cancelButton = document.querySelector('#cancel-button');
-//     var applyButton = document.querySelector('#apply-button');
 
-//     if (!dialog.showModal) {
-//         dialogPolyfill.registerDialog(dialog);
-//     }
-
-//     cancelButton.addEventListener('click', function (event) {
-//         dialog.close();
-//     });
-
-//     showButton.addEventListener('click', function (event) {
-//         dialog.showModal();
-//     });
-
-//     /**
-//      * Disabled for now
-//      */
-//     applyButton.addEventListener('click', function (event) {
-//         if (document.querySelector('#option-1').checked === true) {
-//             // console.log('Level 1');
-//             // config.tileShape = 'straight';
-//             // var c = document.querySelector("#canvas");
-//             // var cxt = c.getContext("2d");
-//             // cxt.fillStyle = "white";
-//             // puzzle = new JigsawPuzzle(config);
-
-//         } else {
-//             // console.log('Level 2');
-//             // config.tileShape = 'curved';
-//             // $('.canvas').remove();
-//             // var newC=$('<canvas id="canvas" class="canvas" resize></canvas>');
-//             // $('.puzzle').append(newC);
-//             // var puzzle = new JigsawPuzzle(config);
-//         }
-//         dialog.close();
-//     });
-// }());
-
+/*
+* Jigsaw functions
+*/
 Array.prototype.remove = function (start, end) {
     this.splice(start, end);
     return this;
