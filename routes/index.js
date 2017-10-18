@@ -1,3 +1,4 @@
+'use strict'
 /**
  * 使用 express.Router 类创建模块化、可挂载的路由句柄。
  * 路由级中间件和应用级中间件一样，只是它绑定的对象为 express.Router()。
