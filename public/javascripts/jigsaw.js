@@ -96,8 +96,26 @@ var directions = [
 /**
  * Start building the puzzle
  */
+function getUrlParams(key)
+{
+     var reg = new RegExp("(^|&)"+ key +"=([^&]*)(&|$)");
+     var r = window.location.search.substr(1).match(reg);
+     if(r!=null)return  unescape(r[2]); return null;
+}
+
+var level=getUrlParams('level');
+console.log(level);
+if(level==1){
+    config.tileShape='curved';
+    config.dragMode='group-First';
+}else if(level==2){
+    config.tileShape='straight';
+    config.dragMode='tile-First';
+}
+
 var puzzle = new JigsawPuzzle(config);
-puzzle.zoom(-.1);
+/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? puzzle.zoom(-.5) : puzzle.zoom(-0.1);
+
 var path;
 var movePath = false;
 

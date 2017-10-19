@@ -86,7 +86,7 @@ router.route('/register').all(Logined).get(function (req, res) {
 
 //Home 
 router.route('/home').all(LoginFirst).get(function (req, res) {
-    let selectStr = { username: 1, _id: 0 }
+    let selectStr = { username: 1, _id: 0 };
     let dbhelp = new DBHelp();
     dbhelp.FindAll('users', selectStr, function (result) {
         if (result) {
@@ -100,7 +100,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 
 // Puzzle
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-    let selectStr = { username: 1, _id: 0 }
+    // let selected_level=req.query.level;
     res.render('puzzle', { title: 'Puzzle' });
 });
 
