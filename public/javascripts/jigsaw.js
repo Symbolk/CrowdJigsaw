@@ -116,6 +116,7 @@ function onMouseUp(event) {
 }
 
 function onMouseMove(event) {
+    project.activeLayer.selected=false;
     if(timeoutFunction){
         window.clearTimeout(timeoutFunction); 
     }
