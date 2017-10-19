@@ -703,4 +703,3 @@ function JigsawPuzzle(config) {
 
         return errors;
     }
-}

@@ -2,7 +2,7 @@ const User=require('./user.js');
 
 function insert(){
     // Entity CRUD
-    let user=new User({
+    var user=new User({
         username: 'Symbol',
         password: 'cars123',
         joindate: new Date(),

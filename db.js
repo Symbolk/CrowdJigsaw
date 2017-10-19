@@ -32,7 +32,7 @@ db.once('open', function () {
 );
 
 // UserSchema.set('collection', 'users');
-let User = mongoose.model('User', UserSchema, 'users');
+var User = mongoose.model('User', UserSchema, 'users');
 console.log('User Model Created.');
 // create graph schema
 var GraphSchema = new mongoose.Schema({

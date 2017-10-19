@@ -67,7 +67,7 @@ router.route('/register').all(Logined).get(function (req, res) {
         if (!result) {
             if (newUser.password === newUser.passwordSec) {
                 dbhelp.Add('users', addStr, function () {
-                    req.session.error = 'Login success, you can login now!';
+                    req.session.error = 'Register success, you can login now!';
                     return res.redirect('/login');
                 });
             }
@@ -164,7 +164,7 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
 router.get('/logout', function (req, res) {
     req.session.user = null;
     req.session.error = null;
-    return res.redirect('/');
+    return res.redirect('/login');
 });
 
 function Logined(req, res, next) {
