@@ -11,13 +11,12 @@
 {
     overflow: hidden;    
     position: absolute;
-    margin: 20px;  
     /* top: 10px;
     right:10px; 
     left:10px; 
      bottom: 10px;  
     /* */  
-    border: 2px dashed #000;
+    /*border: 2px dashed #000;*/
 }
 
 /* Scale canvas with resize attribute to full size */
@@ -39,8 +38,7 @@ canvas[resize] {
 .zoomOut,
 .help,
 .restart,
-.settings,
-.user
+.quit
 {
     z-index: 100;
     position: absolute;
@@ -49,67 +47,40 @@ canvas[resize] {
 }
 
 
-#progress{
-    position: absolute;
-    left: 765px;
-    bottom: 48px;
-}
-#percentage{
-    position: absolute;
-    left: 700px;
-    bottom: 32px;
-}
-
-.charms
-{
-    overflow: hidden;   
-    background: #f0f3f9;
-    /*opacity: 0.75;*/
-    position: absolute;
-    left: 10px;
-    bottom : 10px;
-    width: 325px;
-    height: 45px;  
-}
 .help:hover,
-.user.hover,
+.quit.hover,
 .zoomIn:hover,
 .zoomOut:hover,
-.restart.hover,
-.settings.hover
+.restart.hover
 {
     opacity: 1.0;
 }
 
-.user
-{
-    margin: 10px 0  0 25px;
-}
 
 .help
 {
-    margin:10px 0 0 75px;
+    margin:0px 0 0 50px;
 }
 
 .zoomIn
 {
-    margin: 10px 0 0 125px;
+    margin: 60px 0 0 50px;
 }
 
 
 .zoomOut
 {
-    margin: 10px 0 0 175px;
+    margin: 120px 0 0 50px;
 }
 
 .restart
 {
-    margin: 10px 0 0 225px;
+    margin: 180px 0 0 50px;
 }
 
-.settings
+.quit
 {
-    margin: 10px 0 0 275px;
+    margin: 240px 0 0 50px;
 }
 
 
@@ -129,9 +100,22 @@ canvas[resize] {
 }
 
 
-.mdl-switch{
-    display:inline;
-    margin-left: 10px;
-    margin-right: 10px;   
+#steps_chip{
+    margin:300px 0 0 0px;  
 }
 
+#timer_chip{
+    margin:40px 0 0 0px; 
+}
+
+#stepButton{
+    margin-left: 50px;
+}
+
+.demo-layout-transparent .mdl-layout__drawer-button {
+  color: black;
+}
+
+#drawer{
+    width:135px;
+}

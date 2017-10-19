@@ -76,10 +76,13 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-// module.exports = app; //npm start
+// nodemon or npm test
+app.listen(3000);
+
 /* app.listen(config.port, function(){
    console.log(`${pkg.name} listening on port ${config.port}`);
 });*/
 
-
-app.listen(3000);//nodemon
+// npm start
+// app.listen(4000);
+// module.exports = app; 

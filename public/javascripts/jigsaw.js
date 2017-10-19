@@ -1,21 +1,6 @@
-
-// auto hide and show some components when the user switch focus between workspace and sidespace
 /*
-$('.charms, .title, .info, .progress-bar').mouseleave(function () {
-    $('.charms').animate({ opacity: 0 });
-    $('.title').animate({ opacity: 0 });
-    $('.info').animate({ opacity: 0 });
-    $('.progress-bar').animate({ opacity: 0 });
-});
-
-$('.charms, .title, .info, .progress-bar').mouseover(function () {
-    $('.charms').animate({ opacity: 1.0 });
-    $('.title').animate({ opacity: 1.0 });
-    $('.info').animate({ opacity: 1.0 });
-    $('.progress-bar').animate({ opacity: 1.0 });
-});*/
-
-// add functions to the charms(e.g. toolbox)
+* Drawer functions
+*/
 $('.zoomIn').click(function () {
     puzzle.zoom(.1);
 });
@@ -36,42 +21,18 @@ $('.help').mousedown(function () {
     }
 });
 
-var charmsselected = false;
-
-$('.charms').mousedown(function (event) {
-    charmsselected = true;
-});
-
-$('*').mouseup(function (event) {
-    charmsselected = false;
-});
-
-$('*').mousemove(function (event) {
-    if(charmsselected)
-    {
-        var x = event.pageX;
-        var y = event.pageY;
-        console.log("top : " + y + "px", "left : " + x + "px")
-        $('.charms').css("position", "absolute"); 
-        $('.charms').css("top", y+"px"); 
-        $('.charms').css("left", x+"px");
-    }
-});
-
 $('.restart').click(function () {
     // document.execCommand('Refresh');
     window.location.reload();
     // var puzzle = new JigsawPuzzle(config);
 });
 
-var charmsWidth = $('.charms').css('width').replace('px', '');
-
 /**
- * click the settings button and show the puzzle settings
+ * Ensure quit
  */
 (function () {
-    var showButton = document.querySelector('#show-settings');
-    var dialog = document.querySelector('#settings');
+    var showButton = document.querySelector('#ensure_quit');
+    var dialog = document.querySelector('#ensure_quit_dialog');
     var cancelButton = document.querySelector('#cancel-button');
     var applyButton = document.querySelector('#apply-button');
 
@@ -87,30 +48,15 @@ var charmsWidth = $('.charms').css('width').replace('px', '');
         dialog.showModal();
     });
 
-    /**
-     * Disabled for now
-     */
     applyButton.addEventListener('click', function (event) {
-        if (document.querySelector('#option-1').checked === true) {
-            // console.log('Level 1');
-            // config.tileShape = 'straight';
-            // var c = document.querySelector("#canvas");
-            // var cxt = c.getContext("2d");
-            // cxt.fillStyle = "white";
-            // puzzle = new JigsawPuzzle(config);
-
-        } else {
-            // console.log('Level 2');
-            // config.tileShape = 'curved';
-            // $('.canvas').remove();
-            // var newC=$('<canvas id="canvas" class="canvas" resize></canvas>');
-            // $('.puzzle').append(newC);
-            // var puzzle = new JigsawPuzzle(config);
-        }
-        dialog.close();
+        dialog.close();        
+        window.location='/home';
     });
 }());
 
+/*
+* Jigsaw functions
+*/
 Array.prototype.remove = function (start, end) {
     this.splice(start, end);
     return this;
@@ -159,7 +105,8 @@ $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
-    timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500); 
+    timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500);
+    console.log("mousedown"); 
     puzzle.pickTile();
 }
 
@@ -167,6 +114,7 @@ function onMouseUp(event) {
     if(timeoutFunction){
         window.clearTimeout(timeoutFunction); 
     }
+    console.log("mouseup");
     puzzle.releaseTile();
 }
 
@@ -174,7 +122,7 @@ function onMouseMove(event) {
     if(timeoutFunction){
         window.clearTimeout(timeoutFunction); 
     }
-
+    console.log("mouseMove");
     puzzle.mouseMove(event.point, event.delta);
 }
 
@@ -182,6 +130,7 @@ function onMouseDrag(event) {
     if(timeoutFunction){
         window.clearTimeout(timeoutFunction); 
     }
+    console.log("mousedrag");
     puzzle.dragTile(event.delta);
 }
 
