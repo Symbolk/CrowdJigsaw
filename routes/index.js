@@ -164,7 +164,7 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
 router.get('/logout', function (req, res) {
     req.session.user = null;
     req.session.error = null;
-    return res.redirect('/');
+    return res.redirect('/login');
 });
 
 function Logined(req, res, next) {
