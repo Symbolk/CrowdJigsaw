@@ -1,5 +1,5 @@
 <% include header.html %>
-<div class="page-splash">
+    <div class="page-splash">
         <%- message %>
             <h3>
                 <%= title %>
@@ -7,7 +7,7 @@
             <!-- <h2 class="mdl-color-text--white mdl-typography--text-center">Crowd Jigsaw Puzzle</h2> -->
             <form action="" method="post">
                 <div class="mdl-grid">
-                    <div class="mdl-cell mdl-cell--4-col"></div>
+                    <div class="mdl-cell mdl-cell--4-col-desktop mdl-cell--2-col-tablet"></div>
                     <div class="mdl-cell mdl-cell--4-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone mdl-card mdl-shadow--3dp">
                         <div class="mdl-card__title mdl-color--light-blue-600 mdl-color-text--white">
                             <h3 class="mdl-card__title-text mdl-typography--text-center">Register with Username &amp; Password</h3>
@@ -26,16 +26,17 @@
                                 <label class="mdl-textfield__label" for="passwordSec">Password Again</label>
                             </div>
                             <br />
-                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="margin:0 auto;" id="signup" name="signup">Register!</button>                            &nbsp;&nbsp;&nbsp;
+                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="margin:0 auto;" id="signup" name="signup">Register!</button> &nbsp;&nbsp;&nbsp;
                             <hr style="height:5px;border:none;border-top:5px groove skyblue;" />
                             <div class="fuzq_input_wrap">
-                               Already got an account? Just <a href="/login">Login!</a>
+                                Already got an account? Just
+                                <a href="/login">Login!</a>
                             </div>
                         </div>
                     </div>
                     <!-- <div class="mdl-cell mdl-cell--4-col"></div> -->
                 </div>
             </form>
-        </div>
+    </div>
 
-        <% include footer.html %>
+    <% include footer.html %>
