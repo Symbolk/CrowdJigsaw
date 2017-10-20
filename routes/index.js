@@ -90,7 +90,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
     let dbhelp = new DBHelp();
     dbhelp.FindAll('users', selectStr, function (result) {
         if (result) {
-            res.render('home', { title: 'Home' });
+            res.render('home', { title: 'Home', username: req.session.user.username });
         }
         else {
             res.render('home', { title: 'Home' });
