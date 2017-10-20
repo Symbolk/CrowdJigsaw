@@ -16,14 +16,16 @@
     </div>
 </header>
 
-<div id="nav-drawer" class="mdl-layout__drawer">
-    <header class="demo-drawer-header mdl-layout-title">
-        <img src="images/placeholder.jpg" class="demo-avatar">
-        <div class="demo-avatar-dropdown">
-            <span>hello@example.com</span>
+<div class="nav-drawer mdl-layout__drawer">
+    <header class="nav-header mdl-layout-title">
+        <div class="userinfo mdl-typography--text-center">
+            <img class="avatar" src="images/placeholder.jpg">
+            <br />
+            <span class="username"><%= username %></span>
             <div class="mdl-layout-spacer"></div>
+        </div>
     </header>
-    <nav class="demo-navigation mdl-navigation">
+    <nav class="navigation mdl-navigation">
         <a class="mdl-navigation__link" href="/home"><i class="fa fa-gamepad fa-lg"></i>&nbsp;&nbsp;Playground</a>
         <a class="mdl-navigation__link" href="/settings"><i class="fa fa-gears fa-lg"></i>&nbsp;&nbsp;Account Settings</a>
         <a class="mdl-navigation__link" href="/records"><i class="fa fa-calendar fa-lg"></i>&nbsp;&nbsp;Personal Records</a>
@@ -35,8 +37,8 @@
     <footer class="mdl-mega-footer mdl-color--white">
             <div class="mdl-mega-footer--top-section">
               <div class="mdl-mega-footer--right-section">
-                <a class="mdl-typography--font-light" href="#top">
-                  Back to Top
+                <a class="mdl-typography--font-light" href="https://github.com/Symbolk/CrowdJigsaw">
+                  Github:
                   <i class="fa fa-github fa-lg"></i>
                 </a>
                 <p class="mdl-typography--font-light">Crowd Jigsaw Puzzle</p>

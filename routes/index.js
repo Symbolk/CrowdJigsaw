@@ -67,7 +67,7 @@ router.route('/register').all(Logined).get(function (req, res) {
         if (!result) {
             if (newUser.password === newUser.passwordSec) {
                 dbhelp.Add('users', addStr, function () {
-                    req.session.error = 'Login success, you can login now!';
+                    req.session.error = 'Register success, you can login now!';
                     return res.redirect('/login');
                 });
             }
@@ -86,11 +86,11 @@ router.route('/register').all(Logined).get(function (req, res) {
 
 //Home 
 router.route('/home').all(LoginFirst).get(function (req, res) {
-    let selectStr = { username: 1, _id: 0 }
+    let selectStr = { username: 1, _id: 0 };
     let dbhelp = new DBHelp();
     dbhelp.FindAll('users', selectStr, function (result) {
         if (result) {
-            res.render('home', { title: 'Home' });
+            res.render('home', { title: 'Home', username: req.session.user.username });
         }
         else {
             res.render('home', { title: 'Home' });
@@ -99,17 +99,9 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 });
 
 // Puzzle
-router.route('/puzzle').get(function(req,res)
-{
-    let selectStr={username:1,_id:0}
-    res.render('puzzle', {title:'Puzzle'});
-});
-
-// Test
-router.route('/test').get(function(req,res)
-{
-    let selectStr={username:1,_id:0}
-    res.render('test', {title:'Test'});
+router.route('/puzzle').all(LoginFirst).get(function (req, res) {
+    // let selected_level=req.query.level;
+    res.render('puzzle', { title: 'Puzzle' });
 });
 
 
@@ -172,7 +164,7 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
 router.get('/logout', function (req, res) {
     req.session.user = null;
     req.session.error = null;
-    return res.redirect('/');
+    return res.redirect('/login');
 });
 
 function Logined(req, res, next) {

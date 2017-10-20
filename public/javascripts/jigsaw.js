@@ -83,7 +83,8 @@ var config = ({
     imgHeight: imgHeight,
     showHints: true,
     shadowWidth: 120,
-    dragMode: 'tile-First' // tile-First or group-First
+    dragMode: 'tile-First',// tile-First or group-First
+    allowOverlap: false //whether allows overLap
 });
 
 var directions = [
@@ -95,8 +96,26 @@ var directions = [
 /**
  * Start building the puzzle
  */
+function getUrlParams(key)
+{
+     var reg = new RegExp("(^|&)"+ key +"=([^&]*)(&|$)");
+     var r = window.location.search.substr(1).match(reg);
+     if(r!=null)return  unescape(r[2]); return null;
+}
+
+var level=getUrlParams('level');
+console.log(level);
+if(level==1){
+    config.tileShape='curved';
+    //config others here
+}else if(level==2){
+    config.tileShape='straight';
+    //config others here    
+}
+
 var puzzle = new JigsawPuzzle(config);
-puzzle.zoom(-.1);
+/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? puzzle.zoom(-0.5) : puzzle.zoom(-0.1);
+
 var path;
 var movePath = false;
 
@@ -105,6 +124,7 @@ $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
+    puzzle.findSelectTile(event.point);
     timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500);
     console.log("mousedown"); 
     puzzle.pickTile();
@@ -118,19 +138,12 @@ function onMouseUp(event) {
     puzzle.releaseTile();
 }
 
-function onMouseMove(event) {
-    if(timeoutFunction){
-        window.clearTimeout(timeoutFunction); 
-    }
-    console.log("mouseMove");
-    puzzle.mouseMove(event.point, event.delta);
-}
 
 function onMouseDrag(event) {
     if(timeoutFunction){
         window.clearTimeout(timeoutFunction); 
     }
-    console.log("mousedrag");
+    console.log("mouseDrag");
     puzzle.dragTile(event.delta);
 }
 
@@ -179,6 +192,7 @@ function JigsawPuzzle(config) {
     this.tiles = createTiles(this.tilesPerRow, this.tilesPerColumn);
     // keep track of the steps of the current user
     this.steps = 0;
+    this.allowOverlap = config.allowOverlap;
 
     function createTiles(xTileCount, yTileCount) {
         var tiles = new Array();
@@ -209,7 +223,7 @@ function JigsawPuzzle(config) {
                 var tile = new Group(mask, img);
                 tile.picking = false;
                 tile.clipped = true;
-                tile.opacity = .5;
+                tile.opacity = 1;
                 tile.pivot = new Point(32, 32);
 
                 tile.shape = shape;
@@ -434,8 +448,10 @@ function JigsawPuzzle(config) {
             instance.draging = true;
 
             var pos = new Point(instance.selectedTile[0].position.x, instance.selectedTile[0].position.y);
+            instance.selectedTile[0].originPosition = pos;
             for(var i = 0; i < instance.selectedTile.length; i++){
                 var tile = instance.selectedTile[i];
+                tile.opacity = .5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
             }
         }
@@ -479,11 +495,15 @@ function JigsawPuzzle(config) {
                 Math.round(instance.selectedTile[0].position.x / instance.tileWidth),
                 Math.round(instance.selectedTile[0].position.y / instance.tileWidth));
 
+            var originCenterCellPostion = new Point(
+                Math.round(instance.selectedTile[0].originPosition.x / instance.tileWidth),
+                Math.round(instance.selectedTile[0].originPosition.y / instance.tileWidth));
+
             console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
 
             var hasConflict = checkConflict(instance.selectedTile, centerCellPosition);
             
-            if (!hasConflict) {
+            if (!hasConflict || this.allowOverlap) {
                 if (instance.selectedTile[0].picking) {
                     for(var i = 0; i < instance.selectedTile.length; i++){
                         instance.selectedTile[i].picking = false;
@@ -501,6 +521,10 @@ function JigsawPuzzle(config) {
                     showHints(tile);
                 }
 
+                for(var i = 0; i < instance.selectedTile.length; i++){
+                    instance.selectedTile[i].opacity = 1;
+                }
+
                 instance.selectedTile = null;
                 instance.draging = false;
 
@@ -508,6 +532,27 @@ function JigsawPuzzle(config) {
                 if (errors == 0) {
                     alert('Congratulations!!!');
                 }
+            }
+            else{
+
+                if (instance.selectedTile[0].picking) {
+                    for(var i = 0; i < instance.selectedTile.length; i++){
+                        instance.selectedTile[i].picking = false;
+                    }
+                }
+
+                for(var i = 0; i < instance.selectedTile.length; i++){
+                    var tile = instance.selectedTile[i];
+                    var cellPosition = originCenterCellPostion + tile.relativePosition;
+                    placeTile(tile, cellPosition);
+                }
+                for(var i = 0; i < instance.selectedTile.length; i++){
+                    instance.selectedTile[i].opacity = 1;
+                }
+
+                instance.selectedTile = null;
+                instance.draging = false;
+
             }
         }
     }
@@ -592,50 +637,31 @@ function JigsawPuzzle(config) {
         }
     }
 
-    this.mouseMove = function(point, delta) {
-        if (!instance.draging) {
-            if (delta.x < 8 && delta.y < 8) {
-                var tolerance = instance.tileWidth * .5;
-                var hit = false;
-                for (var index = 0; index < instance.tiles.length; index++) {
-                    var tile = instance.tiles[index];
-                    var row = parseInt(index / config.tilesPerRow);
-                    var col = index % config.tilesPerRow;
+    this.findSelectTile = function(point) {
+        var tolerance = instance.tileWidth * .5;
+        var hit = false;
+        for (var index = 0; index < instance.tiles.length; index++) {
+            var tile = instance.tiles[index];
+            var row = parseInt(index / config.tilesPerRow);
+            var col = index % config.tilesPerRow;
 
-                    var tileCenter = tile.position;
+            var tileCenter = tile.position;
 
-                    var deltaPoint = tileCenter - point;
-                    hit = (deltaPoint.x * deltaPoint.x + 
-                                deltaPoint.y * deltaPoint.y) < tolerance * tolerance;
-                    if (hit) {
-                        instance.selectedTile = new Array();
-                        if(instance.dragMode == "tile-First"){
-                            instance.selectedTile.push(tile);
-                        }
-                        else{
-                            DFSTiles(tile, instance.selectedTile, new Point(0,0));
-                        }
-                        for(var i = 0; i < instance.selectedTile.length; i++){
-                            instance.selectedTile[i].opacity = .5;
-                        }
-                        return;
-                    }
-                    else {
-                        if(instance.selectedTile){
-                            instance.selectedTile = null;
-                        }
-                        tile.opacity = 1
-                    }
-                }
-                if (!hit){
-                    instance.selectedTile = null;
-                }
+            var deltaPoint = tileCenter - point;
+            hit = (deltaPoint.x * deltaPoint.x + 
+                        deltaPoint.y * deltaPoint.y) < tolerance * tolerance;
+            if (hit) {
+                instance.selectedTile = new Array();
+                instance.selectedTile.push(tile);
+                return;
             }
         }
-        else {
-            instance.dragTile(delta);
+        if (!hit){
+            instance.selectedTile = null;
         }
     }
+
+    
 
     this.dragTileOrTiles = function(){
         if(instance.dragMode == "tile-First"){
@@ -663,7 +689,7 @@ function JigsawPuzzle(config) {
             var tile = instance.selectedTile[0];
             instance.selectedTile = new Array();
             DFSTiles(tile, instance.selectedTile, new Point(0, 0));
-            for(var i = 1; i < instance.selectedTile.length; i++){
+            for(var i = 0; i < instance.selectedTile.length; i++){
                 instance.selectedTile[i].opacity = .5;
                 instance.selectedTile[i].picking = instance.selectedTile[0].picking;
             }

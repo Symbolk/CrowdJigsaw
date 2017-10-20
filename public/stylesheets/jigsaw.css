@@ -105,12 +105,10 @@ canvas[resize] {
 }
 
 #timer_chip{
-    margin:40px 0 0 0px; 
+    margin:10px 0 0 0px; 
 }
 
-#stepButton{
-    margin-left: 50px;
-}
+
 
 .demo-layout-transparent .mdl-layout__drawer-button {
   color: black;
