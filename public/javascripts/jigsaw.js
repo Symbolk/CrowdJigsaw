@@ -107,14 +107,14 @@ var level=getUrlParams('level');
 console.log(level);
 if(level==1){
     config.tileShape='curved';
-    config.dragMode='group-First';
+    //config others here
 }else if(level==2){
     config.tileShape='straight';
-    config.dragMode='tile-First';
+    //config others here    
 }
 
 var puzzle = new JigsawPuzzle(config);
-/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? puzzle.zoom(-.5) : puzzle.zoom(-0.1);
+/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? puzzle.zoom(-0.5) : puzzle.zoom(-0.1);
 
 var path;
 var movePath = false;
