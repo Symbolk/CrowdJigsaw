@@ -54,4 +54,7 @@ a {
 #card_level2 > .mdl-card__supporting-text{
   background: url('/images/thumbnail_2.jpg') center / cover;
 }
+#card_level3 > .mdl-card__supporting-text{
+  background: url('/images/thumbnail_3.jpg') center / cover;
+}
 
