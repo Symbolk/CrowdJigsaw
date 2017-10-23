@@ -104,12 +104,6 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     res.render('puzzle', { title: 'Puzzle' });
 });
 
-router.route('/l3').get(function (req, res) {
-    // let selected_level=req.query.level;
-    res.render('puzzle_l3', { title: 'Puzzle' });
-});
-
-
 // Reset Password
 router.route('/reset').get(function (req, res) {
     res.render('reset', { title: 'Reset Password' });

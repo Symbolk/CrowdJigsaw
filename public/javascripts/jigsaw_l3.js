@@ -83,7 +83,7 @@ var config = ({
     imgHeight: imgHeight,
     showHints: true,
     shadowWidth: 120,
-    dragMode: 'tile-First',// tile-First or group-First
+    dragMode: 'group-First',// tile-First or group-First
     allowOverlap: false //whether allows overLap
 });
 
@@ -124,10 +124,9 @@ $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
-    puzzle.findSelectTile(event.point);
+    puzzle.pickTile(event.point);
     timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500);
     console.log("mousedown"); 
-    puzzle.pickTile();
 }
 
 function onMouseUp(event) {
@@ -189,12 +188,12 @@ function JigsawPuzzle(config) {
     this.selectedGroup = undefined;
 
     this.shadowScale = 1.5;
-    this.tiles = createTiles(this.tilesPerRow, this.tilesPerColumn);
+    this.tiles = createVoronoiTiles(this.tilesPerRow, this.tilesPerColumn);
     // keep track of the steps of the current user
     this.steps = 0;
     this.allowOverlap = config.allowOverlap;
 
-    function createTiles(xTileCount, yTileCount) {
+    function createVoronoiTiles(xTileCount, yTileCount) {
         var tiles = new Array();
         var tileRatio = instance.tileWidth / 100.0;
         var tileIndexes = new Array();
@@ -205,6 +204,22 @@ function JigsawPuzzle(config) {
                 var topRightPoint = new Point(0,0);
                 var bottomLeftPoint = new Point(0,0);
                 var bottomRightPoint = new Point(0,0);
+
+                bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+
+                if(x > 0){
+                    var leftTile = tiles[tileIndex - 1];
+                    topLeftPoint = leftTile.topRightPoint - new Point(instance.tileWidth, 0);
+                    bottomLeftPoint = leftTile.bottomRightPoint - new Point(instance.tileWidth, 0);
+                }
+
+                if(y > 0){
+                    var topTile = tiles[tileIndex - instance.tilesPerRow];       
+                    topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);              
+                    topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
+                }
+
                 if(x == 0){
                     if(y == 0){
                         topRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
@@ -215,24 +230,12 @@ function JigsawPuzzle(config) {
                         bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                     }
                     else if(y == yTileCount - 1){
-                        var topTile = tiles[tileIndex - instance.tilesPerRow];
-                        
-                        topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);
-                        
-                        topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
-
                         bottomLeftPoint.y =  instance.tileWidth;
 
                         bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                         bottomRightPoint.y = instance.tileWidth;
                     }
                     else{
-                        var topTile = tiles[tileIndex - instance.tilesPerRow];
-                        
-                        topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);
-                        
-                        topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
-
                         bottomLeftPoint.y =  Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);;
 
                         bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
@@ -240,12 +243,6 @@ function JigsawPuzzle(config) {
                     }
                 }
                 else if(x == xTileCount - 1){
-                    var leftTile = tiles[tileIndex - 1];
-
-                    topLeftPoint = leftTile.topRightPoint - new Point(instance.tileWidth, 0);
-
-                    bottomLeftPoint = leftTile.bottomRightPoint - new Point(instance.tileWidth, 0);
-
                     if(y == 0){
                         topRightPoint.x = instance.tileWidth;
 
@@ -253,32 +250,15 @@ function JigsawPuzzle(config) {
                         bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                     }
                     else if(y == yTileCount - 1){
-                        var topTile = tiles[tileIndex - instance.tilesPerRow];
-
-                        topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);
-                        
-                        topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
-
                         bottomRightPoint.x = instance.tileWidth;
                         bottomRightPoint.y = instance.tileWidth;
                     }
                     else{
-                        var topTile = tiles[tileIndex - instance.tilesPerRow];
-
-                        topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);
-                        
-                        topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
-                        
                         bottomRightPoint.x = instance.tileWidth;
                         bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                     }
                 }
                 else{
-                    var leftTile = tiles[tileIndex - 1];
-
-                    topLeftPoint = leftTile.topRightPoint - new Point(instance.tileWidth, 0);
-
-                    bottomLeftPoint = leftTile.bottomRightPoint - new Point(instance.tileWidth, 0);
                     if(y == 0){
                         topRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
 
@@ -286,29 +266,24 @@ function JigsawPuzzle(config) {
                         bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                     }
                     else if(y == yTileCount - 1){
-                        var topTile = tiles[tileIndex - instance.tilesPerRow];
-
-                        topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);
-                        
-                        topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
-
                         bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                         bottomRightPoint.y = instance.tileWidth;
                     }
                     else{
-                        var topTile = tiles[tileIndex - instance.tilesPerRow];
-
-                        topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);
-                        
-                        topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
-
                         bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                         bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
                     }
                 }
-                var mask = getMask(tileRatio, topLeftPoint, topRightPoint, bottomLeftPoint, bottomRightPoint, instance.tileWidth);
+
+                var mask = new Path();
+                mask.moveTo(topLeftPoint);
+                mask.lineTo(topRightPoint);
+                mask.lineTo(bottomRightPoint);
+                mask.lineTo(bottomLeftPoint);
+                mask.closePath();
                 mask.opacity = 0.01;
                 mask.strokeColor = '#fff'; //white
+                
                 var cloneImg = instance.puzzleImage.clone();
                 var img = getTileRaster(
                     cloneImg,
@@ -372,16 +347,6 @@ function JigsawPuzzle(config) {
         return tiles;
     }
 
-    function getMask(tileRatio, topLeftPoint, topRightPoint, bottomLeftPoint, bottomRightPoint, tileWidth) {
-        var mask = new Path();
-        mask.moveTo(topLeftPoint);
-        mask.lineTo(topRightPoint);
-        mask.lineTo(bottomRightPoint);
-        mask.lineTo(bottomLeftPoint);
-        mask.closePath();
-        return mask;
-    }
-
     var hitOptions = {
         segments: true,
         stroke: true,
@@ -391,14 +356,13 @@ function JigsawPuzzle(config) {
 
 
     function getTileRaster(sourceRaster, size, offset) {
-        var targetRaster = new Raster('empty');
         var tileWithMarginWidth = size.width + instance.tileMarginWidth * 2;
-        var data = sourceRaster.getImageData(new Rectangle(
+        var rectangle = new Rectangle(
             offset.x - instance.tileMarginWidth,
             offset.y - instance.tileMarginWidth,
             tileWithMarginWidth,
-            tileWithMarginWidth));
-        targetRaster.setImageData(data, new Point(0, 0))
+            tileWithMarginWidth);
+        var targetRaster = sourceRaster.getSubRaster(rectangle);
         targetRaster.position = new Point(instance.tileWidth/2, instance.tileWidth/2);
         return targetRaster;
     }
@@ -407,17 +371,12 @@ function JigsawPuzzle(config) {
         return new Number(tile.name.substr(5));
     }
 
-    this.pickTile = function() {
+    this.pickTile = function(point) {
+        findSelectTile(point);
         if (instance.selectedTile) {
             if (!instance.selectedTile[0].picking) {
                 for(var i = 0; i < instance.selectedTile.length; i++){
                     instance.selectedTile[i].picking = true;
-                }
-            }
-            else {
-                if (instance.selectedTile[0].picking) {
-                    instance.releaseTile();
-                    return;
                 }
             }
 
@@ -554,10 +513,6 @@ function JigsawPuzzle(config) {
         }
         return tile;
     }
-
-    this.adjust = function(){
-        
-    }
     
     this.dragTile = function(delta) {
         if (instance.draging) {
@@ -591,26 +546,20 @@ function JigsawPuzzle(config) {
         }
     }
 
-    this.findSelectTile = function(point) {
-        var tolerance = instance.tileWidth * .5;
-        var hit = false;
-        for (var index = 0; index < instance.tiles.length; index++) {
-            var tile = instance.tiles[index];
-            var row = parseInt(index / config.tilesPerRow);
-            var col = index % config.tilesPerRow;
-
-            var tileCenter = tile.position;
-
-            var deltaPoint = tileCenter - point;
-            hit = (deltaPoint.x * deltaPoint.x + 
-                        deltaPoint.y * deltaPoint.y) < tolerance * tolerance;
-            if (hit) {
-                instance.selectedTile = new Array();
+    function findSelectTile(point) {
+        var hitResult = project.hitTest(point);
+        if(hitResult && hitResult.item instanceof Raster){
+            var img = hitResult.item;
+            var tile = img.parent;
+            instance.selectedTile = new Array();
+            if(instance.dragMode == "tile-First"){
                 instance.selectedTile.push(tile);
-                return;
+            }
+            else{
+                DFSTiles(tile, instance.selectedTile, new Point(0, 0));
             }
         }
-        if (!hit){
+        else{
             instance.selectedTile = null;
         }
     }
