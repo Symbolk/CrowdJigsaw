@@ -172,9 +172,12 @@ function JigsawPuzzle(config) {
     this.zoomScaleOnDrag = config.zoomScaleOnDrag;
     this.imgName = config.imgName;
     this.shadowWidth = config.shadowWidth;
-    this.puzzleImage = new Raster(config.imgName);
+    this.originImage = new Raster(config.imgName);
+    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0,0,
+        config.tileWidth*config.tilesPerColumn, config.tileWidth*config.tilesPerRow));
     this.puzzleImage.position = view.center;
 
+    this.originImage.visible =false;
     this.puzzleImage.visible = false;
     this.tileWidth = config.tileWidth;
 
@@ -591,7 +594,6 @@ function JigsawPuzzle(config) {
             offset.y - instance.tileMarginWidth,
             tileWithMarginWidth,
             tileWithMarginWidth));
-        console.log(targetRaster);
         //targetRaster.setImageData(data, new Point(0, 0))
         targetRaster.position = new Point(instance.tileWidth/2, instance.tileWidth/2);
         return targetRaster;
