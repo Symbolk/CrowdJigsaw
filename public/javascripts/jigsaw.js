@@ -223,7 +223,7 @@ function JigsawPuzzle(config) {
                 var tile = new Group(mask, img);
                 tile.picking = false;
                 tile.clipped = true;
-                tile.opacity = .5;
+                tile.opacity = 1;
                 tile.pivot = new Point(32, 32);
 
                 tile.shape = shape;
@@ -451,6 +451,7 @@ function JigsawPuzzle(config) {
             instance.selectedTile[0].originPosition = pos;
             for(var i = 0; i < instance.selectedTile.length; i++){
                 var tile = instance.selectedTile[i];
+                tile.opacity = .5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
             }
         }
@@ -458,6 +459,8 @@ function JigsawPuzzle(config) {
 
     function checkConflict(tiles, centerCellPosition){
         var hasConflict = false;
+        if(this.allowOverlap)
+            return hasConflict;
         for(var i = 0; i < tiles.length; i++){
             var tile = tiles[i];
 
@@ -501,57 +504,39 @@ function JigsawPuzzle(config) {
             console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
 
             var hasConflict = checkConflict(instance.selectedTile, centerCellPosition);
-            
-            if (!hasConflict || this.allowOverlap) {
-                if (instance.selectedTile[0].picking) {
-                    for(var i = 0; i < instance.selectedTile.length; i++){
-                        instance.selectedTile[i].picking = false;
-                    }
-                }
-
+            if (instance.selectedTile[0].picking) {
                 for(var i = 0; i < instance.selectedTile.length; i++){
-                    var tile = instance.selectedTile[i];
-                    var cellPosition = centerCellPosition + tile.relativePosition;
-                    placeTile(tile, cellPosition);
-                }
-
-                if(instance.showHints && instance.selectedTile.length == 1){
-                    var tile = instance.selectedTile[0];
-                    showHints(tile);
-                }
-
-                for(var i = 0; i < instance.selectedTile.length; i++){
-                    instance.selectedTile[i].opacity = .5;
-                }
-
-                instance.selectedTile = null;
-                instance.draging = false;
-
-                var errors = checkTiles();
-                if (errors == 0) {
-                    alert('Congratulations!!!');
+                    instance.selectedTile[i].picking = false;
                 }
             }
-            else{
 
-                if (instance.selectedTile[0].picking) {
-                    for(var i = 0; i < instance.selectedTile.length; i++){
-                        instance.selectedTile[i].picking = false;
-                    }
+            for(var i = 0; i < instance.selectedTile.length; i++){
+                var tile = instance.selectedTile[i];
+                var cellPosition = undefined;
+                if(hasConflict){
+                    cellPosition = originCenterCellPostion + tile.relativePosition;
                 }
-
-                for(var i = 0; i < instance.selectedTile.length; i++){
-                    var tile = instance.selectedTile[i];
-                    var cellPosition = originCenterCellPostion + tile.relativePosition;
-                    placeTile(tile, cellPosition);
+                else{
+                    cellPosition = centerCellPosition + tile.relativePosition;
                 }
-                for(var i = 0; i < instance.selectedTile.length; i++){
-                    instance.selectedTile[i].opacity = .5;
-                }
+                placeTile(tile, cellPosition);
+            }
 
-                instance.selectedTile = null;
-                instance.draging = false;
+            if(!hasConflict && instance.showHints && instance.selectedTile.length == 1){
+                var tile = instance.selectedTile[0];
+                showHints(tile);
+            }
 
+            for(var i = 0; i < instance.selectedTile.length; i++){
+                instance.selectedTile[i].opacity = 1;
+            }
+
+            instance.selectedTile = null;
+            instance.draging = false;
+
+            var errors = checkTiles();
+            if (errors == 0) {
+                alert('Congratulations!!!');
             }
         }
     }
@@ -688,8 +673,8 @@ function JigsawPuzzle(config) {
             var tile = instance.selectedTile[0];
             instance.selectedTile = new Array();
             DFSTiles(tile, instance.selectedTile, new Point(0, 0));
-            for(var i = 1; i < instance.selectedTile.length; i++){
-                instance.selectedTile[i].opacity = 1;
+            for(var i = 0; i < instance.selectedTile.length; i++){
+                instance.selectedTile[i].opacity = .5;
                 instance.selectedTile[i].picking = instance.selectedTile[0].picking;
             }
         }
