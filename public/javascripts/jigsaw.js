@@ -237,6 +237,7 @@ function JigsawPuzzle(config) {
                 // each tile is a group of
                 var tile = new Group(mask, img);
                 tile.picking = false;
+                tile.alreadyHinted = false;
                 tile.clipped = true;
                 tile.opacity = 1;
                 tile.pivot = new Point(32, 32);
@@ -608,6 +609,10 @@ function JigsawPuzzle(config) {
                     instance.selectedTile[i].picking = true;
                 }
             }
+            else{
+                instance.releaseTile();
+                return;
+            }
 
             instance.draging = true;
 
@@ -690,7 +695,9 @@ function JigsawPuzzle(config) {
 
             if(!hasConflict && instance.showHints && instance.selectedTile.length == 1){
                 var tile = instance.selectedTile[0];
-                showHints(tile);
+                if(!tile.alreadyHinted){
+                    showHints(tile);
+                }
             }
 
             for(var i = 0; i < instance.selectedTile.length; i++){
@@ -725,6 +732,7 @@ function JigsawPuzzle(config) {
         if(nearTilesCount == 0 || !correctPlaced)
             return;
 
+        var correctTilesCount = 0;
         for(var i = 0; i < 4; i++){
             if(((tileIndex % instance.tilesPerRow == instance.tilesPerRow - 1) && i == 1)//right
                 || ((tileIndex % instance.tilesPerRow == 0) && i == 3)){//left
@@ -737,8 +745,13 @@ function JigsawPuzzle(config) {
                 var hasConflict = checkConflict(new Array(correctTile), correctCellposition);
                 if(!hasConflict){
                     placeTile(correctTile, correctCellposition);
+                    correctTile.alreadyHinted = true;
+                    correctTilesCount += 1;
                 }
             }
+        }
+        if(correctTilesCount){
+            tile.alreadyHinted = true;
         }
     }
 
