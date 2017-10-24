@@ -72,6 +72,11 @@ var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
 var tileWidth = 64;
 
+var level=getUrlParams('level');
+if(level == 3){
+    var tileWidth = 32;
+}
+
 var config = ({
     zoomScaleOnDrag: 1.25,
     imgName: 'puzzle-image',
@@ -103,7 +108,6 @@ function getUrlParams(key)
      if(r!=null)return  unescape(r[2]); return null;
 }
 
-var level=getUrlParams('level');
 console.log(level);
 if(level==1){
     config.tileShape='curved';
