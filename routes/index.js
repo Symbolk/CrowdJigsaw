@@ -104,7 +104,6 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     res.render('puzzle', { title: 'Puzzle' });
 });
 
-
 // Reset Password
 router.route('/reset').get(function (req, res) {
     res.render('reset', { title: 'Reset Password' });
