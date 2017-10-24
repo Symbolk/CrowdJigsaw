@@ -75,7 +75,7 @@ var tileWidth = 64;
 var config = ({
     zoomScaleOnDrag: 1.25,
     imgName: 'puzzle-image',
-    tileShape: 'straight', // curved or straight
+    tileShape: 'straight', // curved or straight or voronoi
     tileWidth: tileWidth,
     tilesPerRow: Math.ceil(imgWidth / tileWidth), //returns min int >= arg
     tilesPerColumn: Math.ceil(imgHeight / tileWidth),
@@ -115,6 +115,7 @@ if(level==1){
     //config others here    
 }else if(level == 3){
     config.tileShape= 'voronoi';
+    // config.tileWidth=32;
     config.level = 3;
 }
 

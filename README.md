@@ -8,6 +8,10 @@
 
 _Powered By [@Symbolk](http://www.symbolk.com)_
 
+_[@Yuhan Wei](https://github.com/weiyuhan)_
+
+_[@Xinyue Zhang](https://github.com/ZXinyue)_
+
 ## Overview
 
 Language : 
@@ -44,7 +48,10 @@ _P.S. See npm dependencies in package.json_
 ![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home.jpg)
 ![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone.jpg)
 ![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer.jpg)
-![Puzzle](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/puzzle.jpg)
+![Level1](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_1.jpg)
+![Level2](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_2.jpg)
+![Level3](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_3.jpg)
+
 
 
 ## Development(Windows)
