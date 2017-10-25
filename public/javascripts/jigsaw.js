@@ -66,16 +66,13 @@ view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
 
-$('#puzzle-image').attr('src', 'images/cat.jpg');
+$('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 64;
+var tileWidth = 32;
 
 var level=getUrlParams('level');
-if(level == 3){
-    var tileWidth = 32;
-}
 
 var config = ({
     zoomScaleOnDrag: 1.25,
@@ -108,7 +105,7 @@ function getUrlParams(key)
      if(r!=null)return  unescape(r[2]); return null;
 }
 
-console.log(level);
+
 if(level==1){
     config.tileShape='curved';
     config.level = 1;
@@ -119,7 +116,6 @@ if(level==1){
     //config others here    
 }else if(level == 3){
     config.tileShape= 'voronoi';
-    // config.tileWidth=32;
     config.level = 3;
 }
 
@@ -136,14 +132,12 @@ var timeoutFunction;
 function onMouseDown(event) {
     puzzle.pickTile(event.point);
     timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500);
-    console.log("mousedown"); 
 }
 
 function onMouseUp(event) {
     if(timeoutFunction){
         window.clearTimeout(timeoutFunction); 
     }
-    console.log("mouseup");
     puzzle.releaseTile();
 }
 
@@ -152,7 +146,6 @@ function onMouseDrag(event) {
     if(timeoutFunction){
         window.clearTimeout(timeoutFunction); 
     }
-    console.log("mouseDrag");
     puzzle.dragTile(event.delta);
 }
 
@@ -169,6 +162,9 @@ function onKeyUp(event) {
 
 
 function JigsawPuzzle(config) {
+    // getHints();
+    // checkLinks();
+    
     var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
     this.level = config.level;
@@ -195,7 +191,7 @@ function JigsawPuzzle(config) {
     this.tileNum = this.tilesPerRow * this.tilesPerColumn;
 
     // output some info about this puzzle
-    console.log("Game started : " + this.tileNum + " tiles(" + this.tilesPerRow + " rows * " + this.tilesPerColumn + " cols)");
+    console.log('Level '+level + ' started : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
 
     if(this.tileShape == "voronoi"){
         this.tileMarginWidth = this.tileWidth * 0.5;
@@ -679,7 +675,7 @@ function JigsawPuzzle(config) {
                 Math.round(instance.selectedTile[0].originPosition.x / instance.tileWidth),
                 Math.round(instance.selectedTile[0].originPosition.y / instance.tileWidth));
 
-            console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
+            // console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
 
             var hasConflict = checkConflict(instance.selectedTile, centerCellPosition);
             if (instance.selectedTile[0].picking) {

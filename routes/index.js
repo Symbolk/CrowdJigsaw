@@ -16,11 +16,6 @@ router.get('/', function (req, res, next) {
     res.render('index', { title: 'Crowd Jigsaw Puzzle' });
 });
 
-/* Test DB API */
-router.get('/apitest', function (req, res, next) {
-    res.render('apitest', { title: 'Testing Database API' });
-});
-
 // Login
 //返回一个路由的一个实例，你可以用于处理HTTP动态请求使用可选的中间件。使用router.route()是一种推荐的方法来避免重复路由命名和拼写错误.。
 router.route('/login').all(Logined).get(function (req, res) {
@@ -138,7 +133,7 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
     let dbhelp = new DBHelp();
     dbhelp.FindAll('users', selectStr, function (result) {
         if (result) {
-            res.render('rank', { title: 'Ranks', Allusers: result });
+            res.render('rank', { title: 'Ranks', Allusers: result, username: req.session.user.username });
         }
         else {
             res.render('rank', { title: 'Ranks' });
@@ -149,13 +144,13 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
 // Account Settings
 router.route('/settings').all(LoginFirst).get(function (req, res) {
     // TODO
-    res.render('settings', { title: 'Player Settings' });
+    res.render('settings', { title: 'Player Settings', username: req.session.user.username });
 });
 
 // Personal Records
 router.route('/records').all(LoginFirst).get(function (req, res) {
     // TODO    
-    res.render('records', { title: 'Personal Records' });
+    res.render('records', { title: 'Personal Records', username: req.session.user.username });
 });
 
 
@@ -186,73 +181,141 @@ function LoginFirst(req, res, next) {
 
 // Graph Operations
 
+/**
+ * Retrieve: Get all links in the db
+ */
+router.route('/retrieve').get(function (req, res) {
+    LinkModel.find({}, function (err, docs) {
+        if (err) {
+            console.log(err);
+            res.end('Error while retrieving.');
+        } else {
+            res.send(JSON.stringify(docs));
+        }
+    });
+});
+
+/**
+ * FindOne: Check if one link exists in the db
+ */
+router.get('/exist/:from/:to', function (req, res) {
+    let condition = {
+        from: req.params.from,
+        to: req.params.to
+    };
+    LinkModel.count(condition, function (err, count) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send({ count: count });
+        }
+    });
+});
+
+
 router.route('/create').post(function (req, res) {
-    console.log(req.body);
-    LinkModel.create({ from: req.body.from, to: req.body.to }, function (err, doc) {
+    let operation={
+        from: req.body.from,
+        to: req.body.to,
+        supNum: 1,
+        oppNum: 0,
+        supporters: {
+            username: req.session.user.username,
+            direction: req.body.dir
+        }
+    }
+    LinkModel.create(operation, function (err, doc) {
         if (err) {
             console.log(err);
         } else {
-            console.log('Saved!');
-            // req.session.error='Saved!';
-            LinkModel.find({}, function (err, doc) {
-                console.log(doc);
-            });
+            console.log('++ ' + req.body.from + ' --> ' + req.body.to);
         }
     });
-    return res.redirect('/apitest');
 });
 
-// router.route('/remove').get(function(req,res){
-//     res.render('apitest',{title:'apitest'});
-// }).post(function(req, res)
-// {
-//     console.log(req.body);
-//     var conditions={ from : req.body.from2, to : req.body.to2};
-//     LinkModel.remove(conditions, function(err){
-//         if(err){
-//             console.log(err);
-//         }else{
-//             // req.session.error='Saved!';
-//             console.log('Removed ' + conditions.from + '->' + conditions.to);
-//             LinkModel.find({}, function(err, doc){
-//                 console.log(doc);
-//             });
-//         }
-//     });
-//     return res.redirect('/apitest');
-// });
+
 router.route('/remove').get(function (req, res) {
-    LinkModel.remove({ from: 2, to: 6 }, function (err) {
+    let condition = {
+        from: req.params.from,
+        to: req.params.to
+    };
+    LinkModel.remove(condition, function (err) {
         if (err) {
             console.log(err);
         } else {
-            console.log('Removed!');
-            // req.session.error='Saved!';
-            LinkModel.find({}, function (err, doc) {
-                console.log(doc);
-            });
+            console.log('-- ' + req.body.from + ' --> ' + req.body.to);
         }
     });
-    return res.redirect('/apitest');
 });
 
-router.route('/update').get(function (req, res) {
+/**
+ * Add one supporter for one link
+ */
+router.route('/support').post(function (req, res) {
+    let condition = {
+        from: req.body.from,
+        to: req.body.to
+    };
+    let operation = {
+        $inc:{
+            supNum: 1
+        },
+        $addToSet: { //if exists, give up add
+            supporters:
+            {
+                username: req.session.user.username,
+                direction: req.body.dir
+            }
+        }
+    };
 
-    var conditions = { from: 3 };
-    var update = { $set: { to: 16 } };
-
-    LinkModel.update(conditions, update, function (err) {
+    LinkModel.update(condition, operation, function (err) {
         if (err) {
             console.log(err);
         } else {
-            console.log('Updated!');
-            // req.session.error='Saved!';
-            LinkModel.find({}, function (err, doc) {
-                console.log(doc);
-            });
+            console.log('+ '+req.body.from+' --> '+req.body.to);
+            res.send({ msg: '+'});
         }
     });
-    return res.redirect('/apitest');
+});
+
+/**
+ * Reduce one supporter for one link
+ */
+router.route('/forget').post(function (req, res) {
+    let condition = {
+        from: req.body.from,
+        to: req.body.to
+    };
+    let operation = {
+        $inc:{
+            supNum: -1,
+            oppNum: 1
+        },
+        $pull: {
+            supporters:
+            {
+                username: req.session.user.username
+            }
+        },
+        $push: {
+            opposers:
+            {
+                username: req.session.user.username,
+                direction: req.body.dir
+            }
+        }
+    };
+    LinkModel.update(condition, operation, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log('- '+req.body.from+' --> '+req.body.to);
+            res.send({ msg: '-'});
+        }
+    });
+    // check if the current player is the last and only supporter
+
 });
 
 module.exports = router;

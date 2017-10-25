@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-const DB_URL = 'mongodb://localhost:27017/CrowdJigsaw';
+const config=require('./config/dev');
+
+const DB_URL = config.database;
 mongoose.connect(DB_URL, { useMongoClient: true });
 const db = mongoose.connection;
 
@@ -38,20 +40,20 @@ console.log('User Model Created.');
 var GraphSchema = new mongoose.Schema({
     from: { type: Number },
     to: { type: Number },
-    // supNum: { type: Number },
-    // oppNum: { type: Number },
-    // supporters: [
-    //     {
-    //         username: { type: String },
-    //         direction: { type: String },
-    //     }
-    // ],
-    // opposers: [
-    //     {
-    //         username: { type: String },
-    //         direction: { type: String },
-    //     }
-    // ]
+    supNum: { type: Number },
+    oppNum: { type: Number },
+    supporters: [
+        {
+            username: { type: String },
+            direction: { type: String },
+        }
+    ],
+    opposers: [
+        {
+            username: { type: String },
+            direction: { type: String },
+        }
+    ]
 }, { collection: 'graph' });
 var Link = mongoose.model('Link', GraphSchema, 'graph');
 console.log('Graph Model Created.');
