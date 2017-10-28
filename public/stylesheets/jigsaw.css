@@ -38,7 +38,8 @@ canvas[resize] {
 .zoomOut,
 .help,
 .restart,
-.quit
+.quit,
+.returnCenter
 {
     z-index: 100;
     position: absolute;
@@ -51,6 +52,7 @@ canvas[resize] {
 .quit.hover,
 .zoomIn:hover,
 .zoomOut:hover,
+.returnCenter:hover,
 .restart.hover
 {
     opacity: 1.0;
@@ -83,6 +85,10 @@ canvas[resize] {
     margin: 240px 0 0 50px;
 }
 
+.returnCenter
+{
+    margin: 300px 0 0 50px;
+}
 
 .info{
     position: absolute;
@@ -101,7 +107,7 @@ canvas[resize] {
 
 
 #steps_chip{
-    margin:300px 0 0 0px;  
+    margin:360px 0 0 0px;  
 }
 
 #timer_chip{

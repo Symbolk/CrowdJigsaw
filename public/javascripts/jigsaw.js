@@ -27,6 +27,10 @@ $('.restart').click(function () {
     // var puzzle = new JigsawPuzzle(config);
 });
 
+$('.returnCenter').click(function () {
+    view.scrollBy(new Point(560,360) - view.center);
+});
+
 /**
  * Ensure quit
  */
