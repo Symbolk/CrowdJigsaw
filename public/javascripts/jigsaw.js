@@ -70,17 +70,20 @@ $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 32;
+var tileWidth = 64;
 
 var level=getUrlParams('level');
+if(level == 3){
+    tileWidth = 32;
+}
 
 var config = ({
     zoomScaleOnDrag: 1.25,
     imgName: 'puzzle-image',
     tileShape: 'straight', // curved or straight or voronoi
     tileWidth: tileWidth,
-    tilesPerRow: Math.ceil(imgWidth / tileWidth), //returns min int >= arg
-    tilesPerColumn: Math.ceil(imgHeight / tileWidth),
+    tilesPerRow: Math.floor(imgWidth / tileWidth), //returns min int >= arg
+    tilesPerColumn: Math.floor(imgHeight / tileWidth),
     imgWidth: imgWidth,
     imgHeight: imgHeight,
     showHints: true,
@@ -117,6 +120,10 @@ if(level==1){
 }else if(level == 3){
     config.tileShape= 'voronoi';
     config.level = 3;
+}else if(level == 4){
+    config.tileShape= 'voronoi';
+    config.level = 4;
+    config.imgName = 'grey';
 }
 
 var puzzle = new JigsawPuzzle(config);
@@ -173,21 +180,22 @@ function JigsawPuzzle(config) {
     this.zoomScaleOnDrag = config.zoomScaleOnDrag;
     this.imgName = config.imgName;
     this.shadowWidth = config.shadowWidth;
+    this.tileWidth = config.tileWidth;
+    this.tilesPerRow = config.tilesPerRow;
+    this.tilesPerColumn = config.tilesPerColumn;
     this.originImage = new Raster(config.imgName);
     this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0,0,
-        config.tileWidth*config.tilesPerColumn, config.tileWidth*config.tilesPerRow));
+        this.tileWidth*this.tilesPerRow, this.tileWidth*this.tilesPerColumn));
+    console.log(this.puzzleImage.size);
     this.puzzleImage.position = view.center;
 
     this.originImage.visible =false;
     this.puzzleImage.visible = false;
-    this.tileWidth = config.tileWidth;
 
     this.dragMode = config.dragMode;
 
     this.showHints = config.showHints;
 
-    this.tilesPerRow = config.tilesPerRow;
-    this.tilesPerColumn = config.tilesPerColumn;
     this.tileNum = this.tilesPerRow * this.tilesPerColumn;
 
     // output some info about this puzzle
@@ -244,7 +252,7 @@ function JigsawPuzzle(config) {
                 tile.alreadyHinted = false;
                 tile.clipped = true;
                 tile.opacity = 1;
-                tile.pivot = new Point(32, 32);
+                tile.pivot = new Point(instance.tileWidth/2, instance.tileWidth/2);
 
                 tile.shape = shape;
                 tile.imagePosition = new Point(x, y);
@@ -698,9 +706,9 @@ function JigsawPuzzle(config) {
 
             if(!hasConflict && instance.showHints && instance.selectedTile.length == 1){
                 var tile = instance.selectedTile[0];
-                if(!tile.alreadyHinted){
+                //if(!tile.alreadyHinted){
                     showHints(tile);
-                }
+                //}
             }
 
             for(var i = 0; i < instance.selectedTile.length; i++){
@@ -758,17 +766,19 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function getTileAtCellPosition(point) {
-        var width = instance.tilesPerRow;
-        var height = instance.tilesPerColumn;
-        var tile = undefined;
-        for (var i = 0; i < instance.tiles.length; i++) {
-            if (instance.tiles[i].cellPosition == point && !instance.tiles[i].picking) {
-                tile = instance.tiles[i];
-                break;
+    function getTileAtCellPosition(cellPosition) {
+        var roundPosition = cellPosition * instance.tileWidth;
+        var retTile = undefined;
+        var hitResults = project.hitTestAll(roundPosition);
+        for(var i = 0; i < hitResults.length; i++){
+            var hitResult = hitResults[i];
+            var img = hitResult.item;
+            var tile = img.parent;
+            if(!tile.picking){
+                retTile = tile;
             }
         }
-        return tile;
+        return retTile;
     }
 
     this.dragTile = function(delta) {
