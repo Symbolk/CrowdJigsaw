@@ -19,6 +19,10 @@ $('.restart').click(function () {
     // var puzzle = new JigsawPuzzle(config);
 });
 
+$('.returnCenter').click(function () {
+    view.scrollBy(new Point(560,360) - view.center);
+});
+
 /**
  * Ensure quit
  */
@@ -45,6 +49,14 @@ $('.restart').click(function () {
         window.location='/home';
     });
 }());
+
+
+document.querySelector('#show_steps').addEventListener('click', function () {
+    $('#steps').fadeToggle('slow');
+});
+document.querySelector('#show_timer').addEventListener('click', function () {
+    $('#timer').fadeToggle('slow');
+});
 
 /*
 * Jigsaw functions
@@ -126,6 +138,23 @@ if(level==1){
 var puzzle = new JigsawPuzzle(config);
 /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? puzzle.zoom(-0.5) : puzzle.zoom(-0.1);
 
+var time=0;
+var t;
+function timedCount(){
+    var hours = Math.floor(time/3600);
+    var minutes  = Math.floor((time - hours*3600)/60);
+    var seconds = time - hours*3600 - minutes*60;
+    if(hours >=0 && hours<=9) hours = '0'+hours;
+    if(minutes >=0 && minutes<=9) minutes = '0'+minutes;
+    if(seconds >=0 && seconds<=9) seconds = '0'+seconds;
+    document.getElementById('timer').innerHTML = hours + ":" + minutes + ":" + seconds;
+    time = time+1;
+    t = setTimeout(timedCount,1000);
+}
+
+if(puzzle)
+    timedCount();
+
 var path;
 var movePath = false;
 
@@ -178,7 +207,7 @@ function getOriginImage(config){
     return raster;
 }
 
-function JigsawPuzzle(config) {
+    function JigsawPuzzle(config) {
     // getHints();
     // checkLinks();
     
@@ -206,7 +235,6 @@ function JigsawPuzzle(config) {
     this.showHints = config.showHints;
 
     this.tileNum = this.tilesPerRow * this.tilesPerColumn;
-
     // output some info about this puzzle
     console.log('Level '+level + ' started : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
 
@@ -731,6 +759,7 @@ function JigsawPuzzle(config) {
                 }
                 else{
                     cellPosition = centerCellPosition + tile.relativePosition;
+                    this.steps = this.steps+1;
                 }
                 placeTile(tile, cellPosition);
                 sendLinks(tile);
@@ -751,6 +780,8 @@ function JigsawPuzzle(config) {
 
             instance.selectedTile = null;
             instance.draging = false;
+            
+            document.getElementById("steps").innerHTML=this.steps;
 
             var errors = checkTiles();
             if (errors == 0) {
