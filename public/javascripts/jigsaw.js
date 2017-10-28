@@ -609,7 +609,10 @@ function JigsawPuzzle(config) {
     }
 
     function getTileIndex(tile){
-        return new Number(tile.name.substr(5));
+        if(tile){
+            return new Number(tile.name.substr(5));
+        }
+        return -1;
     }
 
     this.pickTile = function(point) {
@@ -672,6 +675,22 @@ function JigsawPuzzle(config) {
         tile.relativePosition = new Point(0, 0);
     }
 
+    function sendLinks(tile){
+        var tileIndex = getTileIndex(tile);
+
+        var cellPosition = tile.cellPosition;
+
+        var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
+        var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
+        var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
+        var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
+
+        var aroundTiles = new Array(getTileIndex(topTile),getTileIndex(rightTile),
+            getTileIndex(bottomTile),getTileIndex(leftTile));
+        
+        checkLinks(tileIndex, aroundTiles);
+    }
+    
     this.releaseTile = function() {
         if (instance.draging) {
 
@@ -702,13 +721,16 @@ function JigsawPuzzle(config) {
                     cellPosition = centerCellPosition + tile.relativePosition;
                 }
                 placeTile(tile, cellPosition);
+                sendLinks(tile);
             }
 
-            if(!hasConflict && instance.showHints && instance.selectedTile.length == 1){
-                var tile = instance.selectedTile[0];
-                //if(!tile.alreadyHinted){
-                    showHints(tile);
-                //}
+            if(!hasConflict && instance.showHints){
+                for(var i = 0; i < instance.selectedTile.length == 1; i++){
+                    var tile = instance.selectedTile[i];
+                    if(!tile.alreadyHinted){
+                        showHints(tile);
+                    }
+                }
             }
 
             for(var i = 0; i < instance.selectedTile.length; i++){
@@ -728,40 +750,40 @@ function JigsawPuzzle(config) {
     function showHints(tile){
         var cellPosition = tile.cellPosition;
         var tileIndex = getTileIndex(tile);
-        var correctPlaced = true;
-        var nearTilesCount = 0; 
-        for(var i = 0; i < 4; i++){
-            var nearTile = getTileAtCellPosition(cellPosition + directions[i]);
-            if(nearTile){
-                nearTilesCount += 1;
-                var nearTileIndex = getTileIndex(nearTile);
-                var correctIndex = tileIndex + directions[i].x + instance.tilesPerRow * directions[i].y;
-                if(correctIndex != nearTileIndex)
-                    correctPlaced = false;
-            }
-        }
-        if(nearTilesCount == 0 || !correctPlaced)
-            return;
 
-        var correctTilesCount = 0;
-        for(var i = 0; i < 4; i++){
-            if(((tileIndex % instance.tilesPerRow == instance.tilesPerRow - 1) && i == 1)//right
-                || ((tileIndex % instance.tilesPerRow == 0) && i == 3)){//left
+        var hintTiles = getHints(tileIndex);
+
+        if(!hintTiles){
+            return;
+        }
+
+        var hintTilesCount = 0;
+        for(var i = 0; i < hintTiles.length; i++){
+            var correctTileIndex = hintTiles[i];
+            if(correctTileIndex < 0){
                 continue;
             }
-            var correctIndex = tileIndex + directions[i].x + instance.tilesPerRow * directions[i].y;
-            if(correctIndex >= 0 && correctIndex < instance.tiles.length){
-                var correctTile = instance.tiles[correctIndex];
-                var correctCellposition = cellPosition + directions[i];
-                var hasConflict = checkConflict(new Array(correctTile), correctCellposition);
-                if(!hasConflict){
-                    placeTile(correctTile, correctCellposition);
-                    correctTile.alreadyHinted = true;
-                    correctTilesCount += 1;
+            var correctTile = instance.tiles[tileIndex];
+            var groupTiles = new Array();
+            DFSTiles(correctTile, groupTiles, new Point(0,0));
+            for(var i = 0; i < groupTiles.length; i++){
+                groupTiles[i].picking = true;
+            }
+            var correctCellposition = cellPosition + directions[i];
+            var hasConflict = checkConflict(groupTiles, correctCellposition);
+            if(!hasConflict){
+                for(var i = 0; i < groupTiles.length; i++){
+                    var hintTile = groupTiles[i];
+                    placeTile(hintTile, correctCellposition + hintTile.relativePosition);
+                    hintTile.relativePosition = new Point(0,0);
+                    hintTile.picking = false;
+                    hintTile.alreadyHinted = true;
+                    sendLinks(hintTile);
                 }
+                hintTilesCount += groupTiles.length;
             }
         }
-        if(correctTilesCount){
+        if(hintTilesCount){
             tile.alreadyHinted = true;
         }
     }
