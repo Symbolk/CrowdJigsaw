@@ -10,15 +10,7 @@ $('.zoomOut').click(function () {
 });
 
 $('.help').mousedown(function () {
-    if ($('.canvas').css('display') == 'none') {
-        $('.canvas').show();
-        $('.puzzle-image').hide();
-        $('.logo').hide();
-    } else {
-        $('.canvas').hide();
-        $('.puzzle-image').show();
-        $('.logo').show();
-    }
+    puzzle.showLastResult();
 });
 
 $('.restart').click(function () {
@@ -66,15 +58,20 @@ view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
 
+var level=getUrlParams('level');
+
 $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
 var tileWidth = 64;
 
-var level=getUrlParams('level');
 if(level == 3){
     tileWidth = 32;
+}
+if(level == 4){
+    imgWidth = 1024;
+    imgHeight = 1024;
 }
 
 var config = ({
@@ -167,6 +164,19 @@ function onKeyUp(event) {
     }
 }
 
+function getOriginImage(config){
+    var raster = undefined;
+    if(config.level == 4){
+        var path = new Path.Rectangle(new Point(0,0), new Size(config.imgWidth, config.imgHeight));
+        path.fillColor = config.imgName;
+        raster = path.rasterize();
+        path.remove();
+    }
+    else{
+        raster = new Raster(config.imgName);
+    }
+    return raster;
+}
 
 function JigsawPuzzle(config) {
     // getHints();
@@ -183,10 +193,9 @@ function JigsawPuzzle(config) {
     this.tileWidth = config.tileWidth;
     this.tilesPerRow = config.tilesPerRow;
     this.tilesPerColumn = config.tilesPerColumn;
-    this.originImage = new Raster(config.imgName);
+    this.originImage = getOriginImage(config);
     this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0,0,
         this.tileWidth*this.tilesPerRow, this.tileWidth*this.tilesPerColumn));
-    console.log(this.puzzleImage.size);
     this.puzzleImage.position = view.center;
 
     this.originImage.visible =false;
@@ -641,6 +650,9 @@ function JigsawPuzzle(config) {
     }
 
     function checkConflict(tiles, centerCellPosition){
+        if(Math.abs(centerCellPosition.x) > 70 || Math.abs(centerCellPosition.y) > 50){
+            return true;
+        }
         var hasConflict = false;
         if(this.allowOverlap)
             return hasConflict;
@@ -890,9 +902,8 @@ function JigsawPuzzle(config) {
 
     this.zoom = function(zoomDelta) {
         var newZoom = instance.currentZoom + zoomDelta;
-        if (newZoom >= 0.3 && newZoom <= 1) {
-            view.zoom = 
-            instance.currentZoom = newZoom;
+        if (newZoom >= 0.2 && newZoom <= 5) {
+            view.zoom = instance.currentZoom = newZoom;
         }
     }
 
@@ -913,5 +924,13 @@ function JigsawPuzzle(config) {
         }
 
         return errors;
+    }
+
+    this.showLastResult = function(){
+        var visible = instance.puzzleImage.visible;
+        for(var i = 0; i < instance.tiles.length; i++){
+            instance.tiles[i].visible = visible;
+        }
+        instance.puzzleImage.visible = !visible;
     }
 }
