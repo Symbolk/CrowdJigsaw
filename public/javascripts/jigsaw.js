@@ -10,15 +10,7 @@ $('.zoomOut').click(function () {
 });
 
 $('.help').mousedown(function () {
-    if ($('.canvas').css('display') == 'none') {
-        $('.canvas').show();
-        $('.puzzle-image').hide();
-        $('.logo').hide();
-    } else {
-        $('.canvas').hide();
-        $('.puzzle-image').show();
-        $('.logo').show();
-    }
+    puzzle.showLastResult();
 });
 
 $('.restart').click(function () {
@@ -78,21 +70,29 @@ view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
 
+var level=getUrlParams('level');
+
 $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 32;
+var tileWidth = 64;
 
-var level=getUrlParams('level');
+if(level == 3){
+    tileWidth = 32;
+}
+if(level == 4){
+    imgWidth = 1024;
+    imgHeight = 1024;
+}
 
 var config = ({
     zoomScaleOnDrag: 1.25,
     imgName: 'puzzle-image',
     tileShape: 'straight', // curved or straight or voronoi
     tileWidth: tileWidth,
-    tilesPerRow: Math.ceil(imgWidth / tileWidth), //returns min int >= arg
-    tilesPerColumn: Math.ceil(imgHeight / tileWidth),
+    tilesPerRow: Math.floor(imgWidth / tileWidth), //returns min int >= arg
+    tilesPerColumn: Math.floor(imgHeight / tileWidth),
     imgWidth: imgWidth,
     imgHeight: imgHeight,
     showHints: true,
@@ -129,6 +129,10 @@ if(level==1){
 }else if(level == 3){
     config.tileShape= 'voronoi';
     config.level = 3;
+}else if(level == 4){
+    config.tileShape= 'voronoi';
+    config.level = 4;
+    config.imgName = 'grey';
 }
 
 var puzzle = new JigsawPuzzle(config);
@@ -189,6 +193,19 @@ function onKeyUp(event) {
     }
 }
 
+function getOriginImage(config){
+    var raster = undefined;
+    if(config.level == 4){
+        var path = new Path.Rectangle(new Point(0,0), new Size(config.imgWidth, config.imgHeight));
+        path.fillColor = config.imgName;
+        raster = path.rasterize();
+        path.remove();
+    }
+    else{
+        raster = new Raster(config.imgName);
+    }
+    return raster;
+}
 
     function JigsawPuzzle(config) {
     // getHints();
@@ -202,21 +219,21 @@ function onKeyUp(event) {
     this.zoomScaleOnDrag = config.zoomScaleOnDrag;
     this.imgName = config.imgName;
     this.shadowWidth = config.shadowWidth;
-    this.originImage = new Raster(config.imgName);
+    this.tileWidth = config.tileWidth;
+    this.tilesPerRow = config.tilesPerRow;
+    this.tilesPerColumn = config.tilesPerColumn;
+    this.originImage = getOriginImage(config);
     this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0,0,
-        config.tileWidth*config.tilesPerColumn, config.tileWidth*config.tilesPerRow));
+        this.tileWidth*this.tilesPerRow, this.tileWidth*this.tilesPerColumn));
     this.puzzleImage.position = view.center;
 
     this.originImage.visible =false;
     this.puzzleImage.visible = false;
-    this.tileWidth = config.tileWidth;
 
     this.dragMode = config.dragMode;
 
     this.showHints = config.showHints;
 
-    this.tilesPerRow = config.tilesPerRow;
-    this.tilesPerColumn = config.tilesPerColumn;
     this.tileNum = this.tilesPerRow * this.tilesPerColumn;
     // output some info about this puzzle
     console.log('Level '+level + ' started : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
@@ -272,7 +289,7 @@ function onKeyUp(event) {
                 tile.alreadyHinted = false;
                 tile.clipped = true;
                 tile.opacity = 1;
-                tile.pivot = new Point(32, 32);
+                tile.pivot = new Point(instance.tileWidth/2, instance.tileWidth/2);
 
                 tile.shape = shape;
                 tile.imagePosition = new Point(x, y);
@@ -629,7 +646,10 @@ function onKeyUp(event) {
     }
 
     function getTileIndex(tile){
-        return new Number(tile.name.substr(5));
+        if(tile){
+            return new Number(tile.name.substr(5));
+        }
+        return -1;
     }
 
     this.pickTile = function(point) {
@@ -658,6 +678,9 @@ function onKeyUp(event) {
     }
 
     function checkConflict(tiles, centerCellPosition){
+        if(Math.abs(centerCellPosition.x) > 70 || Math.abs(centerCellPosition.y) > 50){
+            return true;
+        }
         var hasConflict = false;
         if(this.allowOverlap)
             return hasConflict;
@@ -692,6 +715,22 @@ function onKeyUp(event) {
         tile.relativePosition = new Point(0, 0);
     }
 
+    function sendLinks(tile){
+        var tileIndex = getTileIndex(tile);
+
+        var cellPosition = tile.cellPosition;
+
+        var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
+        var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
+        var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
+        var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
+
+        var aroundTiles = new Array(getTileIndex(topTile),getTileIndex(rightTile),
+            getTileIndex(bottomTile),getTileIndex(leftTile));
+        
+        checkLinks(tileIndex, aroundTiles);
+    }
+    
     this.releaseTile = function() {
         if (instance.draging) {
 
@@ -723,12 +762,15 @@ function onKeyUp(event) {
                     this.steps = this.steps+1;
                 }
                 placeTile(tile, cellPosition);
+                sendLinks(tile);
             }
 
-            if(!hasConflict && instance.showHints && instance.selectedTile.length == 1){
-                var tile = instance.selectedTile[0];
-                if(!tile.alreadyHinted){
-                    showHints(tile);
+            if(!hasConflict && instance.showHints){
+                for(var i = 0; i < instance.selectedTile.length == 1; i++){
+                    var tile = instance.selectedTile[i];
+                    if(!tile.alreadyHinted){
+                        showHints(tile);
+                    }
                 }
             }
 
@@ -751,55 +793,57 @@ function onKeyUp(event) {
     function showHints(tile){
         var cellPosition = tile.cellPosition;
         var tileIndex = getTileIndex(tile);
-        var correctPlaced = true;
-        var nearTilesCount = 0; 
-        for(var i = 0; i < 4; i++){
-            var nearTile = getTileAtCellPosition(cellPosition + directions[i]);
-            if(nearTile){
-                nearTilesCount += 1;
-                var nearTileIndex = getTileIndex(nearTile);
-                var correctIndex = tileIndex + directions[i].x + instance.tilesPerRow * directions[i].y;
-                if(correctIndex != nearTileIndex)
-                    correctPlaced = false;
-            }
-        }
-        if(nearTilesCount == 0 || !correctPlaced)
-            return;
 
-        var correctTilesCount = 0;
-        for(var i = 0; i < 4; i++){
-            if(((tileIndex % instance.tilesPerRow == instance.tilesPerRow - 1) && i == 1)//right
-                || ((tileIndex % instance.tilesPerRow == 0) && i == 3)){//left
+        var hintTiles = getHints(tileIndex);
+
+        if(!hintTiles){
+            return;
+        }
+
+        var hintTilesCount = 0;
+        for(var i = 0; i < hintTiles.length; i++){
+            var correctTileIndex = hintTiles[i];
+            if(correctTileIndex < 0){
                 continue;
             }
-            var correctIndex = tileIndex + directions[i].x + instance.tilesPerRow * directions[i].y;
-            if(correctIndex >= 0 && correctIndex < instance.tiles.length){
-                var correctTile = instance.tiles[correctIndex];
-                var correctCellposition = cellPosition + directions[i];
-                var hasConflict = checkConflict(new Array(correctTile), correctCellposition);
-                if(!hasConflict){
-                    placeTile(correctTile, correctCellposition);
-                    correctTile.alreadyHinted = true;
-                    correctTilesCount += 1;
+            var correctTile = instance.tiles[tileIndex];
+            var groupTiles = new Array();
+            DFSTiles(correctTile, groupTiles, new Point(0,0));
+            for(var i = 0; i < groupTiles.length; i++){
+                groupTiles[i].picking = true;
+            }
+            var correctCellposition = cellPosition + directions[i];
+            var hasConflict = checkConflict(groupTiles, correctCellposition);
+            if(!hasConflict){
+                for(var i = 0; i < groupTiles.length; i++){
+                    var hintTile = groupTiles[i];
+                    placeTile(hintTile, correctCellposition + hintTile.relativePosition);
+                    hintTile.relativePosition = new Point(0,0);
+                    hintTile.picking = false;
+                    hintTile.alreadyHinted = true;
+                    sendLinks(hintTile);
                 }
+                hintTilesCount += groupTiles.length;
             }
         }
-        if(correctTilesCount){
+        if(hintTilesCount){
             tile.alreadyHinted = true;
         }
     }
 
-    function getTileAtCellPosition(point) {
-        var width = instance.tilesPerRow;
-        var height = instance.tilesPerColumn;
-        var tile = undefined;
-        for (var i = 0; i < instance.tiles.length; i++) {
-            if (instance.tiles[i].cellPosition == point && !instance.tiles[i].picking) {
-                tile = instance.tiles[i];
-                break;
+    function getTileAtCellPosition(cellPosition) {
+        var roundPosition = cellPosition * instance.tileWidth;
+        var retTile = undefined;
+        var hitResults = project.hitTestAll(roundPosition);
+        for(var i = 0; i < hitResults.length; i++){
+            var hitResult = hitResults[i];
+            var img = hitResult.item;
+            var tile = img.parent;
+            if(!tile.picking){
+                retTile = tile;
             }
         }
-        return tile;
+        return retTile;
     }
 
     this.dragTile = function(delta) {
@@ -889,9 +933,8 @@ function onKeyUp(event) {
 
     this.zoom = function(zoomDelta) {
         var newZoom = instance.currentZoom + zoomDelta;
-        if (newZoom >= 0.3 && newZoom <= 1) {
-            view.zoom = 
-            instance.currentZoom = newZoom;
+        if (newZoom >= 0.2 && newZoom <= 5) {
+            view.zoom = instance.currentZoom = newZoom;
         }
     }
 
@@ -912,5 +955,13 @@ function onKeyUp(event) {
         }
 
         return errors;
+    }
+
+    this.showLastResult = function(){
+        var visible = instance.puzzleImage.visible;
+        for(var i = 0; i < instance.tiles.length; i++){
+            instance.tiles[i].visible = visible;
+        }
+        instance.puzzleImage.visible = !visible;
     }
 }
