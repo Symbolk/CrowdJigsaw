@@ -1,5 +1,4 @@
 const requrl = 'http://localhost:3000/';
-
 /**
  *  Update links in the background graph bidirectionally
  *  Check which case it is in the 4 cases, and call the corrosponding method:

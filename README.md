@@ -133,7 +133,7 @@ nohup mongod --dbpath /var/www/database &
 // nodemon or npm test
 // app.listen(3000);
 // npm start
-app.listen(4000);
+app.listen(3000);
 module.exports = app; 
 ```
 3, Start the server:
@@ -145,6 +145,6 @@ npm start
 forever start app.js
 ```
 
-3, Go http://YOURDOMAIN:4000/ in Chrome to see the client.
+3, Go http://YOURDOMAIN:3000/ in Chrome to see the client.
 
 ## Bugs&Issues
