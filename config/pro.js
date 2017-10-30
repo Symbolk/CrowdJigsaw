@@ -1,5 +1,5 @@
 module.exports = {
-    port: 4000,
+    port: 3000,
     session: {
       secret: 'CrowdJigsaw',
       key: 'CrowdJigsaw',
