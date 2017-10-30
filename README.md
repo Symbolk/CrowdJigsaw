@@ -48,11 +48,19 @@ _P.S. See npm dependencies in package.json_
 ![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home.jpg)
 ![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone.jpg)
 ![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer.jpg)
+### Level1 : Jagged Pictorial Tiles
+
 ![Level1](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_1.jpg)
+### Level2 : Square Pictorial Tiles
+
 ![Level2](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_2.jpg)
+### Level3 : Voronoi Pictorial Tiles
+
 ![Level3](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_3.jpg)
 
+### Level4 : Voronoi Non-Pictorial Tiles
 
+![Level4](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_4.jpg)
 
 ## Development(Windows)
 

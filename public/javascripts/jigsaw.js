@@ -20,7 +20,7 @@ $('.restart').click(function () {
 });
 
 $('.returnCenter').click(function () {
-    view.scrollBy(new Point(560,360) - view.center);
+    view.scrollBy(new Point(560, 360) - view.center);
 });
 
 /**
@@ -45,8 +45,8 @@ $('.returnCenter').click(function () {
     });
 
     applyButton.addEventListener('click', function (event) {
-        dialog.close();        
-        window.location='/home';
+        dialog.close();
+        window.location = '/home';
     });
 }());
 
@@ -70,7 +70,7 @@ view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
 
-var level=getUrlParams('level');
+var level = getUrlParams('level');
 
 $('#puzzle-image').attr('src', 'images/minions.jpg');
 
@@ -78,10 +78,10 @@ var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
 var tileWidth = 64;
 
-if(level == 3){
+if (level == 3) {
     tileWidth = 32;
 }
-if(level == 4){
+if (level == 4) {
     imgWidth = 1024;
     imgHeight = 1024;
 }
@@ -110,27 +110,26 @@ var directions = [
 /**
  * Start building the puzzle
  */
-function getUrlParams(key)
-{
-     var reg = new RegExp("(^|&)"+ key +"=([^&]*)(&|$)");
-     var r = window.location.search.substr(1).match(reg);
-     if(r!=null)return  unescape(r[2]); return null;
+function getUrlParams(key) {
+    var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]); return null;
 }
 
 
-if(level==1){
-    config.tileShape='curved';
+if (level == 1) {
+    config.tileShape = 'curved';
     config.level = 1;
     //config others here
-}else if(level==2){
-    config.tileShape='straight';
+} else if (level == 2) {
+    config.tileShape = 'straight';
     config.level = 2;
     //config others here    
-}else if(level == 3){
-    config.tileShape= 'voronoi';
+} else if (level == 3) {
+    config.tileShape = 'voronoi';
     config.level = 3;
-}else if(level == 4){
-    config.tileShape= 'voronoi';
+} else if (level == 4) {
+    config.tileShape = 'voronoi';
     config.level = 4;
     config.imgName = 'grey';
 }
@@ -138,21 +137,21 @@ if(level==1){
 var puzzle = new JigsawPuzzle(config);
 /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? puzzle.zoom(-0.5) : puzzle.zoom(-0.1);
 
-var time=0;
+var time = 0;
 var t;
-function timedCount(){
-    var hours = Math.floor(time/3600);
-    var minutes  = Math.floor((time - hours*3600)/60);
-    var seconds = time - hours*3600 - minutes*60;
-    if(hours >=0 && hours<=9) hours = '0'+hours;
-    if(minutes >=0 && minutes<=9) minutes = '0'+minutes;
-    if(seconds >=0 && seconds<=9) seconds = '0'+seconds;
+function timedCount() {
+    var hours = Math.floor(time / 3600);
+    var minutes = Math.floor((time - hours * 3600) / 60);
+    var seconds = time - hours * 3600 - minutes * 60;
+    if (hours >= 0 && hours <= 9) hours = '0' + hours;
+    if (minutes >= 0 && minutes <= 9) minutes = '0' + minutes;
+    if (seconds >= 0 && seconds <= 9) seconds = '0' + seconds;
     document.getElementById('timer').innerHTML = hours + ":" + minutes + ":" + seconds;
-    time = time+1;
-    t = setTimeout(timedCount,1000);
+    time = time + 1;
+    t = setTimeout(timedCount, 1000);
 }
 
-if(puzzle)
+if (puzzle)
     timedCount();
 
 var path;
@@ -164,20 +163,20 @@ var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
     puzzle.pickTile(event.point);
-    timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500);
+    timeoutFunction = window.setTimeout(puzzle.dragTileOrTiles, 500);
 }
 
 function onMouseUp(event) {
-    if(timeoutFunction){
-        window.clearTimeout(timeoutFunction); 
+    if (timeoutFunction) {
+        window.clearTimeout(timeoutFunction);
     }
     puzzle.releaseTile();
 }
 
 
 function onMouseDrag(event) {
-    if(timeoutFunction){
-        window.clearTimeout(timeoutFunction); 
+    if (timeoutFunction) {
+        window.clearTimeout(timeoutFunction);
     }
     puzzle.dragTile(event.delta);
 }
@@ -193,21 +192,21 @@ function onKeyUp(event) {
     }
 }
 
-function getOriginImage(config){
+function getOriginImage(config) {
     var raster = undefined;
-    if(config.level == 4){
-        var path = new Path.Rectangle(new Point(0,0), new Size(config.imgWidth, config.imgHeight));
+    if (config.level == 4) {
+        var path = new Path.Rectangle(new Point(0, 0), new Size(config.imgWidth, config.imgHeight));
         path.fillColor = config.imgName;
         raster = path.rasterize();
         path.remove();
     }
-    else{
+    else {
         raster = new Raster(config.imgName);
     }
     return raster;
 }
 
-    function JigsawPuzzle(config) {
+function JigsawPuzzle(config) {
     // getHints();
     // var params = {
     //     from: 4,
@@ -215,8 +214,10 @@ function getOriginImage(config){
     //     dir: 3
     // };
 
+    // getHints(4);
+
     // checkLinks(4, [1,3,-1,0]);
-    
+
     var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
     this.level = config.level;
@@ -229,11 +230,11 @@ function getOriginImage(config){
     this.tilesPerRow = config.tilesPerRow;
     this.tilesPerColumn = config.tilesPerColumn;
     this.originImage = getOriginImage(config);
-    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0,0,
-        this.tileWidth*this.tilesPerRow, this.tileWidth*this.tilesPerColumn));
+    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0,
+        this.tileWidth * this.tilesPerRow, this.tileWidth * this.tilesPerColumn));
     this.puzzleImage.position = view.center;
 
-    this.originImage.visible =false;
+    this.originImage.visible = false;
     this.puzzleImage.visible = false;
 
     this.dragMode = config.dragMode;
@@ -242,22 +243,22 @@ function getOriginImage(config){
 
     this.tileNum = this.tilesPerRow * this.tilesPerColumn;
     // output some info about this puzzle
-    console.log('Level '+level + ' started : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
+    console.log('Level ' + level + ' started : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
 
-    if(this.tileShape == "voronoi"){
+    if (this.tileShape == "voronoi") {
         this.tileMarginWidth = this.tileWidth * 0.5;
     }
-    else{
+    else {
         this.tileMarginWidth = this.tileWidth * 0.203125;
     }
     this.selectedTile = undefined;
     this.selectedGroup = undefined;
 
     this.shadowScale = 1.5;
-    if(this.tileShape == "voronoi"){
+    if (this.tileShape == "voronoi") {
         this.tiles = createVoronoiTiles(this.tilesPerRow, this.tilesPerColumn);
     }
-    else{
+    else {
         this.tiles = createTiles(this.tilesPerRow, this.tilesPerColumn);
     }
     // keep track of the steps of the current user
@@ -295,7 +296,7 @@ function getOriginImage(config){
                 tile.alreadyHinted = false;
                 tile.clipped = true;
                 tile.opacity = 1;
-                tile.pivot = new Point(instance.tileWidth/2, instance.tileWidth/2);
+                tile.pivot = new Point(instance.tileWidth / 2, instance.tileWidth / 2);
 
                 tile.shape = shape;
                 tile.imagePosition = new Point(x, y);
@@ -329,7 +330,7 @@ function getOriginImage(config){
 
                 tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
                 tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
-                tile.relativePosition = new Point(0,0);
+                tile.relativePosition = new Point(0, 0);
                 tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
                 tile.groupID = -1; // to which group the tile belongs(-1 by default
                 tile.grouped = false;
@@ -490,78 +491,78 @@ function getOriginImage(config){
         for (var y = 0; y < yTileCount; y++) {
             for (var x = 0; x < xTileCount; x++) {
                 var tileIndex = tileIndexes.length;
-                var topLeftPoint = new Point(0,0);
-                var topRightPoint = new Point(0,0);
-                var bottomLeftPoint = new Point(0,0);
-                var bottomRightPoint = new Point(0,0);
+                var topLeftPoint = new Point(0, 0);
+                var topRightPoint = new Point(0, 0);
+                var bottomLeftPoint = new Point(0, 0);
+                var bottomRightPoint = new Point(0, 0);
 
-                bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
-                bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                bottomRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
+                bottomRightPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
 
-                if(x > 0){
+                if (x > 0) {
                     var leftTile = tiles[tileIndex - 1];
                     topLeftPoint = leftTile.topRightPoint - new Point(instance.tileWidth, 0);
                     bottomLeftPoint = leftTile.bottomRightPoint - new Point(instance.tileWidth, 0);
                 }
 
-                if(y > 0){
-                    var topTile = tiles[tileIndex - instance.tilesPerRow];       
-                    topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);              
+                if (y > 0) {
+                    var topTile = tiles[tileIndex - instance.tilesPerRow];
+                    topLeftPoint = topTile.bottomLeftPoint - new Point(0, instance.tileWidth);
                     topRightPoint = topTile.bottomRightPoint - new Point(0, instance.tileWidth);
                 }
 
-                if(x == 0){
-                    if(y == 0){
-                        topRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                if (x == 0) {
+                    if (y == 0) {
+                        topRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
 
-                        bottomLeftPoint.y =  Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                        bottomLeftPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
 
-                        bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
-                        bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                        bottomRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
+                        bottomRightPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                     }
-                    else if(y == yTileCount - 1){
-                        bottomLeftPoint.y =  instance.tileWidth;
+                    else if (y == yTileCount - 1) {
+                        bottomLeftPoint.y = instance.tileWidth;
 
-                        bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                        bottomRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                         bottomRightPoint.y = instance.tileWidth;
                     }
-                    else{
-                        bottomLeftPoint.y =  Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);;
+                    else {
+                        bottomLeftPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);;
 
-                        bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
-                        bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                        bottomRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
+                        bottomRightPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                     }
                 }
-                else if(x == xTileCount - 1){
-                    if(y == 0){
+                else if (x == xTileCount - 1) {
+                    if (y == 0) {
                         topRightPoint.x = instance.tileWidth;
 
                         bottomRightPoint.x = instance.tileWidth;
-                        bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                        bottomRightPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                     }
-                    else if(y == yTileCount - 1){
+                    else if (y == yTileCount - 1) {
                         bottomRightPoint.x = instance.tileWidth;
                         bottomRightPoint.y = instance.tileWidth;
                     }
-                    else{
+                    else {
                         bottomRightPoint.x = instance.tileWidth;
-                        bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                        bottomRightPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                     }
                 }
-                else{
-                    if(y == 0){
-                        topRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                else {
+                    if (y == 0) {
+                        topRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
 
-                        bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
-                        bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                        bottomRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
+                        bottomRightPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                     }
-                    else if(y == yTileCount - 1){
-                        bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                    else if (y == yTileCount - 1) {
+                        bottomRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                         bottomRightPoint.y = instance.tileWidth;
                     }
-                    else{
-                        bottomRightPoint.x = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
-                        bottomRightPoint.y = Math.round(instance.tileWidth/2 + Math.random()*instance.tileWidth);
+                    else {
+                        bottomRightPoint.x = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
+                        bottomRightPoint.y = Math.round(instance.tileWidth / 2 + Math.random() * instance.tileWidth);
                     }
                 }
 
@@ -573,7 +574,7 @@ function getOriginImage(config){
                 mask.closePath();
                 mask.opacity = 0.01;
                 mask.strokeColor = '#fff'; //white
-                
+
                 var cloneImg = instance.puzzleImage.clone();
                 var img = getTileRaster(
                     cloneImg,
@@ -594,7 +595,7 @@ function getOriginImage(config){
                 tile.picking = false;
                 tile.clipped = true;
                 tile.opacity = 1;
-                tile.pivot = new Point(instance.tileWidth/2, instance.tileWidth/2);
+                tile.pivot = new Point(instance.tileWidth / 2, instance.tileWidth / 2);
 
                 tile.imagePosition = new Point(x, y);
 
@@ -627,7 +628,7 @@ function getOriginImage(config){
 
                 tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
                 tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
-                tile.relativePosition = new Point(0,0);
+                tile.relativePosition = new Point(0, 0);
                 tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
                 tile.groupID = -1; // to which group the tile belongs(-1 by default
                 tile.grouped = false;
@@ -647,26 +648,26 @@ function getOriginImage(config){
             tileWithMarginWidth,
             tileWithMarginWidth));
         //targetRaster.setImageData(data, new Point(0, 0))
-        targetRaster.position = new Point(instance.tileWidth/2, instance.tileWidth/2);
+        targetRaster.position = new Point(instance.tileWidth / 2, instance.tileWidth / 2);
         return targetRaster;
     }
 
-    function getTileIndex(tile){
-        if(tile){
+    function getTileIndex(tile) {
+        if (tile) {
             return new Number(tile.name.substr(5));
         }
         return -1;
     }
 
-    this.pickTile = function(point) {
+    this.pickTile = function (point) {
         findSelectTile(point);
         if (instance.selectedTile) {
             if (!instance.selectedTile[0].picking) {
-                for(var i = 0; i < instance.selectedTile.length; i++){
+                for (var i = 0; i < instance.selectedTile.length; i++) {
                     instance.selectedTile[i].picking = true;
                 }
             }
-            else{
+            else {
                 instance.releaseTile();
                 return;
             }
@@ -675,7 +676,7 @@ function getOriginImage(config){
 
             var pos = new Point(instance.selectedTile[0].position.x, instance.selectedTile[0].position.y);
             instance.selectedTile[0].originPosition = pos;
-            for(var i = 0; i < instance.selectedTile.length; i++){
+            for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
                 tile.opacity = .5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
@@ -683,22 +684,22 @@ function getOriginImage(config){
         }
     }
 
-    function checkConflict(tiles, centerCellPosition){
-        if(Math.abs(centerCellPosition.x) > 70 || Math.abs(centerCellPosition.y) > 50){
+    function checkConflict(tiles, centerCellPosition) {
+        if (Math.abs(centerCellPosition.x) > 70 || Math.abs(centerCellPosition.y) > 50) {
             return true;
         }
         var hasConflict = false;
-        if(this.allowOverlap)
+        if (this.allowOverlap)
             return hasConflict;
-        for(var i = 0; i < tiles.length; i++){
+        for (var i = 0; i < tiles.length; i++) {
             var tile = tiles[i];
 
             var cellPosition = centerCellPosition + tile.relativePosition;
             var roundPosition = cellPosition * instance.tileWidth;
-            
+
             var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
             hasConflict = hasConflict || alreadyPlacedTile;
-            if(instance.tileShape != "voronoi"){
+            if (instance.tileShape != "voronoi") {
                 var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
                 var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
                 var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
@@ -714,14 +715,14 @@ function getOriginImage(config){
         return hasConflict;
     }
 
-    function placeTile(tile, cellPosition){
+    function placeTile(tile, cellPosition) {
         var roundPosition = cellPosition * instance.tileWidth;
-        tile.position = roundPosition;        
+        tile.position = roundPosition;
         tile.cellPosition = cellPosition;
         tile.relativePosition = new Point(0, 0);
     }
 
-    function sendLinks(tile){
+    function sendLinks(tile) {
         var tileIndex = getTileIndex(tile);
 
         var cellPosition = tile.cellPosition;
@@ -732,13 +733,13 @@ function getOriginImage(config){
         var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
         // index 0 1 2 3 = T R B L
-        var aroundTiles = new Array(getTileIndex(topTile),getTileIndex(rightTile),
-            getTileIndex(bottomTile),getTileIndex(leftTile));
-        
+        var aroundTiles = new Array(getTileIndex(topTile), getTileIndex(rightTile),
+            getTileIndex(bottomTile), getTileIndex(leftTile));
+
         checkLinks(tileIndex, aroundTiles);
     }
-    
-    this.releaseTile = function() {
+
+    this.releaseTile = function () {
         if (instance.draging) {
 
             var centerCellPosition = new Point(
@@ -753,42 +754,42 @@ function getOriginImage(config){
 
             var hasConflict = checkConflict(instance.selectedTile, centerCellPosition);
             if (instance.selectedTile[0].picking) {
-                for(var i = 0; i < instance.selectedTile.length; i++){
+                for (var i = 0; i < instance.selectedTile.length; i++) {
                     instance.selectedTile[i].picking = false;
                 }
             }
 
-            for(var i = 0; i < instance.selectedTile.length; i++){
+            for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
                 var cellPosition = undefined;
-                if(hasConflict){
+                if (hasConflict) {
                     cellPosition = originCenterCellPostion + tile.relativePosition;
                 }
-                else{
+                else {
                     cellPosition = centerCellPosition + tile.relativePosition;
-                    this.steps = this.steps+1;
+                    this.steps = this.steps + 1;
                 }
                 placeTile(tile, cellPosition);
                 sendLinks(tile);
             }
 
-            if(!hasConflict && instance.showHints){
-                for(var i = 0; i < instance.selectedTile.length == 1; i++){
+            if (!hasConflict && instance.showHints) {
+                for (var i = 0; i < instance.selectedTile.length == 1; i++) {
                     var tile = instance.selectedTile[i];
-                    if(!tile.alreadyHinted){
+                    if (!tile.alreadyHinted) {
                         // showHints(tile);
                     }
                 }
             }
 
-            for(var i = 0; i < instance.selectedTile.length; i++){
+            for (var i = 0; i < instance.selectedTile.length; i++) {
                 instance.selectedTile[i].opacity = 1;
             }
 
             instance.selectedTile = null;
             instance.draging = false;
-            
-            document.getElementById("steps").innerHTML=this.steps;
+
+            document.getElementById("steps").innerHTML = this.steps;
 
             var errors = checkTiles();
             if (errors == 0) {
@@ -797,35 +798,35 @@ function getOriginImage(config){
         }
     }
 
-    function showHints(tile){
+    function showHints(tile) {
         var cellPosition = tile.cellPosition;
         var tileIndex = getTileIndex(tile);
 
         var hintTiles = getHints(tileIndex);
 
-        if(!hintTiles){
+        if (!hintTiles) {
             return;
         }
 
         var hintTilesCount = 0;
-        for(var i = 0; i < hintTiles.length; i++){
+        for (var i = 0; i < hintTiles.length; i++) {
             var correctTileIndex = hintTiles[i];
-            if(correctTileIndex < 0){
+            if (correctTileIndex < 0) {
                 continue;
             }
             var correctTile = instance.tiles[tileIndex];
             var groupTiles = new Array();
-            DFSTiles(correctTile, groupTiles, new Point(0,0));
-            for(var i = 0; i < groupTiles.length; i++){
+            DFSTiles(correctTile, groupTiles, new Point(0, 0));
+            for (var i = 0; i < groupTiles.length; i++) {
                 groupTiles[i].picking = true;
             }
             var correctCellposition = cellPosition + directions[i];
             var hasConflict = checkConflict(groupTiles, correctCellposition);
-            if(!hasConflict){
-                for(var i = 0; i < groupTiles.length; i++){
+            if (!hasConflict) {
+                for (var i = 0; i < groupTiles.length; i++) {
                     var hintTile = groupTiles[i];
                     placeTile(hintTile, correctCellposition + hintTile.relativePosition);
-                    hintTile.relativePosition = new Point(0,0);
+                    hintTile.relativePosition = new Point(0, 0);
                     hintTile.picking = false;
                     hintTile.alreadyHinted = true;
                     sendLinks(hintTile);
@@ -833,7 +834,7 @@ function getOriginImage(config){
                 hintTilesCount += groupTiles.length;
             }
         }
-        if(hintTilesCount){
+        if (hintTilesCount) {
             tile.alreadyHinted = true;
         }
     }
@@ -842,21 +843,21 @@ function getOriginImage(config){
         var roundPosition = cellPosition * instance.tileWidth;
         var retTile = undefined;
         var hitResults = project.hitTestAll(roundPosition);
-        for(var i = 0; i < hitResults.length; i++){
+        for (var i = 0; i < hitResults.length; i++) {
             var hitResult = hitResults[i];
             var img = hitResult.item;
             var tile = img.parent;
-            if(!tile.picking){
+            if (!tile.picking) {
                 retTile = tile;
             }
         }
         return retTile;
     }
 
-    this.dragTile = function(delta) {
+    this.dragTile = function (delta) {
         if (instance.draging) {
             var centerPosition = instance.selectedTile[0].position;
-            for(var i = 0; i < instance.selectedTile.length; i++){
+            for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
                 tile.opacity = 1;
                 tile.position = centerPosition + tile.relativePosition * instance.tileWidth + delta;
@@ -869,17 +870,17 @@ function getOriginImage(config){
         }
     }
 
-    function DFSTiles(tile, array, relativePosition){
-        for(var i = 0; i <array.length; i++){
-            if(array[i] == tile)
+    function DFSTiles(tile, array, relativePosition) {
+        for (var i = 0; i < array.length; i++) {
+            if (array[i] == tile)
                 return;
         }
         tile.relativePosition = relativePosition;
         array.push(tile);
-        for(var i = 0; i < 4; i++){
+        for (var i = 0; i < 4; i++) {
             var newPos = tile.cellPosition + directions[i];
             newTile = getTileAtCellPosition(newPos);
-            if(newTile){
+            if (newTile) {
                 DFSTiles(newTile, array, relativePosition + directions[i]);
             }
         }
@@ -887,36 +888,36 @@ function getOriginImage(config){
 
     function findSelectTile(point) {
         var hitResult = project.hitTest(point);
-        if(hitResult && hitResult.item instanceof Raster){
+        if (hitResult && hitResult.item instanceof Raster) {
             var img = hitResult.item;
             var tile = img.parent;
             instance.selectedTile = new Array();
-            if(instance.dragMode == "tile-First"){
+            if (instance.dragMode == "tile-First") {
                 instance.selectedTile.push(tile);
             }
-            else{
+            else {
                 DFSTiles(tile, instance.selectedTile, new Point(0, 0));
             }
         }
-        else{
+        else {
             instance.selectedTile = null;
         }
     }
 
-    
 
-    this.dragTileOrTiles = function(){
-        if(instance.dragMode == "tile-First"){
+
+    this.dragTileOrTiles = function () {
+        if (instance.dragMode == "tile-First") {
             instance.dragDFSTile();
         }
-        else{
+        else {
             instance.dragOnlyTile();
         }
     }
 
-    this.dragOnlyTile = function(){
-        if(instance.selectedTile){
-            for(var i = 1; i < instance.selectedTile.length; i++){
+    this.dragOnlyTile = function () {
+        if (instance.selectedTile) {
+            for (var i = 1; i < instance.selectedTile.length; i++) {
                 instance.selectedTile[i].opacity = 1;
                 instance.selectedTile[i].picking = false;
             }
@@ -926,19 +927,19 @@ function getOriginImage(config){
         }
     }
 
-    this.dragDFSTile = function(){
-        if(instance.selectedTile){
+    this.dragDFSTile = function () {
+        if (instance.selectedTile) {
             var tile = instance.selectedTile[0];
             instance.selectedTile = new Array();
             DFSTiles(tile, instance.selectedTile, new Point(0, 0));
-            for(var i = 0; i < instance.selectedTile.length; i++){
+            for (var i = 0; i < instance.selectedTile.length; i++) {
                 instance.selectedTile[i].opacity = .5;
                 instance.selectedTile[i].picking = instance.selectedTile[0].picking;
             }
         }
     }
 
-    this.zoom = function(zoomDelta) {
+    this.zoom = function (zoomDelta) {
         var newZoom = instance.currentZoom + zoomDelta;
         if (newZoom >= 0.2 && newZoom <= 5) {
             view.zoom = instance.currentZoom = newZoom;
@@ -964,9 +965,9 @@ function getOriginImage(config){
         return errors;
     }
 
-    this.showLastResult = function(){
+    this.showLastResult = function () {
         var visible = instance.puzzleImage.visible;
-        for(var i = 0; i < instance.tiles.length; i++){
+        for (var i = 0; i < instance.tiles.length; i++) {
             instance.tiles[i].visible = visible;
         }
         instance.puzzleImage.visible = !visible;
