@@ -182,14 +182,34 @@ function LoginFirst(req, res, next) {
 // Graph Operations
 
 /**
- * Retrieve: Get all links in the db
+ * Get all links in the db
  */
-router.route('/retrieve').get(function (req, res) {
+router.route('/getAll').get(function (req, res) {
     LinkModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
             res.end('Error while retrieving.');
         } else {
+            res.send(JSON.stringify(docs));
+        }
+    });
+});
+
+/**
+ * Get all the links from one tile
+ */
+router.route('/getLinks/:from').get(function (req, res) {
+    let condition = {
+        "from": req.params.from,
+        "supporters.username": req.session.user.username
+    };
+    // console.log(condition);
+    LinkModel.find(condition, function (err, docs) {
+        if (err) {
+            console.log(err);
+            res.end('Error while retrieving.');
+        } else {
+            // console.log(docs);
             res.send(JSON.stringify(docs));
         }
     });
@@ -212,110 +232,157 @@ router.get('/exist/:from/:to', function (req, res) {
     });
 });
 
-
-router.route('/create').post(function (req, res) {
-    let operation={
-        from: req.body.from,
-        to: req.body.to,
-        supNum: 1,
-        oppNum: 0,
-        supporters: {
-            username: req.session.user.username,
-            direction: req.body.dir
-        }
-    }
-    LinkModel.create(operation, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log('++ ' + req.body.from + ' --> ' + req.body.to);
-        }
-    });
-});
-
-
-router.route('/remove').get(function (req, res) {
-    let condition = {
-        from: req.params.from,
-        to: req.params.to
-    };
-    LinkModel.remove(condition, function (err) {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log('-- ' + req.body.from + ' --> ' + req.body.to);
-        }
-    });
-});
-
 /**
- * Add one supporter for one link
+ * Support one link
+ * Case 1: not exist
+ * Create one new link
+ * Case 2: exist
+ * Support this link
  */
 router.route('/support').post(function (req, res) {
     let condition = {
         from: req.body.from,
         to: req.body.to
     };
-    let operation = {
-        $inc:{
-            supNum: 1
-        },
-        $addToSet: { //if exists, give up add
-            supporters:
-            {
-                username: req.session.user.username,
-                direction: req.body.dir
-            }
-        }
-    };
-
-    LinkModel.update(condition, operation, function (err) {
+    LinkModel.count(condition, function (err, count) {
         if (err) {
             console.log(err);
         } else {
-            console.log('+ '+req.body.from+' --> '+req.body.to);
-            res.send({ msg: '+'});
+            if (count == 0) {
+                let operation = {
+                    from: req.body.from,
+                    to: req.body.to,
+                    supNum: 1,
+                    oppNum: 0,
+                    supporters: {
+                        username: req.session.user.username,
+                        direction: req.body.dir
+                    }
+                };
+                LinkModel.create(operation, function (err, doc) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log('++ ' + req.body.from + ' --> ' + req.body.to);
+                        res.send({ msg: '++' });
+                    }
+                });
+            } else {
+                let condition = {
+                    from: req.body.from,
+                    to: req.body.to
+                };
+                let operation = {
+                    $inc: {
+                        supNum: 1
+                    },
+                    $addToSet: { //if exists, give up add
+                        supporters:
+                        {
+                            // "_id": false, // to be fixed
+                            username: req.session.user.username,
+                            direction: req.body.dir
+                        }
+                    }
+                };
+
+                LinkModel.update(condition, operation, function (err) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log('+ ' + req.body.from + ' --> ' + req.body.to);
+                        res.send({ msg: '+' });
+                    }
+                });
+            }
         }
     });
 });
 
 /**
- * Reduce one supporter for one link
+ * Unsupport one link
+ * Case 1: exist and supNum == 1
+ * Remove this link
+ * Case 2: exist and supNum > 1
+ * Reduce one supporter for this link
  */
 router.route('/forget').post(function (req, res) {
     let condition = {
         from: req.body.from,
         to: req.body.to
     };
-    let operation = {
-        $inc:{
-            supNum: -1,
-            oppNum: 1
-        },
-        $pull: {
-            supporters:
-            {
-                username: req.session.user.username
-            }
-        },
-        $push: {
-            opposers:
-            {
-                username: req.session.user.username,
-                direction: req.body.dir
-            }
-        }
-    };
-    LinkModel.update(condition, operation, function (err) {
+    LinkModel.count(condition, function (err, count) {
         if (err) {
             console.log(err);
         } else {
-            console.log('- '+req.body.from+' --> '+req.body.to);
-            res.send({ msg: '-'});
+            if (count > 0) {
+                LinkModel.find(condition, function (err, docs) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        for (let d of docs) {
+                            if (d.supNum == 1) {
+                                LinkModel.remove(condition, function (err, docs) {
+                                    if (err) {
+                                        console.log(err);
+                                    } else {
+                                        console.log('-- ' + req.body.from + ' --> ' + req.body.to);
+                                        res.send({ msg: '--' });
+                                    }
+                                });
+                            } else {
+                                let operation = {
+                                    $inc: {
+                                        supNum: -1,
+                                        oppNum: 1
+                                    },
+                                    $pull: {
+                                        supporters:
+                                        {
+                                            username: req.session.user.username
+                                        }
+                                    },
+                                    $push: {
+                                        opposers:
+                                        {
+                                            username: req.session.user.username,
+                                            direction: req.body.dir
+                                        }
+                                    }
+                                };
+                                LinkModel.update(condition, operation, function (err) {
+                                    if (err) {
+                                        console.log(err);
+                                    } else {
+                                        console.log('- ' + req.body.from + ' --> ' + req.body.to);
+                                        res.send({ msg: '-' });
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            } else {
+                console.log('Link not created yet!');
+            }
         }
     });
-    // check if the current player is the last and only supporter
+});
 
+/**
+ * Get hint tile indexes from the server
+ */
+router.get('/getHints/:from', function(req, res){
+    let condition={
+        from: req.params.from
+    };
+    LinkModel.find(condition, function (err, docs) {
+        if(err){
+            console.log(err);
+        }else{
+            res.send(JSON.stringify(docs));
+        }
+    })
 });
 
 module.exports = router;
