@@ -57,5 +57,8 @@ a {
 #card_level3 > .mdl-card__supporting-text{
   background: url('/images/thumbnail_3.jpg') center / cover;
 }
+#card_level4 > .mdl-card__supporting-text{
+  background: url('/images/thumbnail_4.jpg') center / cover;
+}
 
 

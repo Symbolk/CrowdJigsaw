@@ -209,7 +209,13 @@ function getOriginImage(config){
 
     function JigsawPuzzle(config) {
     // getHints();
-    // checkLinks();
+    // var params = {
+    //     from: 4,
+    //     to: 8,
+    //     dir: 3
+    // };
+
+    // checkLinks(4, [1,3,-1,0]);
     
     var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
@@ -725,6 +731,7 @@ function getOriginImage(config){
         var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
         var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
+        // index 0 1 2 3 = T R B L
         var aroundTiles = new Array(getTileIndex(topTile),getTileIndex(rightTile),
             getTileIndex(bottomTile),getTileIndex(leftTile));
         
@@ -769,7 +776,7 @@ function getOriginImage(config){
                 for(var i = 0; i < instance.selectedTile.length == 1; i++){
                     var tile = instance.selectedTile[i];
                     if(!tile.alreadyHinted){
-                        showHints(tile);
+                        // showHints(tile);
                     }
                 }
             }
