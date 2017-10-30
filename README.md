@@ -64,6 +64,15 @@ _P.S. See npm dependencies in package.json_
 
 ## Development(Windows)
 
+0, Set the env as development:
+
+```shell
+# windows
+set NODE_ENV=development
+# linux/macOS
+export NODE_ENV=development
+```
+
 1, Start mongodb service with the command:
 
 ```shell
@@ -101,6 +110,15 @@ nodemon app.js
 
 
 ## Delpoyment(Aliyun CentOS)
+
+0, Set the env as production:
+
+```shell
+# windows
+set NODE_ENV=production
+# linux/macOS
+export NODE_ENV=production
+```
 
 1, Start mongodb service with the command:
 
