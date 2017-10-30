@@ -155,6 +155,19 @@ function timedCount(){
 if(puzzle)
     timedCount();
 
+setDragMode = function() 
+{
+    if(puzzle)
+    {
+        console.log("1."+puzzle.dragMode);
+        var x = document.getElementById("myselect").value;
+        puzzle.changeDragMode(x);
+        console.log("2."+puzzle.dragMode);
+    }
+}
+
+
+
 var path;
 var movePath = false;
 
@@ -165,6 +178,7 @@ var timeoutFunction;
 function onMouseDown(event) {
     puzzle.pickTile(event.point);
     timeoutFunction=window.setTimeout(puzzle.dragTileOrTiles,500);
+    console.log("puzzle.dragMode:::::"+puzzle.dragMode) ;
 }
 
 function onMouseUp(event) {
@@ -889,6 +903,7 @@ function getOriginImage(config){
             }
             else{
                 DFSTiles(tile, instance.selectedTile, new Point(0, 0));
+                console.log("here~");
             }
         }
         else{
@@ -904,6 +919,7 @@ function getOriginImage(config){
         }
         else{
             instance.dragOnlyTile();
+            console.log("here~~~2");
         }
     }
 
@@ -964,4 +980,19 @@ function getOriginImage(config){
         }
         instance.puzzleImage.visible = !visible;
     }
+
+    this.changeDragMode = function(x){
+        if(x == "DragTileFirst")
+        {
+            this.dragMode = "tile-First";
+            console.log("change to tile");
+        }
+        else if(x == "DragGroupFirst")
+        {
+            this.dragMode = "group-First";
+            console.log("change to group");
+            console.log("puzzle.DragMode~~~~"+this.dragMode);
+        }
+    }
+
 }

@@ -1,3 +1,4 @@
+<script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
 <div class="demo-layout-transparent mdl-layout mdl-js-layout">
   <div id="drawer" class="mdl-layout__drawer">
     <nav class="mdl-navigation">
@@ -7,6 +8,30 @@
       <i class="fa fa-refresh fa-lg restart"></i>
       <i class="fa fa-power-off fa-lg quit" id="ensure_quit"></i>
       <i class="fa fa-anchor fa-lg returnCenter"></i>
+
+      <!-- <p class="drag-mode-button">
+          <table>
+               <label class = "mdl-radio mdl-js-radio" for = "option1">
+                  <input type = "radio" id = "option1" name = "dragMode" value="0" 
+                     class = "mdl-radio__button" checked>
+                  <span class = "mdl-radio__label" style="font-size: 0.5px">DragGroupFirst</span>
+               </label>
+            
+               <label class = "mdl-radio mdl-js-radio mdl-js-ripple-effect" 
+                  for = "option2">
+                  <input type = "radio" id = "option2" name = "dragMode" value="1" 
+                     class = "mdl-radio__button" >
+                  <span class = "mdl-radio__label" style="font-size: 0.5px">DragTileFirst</span>
+               </label>
+       </table>   
+      </p> -->
+
+      <div class="mdl-selectfield mdl-js-selectfield" id = "drag-mode-button">
+            <select id="myselect" name="myselect" class="mdl-selectfield__select" onchange = "setDragMode()">
+              <option value="DragTileFirst" >DragTileFirst</option>
+              <option value="DragGroupFirst" >DragGroupFirst</option>
+            </select>
+      </div>
       
       <span id="steps_chip" class="mdl-chip mdl-chip--contact">
                     <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">S</span>
