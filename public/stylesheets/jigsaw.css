@@ -107,7 +107,7 @@ canvas[resize] {
 
 
 #steps_chip{
-    margin:360px 0 0 0px;  
+    margin:20px 0 0 0px;  
 }
 
 #timer_chip{
@@ -123,4 +123,16 @@ canvas[resize] {
 #drawer{
     width:135px;
 }
+
+#drag-mode-button{
+    width:15px;
+    margin: 20px 0 0 0px;
+}
+
+#myselect{
+    width:125px;
+    margin: 345px 0 0 0px;
+    font-size: 10px;
+}
+
 

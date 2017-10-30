@@ -154,6 +154,21 @@ function timedCount() {
 if (puzzle)
     timedCount();
 
+$('#myselect').change(function () {
+    if(puzzle)
+    {
+        if(this.value == "DragTileFirst")
+        {
+            puzzle.dragMode = "tile-First";
+        }
+        else
+        {
+            puzzle.dragMode = "group-First";
+        }
+    }
+});
+
+
 var path;
 var movePath = false;
 
@@ -972,4 +987,5 @@ function JigsawPuzzle(config) {
         }
         instance.puzzleImage.visible = !visible;
     }
+
 }
