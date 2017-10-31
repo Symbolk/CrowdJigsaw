@@ -76,7 +76,7 @@ $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 256;
+var tileWidth = 64;
 
 if (level == 3) {
     tileWidth = 32;
