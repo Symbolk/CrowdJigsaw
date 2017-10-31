@@ -178,12 +178,12 @@ var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
     puzzle.pickTile(event.point);
-    timeoutFunction = window.setTimeout(puzzle.dragTileOrTiles, 500);
+    timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
 }
 
 function onMouseUp(event) {
     if (timeoutFunction) {
-        window.clearTimeout(timeoutFunction);
+        clearTimeout(timeoutFunction);
     }
     puzzle.releaseTile();
 }
@@ -191,7 +191,7 @@ function onMouseUp(event) {
 
 function onMouseDrag(event) {
     if (timeoutFunction) {
-        window.clearTimeout(timeoutFunction);
+        clearTimeout(timeoutFunction);
     }
     puzzle.dragTile(event.delta);
 }
@@ -682,7 +682,7 @@ function JigsawPuzzle(config) {
 
     function getTileIndex(tile) {
         if (tile) {
-            return new Number(tile.name.substr(5));
+            return Number(tile.name.substr(5));
         }
         return -1;
     }
@@ -764,7 +764,24 @@ function JigsawPuzzle(config) {
         var aroundTiles = new Array(getTileIndex(topTile), getTileIndex(rightTile),
             getTileIndex(bottomTile), getTileIndex(leftTile));
 
-        checkLinks(tileIndex, aroundTiles);
+        var aroundTilesChanged = true;
+        if(tile.aroundTiles){
+            var i = 0;
+            for(; i < aroundTiles.length; i++){
+                if(tile.aroundTiles[i] != aroundTiles[i]){
+                    break;
+                }
+            }
+            if(i == aroundTiles.length){
+                aroundTilesChanged = false;
+            }
+        }
+        
+        if(aroundTilesChanged){
+            checkLinks(tileIndex, aroundTiles);
+        }
+
+        tile.aroundTiles = aroundTiles;
     }
 
     this.releaseTile = function () {
@@ -795,11 +812,12 @@ function JigsawPuzzle(config) {
                 }
                 else {
                     cellPosition = centerCellPosition + tile.relativePosition;
-                    this.steps = this.steps + 1;
                 }
                 placeTile(tile, cellPosition);
                 sendLinks(tile);
             }
+
+            this.steps = this.steps + 1;
 
             if (!hasConflict && instance.showHints) {
                 for (var i = 0; i < instance.selectedTile.length == 1; i++) {
@@ -821,6 +839,7 @@ function JigsawPuzzle(config) {
 
             var errors = checkTiles();
             if (errors == 0) {
+                clearTimeout(t);
                 showCongratulations();
             }
             else{
@@ -843,8 +862,6 @@ function JigsawPuzzle(config) {
         y = y - instance.tileWidth;
         instance.congratulations.visible = true;
         instance.congratulations.position = new Point(x, y);
-        instance.congratulations.timeStamp = 180;
-        //console.log(instance.congratulations);
     }
 
     function showHints(tile) {
@@ -894,9 +911,12 @@ function JigsawPuzzle(config) {
         var hitResults = project.hitTestAll(roundPosition);
         for (var i = 0; i < hitResults.length; i++) {
             var hitResult = hitResults[i];
+            if(hitResult.type != "pixel"){
+                continue;
+            }
             var img = hitResult.item;
             var tile = img.parent;
-            if (tile.name && tile.name.substr(0,4) == 'tile' && !tile.picking) {
+            if (!tile.picking) {
                 retTile = tile;
             }
         }
