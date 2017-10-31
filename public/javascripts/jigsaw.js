@@ -51,6 +51,29 @@ $('.returnCenter').click(function () {
 }());
 
 
+/**
+ * Game Finish
+ */
+ var gameFinishDialog = document.querySelector('#game_finish_dialog');
+(function () {
+    var stayButton = document.querySelector('#stay-button');
+    var returnButton = document.querySelector('#return-button');
+
+    if (!gameFinishDialog.showModal) {
+        dialogPolyfill.registerDialog(gameFinishDialog);
+    }
+
+    stayButton.addEventListener('click', function (event) {
+        gameFinishDialog.close();
+    });
+
+    returnButton.addEventListener('click', function (event) {
+        gameFinishDialog.close();
+        window.location = '/home';
+    });
+}());
+
+
 document.querySelector('#show_steps').addEventListener('click', function () {
     $('#steps').fadeToggle('slow');
 });
@@ -282,19 +305,6 @@ function JigsawPuzzle(config) {
     this.allowOverlap = config.allowOverlap;
 
     this.gameFinished = false;
-
-    this.congratulations = new PointText({
-        visible: false,
-        point: view.center,
-        name: 'congratulations',
-        content: 'Congratulations!',
-        justification: 'center',
-        strokeColor: 'red',
-        fillColor: 'white',
-        font: 'Algerian',
-        strokeWidth: 1,
-        fontSize: 64
-    });
 
     function randomPlaceTiles(xTileCount, yTileCount){
         var tiles = instance.tiles;
@@ -842,32 +852,15 @@ function JigsawPuzzle(config) {
 
             document.getElementById("steps").innerHTML = instance.steps;
 
-            var errors = checkTiles();
-            if (errors == 0) {
-                instance.gameFinished = true;
-                clearTimeout(t);
-                showCongratulations();
-            }
-            else{
-                instance.congratulations.visible = false;
-            }
-        }
-    }
-
-    function showCongratulations(){
-        var x = 0;
-        var y = 100 * instance.tileWidth;
-        for(var i = 0; i < instance.tiles.length; i++){
-            var position = instance.tiles[i].position
-            x += position.x;
-            if(y > position.y){
-                y = position.y;
+            if(!instance.gameFinished){
+                var errors = checkTiles();
+                if (errors == 0) {
+                    clearTimeout(t);
+                    gameFinishDialog.showModal();
+                    instance.gameFinished = true;
+                }
             }
         }
-        x = x / instance.tiles.length;
-        y = y - instance.tileWidth;
-        instance.congratulations.visible = true;
-        instance.congratulations.position = new Point(x, y);
     }
 
     function getCheatHints(tileIndex){
