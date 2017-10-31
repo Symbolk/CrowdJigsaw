@@ -22,7 +22,6 @@ const requrl = 'http://localhost:3000/';
 */
 function checkLinks(selectedTileIndex, aroundTileIndexes) {
     selectedTileIndex = Number(selectedTileIndex);
-    console.log('Now: ' + aroundTileIndexes);
 
     // Retrieve the last around tile indexes from the server
     let lastAroundTileIndexes = new Array(-1, -1, -1, -1);
