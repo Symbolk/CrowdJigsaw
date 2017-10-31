@@ -53,7 +53,9 @@ var GraphSchema = new mongoose.Schema({
             username: { type: String },
             direction: { type: String },
         }
-    ]
+    ],
+    hintScore: { type: Number, default: -1 },
+    hintDir: { type: Number, default: -1 }
 }, { collection: 'graph' });
 var Link = mongoose.model('Link', GraphSchema, 'graph');
 console.log('Graph Model Created.');

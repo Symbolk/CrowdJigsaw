@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const session = require('express-session');
 const ejs = require('ejs');
+var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
 
@@ -77,12 +78,12 @@ app.use(function (err, req, res, next) {
 
 if (app.get('env') === 'development') {
   // nodemon or npm test
-  const config = require('./config/dev');
+  config = require('./config/dev');
   app.listen(config.port);
   console.log('Listening on port : '+config.port);
 } else if (app.get('env') === 'production') {
   // npm start
-  const config = require('./config/pro');
+  config = require('./config/pro');
   app.listen(config.port);
   module.exports = app;
   console.log('Listening on port : '+config.port);

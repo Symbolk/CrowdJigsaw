@@ -1,5 +1,4 @@
 const requrl = 'http://localhost:3000/';
-
 /**
  *  Update links in the background graph bidirectionally
  *  Check which case it is in the 4 cases, and call the corrosponding method:
@@ -22,9 +21,8 @@ const requrl = 'http://localhost:3000/';
 * @return ifSucceed Boolean
 */
 function checkLinks(selectedTileIndex, aroundTileIndexes) {
-    selectedTileIndex=Number(selectedTileIndex);
-    console.log('Now: '+aroundTileIndexes);
-    
+    selectedTileIndex = Number(selectedTileIndex);
+
     // Retrieve the last around tile indexes from the server
     let lastAroundTileIndexes = new Array(-1, -1, -1, -1);
     $.ajax({
@@ -36,12 +34,51 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
         cache: false,
         timeout: 5000,
         success: function (data) {
-            // var data = $.parseJSON(data);
+            // var data = $.parseJSON(data)
             for (let d of data) {
                 // for(let s of d.supporters){
                 //     console.log(s);
                 // }
                 lastAroundTileIndexes[Number(d.supporters[0].direction)] = Number(d.to);
+            }
+
+            // Do a diff for the 2 arrays
+            // Update the database according to the diff
+            for (let i = 0; i < 4; i++) {
+                aroundTileIndexes[i] = Number(aroundTileIndexes[i]);
+                lastAroundTileIndexes[i] = Number(lastAroundTileIndexes[i]);
+                // if there is a change in around tile
+                if (lastAroundTileIndexes[i] != aroundTileIndexes[i]) {
+                    // Case1 : create
+                    if (lastAroundTileIndexes[i] == -1) {
+                        let params = {
+                            from: selectedTileIndex,
+                            to: aroundTileIndexes[i],
+                            dir: i
+                        };
+                        supportLink(params);
+                    } else if (aroundTileIndexes[i] == -1) {
+                        // Case 2: unsupport
+                        let params = {
+                            from: selectedTileIndex,
+                            to: lastAroundTileIndexes[i]
+                        };
+                        forgetLink(params);
+                    } else {
+                        // Case 3: update
+                        let oldLink = {
+                            from: selectedTileIndex,
+                            to: lastAroundTileIndexes[i]
+                        };
+                        forgetLink(oldLink);
+                        let newLink = {
+                            from: selectedTileIndex,
+                            to: aroundTileIndexes[i],
+                            dir: i
+                        }
+                        supportLink(newLink);
+                    }
+                }
             }
         },
         error: function (jqXHR, textStatus, errorThrown) {
@@ -49,46 +86,6 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
             return false;
         }
     });
-    console.log(lastAroundTileIndexes);
-    console.log('Last '+lastAroundTileIndexes);
-    // Do a diff for the 2 arrays
-    // Update the database according to the diff
-    for (let i=0;i < 4;i++) {
-        aroundTileIndexes[i]=Number(aroundTileIndexes[i]);
-        lastAroundTileIndexes[i]=Number(lastAroundTileIndexes[i]);
-        // if there is a change in around tile
-        if (lastAroundTileIndexes[i] != aroundTileIndexes[i]) {
-            // Case1 : create
-            if (lastAroundTileIndexes[i] == -1) {
-                let params = {
-                    from: selectedTileIndex,
-                    to: aroundTileIndexes[i],
-                    dir: i
-                };
-                supportLink(params);
-            } else if (aroundTileIndexes[i] == -1) {
-                // Case 2: unsupport
-                let params = {
-                    from: selectedTileIndex,
-                    to: lastAroundTileIndexes[i]
-                };
-                forgetLink(params);
-            } else {            
-               // Case 3: update
-                let oldLink = {
-                    from: selectedTileIndex,
-                    to: lastAroundTileIndexes[i]
-                };
-                forgetLink(oldLink);
-                let newLink = {
-                    from: selectedTileIndex,
-                    to: aroundTileIndexes[i],
-                    dir: i
-                }
-                supportLink(newLink);
-            }
-        }
-    }
     return true;
 }
 
@@ -99,13 +96,14 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
  */
 function getHints(selectedTileIndex) {
     $.ajax({
-        url: requrl + 'getHints'+ '/' + selectedTileIndex,
+        url: requrl + 'getHints' + '/' + selectedTileIndex,
         type: 'get',
         dataType: 'json',
         cache: false,
         timeout: 5000,
         success: function (data) {
             // var data = $.parseJSON(data);
+            // indexes = directions(0 1 2 3=T R B L)
             console.log(data);
         },
         error: function (jqXHR, textStatus, errorThrown) {
@@ -116,7 +114,7 @@ function getHints(selectedTileIndex) {
 
 
 /**
- * TEST
+ * TEST : to produce data
  *  *  When one link is built:
  *  1, If the link does not exist, create a link;
  *  2, If the link already exists, update: append the user to the supporter list of the selected tile;
@@ -124,7 +122,7 @@ function getHints(selectedTileIndex) {
  * ++ : new a link and the current user is the first supporter 
  */
 function createLink(params) {
-    
+
     // Case 1: build new links only
     // check if this link exists in the db
     $.ajax({
@@ -189,7 +187,6 @@ function supportLink(params) {
  * - : reduce one supporter for the link
  */
 function forgetLink(params) {
-    console.log('Forget');
     $.ajax({
         data: params,
         url: requrl + 'forget',

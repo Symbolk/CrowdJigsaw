@@ -48,13 +48,30 @@ _P.S. See npm dependencies in package.json_
 ![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home.jpg)
 ![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone.jpg)
 ![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer.jpg)
+### Level1 : Jagged Pictorial Tiles
+
 ![Level1](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_1.jpg)
+### Level2 : Square Pictorial Tiles
+
 ![Level2](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_2.jpg)
+### Level3 : Voronoi Pictorial Tiles
+
 ![Level3](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_3.jpg)
 
+### Level4 : Voronoi Non-Pictorial Tiles
 
+![Level4](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_4.jpg)
 
 ## Development(Windows)
+
+0, Set the env as development:
+
+```shell
+# windows
+set NODE_ENV=development
+# linux/macOS
+export NODE_ENV=development
+```
 
 1, Start mongodb service with the command:
 
@@ -94,6 +111,15 @@ nodemon app.js
 
 ## Delpoyment(Aliyun CentOS)
 
+0, Set the env as production:
+
+```shell
+# windows
+set NODE_ENV=production
+# linux/macOS
+export NODE_ENV=production
+```
+
 1, Start mongodb service with the command:
 
 ```shell
@@ -107,7 +133,7 @@ nohup mongod --dbpath /var/www/database &
 // nodemon or npm test
 // app.listen(3000);
 // npm start
-app.listen(4000);
+app.listen(3000);
 module.exports = app; 
 ```
 3, Start the server:
@@ -119,6 +145,6 @@ npm start
 forever start app.js
 ```
 
-3, Go http://YOURDOMAIN:4000/ in Chrome to see the client.
+3, Go http://YOURDOMAIN:3000/ in Chrome to see the client.
 
 ## Bugs&Issues
