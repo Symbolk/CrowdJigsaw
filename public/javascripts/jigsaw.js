@@ -76,7 +76,7 @@ $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 64;
+var tileWidth = 256;
 
 if (level == 3) {
     tileWidth = 32;
@@ -279,6 +279,19 @@ function JigsawPuzzle(config) {
     // keep track of the steps of the current user
     this.steps = 0;
     this.allowOverlap = config.allowOverlap;
+
+    this.congratulations = new PointText({
+        visible: false,
+        point: view.center,
+        name: 'congratulations',
+        content: 'Congratulations!',
+        justification: 'center',
+        strokeColor: 'red',
+        fillColor: 'white',
+        font: 'Algerian',
+        strokeWidth: 1,
+        fontSize: 64
+    });
 
     function createTiles(xTileCount, yTileCount) {
         var tiles = new Array();
@@ -808,9 +821,30 @@ function JigsawPuzzle(config) {
 
             var errors = checkTiles();
             if (errors == 0) {
-                alert('Congratulations!!!');
+                showCongratulations();
+            }
+            else{
+                instance.congratulations.visible = false;
             }
         }
+    }
+
+    function showCongratulations(){
+        var x = 0;
+        var y = 100 * instance.tileWidth;
+        for(var i = 0; i < instance.tiles.length; i++){
+            var position = instance.tiles[i].position
+            x += position.x;
+            if(y > position.y){
+                y = position.y;
+            }
+        }
+        x = x / instance.tiles.length;
+        y = y - instance.tileWidth;
+        instance.congratulations.visible = true;
+        instance.congratulations.position = new Point(x, y);
+        instance.congratulations.timeStamp = 180;
+        //console.log(instance.congratulations);
     }
 
     function showHints(tile) {
@@ -862,7 +896,7 @@ function JigsawPuzzle(config) {
             var hitResult = hitResults[i];
             var img = hitResult.item;
             var tile = img.parent;
-            if (!tile.picking) {
+            if (tile.name && tile.name.substr(0,4) == 'tile' && !tile.picking) {
                 retTile = tile;
             }
         }
