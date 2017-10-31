@@ -35,13 +35,14 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
         timeout: 5000,
         success: function (data) {
             // var data = $.parseJSON(data)
-            for (let d of data) {
-                // for(let s of d.supporters){
-                //     console.log(s);
-                // }
-                lastAroundTileIndexes[Number(d.supporters[0].direction)] = Number(d.to);
-            }
-
+            // if(!data.empty){
+                for (let d of data) {
+                    // for(let s of d.supporters){
+                    //     console.log(s);
+                    // }
+                    lastAroundTileIndexes[Number(d.supporters[0].direction)] = Number(d.to);
+                }
+            // }
             // Do a diff for the 2 arrays
             // Update the database according to the diff
             for (let i = 0; i < 4; i++) {

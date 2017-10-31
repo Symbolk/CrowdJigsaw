@@ -200,19 +200,36 @@ router.route('/getAll').get(function (req, res) {
  */
 router.route('/getLinks/:from').get(function (req, res) {
     let condition = {
-        "from": req.params.from,
-        "supporters.username": req.session.user.username
+        from: req.params.from
     };
-    // console.log(condition);
-    LinkModel.find(condition, function (err, docs) {
-        if (err) {
-            console.log(err);
-            res.end('Error while retrieving.');
-        } else {
-            // console.log(docs);
-            res.send(JSON.stringify(docs));
-        }
-    });
+    // LinkModel.count(condition, function (err, count) {
+    //     if (err) {
+    //         console.log(err);
+    //     } else {
+            // if (count > 0) {
+                condition = {
+                    "from": req.params.from,
+                    "supporters.username": req.session.user.username
+                };
+                // console.log(condition);
+                LinkModel.find(condition, function (err, docs) {
+                    if (err) {
+                        console.log(err);
+                        res.end('Error while retrieving.');
+                    } else {
+                        // console.log(docs);
+                        res.send(JSON.stringify(docs));
+                        // res.send({
+                        //     empty: false,
+                        //     docs: JSON.stringify(docs)
+                        // });
+                    }
+                });
+            // } else {
+            //     res.send({ empty: true });
+            // }
+        // }
+    // });
 });
 
 /**
@@ -408,7 +425,7 @@ router.get('/getHints/:from', function (req, res) {
                     if (err) {
                         console.log(err);
                     } else {
-                        console.log('Scored '+score);
+                        console.log('Scored ' + score);
                     }
                 });
             }
@@ -423,8 +440,8 @@ router.get('/getHints/:from', function (req, res) {
                     if (err) {
                         console.log(err);
                     } else {
-                        for(let d of docs){
-                            hintIndexes[Number(d.hintDir)]=d.to;
+                        for (let d of docs) {
+                            hintIndexes[Number(d.hintDir)] = d.to;
                         }
                         console.log(hintIndexes);
                         // res.send(JSON.stringify(hintIndexes));
