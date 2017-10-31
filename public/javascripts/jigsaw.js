@@ -178,12 +178,12 @@ var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
     puzzle.pickTile(event.point);
-    timeoutFunction = window.setTimeout(puzzle.dragTileOrTiles, 500);
+    timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
 }
 
 function onMouseUp(event) {
     if (timeoutFunction) {
-        window.clearTimeout(timeoutFunction);
+        clearTimeout(timeoutFunction);
     }
     puzzle.releaseTile();
 }
@@ -191,7 +191,7 @@ function onMouseUp(event) {
 
 function onMouseDrag(event) {
     if (timeoutFunction) {
-        window.clearTimeout(timeoutFunction);
+        clearTimeout(timeoutFunction);
     }
     puzzle.dragTile(event.delta);
 }
@@ -281,6 +281,19 @@ function JigsawPuzzle(config) {
     // keep track of the steps of the current user
     this.steps = 0;
     this.allowOverlap = config.allowOverlap;
+
+    this.congratulations = new PointText({
+        visible: false,
+        point: view.center,
+        name: 'congratulations',
+        content: 'Congratulations!',
+        justification: 'center',
+        strokeColor: 'red',
+        fillColor: 'white',
+        font: 'Algerian',
+        strokeWidth: 1,
+        fontSize: 64
+    });
 
     function createTiles(xTileCount, yTileCount) {
         var tiles = new Array();
@@ -671,7 +684,7 @@ function JigsawPuzzle(config) {
 
     function getTileIndex(tile) {
         if (tile) {
-            return new Number(tile.name.substr(5));
+            return Number(tile.name.substr(5));
         }
         return -1;
     }
@@ -753,7 +766,24 @@ function JigsawPuzzle(config) {
         var aroundTiles = new Array(getTileIndex(topTile), getTileIndex(rightTile),
             getTileIndex(bottomTile), getTileIndex(leftTile));
 
-        checkLinks(tileIndex, aroundTiles);
+        var aroundTilesChanged = true;
+        if(tile.aroundTiles){
+            var i = 0;
+            for(; i < aroundTiles.length; i++){
+                if(tile.aroundTiles[i] != aroundTiles[i]){
+                    break;
+                }
+            }
+            if(i == aroundTiles.length){
+                aroundTilesChanged = false;
+            }
+        }
+        
+        if(aroundTilesChanged){
+            checkLinks(tileIndex, aroundTiles);
+        }
+
+        tile.aroundTiles = aroundTiles;
     }
 
     this.releaseTile = function () {
@@ -784,11 +814,12 @@ function JigsawPuzzle(config) {
                 }
                 else {
                     cellPosition = centerCellPosition + tile.relativePosition;
-                    this.steps = this.steps + 1;
                 }
                 placeTile(tile, cellPosition);
                 sendLinks(tile);
             }
+
+            this.steps = this.steps + 1;
 
             if (!hasConflict && instance.showHints) {
                 for (var i = 0; i < instance.selectedTile.length == 1; i++) {
@@ -810,9 +841,29 @@ function JigsawPuzzle(config) {
 
             var errors = checkTiles();
             if (errors == 0) {
-                alert('Congratulations!!!');
+                clearTimeout(t);
+                showCongratulations();
+            }
+            else{
+                instance.congratulations.visible = false;
             }
         }
+    }
+
+    function showCongratulations(){
+        var x = 0;
+        var y = 100 * instance.tileWidth;
+        for(var i = 0; i < instance.tiles.length; i++){
+            var position = instance.tiles[i].position
+            x += position.x;
+            if(y > position.y){
+                y = position.y;
+            }
+        }
+        x = x / instance.tiles.length;
+        y = y - instance.tileWidth;
+        instance.congratulations.visible = true;
+        instance.congratulations.position = new Point(x, y);
     }
 
     function showHints(tile) {
@@ -862,6 +913,9 @@ function JigsawPuzzle(config) {
         var hitResults = project.hitTestAll(roundPosition);
         for (var i = 0; i < hitResults.length; i++) {
             var hitResult = hitResults[i];
+            if(hitResult.type != "pixel"){
+                continue;
+            }
             var img = hitResult.item;
             var tile = img.parent;
             if (!tile.picking) {
