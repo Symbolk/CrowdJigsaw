@@ -9,6 +9,8 @@ var router = express.Router();
 const DBHelp = require('./DBHelp');
 const mongoose = require('mongoose');
 var LinkModel = mongoose.model('Link');
+var UserModel = mongoose.model('User');
+
 
 
 // Get Home Page
@@ -200,36 +202,17 @@ router.route('/getAll').get(function (req, res) {
  */
 router.route('/getLinks/:from').get(function (req, res) {
     let condition = {
-        from: req.params.from
+        "from": req.params.from,
+        "supporters.username": req.session.user.username
     };
-    // LinkModel.count(condition, function (err, count) {
-    //     if (err) {
-    //         console.log(err);
-    //     } else {
-            // if (count > 0) {
-                condition = {
-                    "from": req.params.from,
-                    "supporters.username": req.session.user.username
-                };
-                // console.log(condition);
-                LinkModel.find(condition, function (err, docs) {
-                    if (err) {
-                        console.log(err);
-                        res.end('Error while retrieving.');
-                    } else {
-                        // console.log(docs);
-                        res.send(JSON.stringify(docs));
-                        // res.send({
-                        //     empty: false,
-                        //     docs: JSON.stringify(docs)
-                        // });
-                    }
-                });
-            // } else {
-            //     res.send({ empty: true });
-            // }
-        // }
-    // });
+    LinkModel.find(condition, function (err, docs) {
+        if (err) {
+            console.log(err);
+            res.end('Error while retrieving.');
+        } else {
+            res.send(JSON.stringify(docs));
+        }
+    });
 });
 
 /**
@@ -443,10 +426,37 @@ router.get('/getHints/:from', function (req, res) {
                         for (let d of docs) {
                             hintIndexes[Number(d.hintDir)] = d.to;
                         }
-                        console.log(hintIndexes);
-                        // res.send(JSON.stringify(hintIndexes));
+                        // console.log(hintIndexes);
+                        res.send(JSON.stringify(hintIndexes));
                     }
                 });
+        }
+    });
+});
+
+/**
+ * Record the user's performance at the end of one game
+ */
+router.post('/record', function (req, res) {
+    let condition = {
+        username: req.session.user.username
+    };
+    let operation={
+        $push: {
+            records:
+            {
+                level: req.body.level,
+                when: req.body.when,
+                steps: req.body.steps,
+                time: req.body.time
+            }
+        }
+    };
+    UserModel.update(condition, operation, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send({ msg: "Record saved!" });
         }
     });
 });

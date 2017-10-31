@@ -1,4 +1,6 @@
-const requrl = 'http://localhost:3000/';
+// const requrl = 'http://localhost:3000/';
+const requrl = 'http://39.106.59.72:3000/';
+
 /**
  *  Update links in the background graph bidirectionally
  *  Check which case it is in the 4 cases, and call the corrosponding method:
@@ -96,6 +98,7 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
  * @return hintTileIndexes
  */
 function getHints(selectedTileIndex) {
+    // let hintTileIndexes=new Array(-1,-1,-1,-1);
     $.ajax({
         url: requrl + 'getHints' + '/' + selectedTileIndex,
         type: 'get',
@@ -105,7 +108,7 @@ function getHints(selectedTileIndex) {
         success: function (data) {
             // var data = $.parseJSON(data);
             // indexes = directions(0 1 2 3=T R B L)
-            console.log(data);
+            return data;
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
@@ -198,6 +201,32 @@ function forgetLink(params) {
         success: function (data) {
             // data.msg : -- or -            
             console.log(data.msg + ' ' + params.from + ' --> ' + params.to);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });
+}
+
+/**
+ * Send personal records to the server at the end of one game
+ */
+function sendRecord(level, when, steps, time) {
+    let params={
+        level: level,
+        when: when,
+        steps: steps,
+        time: time
+    };
+    $.ajax({
+        data: params,
+        url: requrl + 'record',
+        type: 'post',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+          console.log(data.msg);
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);

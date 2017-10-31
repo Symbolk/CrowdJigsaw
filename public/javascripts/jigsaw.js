@@ -222,6 +222,7 @@ function getOriginImage(config) {
 }
 
 function JigsawPuzzle(config) {
+    // API test
     // getHints();
     // var params = {
     //     from: 4,
@@ -230,6 +231,7 @@ function JigsawPuzzle(config) {
     // };
 
     // getHints(4);
+    // sendRecord('Level 1', '2017-10-31 14:00', 245, '16:24');
 
     // checkLinks(4, [1,3,-1,0]);
 
