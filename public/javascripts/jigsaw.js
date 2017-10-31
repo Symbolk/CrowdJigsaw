@@ -782,11 +782,11 @@ function JigsawPuzzle(config) {
                 }
                 else {
                     cellPosition = centerCellPosition + tile.relativePosition;
-                    this.steps = this.steps + 1;
                 }
                 placeTile(tile, cellPosition);
                 sendLinks(tile);
             }
+            this.steps =this.steps+1;
 
             if (!hasConflict && instance.showHints) {
                 for (var i = 0; i < instance.selectedTile.length == 1; i++) {
