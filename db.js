@@ -28,7 +28,7 @@ db.once('open', function () {
 	joindate: { type:Date, default:Date.now },
 	records:  [
         {
-            level: { type: String },
+            level: { type: Number },
             when: { type : String },
             steps: { type: Number },
             time: { type: String }

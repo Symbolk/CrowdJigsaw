@@ -1,81 +1,65 @@
 <!-- Player Ranks Page -->
 <% include header.html %>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
         <% include navigation.html %>
 
             <main class="mdl-layout__content">
                 <div class="mdl-grid">
                     <div class="mdl-cell mdl-cell--4-col"></div>
                     <div class="mdl-cell mdl-cell--4-col">
-
-                        <h2 class="mdl-color-text-black">User Rank</h2>
+                            <br/>
+                        <h2 class="mdl-color-text-black">Players Rank</h2>
                         <div class="demo-list-action mdl-list">
                             <div class="mdl-list__item">
                                 <span class="mdl-list__item-primary-content">
-                                    <i class="fa fa-wheelchair mdl-list__item-avatar"></i>
-                                    <span>Bryan Cranston</span>
+                                    <span>Rank</span>
                                 </span>
-                                <a class="mdl-list__item-secondary-action" href="#">
-                                <i class="fa fa-thumbs-up mdl-list__item-avatar"></i>                            
-                                </a>
-                            </div>
-                            <div class="mdl-list__item">
                                 <span class="mdl-list__item-primary-content">
-                                    <i class="fa fa-wheelchair mdl-list__item-avatar"></i>
-                                    <span>Aaron Paul</span>
+                                    <span>Avatar</span>
                                 </span>
-                                <a class="mdl-list__item-secondary-action" href="#">
-                                     <i class="fa fa-thumbs-up mdl-list__item-avatar"></i>  
-                                </a>
-                            </div>
-                            <div class="mdl-list__item">
                                 <span class="mdl-list__item-primary-content">
-                                    <i class="fa fa-wheelchair mdl-list__item-avatar"></i>
-                                    <span>Bob Odenkirk</span>
+                                    <span>Username</span>
                                 </span>
-                                <span class="mdl-list__item-secondary-content">
-                                    <a class="mdl-list__item-secondary-action" href="#">
-                                         <i class="fa fa-thumbs-up mdl-list__item-avatar"></i>  
-                                    </a>
+                                <span class="mdl-list__item-primary-content">
+                                    <span>ThumbsUp!</span>
                                 </span>
                             </div>
-                        </div>
-
-
-                        <table class="fuzq_home_manage_table">
-                            <tr>
-                                <th>用户名</th>
-                                <th>操作</th>
-                            </tr>
-                            <% Allusers.forEach(function(u){
-                                            if(u.username===user.username){%>
-                                <tr>
-                                    <td style="color:#3c3;">
-                                        <%-u.username%>
-                                    </td>
-                                    <td>
-                                        <span style="color:#3c3;">当前用户</span>
-                                    </td>
-                                </tr>
-                                <%}
-                                            else{%>
-                                    <tr>
-                                        <td>
-                                            <%-u.username%>
-                                        </td>
-                                        <td>
-                                            <span>
-                                                <a href="/delete/<%-u.username%>">删除</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-                                                <a href="/resetPwd/<%-u.username%>">重置密码</a>
+                            <% Allusers.forEach(function(u){ %>
+                                <div class="mdl-list__item">
+                                    <span class="mdl-list__item-primary-content">
+                                        <% if(u.username===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.rank %>
                                             </span>
-                                        </td>
-                                    </tr>
-                                    <%}
-                                        })%>
-                        </table>
+                                            <%}
+                                        else{%>
+                                                <span>
+                                                    <%- u.rank %>
+                                                </span>
+                                                <%} %>
+                                    </span>
+                                    <span class="mdl-list__item-primary-content">
+                                        <img class="mdl-list__item-avatar" src="images/placeholder.jpg">
+                                        <% if(u.username===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.username %>
+                                            </span>
+                                            <%}
+                                                    else{%>
+                                                <span>
+                                                    <%- u.username %>
+                                                </span>
+                                                <%} %>
+
+                                    </span>
+                                    <a class="mdl-list__item-secondary-action" href="#">
+                                        <i class="fa fa-thumbs-up mdl-list__item-icon"></i>
+                                    </a>
+                                </div>
+                                <%  })%>
+                        </div>
+                        <div class="mdl-cell mdl-cell--4-col"></div>
                     </div>
-                    <div class="mdl-cell mdl-cell--4-col"></div>
-                </div>
             </main>
-    </div>
-    <% include footer.html %>
+            </div>
+            <% include footer.html %>

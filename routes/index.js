@@ -15,6 +15,7 @@ var UserModel = mongoose.model('User');
 
 // Get Home Page
 router.get('/', function (req, res, next) {
+    req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
     res.render('index', { title: 'Crowd Jigsaw Puzzle' });
 });
 
@@ -87,6 +88,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
     let dbhelp = new DBHelp();
     dbhelp.FindAll('users', selectStr, function (result) {
         if (result) {
+            req.session.error = 'Welcome! ' + req.session.user.username;            
             res.render('home', { title: 'Home', username: req.session.user.username });
         }
         else {
@@ -98,6 +100,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 // Puzzle
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     // let selected_level=req.query.level;
+    req.session.error = 'Game Started!';   
     res.render('puzzle', { title: 'Puzzle' });
 });
 
@@ -129,9 +132,53 @@ router.route('/reset').get(function (req, res) {
     }
 });
 
+// Account Settings
+router.route('/settings').all(LoginFirst).get(function (req, res) {
+    req.session.error = 'Change Password Here!';       
+    res.render('settings', { title: 'Player Settings', username: req.session.user.username });    
+}).post(function (req, res) {
+    if(req.body.new_password != req.body.new_passwordSec){
+        req.session.error = 'Passwords do not agree with each other!';
+        return res.redirect('/settings');
+    }else{
+        // Change the password
+        let condition={
+            username: req.session.user.username
+        };
+
+        UserModel.findOne(condition, function(err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                if(doc.password === req.body.old_password){
+                    let operation={
+                        $set:{
+                            password: req.body.new_password,
+                        }
+                    };
+                    UserModel.update(condition, operation, function(err) {
+                        if (err) {
+                            console.log(err);
+                        }else{
+                            req.session.error = 'Successfully reset your password!';
+                            return res.redirect('/home');
+                        }
+                    });
+                }else{
+                    req.session.error = 'The old password is wrong!';
+                    return res.redirect('/settings');
+                }
+            }
+        });
+
+    }
+});
+
+
 // Rank
 router.route('/rank').all(LoginFirst).get(function (req, res) {
-    let selectStr = { username: 1, _id: 0 }
+    req.session.error = 'Players Rank!';           
+    let selectStr = { username: 1, rank: 1, _id: 0 }
     let dbhelp = new DBHelp();
     dbhelp.FindAll('users', selectStr, function (result) {
         if (result) {
@@ -143,17 +190,31 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
     });
 });
 
-// Account Settings
-router.route('/settings').all(LoginFirst).get(function (req, res) {
-    // TODO
-    res.render('settings', { title: 'Player Settings', username: req.session.user.username });
-});
 
 // Personal Records
 router.route('/records').all(LoginFirst).get(function (req, res) {
-    // TODO    
-    res.render('records', { title: 'Personal Records', username: req.session.user.username });
+    req.session.error = 'See Your Records!';           
+    let condition={
+        username: req.session.user.username
+    };
+    UserModel.findOne(condition, function (err, doc) {
+        if (err) {
+            res.render('records', { title: 'Personal Records' });
+            console.log(err);
+        }
+        else {
+            res.render('records', { title: 'Ranks', username: req.session.user.username, Allrecords: doc.records });
+        }
+    });   
 });
+
+// Help page
+router.route('/help').all(LoginFirst).get(function (req, res) {
+    // TODO    
+    req.session.error = 'Get into Trouble?';           
+    res.render('help', { title: 'Help', username: req.session.user.username });
+});
+
 
 
 // Log out
@@ -456,7 +517,7 @@ router.post('/record', function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.send({ msg: "Record saved!" });
+            res.send({ msg: "Your record has been saved!" });
         }
     });
 });
