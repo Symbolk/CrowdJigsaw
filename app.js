@@ -12,6 +12,15 @@ require('./db');
 
 // 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
+// Control-Allow-Origin
+app.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "X-Requested-With");
+  res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  // res.header("Content-Type", "application/json;charset=utf-8");
+  next();
+  });
 
 // 没有挂载路径的中间件，应用的每个请求都会执行该中间件
 // config session

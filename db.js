@@ -26,8 +26,15 @@ db.once('open', function () {
 	avatar:   { type:String, default:'images/placeholder.png'},
 	password: { type:String },
 	joindate: { type:Date, default:Date.now },
-	points:   { type:Number },
-	rank:     { type:Number },
+	records:  [
+        {
+            level: { type: String },
+            when: { type : String },
+            steps: { type: Number },
+            time: { type: String }
+        }
+    ],
+	rank:     { type:Number }
 },
     // When no collection argument is passed, Mongoose pluralizes the name.
     { collection: 'users' }
