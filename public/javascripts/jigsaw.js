@@ -51,6 +51,29 @@ $('.returnCenter').click(function () {
 }());
 
 
+/**
+ * Game Finish
+ */
+ var gameFinishDialog = document.querySelector('#game_finish_dialog');
+(function () {
+    var stayButton = document.querySelector('#stay-button');
+    var returnButton = document.querySelector('#return-button');
+
+    if (!gameFinishDialog.showModal) {
+        dialogPolyfill.registerDialog(gameFinishDialog);
+    }
+
+    stayButton.addEventListener('click', function (event) {
+        gameFinishDialog.close();
+    });
+
+    returnButton.addEventListener('click', function (event) {
+        gameFinishDialog.close();
+        window.location = '/home';
+    });
+}());
+
+
 document.querySelector('#show_steps').addEventListener('click', function () {
     $('#steps').fadeToggle('slow');
 });
@@ -278,22 +301,47 @@ function JigsawPuzzle(config) {
     else {
         this.tiles = createTiles(this.tilesPerRow, this.tilesPerColumn);
     }
+    randomPlaceTiles(this.tilesPerRow, this.tilesPerColumn);
     // keep track of the steps of the current user
     this.steps = 0;
     this.allowOverlap = config.allowOverlap;
 
-    this.congratulations = new PointText({
-        visible: false,
-        point: view.center,
-        name: 'congratulations',
-        content: 'Congratulations!',
-        justification: 'center',
-        strokeColor: 'red',
-        fillColor: 'white',
-        font: 'Algerian',
-        strokeWidth: 1,
-        fontSize: 64
-    });
+    this.gameFinished = false;
+
+    function randomPlaceTiles(xTileCount, yTileCount){
+        var tiles = instance.tiles;
+        var tileIndexes = instance.tileIndexes;
+        // randomly select tiles and place them one by one 
+        for (var y = 0; y < yTileCount; y++) {
+            for (var x = 0; x < xTileCount; x++) {
+
+                var index1 = Math.floor(Math.random() * tileIndexes.length);
+                var index2 = tileIndexes[index1];
+                var tile = tiles[index2];
+                tileIndexes.remove(index1, 1);
+
+                var position = view.center -
+                    new Point(instance.tileWidth, instance.tileWidth / 2) +
+                    new Point(instance.tileWidth * (x * 2 + ((y % 2))), instance.tileWidth * y) -
+                    new Point(instance.puzzleImage.size.width, instance.puzzleImage.size.height / 2);
+
+                var cellPosition = new Point(
+                    Math.round(position.x / instance.tileWidth) + 1,//returns int closest to arg
+                    Math.round(position.y / instance.tileWidth) + 1);
+
+                tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
+                tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
+                tile.relativePosition = new Point(0, 0);
+                tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
+                tile.groupID = -1; // to which group the tile belongs(-1 by default
+                tile.grouped = false;
+                tile.aroundTilesChanged = false;
+                tile.noAroundTiles = true;
+                tile.aroundTiles = new Array(-1, -1, -1, -1);
+                tile.positionMoved = false;
+            }
+        }
+    }
 
     function createTiles(xTileCount, yTileCount) {
         var tiles = new Array();
@@ -339,36 +387,7 @@ function JigsawPuzzle(config) {
                 tileIndexes.push(tileIndexes.length);
             }
         }
-
-        // randomly select tiles and place them one by one 
-        for (var y = 0; y < yTileCount; y++) {
-            for (var x = 0; x < xTileCount; x++) {
-
-                var index1 = Math.floor(Math.random() * tileIndexes.length);
-                var index2 = tileIndexes[index1];
-                var tile = tiles[index2];
-                tileIndexes.remove(index1, 1);
-
-                var position = view.center -
-                    new Point(instance.tileWidth, instance.tileWidth / 2) +
-                    new Point(instance.tileWidth * (x * 2 + ((y % 2))), instance.tileWidth * y) -
-                    new Point(instance.puzzleImage.size.width, instance.puzzleImage.size.height / 2);
-
-                var cellPosition = new Point(
-                    Math.round(position.x / instance.tileWidth) + 1,//returns int closest to arg
-                    Math.round(position.y / instance.tileWidth) + 1);
-
-                tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
-                tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
-                tile.relativePosition = new Point(0, 0);
-                tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
-                tile.groupID = -1; // to which group the tile belongs(-1 by default
-                tile.grouped = false;
-                tile.aroundTilesChanged = false;
-                tile.noAroundTiles = true;
-                tile.aroundTiles = new Array(-1, -1, -1, -1);
-            }
-        }
+        instance.tileIndexes = tileIndexes;
         return tiles;
     }
 
@@ -639,34 +658,7 @@ function JigsawPuzzle(config) {
                 tileIndexes.push(tileIndexes.length);
             }
         }
-
-        // randomly select tiles and place them one by one 
-        for (var y = 0; y < yTileCount; y++) {
-            for (var x = 0; x < xTileCount; x++) {
-
-                var index1 = Math.floor(Math.random() * tileIndexes.length);
-                var index2 = tileIndexes[index1];
-                var tile = tiles[index2];
-                tileIndexes.remove(index1, 1);
-
-                var position = view.center -
-                    new Point(instance.tileWidth, instance.tileWidth / 2) +
-                    new Point(instance.tileWidth * (x * 2 + ((y % 2))), instance.tileWidth * y) -
-                    new Point(instance.puzzleImage.size.width, instance.puzzleImage.size.height / 2);
-
-                var cellPosition = new Point(
-                    Math.round(position.x / instance.tileWidth) + 1,//returns int closest to arg
-                    Math.round(position.y / instance.tileWidth) + 1);
-
-                tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
-                tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
-                tile.relativePosition = new Point(0, 0);
-                tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
-                tile.groupID = -1; // to which group the tile belongs(-1 by default
-                tile.grouped = false;
-
-            }
-        }
+        instance.tileIndexes = tileIndexes;
         return tiles;
     }
 
@@ -750,6 +742,12 @@ function JigsawPuzzle(config) {
     function placeTile(tile, cellPosition) {
         var roundPosition = cellPosition * instance.tileWidth;
         tile.position = roundPosition;
+        if(tile.cellPosition == tile.originPosition){
+            tile.positionMoved = false;
+        }
+        else{
+            tile.positionMoved = true;
+        }
         tile.cellPosition = cellPosition;
         tile.relativePosition = new Point(0, 0);
     }
@@ -820,6 +818,7 @@ function JigsawPuzzle(config) {
                 }
             }
 
+            var tilesMoved = false;
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
                 var cellPosition = undefined;
@@ -830,10 +829,12 @@ function JigsawPuzzle(config) {
                     cellPosition = centerCellPosition + tile.relativePosition;
                 }
                 placeTile(tile, cellPosition);
+                tilesMoved = tilesMoved || tile.positionMoved;
                 sendLinks(tile);
             }
-
-            instance.steps = instance.steps + 1;
+            if(tilesMoved && !instance.gameFinished){
+                instance.steps = instance.steps + 1;
+            }
 
             if (!hasConflict && instance.showHints) {
                 for (var i = 0; i < instance.selectedTile.length == 1; i++) {
@@ -853,31 +854,15 @@ function JigsawPuzzle(config) {
 
             document.getElementById("steps").innerHTML = instance.steps;
 
-            var errors = checkTiles();
-            if (errors == 0) {
-                clearTimeout(t);
-                showCongratulations();
-            }
-            else{
-                instance.congratulations.visible = false;
-            }
-        }
-    }
-
-    function showCongratulations(){
-        var x = 0;
-        var y = 100 * instance.tileWidth;
-        for(var i = 0; i < instance.tiles.length; i++){
-            var position = instance.tiles[i].position
-            x += position.x;
-            if(y > position.y){
-                y = position.y;
+            if(!instance.gameFinished){
+                var errors = checkTiles();
+                if (errors == 0) {
+                    clearTimeout(t);
+                    gameFinishDialog.showModal();
+                    instance.gameFinished = true;
+                }
             }
         }
-        x = x / instance.tiles.length;
-        y = y - instance.tileWidth;
-        instance.congratulations.visible = true;
-        instance.congratulations.position = new Point(x, y);
     }
 
     function getCheatHints(tileIndex){
@@ -965,6 +950,9 @@ function JigsawPuzzle(config) {
                     sendLinks(hintTile);
                 }
                 hintTilesCount += groupTiles.length;
+            }
+            for (var i = 0; i < groupTiles.length; i++) {
+                groupTiles[i].picking = false;
             }
         }
         if (hintTilesCount) {
