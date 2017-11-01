@@ -7,59 +7,64 @@
                 <div class="mdl-grid">
                     <div class="mdl-cell mdl-cell--4-col"></div>
                     <div class="mdl-cell mdl-cell--4-col">
-                            <br/>
+                        <br/>
                         <h2 class="mdl-color-text-black">Players Rank</h2>
-                        <div class="demo-list-action mdl-list">
-                            <div class="mdl-list__item">
-                                <span class="mdl-list__item-primary-content">
-                                    <span>Rank</span>
-                                </span>
-                                <span class="mdl-list__item-primary-content">
-                                    <span>Avatar</span>
-                                </span>
-                                <span class="mdl-list__item-primary-content">
-                                    <span>Username</span>
-                                </span>
-                                <span class="mdl-list__item-primary-content">
-                                    <span>ThumbsUp!</span>
-                                </span>
-                            </div>
-                            <% Allusers.forEach(function(u){ %>
-                                <div class="mdl-list__item">
-                                    <span class="mdl-list__item-primary-content">
-                                        <% if(u.username===user.username){%>
-                                            <span style="color:#3c3;">
-                                                <%- u.rank %>
-                                            </span>
-                                            <%}
-                                        else{%>
-                                                <span>
+                        <br/>
+                        <br/>
+                        <table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th class="mdl-data-table__cell--non-numeric">Avatar</th>
+                                    <th>Username</th>
+                                    <th>ThumbsUp!</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% Allusers.forEach(function(u){ %>
+                                    <tr>
+                                        <td class="mdl-data-table__cell--non-numeric">
+                                            <% if(u.username===user.username){%>
+                                                <span style="color:#3c3;">
                                                     <%- u.rank %>
                                                 </span>
-                                                <%} %>
-                                    </span>
-                                    <span class="mdl-list__item-primary-content">
-                                        <img class="mdl-list__item-avatar" src="images/placeholder.jpg">
-                                        <% if(u.username===user.username){%>
-                                            <span style="color:#3c3;">
-                                                <%- u.username %>
-                                            </span>
-                                            <%}
-                                                    else{%>
-                                                <span>
+                                                <%}
+                                                else{%>
+                                                    <span>
+                                                        <%- u.rank %>
+                                                    </span>
+                                                    <%} %>
+                                        </td>
+                                        <td>
+                                            <img class="mdl-list__item-avatar" src="images/placeholder.jpg">
+                                        </td>
+                                        <td>
+                                            <% if(u.username===user.username){%>
+                                                <span style="color:#3c3;">
                                                     <%- u.username %>
                                                 </span>
-                                                <%} %>
+                                                <%}
+                                                            else{%>
+                                                    <span>
+                                                        <%- u.username %>
+                                                    </span>
+                                                    <%} %>
+                                        </td>
+                                        <td>
+                                            <i class="fa fa-thumbs-up mdl-list__item-icon"></i>
 
-                                    </span>
-                                    <a class="mdl-list__item-secondary-action" href="#">
-                                        <i class="fa fa-thumbs-up mdl-list__item-icon"></i>
-                                    </a>
-                                </div>
-                                <%  })%>
-                        </div>
-                        <div class="mdl-cell mdl-cell--4-col"></div>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                            </tbody>
+                        </table>
+                        <br/>
+                        <br/>
+                        <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect" style="align-self:center;"
+                        id="invite" name="invite">Invite</button>
                     </div>
+                    <div class="mdl-cell mdl-cell--4-col"></div>
+                </div>
             </main>
-            </div>
-            <% include footer.html %>
+    </div>
+    <% include footer.html %>

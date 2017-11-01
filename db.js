@@ -34,7 +34,7 @@ db.once('open', function () {
             time: { type: String }
         }
     ],
-	rank:     { type:Number }
+	rank:     { type:Number, default:0}
 },
     // When no collection argument is passed, Mongoose pluralizes the name.
     { collection: 'users' }

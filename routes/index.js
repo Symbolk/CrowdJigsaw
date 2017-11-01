@@ -57,7 +57,7 @@ router.route('/register').all(Logined).get(function (req, res) {
     //从前端获取到的用户填写的数据
     let newUser = { username: req.body.username, password: req.body.password, passwordSec: req.body.passwordSec };
     //准备添加到数据库的数据（数组格式）
-    let addStr = [{ username: newUser.username, password: newUser.password }];
+    let addStr = [{ username: newUser.username, password: newUser.password, joindate: Date.now }];
     //用于查询用户名是否存在的条件
     // let selectStr={username:newUser.username};
     let dbhelp = new DBHelp();
@@ -179,13 +179,11 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
 router.route('/rank').all(LoginFirst).get(function (req, res) {
     req.session.error = 'Players Rank!';           
     let selectStr = { username: 1, rank: 1, _id: 0 }
-    let dbhelp = new DBHelp();
-    dbhelp.FindAll('users', selectStr, function (result) {
-        if (result) {
-            res.render('rank', { title: 'Ranks', Allusers: result, username: req.session.user.username });
-        }
-        else {
-            res.render('rank', { title: 'Ranks' });
+    UserModel.find({}, function (err, docs) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
         }
     });
 });
