@@ -178,14 +178,21 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
 // Rank
 router.route('/rank').all(LoginFirst).get(function (req, res) {
     req.session.error = 'Players Rank!';           
-    let selectStr = { username: 1, rank: 1, _id: 0 }
+    let fields = { username: 1, rank: 1, _id: 0 }
     UserModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
         } else {
-            res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
+             res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
         }
     });
+    // UserModel.find({}, {sort: [['_id', -1]]}, function(err, docs){
+    //     if (err) {
+    //         console.log(err);
+    //     } else {
+    //         res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
+    //     }
+    // });
 });
 
 

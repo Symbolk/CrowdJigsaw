@@ -45,6 +45,18 @@ a {
   /* color: #0428f3; */
 }
 
+#customize {
+  position: fixed;
+  display: block;
+  right: 0;
+  bottom: 0;
+  margin-right: 40px;
+  margin-bottom: 40px;
+  z-index: 900;
+  color: white;
+  background-color: rgba(255, 0, 0, 0.863);
+}
+
 /* .nav-drawer{
   width: 200px;
 } */
@@ -60,5 +72,4 @@ a {
 #card_level4 > .mdl-card__supporting-text{
   background: url('/images/thumbnail_4.jpg') center / cover;
 }
-
 

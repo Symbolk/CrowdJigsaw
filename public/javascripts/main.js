@@ -1,5 +1,5 @@
-// const requrl = 'http://localhost:3000/';
-const requrl = 'http://39.106.59.72:3000/';
+const requrl = 'http://localhost:3000/';
+// const requrl = 'http://39.106.59.72:3000/';
 
 /**
  *  Update links in the background graph bidirectionally

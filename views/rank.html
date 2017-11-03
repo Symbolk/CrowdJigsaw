@@ -21,47 +21,49 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <% Allusers.forEach(function(u){ %>
-                                    <tr>
-                                        <td class="mdl-data-table__cell--non-numeric">
-                                            <% if(u.username===user.username){%>
-                                                <span style="color:#3c3;">
-                                                    <%- u.rank %>
-                                                </span>
-                                                <%}
+                                <% locals.r = 0; %>
+                                    <% Allusers.forEach(function(u){ %>
+                                        <tr>
+                                            <% locals.r++  %>
+                                                <td class="mdl-data-table__cell--non-numeric">
+                                                    <% if(u.username===user.username){%>
+                                                        <span style="color:#3c3;">
+                                                            <%= locals.r  %>
+                                                        </span>
+                                                        <%}
                                                 else{%>
-                                                    <span>
-                                                        <%- u.rank %>
-                                                    </span>
-                                                    <%} %>
-                                        </td>
-                                        <td>
-                                            <img class="mdl-list__item-avatar" src="images/placeholder.jpg">
-                                        </td>
-                                        <td>
-                                            <% if(u.username===user.username){%>
-                                                <span style="color:#3c3;">
-                                                    <%- u.username %>
-                                                </span>
-                                                <%}
+                                                            <span>
+                                                                <%= locals.r %>
+                                                            </span>
+                                                            <%} %>
+                                                </td>
+                                                <td>
+                                                    <img class="mdl-list__item-avatar" src="images/placeholder.jpg">
+                                                </td>
+                                                <td>
+                                                    <% if(u.username===user.username){%>
+                                                        <span style="color:#3c3;">
+                                                            <%- u.username %>
+                                                        </span>
+                                                        <%}
                                                             else{%>
-                                                    <span>
-                                                        <%- u.username %>
-                                                    </span>
-                                                    <%} %>
-                                        </td>
-                                        <td>
-                                            <i class="fa fa-thumbs-up mdl-list__item-icon"></i>
+                                                            <span>
+                                                                <%- u.username %>
+                                                            </span>
+                                                            <%} %>
+                                                </td>
+                                                <td>
+                                                    <i class="fa fa-thumbs-up mdl-list__item-icon"></i>
 
-                                        </td>
-                                    </tr>
-                                    <% }) %>
+                                                </td>
+                                        </tr>
+                                        <% }) %>
                             </tbody>
                         </table>
                         <br/>
                         <br/>
-                        <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect" style="align-self:center;"
-                        id="invite" name="invite">Invite</button>
+                        <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+                            style="align-self:center;" id="invite" name="invite">Invite</button>
                     </div>
                     <div class="mdl-cell mdl-cell--4-col"></div>
                 </div>
