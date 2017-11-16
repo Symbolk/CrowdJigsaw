@@ -43,7 +43,7 @@ router.route('/login').all(Logined).get(function (req, res) {
             }
         }
         else {
-            req.session.error = 'Player not exists!';
+            req.session.error = 'Player does not exist!';
             return res.redirect('/login');
         }
     });
@@ -325,7 +325,7 @@ router.route('/support').post(function (req, res) {
                         direction: req.body.dir
                     }
                 };
-                LinkModel.create(operation, function (err, doc) {
+                LinkModel.create(operation, function (err) {
                     if (err) {
                         console.log(err);
                     } else {
