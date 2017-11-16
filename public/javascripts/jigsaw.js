@@ -54,6 +54,7 @@ $('.returnCenter').click(function () {
 /**
  * Game Finish
  */
+
 var gameFinishDialog = document.querySelector('#game_finish_dialog');
 (function () {
     var stayButton = document.querySelector('#stay-button');
@@ -62,7 +63,6 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
     if (!gameFinishDialog.showModal) {
         dialogPolyfill.registerDialog(gameFinishDialog);
     }
-
     stayButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
     });
@@ -72,7 +72,6 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
         window.location = '/home';
     });
 }());
-
 
 document.querySelector('#show_steps').addEventListener('click', function () {
     $('#steps').fadeToggle('slow');
@@ -197,8 +196,10 @@ $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
-    puzzle.pickTile(event.point);
-    timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
+    var tilesCount = puzzle.pickTile(event.point);
+    if(tilesCount > 0){
+        timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
+    }
 }
 
 function onMouseUp(event) {
@@ -358,7 +359,6 @@ function JigsawPuzzle(config) {
                     new Size(instance.tileWidth, instance.tileWidth),
                     new Point(instance.tileWidth * x, instance.tileWidth * y)
                 );
-
                 //var border = mask.clone();
                 //border.strokeColor = 'red'; //grey
                 //border.strokeWidth = 0;
@@ -659,20 +659,20 @@ function JigsawPuzzle(config) {
 
 
     function getTileRaster(sourceRaster, size, offset) {
-        //var targetRaster = new Raster('empty');
+        var targetRaster = new Raster('empty');
         var tileWithMarginWidth = size.width + instance.tileMarginWidth * 2;
-        var targetRaster = sourceRaster.getSubRaster(new Rectangle(
+        var imageData = sourceRaster.getImageData(new Rectangle(
             offset.x - instance.tileMarginWidth,
             offset.y - instance.tileMarginWidth,
             tileWithMarginWidth,
             tileWithMarginWidth));
-        //targetRaster.setImageData(data, new Point(0, 0))
+        targetRaster.setImageData(imageData, new Point(0, 0))
         targetRaster.position = new Point(instance.tileWidth / 2, instance.tileWidth / 2);
         return targetRaster;
     }
 
     function getTileIndex(tile) {
-        if (tile) {
+        if (tile && tile.name) {
             return Number(tile.name.substr(5));
         }
         return -1;
@@ -700,7 +700,9 @@ function JigsawPuzzle(config) {
                 tile.opacity = .5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
             }
+            return instance.selectedTile.length;
         }
+        return 0;
     }
 
     function checkConflict(tiles, centerCellPosition) {
@@ -749,6 +751,9 @@ function JigsawPuzzle(config) {
 
     function sendLinks(tile) {
         var tileIndex = getTileIndex(tile);
+
+        if(tileIndex < 0)
+            return;
 
         var cellPosition = tile.cellPosition;
 
@@ -1009,7 +1014,7 @@ function JigsawPuzzle(config) {
 
     function findSelectTile(point) {
         var tile = getTileAtCellPosition(point / instance.tileWidth);
-        if (tile) {
+        if (tile && tile.name) {
             instance.selectedTile = new Array();
             if (instance.dragMode == "tile-First") {
                 instance.selectedTile.push(tile);
