@@ -30,9 +30,9 @@ Based on :
 
 Requirements :
 
-> OS: Windows or Linux
+> OS: Windows/Linux/iOS/Android
 
-> Chrome Browser ~59.0
+> Chrome ~59.0/Safari
 
 > Node.js ~6.11.0
 
@@ -148,7 +148,3 @@ forever start app.js
 3, Go http://SERVERIP:3000/ in Chrome to see the client.
 
 ## Bugs&Issues
-
-1, In Safari, the canvas fails to display properly.
-
-2, In Chrome on macOS/iOS, the drawer fail to show itself.
