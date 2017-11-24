@@ -1,4 +1,5 @@
 var level = getUrlParams('level');
+var shape = 'square';
 
 var roundDetailDialog = $('#rounddetail_dialog').get(0);
 if (!roundDetailDialog.showModal) {
@@ -67,12 +68,12 @@ $('#newround_preview').click(function(){
 $('#newround_button').click(function(){
 	newRoundDialog.showModal();
 });
-/*
+
 var template = $('#roundcard_template');
 var round = $(template.html());
 round.attr('id', 'round_0');
 round.appendTo('#round_list');
-*/
+
 function renderRoundList(data){
 
 }
@@ -97,7 +98,8 @@ function getRounds() {
 
 function postNewRound() {
 	var param = {
-		
+		level: level,
+
 	};
 
 	$.ajax({
