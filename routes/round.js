@@ -1,6 +1,5 @@
 
 'use strict'
-
 var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
@@ -26,10 +25,10 @@ function getNowFormatDate() {
 }
 
 function createRecord(player_name, round_id, join_time){
-    condition={
+    let condition={
         username: player_name
     };
-    operation={
+    let operation={
         $push:{
             round_id: round_id,
             join_time: join_time
@@ -148,6 +147,7 @@ router.route('/getPlayers/:round_id').get(function (req, res, next) {
  * Create a new round
  */
 router.post('/newRound', function (req, res, next) {
+    console.log("fuck");
     RoundModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
