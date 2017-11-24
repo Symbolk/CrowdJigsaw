@@ -99,10 +99,10 @@ $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 64;
+var tileWidth = 256;
 
 if (level == 3) {
-    tileWidth = 32;
+    tileWidth = 128;
 }
 if (level == 4) {
     imgWidth = 1024;

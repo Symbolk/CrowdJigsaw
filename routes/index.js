@@ -461,5 +461,10 @@ router.post('/record', function (req, res) {
     });
 });
 
+router.route('/test').get(function (req, res) {
+    // let selected_level=req.query.level;
+    res.render('rounddisplay', { title: 'testt' });
+});
+
 
 module.exports = router;
