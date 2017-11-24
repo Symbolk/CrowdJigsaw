@@ -1,7 +1,51 @@
 <!-- Personal Records Page -->
 <% include header.html %>
-<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-        <% include navigation.html %>
-</div>
+        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+                <% include navigation.html %>
+                        <main class="mdl-layout__content">
+                                <div class="mdl-grid">
+                                        <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--2-col-tablet"></div>
+                                        <div class="mdl-cell mdl-cell--6-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
+                                                <br/>
+                                                <h2 class="mdl-color-text-black"><%= username %>'s Records</h2>
+                                                <br/>
+                                                <br/>
+                                                <table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
+                                                        <thead>
+                                                                <tr>
+                                                                        <th class="mdl-data-table__cell--non-numeric">Level</th>
+                                                                        <th class="mdl-data-table__cell--non-numeric">When</th>
+                                                                        <th>Steps</th>
+                                                                        <th>Time</th>
+                                                                </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                                <% Allrecords.forEach(function(r){ %>
+                                                                        <tr>
+                                                                                <td class="mdl-data-table__cell--non-numeric">
+                                                                                        <%- r.level %>
+                                                                                </td>
+                                                                                <td>
+                                                                                        <%- r.when %>
+                                                                                </td>
+                                                                                <td>
+                                                                                        <%- r.steps %>
+                                                                                </td>
+                                                                                <td>
+                                                                                        <%- r.time %>
+                                                                                </td>
+                                                                        </tr>
+                                                                        <% }) %>
 
-<% include footer.html %>
+                                                        </tbody>
+                                                </table>
+                                                <br />
+                                                <br />
+                                                <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect" style="align-self:center;"
+                                                id="share" name="share">Share</button>
+                                        </div>
+                                </div>
+                        </main>
+        </div>
+
+        <% include footer.html %>

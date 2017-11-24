@@ -10,7 +10,7 @@ var UserModel = mongoose.model('User');
 router.get('/', function(req, res, next) {
   UserModel.find({},function(err, docs){
     res.send(JSON.stringify(docs));
-  })
+  });
 });
 
 

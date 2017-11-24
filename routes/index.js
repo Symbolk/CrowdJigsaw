@@ -8,13 +8,34 @@ var express = require('express');
 var router = express.Router();
 const DBHelp = require('./DBHelp');
 const mongoose = require('mongoose');
-var LinkModel = mongoose.model('Link');
-var UserModel = mongoose.model('User');
+var UserModel=require('../models/user').User;
+var LinkModel=require('../models/link').Link;
+var crypto = require('crypto');
 
+const SECRET="CrowdIntel";
 
+/**
+ *  MD5 encryption
+ *  let md5 = crypto.createHash("md5");
+ *  let newPas = md5.update(password).digest("hex");
+ */
+function encrypt(str, secret) {
+    var cipher = crypto.createCipher('aes192', secret);
+    var enc = cipher.update(str, 'utf8', 'hex');
+    // var enc=cipher.update(new Buffer(str, 'utf-8'));
+    enc += cipher.final('hex');
+    return enc;
+}
+function decrypt(str, secret) {
+    var decipher = crypto.createDecipher('aes192', secret);
+    var dec = decipher.update(str, 'hex', 'utf8');
+    dec += decipher.final('utf8');
+    return dec;
+}
 
 // Get Home Page
 router.get('/', function (req, res, next) {
+    req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
     res.render('index', { title: 'Crowd Jigsaw Puzzle' });
 });
 
@@ -24,7 +45,8 @@ router.route('/login').all(Logined).get(function (req, res) {
     res.render('login', { title: 'Login' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
-    let user = { username: req.body.username, password: req.body.password };
+    let passwd_enc=encrypt(req.body.password, SECRET);
+    let user = { username: req.body.username, password: passwd_enc};
     //用于查询用户名是否存在的条件
     let selectStr = { username: user.username };
     let dbhelp = new DBHelp();
@@ -42,7 +64,7 @@ router.route('/login').all(Logined).get(function (req, res) {
             }
         }
         else {
-            req.session.error = 'Player not exists!';
+            req.session.error = 'Player does not exist!';
             return res.redirect('/login');
         }
     });
@@ -54,9 +76,12 @@ router.route('/register').all(Logined).get(function (req, res) {
     res.render('register', { title: 'Register' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
-    let newUser = { username: req.body.username, password: req.body.password, passwordSec: req.body.passwordSec };
+    let passwd_enc=encrypt(req.body.password, SECRET);
+    let passwd_sec_enc=encrypt(req.body.passwordSec, SECRET);
+    
+    let newUser = { username: req.body.username, password: passwd_enc, passwordSec: passwd_sec_enc };
     //准备添加到数据库的数据（数组格式）
-    let addStr = [{ username: newUser.username, password: newUser.password }];
+    let addStr = [{ username: newUser.username, password: newUser.password, joindate: Date.now }];
     //用于查询用户名是否存在的条件
     // let selectStr={username:newUser.username};
     let dbhelp = new DBHelp();
@@ -87,6 +112,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
     let dbhelp = new DBHelp();
     dbhelp.FindAll('users', selectStr, function (result) {
         if (result) {
+            req.session.error = 'Welcome! ' + req.session.user.username;            
             res.render('home', { title: 'Home', username: req.session.user.username });
         }
         else {
@@ -98,6 +124,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 // Puzzle
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     // let selected_level=req.query.level;
+    req.session.error = 'Game Started!';   
     res.render('puzzle', { title: 'Puzzle' });
 });
 
@@ -129,31 +156,94 @@ router.route('/reset').get(function (req, res) {
     }
 });
 
-// Rank
-router.route('/rank').all(LoginFirst).get(function (req, res) {
-    let selectStr = { username: 1, _id: 0 }
-    let dbhelp = new DBHelp();
-    dbhelp.FindAll('users', selectStr, function (result) {
-        if (result) {
-            res.render('rank', { title: 'Ranks', Allusers: result, username: req.session.user.username });
-        }
-        else {
-            res.render('rank', { title: 'Ranks' });
-        }
-    });
-});
-
 // Account Settings
 router.route('/settings').all(LoginFirst).get(function (req, res) {
-    // TODO
-    res.render('settings', { title: 'Player Settings', username: req.session.user.username });
+    req.session.error = 'Change Password Here!';       
+    res.render('settings', { title: 'Player Settings', username: req.session.user.username });    
+}).post(function (req, res) {
+    if(req.body.new_password != req.body.new_passwordSec){
+        req.session.error = 'Passwords do not agree with each other!';
+        return res.redirect('/settings');
+    }else{
+        // Change the password
+        let condition={
+            username: req.session.user.username
+        };
+
+        UserModel.findOne(condition, function(err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                if(doc.password === req.body.old_password){
+                    let operation={
+                        $set:{
+                            password: req.body.new_password,
+                        }
+                    };
+                    UserModel.update(condition, operation, function(err) {
+                        if (err) {
+                            console.log(err);
+                        }else{
+                            req.session.error = 'Successfully reset your password!';
+                            return res.redirect('/home');
+                        }
+                    });
+                }else{
+                    req.session.error = 'The old password is wrong!';
+                    return res.redirect('/settings');
+                }
+            }
+        });
+
+    }
 });
+
+
+// Rank
+router.route('/rank').all(LoginFirst).get(function (req, res) {
+    req.session.error = 'Players Rank!';           
+    let fields = { username: 1, rank: 1, _id: 0 }
+    UserModel.find({}, function (err, docs) {
+        if (err) {
+            console.log(err);
+        } else {
+             res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
+        }
+    });
+    // UserModel.find({}, {sort: [['_id', -1]]}, function(err, docs){
+    //     if (err) {
+    //         console.log(err);
+    //     } else {
+    //         res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
+    //     }
+    // });
+});
+
 
 // Personal Records
 router.route('/records').all(LoginFirst).get(function (req, res) {
-    // TODO    
-    res.render('records', { title: 'Personal Records', username: req.session.user.username });
+    req.session.error = 'See Your Records!';           
+    let condition={
+        username: req.session.user.username
+    };
+    UserModel.findOne(condition, function (err, doc) {
+        if (err) {
+            res.render('records', { title: 'Personal Records' });
+            console.log(err);
+        }
+        else {
+            res.render('records', { title: 'Ranks', username: req.session.user.username, Allrecords: doc.records });
+        }
+    });   
 });
+
+// Help page
+router.route('/help').all(LoginFirst).get(function (req, res) {
+    // TODO    
+    req.session.error = 'Get into Trouble?';           
+    res.render('help', { title: 'Help', username: req.session.user.username });
+});
+
 
 
 // Log out
@@ -259,7 +349,7 @@ router.route('/support').post(function (req, res) {
                         direction: req.body.dir
                     }
                 };
-                LinkModel.create(operation, function (err, doc) {
+                LinkModel.create(operation, function (err) {
                     if (err) {
                         console.log(err);
                     } else {
@@ -456,7 +546,7 @@ router.post('/record', function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.send({ msg: "Record saved!" });
+            res.send({ msg: "Your record has been saved!" });
         }
     });
 });

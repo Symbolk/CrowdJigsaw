@@ -1,5 +1,5 @@
-// const requrl = 'http://localhost:3000/';
-const requrl = 'http://39.106.59.72:3000/';
+//const requrl = 'http://162.105.89.66:3000/';
+const requrl = 'http://39.106.112.44:3000/';
 
 /**
  *  Update links in the background graph bidirectionally
@@ -26,7 +26,7 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
     selectedTileIndex = Number(selectedTileIndex);
 
     // Retrieve the last around tile indexes from the server
-    let lastAroundTileIndexes = new Array(-1, -1, -1, -1);
+    var lastAroundTileIndexes = new Array(-1, -1, -1, -1);
     $.ajax({
         url: requrl + 'getLinks/' + selectedTileIndex,
         type: 'get',
@@ -38,8 +38,8 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
         success: function (data) {
             // var data = $.parseJSON(data)
             // if(!data.empty){
-                for (let d of data) {
-                    // for(let s of d.supporters){
+                for (var d of data) {
+                    // for(var s of d.supporters){
                     //     console.log(s);
                     // }
                     lastAroundTileIndexes[Number(d.supporters[0].direction)] = Number(d.to);
@@ -47,14 +47,14 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
             // }
             // Do a diff for the 2 arrays
             // Update the database according to the diff
-            for (let i = 0; i < 4; i++) {
+            for (var i = 0; i < 4; i++) {
                 aroundTileIndexes[i] = Number(aroundTileIndexes[i]);
                 lastAroundTileIndexes[i] = Number(lastAroundTileIndexes[i]);
                 // if there is a change in around tile
                 if (lastAroundTileIndexes[i] != aroundTileIndexes[i]) {
                     // Case1 : create
                     if (lastAroundTileIndexes[i] == -1) {
-                        let params = {
+                        var params = {
                             from: selectedTileIndex,
                             to: aroundTileIndexes[i],
                             dir: i
@@ -62,19 +62,19 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
                         supportLink(params);
                     } else if (aroundTileIndexes[i] == -1) {
                         // Case 2: unsupport
-                        let params = {
+                        var params = {
                             from: selectedTileIndex,
                             to: lastAroundTileIndexes[i]
                         };
                         forgetLink(params);
                     } else {
                         // Case 3: update
-                        let oldLink = {
+                        var oldLink = {
                             from: selectedTileIndex,
                             to: lastAroundTileIndexes[i]
                         };
                         forgetLink(oldLink);
-                        let newLink = {
+                        var newLink = {
                             from: selectedTileIndex,
                             to: aroundTileIndexes[i],
                             dir: i
@@ -98,7 +98,7 @@ function checkLinks(selectedTileIndex, aroundTileIndexes) {
  * @return hintTileIndexes
  */
 function getHints(selectedTileIndex) {
-    // let hintTileIndexes=new Array(-1,-1,-1,-1);
+    // var hintTileIndexes=new Array(-1,-1,-1,-1);
     $.ajax({
         url: requrl + 'getHints' + '/' + selectedTileIndex,
         type: 'get',
@@ -212,7 +212,7 @@ function forgetLink(params) {
  * Send personal records to the server at the end of one game
  */
 function sendRecord(level, when, steps, time) {
-    let params={
+    var params={
         level: level,
         when: when,
         steps: steps,

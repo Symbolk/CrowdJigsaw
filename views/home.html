@@ -114,12 +114,21 @@
                                     <button class="mdl-button mdl-js-ripple-effect mdl-js-button mdl-button--fab mdl-color--accent">
                                         <i class="fa fa-play mdl-color-text--white" role="presentation"></i>
                                     </button>
+                                    </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
-            <% include toast.html %>
+            <button id="customize" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect">
+                <i class="material-icons">add</i>
+            </button>
+            <ul class="mdl-menu mdl-menu--top-right mdl-js-menu mdl-js-ripple-effect" data-mdl-for="customize">
+                <li class="mdl-menu__item"><i class="fa fa-file-image-o" aria-hidden="true">Upload Images</i></li>
+                <li class="mdl-menu__item fa fa-sort-numeric-asc">Define the #Tiles</li>
+                <li class="mdl-menu__item fa fa-share-alt">Invite Players</li>
+                <li class="mdl-menu__item fa fa-feed">Any Questions?</li>
+            </ul>
     </div>
 
     <% include footer.html %>

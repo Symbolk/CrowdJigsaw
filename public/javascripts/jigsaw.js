@@ -54,7 +54,8 @@ $('.returnCenter').click(function () {
 /**
  * Game Finish
  */
- var gameFinishDialog = document.querySelector('#game_finish_dialog');
+
+var gameFinishDialog = document.querySelector('#game_finish_dialog');
 (function () {
     var stayButton = document.querySelector('#stay-button');
     var returnButton = document.querySelector('#return-button');
@@ -62,7 +63,6 @@ $('.returnCenter').click(function () {
     if (!gameFinishDialog.showModal) {
         dialogPolyfill.registerDialog(gameFinishDialog);
     }
-
     stayButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
     });
@@ -72,7 +72,6 @@ $('.returnCenter').click(function () {
         window.location = '/home';
     });
 }());
-
 
 document.querySelector('#show_steps').addEventListener('click', function () {
     $('#steps').fadeToggle('slow');
@@ -99,10 +98,10 @@ $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 256;
+var tileWidth = 64;
 
 if (level == 3) {
-    tileWidth = 128;
+    tileWidth = 32;
 }
 if (level == 4) {
     imgWidth = 1024;
@@ -178,14 +177,11 @@ if (puzzle)
     timedCount();
 
 $('#myselect').change(function () {
-    if(puzzle)
-    {
-        if(this.value == "DragTileFirst")
-        {
+    if (puzzle) {
+        if (this.value == "DragTileFirst") {
             puzzle.dragMode = "tile-First";
         }
-        else
-        {
+        else {
             puzzle.dragMode = "group-First";
         }
     }
@@ -200,8 +196,10 @@ $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
-    puzzle.pickTile(event.point);
-    timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
+    var tilesCount = puzzle.pickTile(event.point);
+    if(tilesCount > 0){
+        timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
+    }
 }
 
 function onMouseUp(event) {
@@ -254,8 +252,6 @@ function JigsawPuzzle(config) {
     // };
 
     // getHints(4);
-    // sendRecord('Level 1', '2017-10-31 14:00', 245, '16:24');
-
     // checkLinks(4, [1,3,-1,0]);
 
     var instance = this; // the current object(which calls the function)
@@ -308,7 +304,7 @@ function JigsawPuzzle(config) {
 
     this.gameFinished = false;
 
-    function randomPlaceTiles(xTileCount, yTileCount){
+    function randomPlaceTiles(xTileCount, yTileCount) {
         var tiles = instance.tiles;
         var tileIndexes = instance.tileIndexes;
         // randomly select tiles and place them one by one 
@@ -363,7 +359,6 @@ function JigsawPuzzle(config) {
                     new Size(instance.tileWidth, instance.tileWidth),
                     new Point(instance.tileWidth * x, instance.tileWidth * y)
                 );
-
                 //var border = mask.clone();
                 //border.strokeColor = 'red'; //grey
                 //border.strokeWidth = 0;
@@ -664,20 +659,20 @@ function JigsawPuzzle(config) {
 
 
     function getTileRaster(sourceRaster, size, offset) {
-        //var targetRaster = new Raster('empty');
+        var targetRaster = new Raster('empty');
         var tileWithMarginWidth = size.width + instance.tileMarginWidth * 2;
-        var targetRaster = sourceRaster.getSubRaster(new Rectangle(
+        var imageData = sourceRaster.getImageData(new Rectangle(
             offset.x - instance.tileMarginWidth,
             offset.y - instance.tileMarginWidth,
             tileWithMarginWidth,
             tileWithMarginWidth));
-        //targetRaster.setImageData(data, new Point(0, 0))
+        targetRaster.setImageData(imageData, new Point(0, 0))
         targetRaster.position = new Point(instance.tileWidth / 2, instance.tileWidth / 2);
         return targetRaster;
     }
 
     function getTileIndex(tile) {
-        if (tile) {
+        if (tile && tile.name) {
             return Number(tile.name.substr(5));
         }
         return -1;
@@ -705,7 +700,9 @@ function JigsawPuzzle(config) {
                 tile.opacity = .5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
             }
+            return instance.selectedTile.length;
         }
+        return 0;
     }
 
     function checkConflict(tiles, centerCellPosition) {
@@ -742,10 +739,10 @@ function JigsawPuzzle(config) {
     function placeTile(tile, cellPosition) {
         var roundPosition = cellPosition * instance.tileWidth;
         tile.position = roundPosition;
-        if(tile.cellPosition == tile.originPosition){
+        if (tile.cellPosition == tile.originPosition) {
             tile.positionMoved = false;
         }
-        else{
+        else {
             tile.positionMoved = true;
         }
         tile.cellPosition = cellPosition;
@@ -754,6 +751,9 @@ function JigsawPuzzle(config) {
 
     function sendLinks(tile) {
         var tileIndex = getTileIndex(tile);
+
+        if(tileIndex < 0)
+            return;
 
         var cellPosition = tile.cellPosition;
 
@@ -764,33 +764,33 @@ function JigsawPuzzle(config) {
 
         // index 0 1 2 3 = T R B L
         var aroundTiles = new Array(getTileIndex(topTile), getTileIndex(rightTile),
-                    getTileIndex(bottomTile), getTileIndex(leftTile));
+            getTileIndex(bottomTile), getTileIndex(leftTile));
 
         var aroundTilesChanged = true;
-        if(tile.aroundTiles){
+        if (tile.aroundTiles) {
             var i = 0;
-            for(; i < aroundTiles.length; i++){
-                if(tile.aroundTiles[i] != aroundTiles[i]){
+            for (; i < aroundTiles.length; i++) {
+                if (tile.aroundTiles[i] != aroundTiles[i]) {
                     break;
                 }
             }
-            if(i == aroundTiles.length){
+            if (i == aroundTiles.length) {
                 aroundTilesChanged = false;
             }
         }
-        
-        if(aroundTilesChanged){
+
+        if (aroundTilesChanged) {
             checkLinks(tileIndex, aroundTiles);
         }
 
         var sum = 0;
-        for(var i = 0; i < aroundTiles.length; i++){
+        for (var i = 0; i < aroundTiles.length; i++) {
             sum += aroundTiles[i];
         }
-        if(sum == -4){
+        if (sum == -4) {
             tile.noAroundTiles = true;
         }
-        else{
+        else {
             tile.noAroundTiles = false;
         }
 
@@ -833,14 +833,14 @@ function JigsawPuzzle(config) {
                 sendLinks(tile);
             }
 
-            if(tilesMoved && !instance.gameFinished){
+            if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
             }
 
             if (!hasConflict && instance.showHints) {
                 for (var i = 0; i < instance.selectedTile.length == 1; i++) {
                     var tile = instance.selectedTile[i];
-                    if(!tile.noAroundTiles && tile.aroundTilesChanged && !tile.alreadyHinted){
+                    if (!tile.noAroundTiles && tile.aroundTilesChanged && !tile.alreadyHinted) {
                         showHints(tile);
                     }
                 }
@@ -855,20 +855,22 @@ function JigsawPuzzle(config) {
 
             document.getElementById("steps").innerHTML = instance.steps;
 
-            if(!instance.gameFinished){
+            if (!instance.gameFinished) {
                 var errors = checkTiles();
                 if (errors == 0) {
                     clearTimeout(t);
                     gameFinishDialog.showModal();
+                    // sendRecord('Level 1', '2017-10-31 14:00', 245, '16:24');
+                    sendRecord(level, getNowFormatDate(), Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
                     instance.gameFinished = true;
                 }
             }
         }
     }
 
-    function getCheatHints(tileIndex){
+    function getCheatHints(tileIndex) {
         var trueHints = getHints(tileIndex);
-        if(!trueHints){
+        if (!trueHints) {
             trueHints = new Array(-1, -1, -1, -1);
         }
 
@@ -876,30 +878,30 @@ function JigsawPuzzle(config) {
         var rightTile = undefined;
         var bottomTile = undefined;
         var leftTile = undefined;
-        if(tileIndex % instance.tilesPerRow != 0){
-            leftTile = instance.tiles[tileIndex-1];
+        if (tileIndex % instance.tilesPerRow != 0) {
+            leftTile = instance.tiles[tileIndex - 1];
         }
-        if(tileIndex % instance.tilesPerRow != instance.tilesPerRow - 1){
-            rightTile = instance.tiles[tileIndex+1];
+        if (tileIndex % instance.tilesPerRow != instance.tilesPerRow - 1) {
+            rightTile = instance.tiles[tileIndex + 1];
         }
-        if(tileIndex / instance.tilesPerRow != 0){
+        if (tileIndex / instance.tilesPerRow != 0) {
             topTile = instance.tiles[tileIndex - instance.tilesPerRow];
         }
-        if(tileIndex / instance.tilesPerRow != instance.tilesPerColumn - 1){
+        if (tileIndex / instance.tilesPerRow != instance.tilesPerColumn - 1) {
             bottomTile = instance.tiles[tileIndex + instance.tilesPerRow];
         }
 
-        var cheatHints = new Array(getTileIndex(topTile), getTileIndex(rightTile), 
+        var cheatHints = new Array(getTileIndex(topTile), getTileIndex(rightTile),
             getTileIndex(bottomTile), getTileIndex(leftTile));
 
         var hintTiles = new Array();
 
-        for(var i = 0; i < cheatHints.length; i++){
+        for (var i = 0; i < cheatHints.length; i++) {
             var steps = instance.steps;
-            if(Math.random() < 0.5){
+            if (Math.random() < 0.5) {
                 hintTiles.push(cheatHints[i]);
             }
-            else{
+            else {
                 hintTiles.push(trueHints[i]);
             }
         }
@@ -927,7 +929,7 @@ function JigsawPuzzle(config) {
 
             var correctTile = instance.tiles[correctTileIndex];
 
-            if(correctTile.aroundTiles && correctTile.aroundTiles[j] > 0){
+            if (correctTile.aroundTiles && correctTile.aroundTiles[j] > 0) {
                 continue;
             }
 
@@ -967,7 +969,7 @@ function JigsawPuzzle(config) {
         var hitResults = project.hitTestAll(roundPosition);
         for (var i = 0; i < hitResults.length; i++) {
             var hitResult = hitResults[i];
-            if(hitResult.type != "pixel"){
+            if (hitResult.type != "pixel") {
                 continue;
             }
             var img = hitResult.item;
@@ -1013,7 +1015,7 @@ function JigsawPuzzle(config) {
 
     function findSelectTile(point) {
         var tile = getTileAtCellPosition(point / instance.tileWidth);
-        if (tile) {
+        if (tile && tile.name) {
             instance.selectedTile = new Array();
             if (instance.dragMode == "tile-First") {
                 instance.selectedTile.push(tile);
@@ -1096,4 +1098,22 @@ function JigsawPuzzle(config) {
         instance.puzzleImage.visible = !visible;
     }
 
+}
+
+function getNowFormatDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+        + " " + date.getHours() + seperator2 + date.getMinutes()
+        + seperator2 + date.getSeconds();
+    return currentdate;
 }

@@ -30,9 +30,9 @@ Based on :
 
 Requirements :
 
-> OS: Windows or Linux
+> OS: Windows/Linux/iOS/Android
 
-> Chrome Browser ~59.0
+> Chrome ~59.0/Safari
 
 > Node.js ~6.11.0
 
@@ -127,24 +127,24 @@ export NODE_ENV=production
 nohup mongod --dbpath /var/www/database &
 ```
 
-2, Edit app.js in the end:
+2, Edit config.pro.js in the end:
 
 ```javascript
-// nodemon or npm test
-// app.listen(3000);
-// npm start
-app.listen(3000);
-module.exports = app; 
-```
+    ...
+    database: 'mongodb://localhost:27017/CrowdJigsaw',    
+    url: 'http://SERVERIP:3000/'
+  };
 3, Start the server:
 
 ```sh
-# start it before a release
+# install forever first
+npm install forever -g
+# start it
 npm start
 # or use forever
 forever start app.js
 ```
 
-3, Go http://YOURDOMAIN:3000/ in Chrome to see the client.
+3, Go http://SERVERIP:3000/ in Chrome to see the client.
 
 ## Bugs&Issues

@@ -65,6 +65,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 定义应用级路由
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
+app.use('/graph', require('./routes/graph'));
+app.use('/round', require('./routes/round'));
+
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -74,6 +77,7 @@ app.use(function (req, res, next) {
 });
 
 console.log(process.env.NODE_ENV);
+
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;

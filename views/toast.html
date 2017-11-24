@@ -1,24 +1,30 @@
-<button id="show-toast" class="mdl-button mdl-js-button mdl-button--raised" type="button">Customize Level</button>
-<div id="toast" class="mdl-js-snackbar mdl-snackbar">
-    <div class="mdl-snackbar__text"></div>
-    <button class="mdl-snackbar__action" type="button"></button>
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--4-col"></div>
+    <div class="mdl-cell mdl-cell--4-col">
+        <div id="toast" class="mdl-js-snackbar mdl-snackbar">
+            <div class="mdl-snackbar__text"></div>
+            <button class="mdl-snackbar__action" type="button"></button>
+        </div>
+    </div>
+    <div class="mdl-cell mdl-cell--4-col"></div>
 </div>
-
-<script>
-    // (function () {
-        'use strict';
-        // var snackbarContainer = document.getElementById('#toast');
-        var snackbarContainer = document.querySelector('#toast');
-        var showToastButton = document.querySelector('#show-toast');
-        showToastButton.addEventListener('click', function () {
-        // window.addEventListener('beforeunload', function(event){
-            'use strict';
-            var data = { message: 'Comming Soon...', timeout: 3000 };
-            console.log(data.message);
-            snackbarContainer.MaterialSnackbar.showSnackbar(data);
+    <script>
+        r(function () {
+            var notification = document.querySelector('#toast');
+            var msg='<%- message %>';
+            if (msg == null || msg == undefined || msg == '') {
+                notification.MaterialSnackbar.showSnackbar(
+                    {
+                        message: 'You are now on <%- title %>'
+                    }
+                );
+            }else{
+                notification.MaterialSnackbar.showSnackbar(
+                    {
+                        message: msg
+                    }
+                );
+            }
         });
-        // var data = { message: '<%- message %>' };
-        // snackbarContainer.MaterialSnackbar.showSnackbar(data);
-    // }());
-
-</script>
+        function r(f) { /in/.test(document.readyState) ? setTimeout('r(' + f + ')', 9) : f() }
+    </script>
