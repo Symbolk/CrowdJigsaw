@@ -38,3 +38,11 @@ img.article-image {
     display: -ms-flexbox;
     display: flex;
 }
+
+.mdl-card__supporting-text{
+  font-size: 20px;
+}
+
+#logout{
+  size: 20px;
+}

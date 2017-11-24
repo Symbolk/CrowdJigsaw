@@ -551,9 +551,9 @@ router.post('/record', function (req, res) {
     });
 });
 
-router.route('/test').get(function (req, res) {
+router.route('/test').all(LoginFirst).get(function (req, res) {
     // let selected_level=req.query.level;
-    res.render('rounddisplay', { title: 'testt' });
+    res.render('rounddisplay', { title: 'rounddisplay',username: req.session.user.username });
 });
 
 
