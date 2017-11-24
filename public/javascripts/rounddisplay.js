@@ -1,5 +1,9 @@
 var level = getUrlParams('level');
-var shape = 'square';
+var shape = 'jagged';
+if(level == 2){
+	shape = 'square';
+}
+
 
 var roundDetailDialog = $('#rounddetail_dialog').get(0);
 if (!roundDetailDialog.showModal) {
@@ -17,6 +21,12 @@ if (!newRoundDialog.showModal) {
     dialogPolyfill.registerDialog(newRoundDialog);
 }
 var newRoundCreateButton = $('#newround_createbutton');
+newRoundCreateButton.click(function() {
+	var imgSrc = $('#newround_image').attr('src'); 
+	var playersNum = $('#newround_number').val();
+	postNewRound(imgSrc, playersNum);
+    newRoundDialog.close();
+});
 var newRoundCancelButton = $('#newround_cancelbutton');
 newRoundCancelButton.click(function() {
     newRoundDialog.close();
@@ -96,10 +106,12 @@ function getRounds() {
     });
 }
 
-function postNewRound() {
+function postNewRound(imgSrc, playersNum) {
 	var param = {
 		level: level,
-
+		shape: shape,
+		image: imgSrc,
+		players_num: playersNum
 	};
 
 	$.ajax({
