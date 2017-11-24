@@ -4,9 +4,8 @@
 var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
-var RoundModel = mongoose.model('Round');
-var UserModel = mongoose.model('User');
-
+var RoundModel=require('../models/round').Round;
+var UserModel=require('../models/user').User;
 
 function getNowFormatDate() {
     var date = new Date();
