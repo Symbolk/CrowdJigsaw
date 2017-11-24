@@ -8,10 +8,30 @@ var express = require('express');
 var router = express.Router();
 const DBHelp = require('./DBHelp');
 const mongoose = require('mongoose');
-var LinkModel = mongoose.model('Link');
-var UserModel = mongoose.model('User');
+var UserModel=require('../models/user').User;
+var LinkModel=require('../models/link').Link;
+var crypto = require('crypto');
 
+const SECRET="CrowdIntel";
 
+/**
+ *  MD5 encryption
+ *  let md5 = crypto.createHash("md5");
+ *  let newPas = md5.update(password).digest("hex");
+ */
+function encrypt(str, secret) {
+    var cipher = crypto.createCipher('aes192', secret);
+    var enc = cipher.update(str, 'utf8', 'hex');
+    // var enc=cipher.update(new Buffer(str, 'utf-8'));
+    enc += cipher.final('hex');
+    return enc;
+}
+function decrypt(str, secret) {
+    var decipher = crypto.createDecipher('aes192', secret);
+    var dec = decipher.update(str, 'hex', 'utf8');
+    dec += decipher.final('utf8');
+    return dec;
+}
 
 // Get Home Page
 router.get('/', function (req, res, next) {
@@ -25,7 +45,8 @@ router.route('/login').all(Logined).get(function (req, res) {
     res.render('login', { title: 'Login' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
-    let user = { username: req.body.username, password: req.body.password };
+    let passwd_enc=encrypt(req.body.password, SECRET);
+    let user = { username: req.body.username, password: passwd_enc};
     //用于查询用户名是否存在的条件
     let selectStr = { username: user.username };
     let dbhelp = new DBHelp();
@@ -55,7 +76,10 @@ router.route('/register').all(Logined).get(function (req, res) {
     res.render('register', { title: 'Register' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
-    let newUser = { username: req.body.username, password: req.body.password, passwordSec: req.body.passwordSec };
+    let passwd_enc=encrypt(req.body.password, SECRET);
+    let passwd_sec_enc=encrypt(req.body.passwordSec, SECRET);
+    
+    let newUser = { username: req.body.username, password: passwd_enc, passwordSec: passwd_sec_enc };
     //准备添加到数据库的数据（数组格式）
     let addStr = [{ username: newUser.username, password: newUser.password, joindate: Date.now }];
     //用于查询用户名是否存在的条件

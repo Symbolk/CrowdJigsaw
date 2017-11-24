@@ -1,36 +1,29 @@
-const mongoose = require("mongoose");
-
+var mongoose = require("mongoose"); 
+// create the user schema
 var UserSchema = new mongoose.Schema({
-	username: { type:String, required:true, unique:true, index:true },
-	avatar:   { type:String, default:'images/placeholder.png'},
-	password: { type:String },
-	joindate: { type:Date, default:Date.now },
-	points:   { type:Number },
-	rank:     { type:Number },
+    username: { type: String, required: true, unique: true, index: true },
+    avatar: { type: String, default: 'images/placeholder.png' },
+    password: { type: String }, // encrypted with crypto
+    register_time: { type: String, default: Date.now }, // formatted time, e.g. 2017-10-31 14:00:20
+    records: [
+        {
+            round_id: { type: Number }, // participated rounds
+            join_time: { type: String },
+            start_time: { type: String, default: "-1" }, // formatted time, e.g. 2017-10-31 14:00:20
+            end_time: { type: String, default: "-1" }, // formatted time, e.g. 2017-10-31 14:00:20
+            steps: { type: String, default: "-1" }, // -1=unfininshed
+            time: { type: String, default: "-1" }, // hour:min:sec, e.g. 16:41
+            sum_effect: { type: Number, default: -1 }// a contribution score, calculated when one round end
+        }
+    ],
+    // rank: { type: Number, default: 0 }
 },
-{collection:'users'}
-);	
+    // When no collection argument is passed, Mongoose pluralizes the name.
+    { collection: 'users' }
+);
 
-// 如果是Entity，使用save方法，如果是Model，使用create方法
-// 如果使用Model新增时，传入的对象只能是纯净的JSON对象
-UserSchema.methods.createUser = function(){
-	console.log('New');
-}
+// UserSchema.set('collection', 'users');
+// var User = mongoose.model('User', UserSchema, 'users');
+console.log('User Schema Created.');
 
-// 删除也有2种方式，但Entity和Model都使用remove方法
-
-// UserSchema.methods.findUserByName = function(cb){
-// 	return this.model('User').find({username:this.username}, cb);
-// }
-
-UserSchema.statics.findUserByName = function(name, cb){
-	this.find({username:new RegExp(name, 'i'), cb});
-}
-
-// // 虚拟属性，不写入数据库
-// UserSchema.virtual('name.full').set(function(name){
-	
-// })
-
-// Publish the schema as the model
-module.exports=mongoose.model('users', UserSchema);
+exports.User = mongoose.model('User', UserSchema);
