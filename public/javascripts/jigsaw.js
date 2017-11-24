@@ -132,11 +132,6 @@ var directions = [
 /**
  * Start building the puzzle
  */
-function getUrlParams(key) {
-    var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    if (r != null) return unescape(r[2]); return null;
-}
 
 
 if (level == 1) {

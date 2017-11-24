@@ -128,6 +128,13 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     res.render('puzzle', { title: 'Puzzle' });
 });
 
+// Round
+router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
+    // let selected_level=req.query.level;
+    req.session.error = 'Game Started!';   
+    res.render('rounddisplay', { title: 'Round', username: req.session.user.username});
+});
+
 // Reset Password
 router.route('/reset').get(function (req, res) {
     res.render('reset', { title: 'Reset Password' });

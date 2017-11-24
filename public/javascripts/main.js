@@ -1,5 +1,5 @@
-//const requrl = 'http://162.105.89.66:3000/';
-const requrl = 'http://39.106.112.44:3000/';
+const requrl = 'http://162.105.89.66:3000/';
+//const requrl = 'http://39.106.112.44:3000/';
 
 /**
  *  Update links in the background graph bidirectionally
@@ -232,4 +232,10 @@ function sendRecord(level, when, steps, time) {
             console.log('error ' + textStatus + " " + errorThrown);
         }
     });
+}
+
+function getUrlParams(key) {
+    var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]); return null;
 }
