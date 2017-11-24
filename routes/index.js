@@ -129,10 +129,10 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
 });
 
 // Round
-router.route('/rounddisplay').get(function (req, res) {
+router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
     // let selected_level=req.query.level;
     req.session.error = 'Game Started!';   
-    res.render('rounddisplay', { title: 'Round' });
+    res.render('rounddisplay', { title: 'Round', username: req.session.user.username});
 });
 
 // Reset Password

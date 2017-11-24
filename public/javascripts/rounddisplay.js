@@ -1,3 +1,5 @@
+var level = getUrlParams('level');
+
 var roundDetailDialog = $('#rounddetail_dialog').get(0);
 if (!roundDetailDialog.showModal) {
     dialogPolyfill.registerDialog(roundDetailDialog);
@@ -36,28 +38,80 @@ showImageCancelButton.click(function() {
 
 $('#newround_image').click(function() {
 	selectImageDialog.showModal();
-})
+});
 
 $('.selector-image').click(function(){
 	var imgSrc = $(this).attr('src');
 	$('#newround_image').attr('src', imgSrc);
 	selectImageDialog.close();
-})
+});
 
 
 $('#rounddisplay_join').click(function() {
 	var roundID = $(this).attr('name');
-    newRoundDialog.showModal();
+    rounddetail_dialog.showModal();
 });
 
 $('#rounddetail_preview').click(function(){
 	var imgSrc = $('#rounddetail_image').attr('src');
 	$('#showimage_image').attr('src', imgSrc);
 	showImageDialog.showModal();
-})
+});
 
 $('#newround_preview').click(function(){
 	var imgSrc = $('#newround_image').attr('src');
 	$('#showimage_image').attr('src', imgSrc);
 	showImageDialog.showModal();
-})
+});
+
+$('#newround_button').click(function(){
+	newRoundDialog.showModal();
+});
+/*
+var template = $('#roundcard_template');
+var round = $(template.html());
+round.attr('id', 'round_0');
+round.appendTo('#round_list');
+*/
+function renderRoundList(data){
+
+}
+
+function getRounds() {
+    // var hintTileIndexes=new Array(-1,-1,-1,-1);
+    $.ajax({
+        url: requrl + 'round' + '/getJoinableRounds',
+        type: 'get',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+        	console.log(data);
+            renderRoundList(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });
+}
+
+function postNewRound() {
+	var param = {
+		
+	};
+
+	$.ajax({
+		data: param,
+        url: requrl + 'round' + '/newRound',
+        type: 'post',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+        	console.log(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });
+}

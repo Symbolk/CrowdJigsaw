@@ -180,6 +180,22 @@ img.article-image {
   width: 70%;
 }
 
+#newround_button {
+  position: fixed;
+  display: block;
+  right: 0;
+  bottom: 0;
+  margin-right: 40px;
+  margin-bottom: 40px;
+  z-index: 900;
+  color: white;
+  background-color: rgba(255, 0, 0, 0.863);
+}
+
+#roundcard_template{
+  display: none;
+}
+
 footer {
   background-image: url(images/footer-background.png);
   background-size: cover;
