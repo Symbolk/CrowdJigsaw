@@ -36,12 +36,12 @@ const requrl = 'http://localhost:3000/'; //local dev
 })
 * @return ifSucceed Boolean
 */
-function checkLinks(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
+function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
     selectedTileIndex = Number(selectedTileIndex);
 
     // format the params into a json object
     var params={
-        "round_id": 0,// get from newRound()
+        "round_id": round_id,// get from newRound()
         "selectedTile": selectedTileIndex,
         "aroundTiles":  new Array()
     };
@@ -50,7 +50,7 @@ function checkLinks(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
             "before": Number(aroundTilesBefore[i]),
             "after": Number(aroundTilesAfter[i])
         }
-        param.aroundTiles.push(aroundTile);
+        params.aroundTiles.push(aroundTile);
     }
     console.log(params);
     // send a request to post this step to the server
@@ -83,7 +83,7 @@ function checkLinks(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
  * @param  selectedTileIndex
  * @return hintTileIndexes
  */
-function getHints(selectedTileIndex) {
+function getHints(round_id, selectedTileIndex) {
     // var hintTileIndexes=new Array(-1,-1,-1,-1);
     $.ajax({
         url: requrl + 'graph/getHints' + '/' + selectedTileIndex,
@@ -105,10 +105,11 @@ function getHints(selectedTileIndex) {
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(level, when, steps, time) {
+function sendRecord(round_id, level, when, steps, time) {
     var params={
         steps: steps,
-        time: time
+        time: time,
+        round_id: round_id
     };
     $.ajax({
         data: params,
@@ -124,4 +125,10 @@ function sendRecord(level, when, steps, time) {
             console.log('error ' + textStatus + " " + errorThrown);
         }
     });
+}
+
+function getUrlParams(key) {
+    var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
+    var r = window.location.search.substr(1).match(reg);
+    if (r != null) return unescape(r[2]); return null;
 }

@@ -1,3 +1,21 @@
+var level = getUrlParams('level');
+var roundID = getUrlParams('roundID');
+
+function quitRound(roundID){
+    $.ajax({
+        url: requrl + 'round' + '/quitRound/' + roundID,
+        type: 'get',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+            console.log(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });
+}
 /*
 * Drawer functions
 */
@@ -46,6 +64,7 @@ $('.returnCenter').click(function () {
 
     applyButton.addEventListener('click', function (event) {
         dialog.close();
+        quitRound(roundID);
         window.location = '/home';
     });
 }());
@@ -92,8 +111,6 @@ view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
 
-var level = getUrlParams('level');
-
 $('#puzzle-image').attr('src', 'images/minions.jpg');
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
@@ -132,11 +149,6 @@ var directions = [
 /**
  * Start building the puzzle
  */
-function getUrlParams(key) {
-    var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    if (r != null) return unescape(r[2]); return null;
-}
 
 
 if (level == 1) {
@@ -781,8 +793,7 @@ function JigsawPuzzle(config) {
 
         if (aroundTilesChanged) {
             // selected, before, after
-            // checkLinks(tileIndex,aroundTiles);
-            checkLinks(tileIndex, tile.aroundTiles, aroundTiles);
+            checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
         }
         
         var sum = 0;
@@ -869,8 +880,8 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function getCheatHints(tileIndex) {
-        var trueHints = getHints(tileIndex);
+    function getCheatHints(roundID, tileIndex) {
+        var trueHints = getHints(roundID, tileIndex);
         if (!trueHints) {
             trueHints = new Array(-1, -1, -1, -1);
         }
@@ -915,7 +926,7 @@ function JigsawPuzzle(config) {
 
         var tileIndex = getTileIndex(tile);
 
-        var hintTiles = getCheatHints(tileIndex);
+        var hintTiles = getHints(roundID, tileIndex);
 
         if (!hintTiles) {
             return;
