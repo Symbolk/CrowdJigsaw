@@ -1,4 +1,4 @@
-const requrl = 'http://162.105.89.66:3000/';
+const requrl = 'http://127.0.0.1:3000/';
 //const requrl = 'http://39.106.112.44:3000/';
 
 /**

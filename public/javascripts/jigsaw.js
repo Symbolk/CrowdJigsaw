@@ -1,3 +1,21 @@
+var level = getUrlParams('level');
+var roundID = getUrlParams('roundID');
+
+function quitRound(roundID){
+    $.ajax({
+        url: requrl + 'round' + '/quitRound/' + roundID,
+        type: 'get',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+            console.log(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });
+}
 /*
 * Drawer functions
 */
@@ -46,6 +64,7 @@ $('.returnCenter').click(function () {
 
     applyButton.addEventListener('click', function (event) {
         dialog.close();
+        quitRound(roundID);
         window.location = '/home';
     });
 }());
@@ -91,8 +110,6 @@ Array.prototype.remove = function (start, end) {
 view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
-
-var level = getUrlParams('level');
 
 $('#puzzle-image').attr('src', 'images/minions.jpg');
 

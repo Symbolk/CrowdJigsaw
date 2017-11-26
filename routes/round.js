@@ -38,12 +38,10 @@ function createRecord(player_name, round_id, join_time){
         if(err){
             console.log(err);
         }else{
-            console.log(NAME+'are in Round'+ round_id);
+            console.log(player_name+'are in Round'+ round_id);
         }
     });
 }
-const NAME="Car";
-// const NAME=req.session.user.username;
 
 /**
  * Get all rounds
@@ -59,21 +57,13 @@ router.get('/', function (req, res, next) {
  */
 router.get('/getJoinableRounds', function (req, res, next) {
     let condition = {
-        create_time: { $ne: "-1"},
-        start_time: { $in: "-1" },
-        end_time: { $in: "-1" }
+        end_time: "-1"
     };
     RoundModel.find(condition, function (err, docs) {
         if (err) {
             console.log(err);
         } else {
-            let joinable = new Array();
-            for (let d of docs) {
-                if (d.players.length < d.players_num) {
-                    joinable.push(d);
-                }
-            }
-            res.send(JSON.stringify(joinable));
+            res.send(JSON.stringify(docs));
         }
     });
 });
@@ -92,7 +82,7 @@ router.post('/joinRound', function (req, res, next) {
         } else {
             if (doc.players.length < doc.players_num) {
                 let isIn = doc.players.some(function (p) {
-                    return (p.player_name == NAME);
+                    return (p.player_name == req.session.user.username);
                 });
                 let TIME=getNowFormatDate();
                 if (!isIn) {
@@ -100,7 +90,7 @@ router.post('/joinRound', function (req, res, next) {
                         $addToSet: { //if exists, give up add
                             players:
                                 {
-                                    player_name: NAME,
+                                    player_name: req.session.user.username,
                                     // player_name: req.session.user.username,
                                     join_time: TIME
                                 }
@@ -110,9 +100,9 @@ router.post('/joinRound', function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
-                            console.log(NAME +' join Round' + condition.round_id);
+                            console.log(req.session.user.username +' join Round' + condition.round_id);
                             res.send({ msg: 'You joined the round successfully.' });
-                            createRecord(NAME, req.body.round_id, TIME);
+                            createRecord(req.session.user.username, req.body.round_id, TIME);
                         }
                     });
 
@@ -147,7 +137,6 @@ router.route('/getPlayers/:round_id').get(function (req, res, next) {
  * Create a new round
  */
 router.post('/newRound', function (req, res, next) {
-    console.log("fuck");
     RoundModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
@@ -156,14 +145,14 @@ router.post('/newRound', function (req, res, next) {
             let TIME=getNowFormatDate();            
             let operation = {
                 round_id: index,
-                creator: NAME,
+                creator: req.session.user.username,
                 image: req.body.imageURL,
                 shape: req.body.shape,
                 level: req.body.level,
                 create_time: TIME,
                 players_num: req.body.players_num,
                 players: {
-                    player_name: NAME,
+                    player_name: req.session.user.username,
                     join_time: TIME
                 }
             };
@@ -171,9 +160,9 @@ router.post('/newRound', function (req, res, next) {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log(NAME+ ' new a round '+ index);
-                    res.send({ msg: "Created round successfully." })
-                    createRecord(NAME, operation.round_id, TIME);
+                    console.log(req.session.user.username+ ' new a round '+ index);
+                    res.send({ msg: "Created round successfully.", round_id: index});
+                    createRecord(req.session.user.username, operation.round_id, TIME);
                 }
             });
         }
@@ -210,11 +199,11 @@ router.get('/startRound/:round_id', function (req, res, next) {
                                 start_time: TIME
                             }
                         };
-                        UserModel.findOneAndUpdate({ username: NAME }, operation, function(err, doc){
+                        UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
                             if(err){
                                 console.log(err);
                             }else{
-                                console.log(NAME + 'started playing.');
+                                console.log(req.session.user.username + 'started playing.');
                             }
                         });
                     }
@@ -239,7 +228,7 @@ router.get('/quitRound/:round_id', function (req, res, next) {
             console.log(err);
         } else {
             let isIn = doc.players.some(function (p) {
-                return (p.player_name == NAME);
+                return (p.player_name == req.session.user.username);
             });
             if(isIn){
                 if (doc.players.length == 1) { // the last player
@@ -247,7 +236,7 @@ router.get('/quitRound/:round_id', function (req, res, next) {
                         $pull: { //if exists, give up add
                             players:
                                 {
-                                    player_name: NAME
+                                    player_name: req.session.user.username
                                 }
                         },
                         end_time: getNowFormatDate()
@@ -264,7 +253,7 @@ router.get('/quitRound/:round_id', function (req, res, next) {
                         $pull: { //if exists, give up add
                             players:
                                 {
-                                    player_name: NAME
+                                    player_name: req.session.user.username
                                 }
                         }
                     };
@@ -303,7 +292,7 @@ router.post('/saveRecord', function (req, res, next) {
             contribution: contri
         }
     };
-    UserModel.findOneAndUpdate({ username: NAME }, operation, function(err, doc){
+    UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
         if(err){
             console.log(err);
         }else{
