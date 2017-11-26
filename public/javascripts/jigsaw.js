@@ -780,9 +780,11 @@ function JigsawPuzzle(config) {
         }
 
         if (aroundTilesChanged) {
-            checkLinks(tileIndex, aroundTiles);
+            // selected, before, after
+            // checkLinks(tileIndex,aroundTiles);
+            checkLinks(tileIndex, tile.aroundTiles, aroundTiles);
         }
-
+        
         var sum = 0;
         for (var i = 0; i < aroundTiles.length; i++) {
             sum += aroundTiles[i];
@@ -949,7 +951,7 @@ function JigsawPuzzle(config) {
                     hintTile.relativePosition = new Point(0, 0);
                     hintTile.picking = false;
                     hintTile.alreadyHinted = true;
-                    sendLinks(hintTile);
+                    // sendLinks(hintTile);
                 }
                 hintTilesCount += groupTiles.length;
             }

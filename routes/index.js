@@ -6,7 +6,6 @@
 
 var express = require('express');
 var router = express.Router();
-const DBHelp = require('./DBHelp');
 const mongoose = require('mongoose');
 var UserModel=require('../models/user').User;
 var LinkModel=require('../models/link').Link;
@@ -33,6 +32,25 @@ function decrypt(str, secret) {
     return dec;
 }
 
+function getNowFormatDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+        + " " + date.getHours() + seperator2 + date.getMinutes()
+        + seperator2 + date.getSeconds();
+    return currentdate;
+}
+
+
 // Get Home Page
 router.get('/', function (req, res, next) {
     req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
@@ -48,24 +66,38 @@ router.route('/login').all(Logined).get(function (req, res) {
     let passwd_enc=encrypt(req.body.password, SECRET);
     let user = { username: req.body.username, password: passwd_enc};
     //用于查询用户名是否存在的条件
-    let selectStr = { username: user.username };
-    let dbhelp = new DBHelp();
-    dbhelp.FindOne('users', selectStr, function (result) {
-        if (result) {
-            if (result.password === user.password) {
-                //出于安全，只把包含用户名的对象存入session
-                req.session.user = selectStr;
-                req.session.error = 'Welcome! ' + user.username;
-                return res.redirect('/home');
-            }
-            else {
-                req.session.error = 'Wrong username or password!';
+    let condition = { username: user.username };
+    UserModel.findOne(condition, function(err, doc){
+        if(err){
+            console.log(err);
+        }else{
+            if(doc){
+                if (doc.password === user.password) {
+                    //出于安全，只把包含用户名的对象存入session
+                    req.session.user = condition;
+                    let operation={
+                        $set:{
+                            last_online_time: getNowFormatDate()
+                        }
+                    };
+                    console.log(getNowFormatDate());
+                    UserModel.update(operation, function(err){
+                        if(err){
+                            console.log(err);
+                        }else{
+                            req.session.error = 'Welcome Back! ' + user.username;
+                            return res.redirect('/home');
+                        }
+                    });
+                }
+                else {
+                    req.session.error = 'Wrong username or password!';
+                    return res.redirect('/login');
+                }
+            }else{
+                req.session.error = 'Player does not exist!';
                 return res.redirect('/login');
             }
-        }
-        else {
-            req.session.error = 'Player does not exist!';
-            return res.redirect('/login');
         }
     });
 });
@@ -81,26 +113,36 @@ router.route('/register').all(Logined).get(function (req, res) {
     
     let newUser = { username: req.body.username, password: passwd_enc, passwordSec: passwd_sec_enc };
     //准备添加到数据库的数据（数组格式）
-    let addStr = [{ username: newUser.username, password: newUser.password, joindate: Date.now }];
+    let operation = { 
+        username: newUser.username, 
+        password: newUser.password, 
+        last_online_time: getNowFormatDate(),
+        register_time: getNowFormatDate()
+    };
     //用于查询用户名是否存在的条件
     // let selectStr={username:newUser.username};
-    let dbhelp = new DBHelp();
-    dbhelp.FindOne('users', { username: newUser.username }, function (result) {
-        if (!result) {
-            if (newUser.password === newUser.passwordSec) {
-                dbhelp.Add('users', addStr, function () {
-                    req.session.error = 'Register success, you can login now!';
-                    return res.redirect('/login');
-                });
-            }
-            else {
-                req.session.error = 'Passwords do not agree with each other!';
+    UserModel.findOne({ username: newUser.username }, function(err, doc){
+        if(err){
+            console.log(err);
+        }else{
+            if (!doc) {
+                if (newUser.password === newUser.passwordSec) {
+                    UserModel.create(operation, function(err){
+                        if(err){
+                            console.log(err);
+                        }else{
+                            req.session.error = 'Register success, you can login now!';
+                            return res.redirect('/login');
+                        }
+                    });
+                }else {
+                    req.session.error = 'Passwords do not agree with each other!';
+                    return res.redirect('/register');
+                }
+            }else {
+                req.session.error = 'Username exists, please choose another one!';
                 return res.redirect('/register');
             }
-        }
-        else {
-            req.session.error = 'Username exists, please choose another one!';
-            return res.redirect('/register');
         }
     });
 });
@@ -108,15 +150,18 @@ router.route('/register').all(Logined).get(function (req, res) {
 
 //Home 
 router.route('/home').all(LoginFirst).get(function (req, res) {
-    let selectStr = { username: 1, _id: 0 };
-    let dbhelp = new DBHelp();
-    dbhelp.FindAll('users', selectStr, function (result) {
-        if (result) {
-            req.session.error = 'Welcome! ' + req.session.user.username;            
-            res.render('home', { title: 'Home', username: req.session.user.username });
-        }
-        else {
-            res.render('home', { title: 'Home' });
+    let selectStr = { username: req.session.user.username };
+    let fields={ _id:0, username: 1, avatar: 1 };
+    UserModel.findOne(selectStr,fields,function(err, docs){
+        if(err){
+            console.log(err);
+        }else{
+            if(docs){
+                req.session.error = 'Welcome! ' + req.session.user.username;            
+                res.render('home', { title: 'Home', username: req.session.user.username });
+            }else{
+                res.render('home', { title: 'Home' });
+            }
         }
     });
 });
@@ -138,19 +183,26 @@ router.route('/reset').get(function (req, res) {
     } else {
         let user = { username: req.body.username };
         let selectStr = { username: user.username };
-        let dbhelp = new DBHelp();
-        dbhelp.FindOne('users', selectStr, function (result) {
-            if (result) {
-                let whereStr = { username: req.body.username };
-                let update = { $set: { password: '123456' } };
-                let dbhelp = new DBHelp();
-                dbhelp.Update('users', whereStr, update, function () {
-                    req.session.error = whereStr.username + '\'s password has been reset to 123456!';
-                    return res.redirect('/login');
-                });
-            } else {
-                req.session.error = 'Player not exists!';
-                return res.redirect('/reset');
+
+        UserModel.findOne(selectStr, function(err, doc){
+            if(err){
+                console.log(err);
+            }else{
+                if (doc) {
+                    let whereStr = { username: req.body.username };
+                    let update = { $set: { password: encrypt(whereStr.username, SECRET) } };
+                    UserModel.update(whereStr, update, function(err){
+                        if(err){
+                            console.log(err);
+                        }else{
+                            req.session.error = whereStr.username + '\'s password has been reset to YOUR NAME!';
+                            return res.redirect('/login');
+                        }
+                    });
+                } else {
+                    req.session.error = 'Player not exists!';
+                    return res.redirect('/reset');
+                }
             }
         });
     }
@@ -174,10 +226,10 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
             if (err) {
                 console.log(err);
             } else {
-                if(doc.password === req.body.old_password){
+                if(doc.password === encrypt(req.body.old_password, SECRET)){
                     let operation={
                         $set:{
-                            password: req.body.new_password,
+                            password: encrypt(req.body.new_password, SECRET),
                         }
                     };
                     UserModel.update(condition, operation, function(err) {
@@ -271,194 +323,6 @@ function LoginFirst(req, res, next) {
     next();
 }
 
-// Graph Operations
-
-/**
- * Get all links in the db
- */
-router.route('/getAll').get(function (req, res) {
-    LinkModel.find({}, function (err, docs) {
-        if (err) {
-            console.log(err);
-            res.end('Error while retrieving.');
-        } else {
-            res.send(JSON.stringify(docs));
-        }
-    });
-});
-
-/**
- * Get all the links from one tile
- */
-router.route('/getLinks/:from').get(function (req, res) {
-    let condition = {
-        "from": req.params.from,
-        "supporters.username": req.session.user.username
-    };
-    LinkModel.find(condition, function (err, docs) {
-        if (err) {
-            console.log(err);
-            res.end('Error while retrieving.');
-        } else {
-            res.send(JSON.stringify(docs));
-        }
-    });
-});
-
-/**
- * FindOne: Check if one link exists in the db
- */
-router.get('/exist/:from/:to', function (req, res) {
-    let condition = {
-        from: req.params.from,
-        to: req.params.to
-    };
-    LinkModel.count(condition, function (err, count) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send({ count: count });
-        }
-    });
-});
-
-/**
- * Support one link
- * Case 1: not exist
- * Create one new link
- * Case 2: exist
- * Support this link
- */
-router.route('/support').post(function (req, res) {
-    let condition = {
-        from: req.body.from,
-        to: req.body.to
-    };
-    LinkModel.count(condition, function (err, count) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (count == 0) {
-                let operation = {
-                    from: req.body.from,
-                    to: req.body.to,
-                    supNum: 1,
-                    oppNum: 0,
-                    supporters: {
-                        username: req.session.user.username,
-                        direction: req.body.dir
-                    }
-                };
-                LinkModel.create(operation, function (err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log('++ ' + req.body.from + ' --> ' + req.body.to);
-                        res.send({ msg: '++' });
-                    }
-                });
-            } else {
-                let condition = {
-                    from: req.body.from,
-                    to: req.body.to
-                };
-                let operation = {
-                    $inc: {
-                        supNum: 1
-                    },
-                    $addToSet: { //if exists, give up add
-                        supporters:
-                        {
-                            // "_id": false, // to be fixed
-                            username: req.session.user.username,
-                            direction: req.body.dir
-                        }
-                    }
-                };
-
-                LinkModel.update(condition, operation, function (err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log('+ ' + req.body.from + ' --> ' + req.body.to);
-                        res.send({ msg: '+' });
-                    }
-                });
-            }
-        }
-    });
-});
-
-/**
- * Unsupport one link
- * Case 1: exist and supNum == 1
- * Remove this link
- * Case 2: exist and supNum > 1
- * Reduce one supporter for this link
- */
-router.route('/forget').post(function (req, res) {
-    let condition = {
-        from: req.body.from,
-        to: req.body.to
-    };
-    LinkModel.count(condition, function (err, count) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (count > 0) {
-                LinkModel.find(condition, function (err, docs) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        for (let d of docs) {
-                            if (d.supNum == 1) {
-                                LinkModel.remove(condition, function (err, docs) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        console.log('-- ' + req.body.from + ' --> ' + req.body.to);
-                                        res.send({ msg: '--' });
-                                    }
-                                });
-                            } else {
-                                let operation = {
-                                    $inc: {
-                                        supNum: -1,
-                                        oppNum: 1
-                                    },
-                                    $pull: {
-                                        supporters:
-                                        {
-                                            username: req.session.user.username
-                                        }
-                                    },
-                                    $push: {
-                                        opposers:
-                                        {
-                                            username: req.session.user.username,
-                                            direction: req.body.dir
-                                        }
-                                    }
-                                };
-                                LinkModel.update(condition, operation, function (err) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        console.log('- ' + req.body.from + ' --> ' + req.body.to);
-                                        res.send({ msg: '-' });
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-            } else {
-                console.log('Link not created yet!');
-            }
-        }
-    });
-});
-
 /**
  * Get hint tile indexes from the server
  * 1, find all links from the selected tile
@@ -520,33 +384,6 @@ router.get('/getHints/:from', function (req, res) {
                         res.send(JSON.stringify(hintIndexes));
                     }
                 });
-        }
-    });
-});
-
-/**
- * Record the user's performance at the end of one game
- */
-router.post('/record', function (req, res) {
-    let condition = {
-        username: req.session.user.username
-    };
-    let operation={
-        $push: {
-            records:
-            {
-                level: req.body.level,
-                when: req.body.when,
-                steps: req.body.steps,
-                time: req.body.time
-            }
-        }
-    };
-    UserModel.update(condition, operation, function (err) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send({ msg: "Your record has been saved!" });
         }
     });
 });
