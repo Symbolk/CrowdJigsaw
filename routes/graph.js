@@ -286,7 +286,8 @@ router.post('/check', function (req, res, next) {
 
 
 /**
- * Action sequence
+ * Get hints from the current graph data
+ * @return an array of recommended index, in 4 directions of the tile
  */
 
 

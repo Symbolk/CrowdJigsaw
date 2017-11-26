@@ -3,8 +3,8 @@
 var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
-var RoundModel=require('../models/round').Round;
-var UserModel=require('../models/user').User;
+var RoundModel = require('../models/round').Round;
+var UserModel = require('../models/user').User;
 
 function getNowFormatDate() {
     var date = new Date();
@@ -24,18 +24,20 @@ function getNowFormatDate() {
     return currentdate;
 }
 
-function createRecord(player_name, round_id, join_time){
-    let condition={
+function createRecord(player_name, round_id, join_time) {
+    let condition = {
         username: player_name
     };
-    let operation={
-        $push:{
-            round_id: round_id,
-            join_time: join_time
+    let operation = {
+        $push: {
+            records: {
+                round_id: round_id,
+                join_time: join_time
+            }
         }
     };
-    UserModel.findOneAndUpdate(condition,operation, function(err){
-        if(err){
+    UserModel.findOneAndUpdate(condition, operation, function (err) {
+        if (err) {
             console.log(err);
         }else{
             console.log(player_name+'are in Round'+ round_id);
@@ -84,7 +86,7 @@ router.post('/joinRound', function (req, res, next) {
                 let isIn = doc.players.some(function (p) {
                     return (p.player_name == req.session.user.username);
                 });
-                let TIME=getNowFormatDate();
+                let TIME = getNowFormatDate();
                 if (!isIn) {
                     let operation = {
                         $addToSet: { //if exists, give up add
@@ -142,7 +144,7 @@ router.post('/newRound', function (req, res, next) {
             console.log(err);
         } else {
             let index = docs.length;
-            let TIME=getNowFormatDate();            
+            let TIME = getNowFormatDate();
             let operation = {
                 round_id: index,
                 creator: req.session.user.username,
@@ -173,28 +175,28 @@ router.post('/newRound', function (req, res, next) {
  * Start a round(only by the creator, after the player_num reached)
  */
 router.get('/startRound/:round_id', function (req, res, next) {
-    let condition={
+    let condition = {
         round_id: req.params.round_id
     };
     // check if the players are enough
     // findOneAndUpdate
     RoundModel.findOne(condition, function (err, doc) {
-        if(err){
+        if (err) {
             console.log(err);
-        }else{
-            if(doc.players.length==doc.players_num){
-                let TIME=getNowFormatDate();
-                let operation={
-                    $set:{
+        } else {
+            if (doc.players.length == doc.players_num) {
+                let TIME = getNowFormatDate();
+                let operation = {
+                    $set: {
                         start_time: TIME
                     }
                 };
                 RoundModel.update(condition, operation, function (err) {
-                    if(err){
+                    if (err) {
                         console.log(err);
-                    }else{
+                    } else {
                         res.send({ msg: "Round Starts Now!" })
-                        operation={
+                        operation = {
                             $set: {
                                 start_time: TIME
                             }
@@ -208,7 +210,7 @@ router.get('/startRound/:round_id', function (req, res, next) {
                         });
                     }
                 });
-            }else{
+            } else {
                 res.send({ msg: "Players are not enough!" });
             }
         }
@@ -230,7 +232,7 @@ router.get('/quitRound/:round_id', function (req, res, next) {
             let isIn = doc.players.some(function (p) {
                 return (p.player_name == req.session.user.username);
             });
-            if(isIn){
+            if (isIn) {
                 if (doc.players.length == 1) { // the last player
                     let operation = {
                         $pull: { //if exists, give up add
@@ -241,14 +243,14 @@ router.get('/quitRound/:round_id', function (req, res, next) {
                         },
                         end_time: getNowFormatDate()
                     };
-                    RoundModel.update(condition, operation, function(err){
-                        if(err){
+                    RoundModel.update(condition, operation, function (err) {
+                        if (err) {
                             console.log(err);
-                        }else{
+                        } else {
                             res.send({ msg: "You just stopped the round..." });
                         }
                     });
-                }else{ // online>=2
+                } else { // online>=2
                     let operation = {
                         $pull: { //if exists, give up add
                             players:
@@ -257,16 +259,16 @@ router.get('/quitRound/:round_id', function (req, res, next) {
                                 }
                         }
                     };
-                    RoundModel.update(condition, operation, function(err){
-                        if(err){
+                    RoundModel.update(condition, operation, function (err) {
+                        if (err) {
                             console.log(err);
-                        }else{
+                        } else {
                             res.send({ msg: "You just quitted the round..." });
                         }
                     });
                 }
                 // update the record
-            }else{
+            } else {
                 res.send({ msg: "You are not even in the round!" });
             }
         }
@@ -276,7 +278,6 @@ router.get('/quitRound/:round_id', function (req, res, next) {
 /**
  * Stop the round when all players finished
  */
-
 
 /**
  * Save a record by one user when he gets his puzzle done

@@ -792,9 +792,10 @@ function JigsawPuzzle(config) {
         }
 
         if (aroundTilesChanged) {
-            checkLinks(tileIndex, aroundTiles);
+            // selected, before, after
+            checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
         }
-
+        
         var sum = 0;
         for (var i = 0; i < aroundTiles.length; i++) {
             sum += aroundTiles[i];
@@ -879,8 +880,8 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function getCheatHints(tileIndex) {
-        var trueHints = getHints(tileIndex);
+    function getCheatHints(roundID, tileIndex) {
+        var trueHints = getHints(roundID, tileIndex);
         if (!trueHints) {
             trueHints = new Array(-1, -1, -1, -1);
         }
@@ -925,7 +926,7 @@ function JigsawPuzzle(config) {
 
         var tileIndex = getTileIndex(tile);
 
-        var hintTiles = getCheatHints(tileIndex);
+        var hintTiles = getHints(roundID, tileIndex);
 
         if (!hintTiles) {
             return;
@@ -961,7 +962,7 @@ function JigsawPuzzle(config) {
                     hintTile.relativePosition = new Point(0, 0);
                     hintTile.picking = false;
                     hintTile.alreadyHinted = true;
-                    sendLinks(hintTile);
+                    // sendLinks(hintTile);
                 }
                 hintTilesCount += groupTiles.length;
             }

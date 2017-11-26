@@ -1,10 +1,12 @@
 var mongoose = require("mongoose"); 
 // create the user schema
 var UserSchema = new mongoose.Schema({
+    userid: { type: Number, required: true, unique: true, index: true },
     username: { type: String, required: true, unique: true, index: true },
     avatar: { type: String, default: 'images/placeholder.png' },
     password: { type: String }, // encrypted with crypto
-    register_time: { type: String, default: Date.now }, // formatted time, e.g. 2017-10-31 14:00:20
+    last_online_time:  { type: String }, // formatted time, e.g. 2017-10-31 14:00:20
+    register_time: { type: String }, // formatted time, e.g. 2017-10-31 14:00:20
     records: [
         {
             round_id: { type: Number }, // participated rounds
@@ -13,7 +15,7 @@ var UserSchema = new mongoose.Schema({
             end_time: { type: String, default: "-1" }, // formatted time, e.g. 2017-10-31 14:00:20
             steps: { type: String, default: "-1" }, // -1=unfininshed
             time: { type: String, default: "-1" }, // hour:min:sec, e.g. 16:41
-            sum_effect: { type: Number, default: -1 }// a contribution score, calculated when one round end
+            contribution: { type: Number, default: -1 }// a contribution score, calculated when one round end
         }
     ],
     // rank: { type: Number, default: 0 }

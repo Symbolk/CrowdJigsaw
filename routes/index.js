@@ -6,13 +6,12 @@
 
 var express = require('express');
 var router = express.Router();
-const DBHelp = require('./DBHelp');
 const mongoose = require('mongoose');
-var UserModel=require('../models/user').User;
-var LinkModel=require('../models/link').Link;
+var UserModel = require('../models/user').User;
+var LinkModel = require('../models/link').Link;
 var crypto = require('crypto');
 
-const SECRET="CrowdIntel";
+const SECRET = "CrowdIntel";
 
 /**
  *  MD5 encryption
@@ -33,6 +32,25 @@ function decrypt(str, secret) {
     return dec;
 }
 
+function getNowFormatDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+        + " " + date.getHours() + seperator2 + date.getMinutes()
+        + seperator2 + date.getSeconds();
+    return currentdate;
+}
+
+
 // Get Home Page
 router.get('/', function (req, res, next) {
     req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
@@ -45,29 +63,73 @@ router.route('/login').all(Logined).get(function (req, res) {
     res.render('login', { title: 'Login' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
-    let passwd_enc=encrypt(req.body.password, SECRET);
-    let user = { username: req.body.username, password: passwd_enc};
+    let passwd_enc = encrypt(req.body.password, SECRET);
+    let user = { username: req.body.username, password: passwd_enc };
     //用于查询用户名是否存在的条件
-    let selectStr = { username: user.username };
-    let dbhelp = new DBHelp();
-    dbhelp.FindOne('users', selectStr, function (result) {
-        if (result) {
-            if (result.password === user.password) {
-                //出于安全，只把包含用户名的对象存入session
-                req.session.user = selectStr;
-                req.session.error = 'Welcome! ' + user.username;
-                return res.redirect('/home');
-            }
-            else {
-                req.session.error = 'Wrong username or password!';
+    let condition = { username: user.username };
+    UserModel.findOne(condition, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (doc) {
+                if (doc.password === user.password) {
+                    //出于安全，只把包含用户名的对象存入session
+                    req.session.user = condition;
+                    let operation = {
+                        $set: {
+                            last_online_time: getNowFormatDate()
+                        }
+                    };
+                    UserModel.update(operation, function (err) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            req.session.error = 'Welcome! ' + user.username;
+                            return res.redirect('/home');
+                        }
+                    });
+                }
+                else {
+                    req.session.error = 'Wrong username or password!';
+                    return res.redirect('/login');
+                }
+            } else {
+                req.session.error = 'Player does not exist!';
                 return res.redirect('/login');
             }
         }
-        else {
-            req.session.error = 'Player does not exist!';
-            return res.redirect('/login');
+    });
+});
+
+/**
+ * Log in as a visitor
+ */
+router.route('/visitor').get(function (req, res) {
+    UserModel.find({}, function (err, docs) {
+        if (err) {
+            console.log(err);
+        } else {
+            var index = docs.length;
+            let operation = {
+                userid: index,
+                username: 'Visitor ' + index,
+                password: "",
+                last_online_time: getNowFormatDate(),
+                register_time: getNowFormatDate()
+            };
+            let user = { username: operation.username };
+            UserModel.create(operation, function (err) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    req.session.user=user
+                    req.session.error = 'Welcome! ' + operation.username;
+                    return res.redirect('/home');
+                }
+            });
         }
     });
+
 });
 
 
@@ -76,31 +138,49 @@ router.route('/register').all(Logined).get(function (req, res) {
     res.render('register', { title: 'Register' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
-    let passwd_enc=encrypt(req.body.password, SECRET);
-    let passwd_sec_enc=encrypt(req.body.passwordSec, SECRET);
-    
+    let passwd_enc = encrypt(req.body.password, SECRET);
+    let passwd_sec_enc = encrypt(req.body.passwordSec, SECRET);
+
     let newUser = { username: req.body.username, password: passwd_enc, passwordSec: passwd_sec_enc };
-    //准备添加到数据库的数据（数组格式）
-    let addStr = [{ username: newUser.username, password: newUser.password, joindate: Date.now }];
-    //用于查询用户名是否存在的条件
-    // let selectStr={username:newUser.username};
-    let dbhelp = new DBHelp();
-    dbhelp.FindOne('users', { username: newUser.username }, function (result) {
-        if (!result) {
-            if (newUser.password === newUser.passwordSec) {
-                dbhelp.Add('users', addStr, function () {
-                    req.session.error = 'Register success, you can login now!';
-                    return res.redirect('/login');
-                });
-            }
-            else {
-                req.session.error = 'Passwords do not agree with each other!';
-                return res.redirect('/register');
-            }
-        }
-        else {
-            req.session.error = 'Username exists, please choose another one!';
-            return res.redirect('/register');
+    UserModel.find({}, function (err, docs) {
+        if (err) {
+            console.log(err);
+        } else {
+            var index = docs.length;
+            //准备添加到数据库的数据（数组格式）
+            let operation = {
+                userid: index,
+                username: newUser.username,
+                password: newUser.password,
+                last_online_time: getNowFormatDate(),
+                register_time: getNowFormatDate()
+            };
+            //用于查询用户名是否存在的条件
+            // let selectStr={username:newUser.username};
+            UserModel.findOne({ username: newUser.username }, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (!doc) {
+                        if (newUser.password === newUser.passwordSec) {
+                            UserModel.create(operation, function (err) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    req.session.error = 'Register success, you can login now!';
+                                    return res.redirect('/login');
+                                }
+                            });
+                        } else {
+                            req.session.error = 'Passwords do not agree with each other!';
+                            return res.redirect('/register');
+                        }
+                    } else {
+                        req.session.error = 'Username exists, please choose another one!';
+                        return res.redirect('/register');
+                    }
+                }
+            });
         }
     });
 });
@@ -108,15 +188,18 @@ router.route('/register').all(Logined).get(function (req, res) {
 
 //Home 
 router.route('/home').all(LoginFirst).get(function (req, res) {
-    let selectStr = { username: 1, _id: 0 };
-    let dbhelp = new DBHelp();
-    dbhelp.FindAll('users', selectStr, function (result) {
-        if (result) {
-            req.session.error = 'Welcome! ' + req.session.user.username;            
-            res.render('home', { title: 'Home', username: req.session.user.username });
-        }
-        else {
-            res.render('home', { title: 'Home' });
+    let selectStr = { username: req.session.user.username };
+    let fields = { _id: 0, username: 1, avatar: 1 };
+    UserModel.findOne(selectStr, fields, function (err, docs) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (docs) {
+                req.session.error = 'Welcome! ' + req.session.user.username;
+                res.render('home', { title: 'Home', username: req.session.user.username });
+            } else {
+                res.render('home', { title: 'Home' });
+            }
         }
     });
 });
@@ -124,7 +207,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 // Puzzle
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     // let selected_level=req.query.level;
-    req.session.error = 'Game Started!';   
+    req.session.error = 'Game Started!';
     res.render('puzzle', { title: 'Puzzle' });
 });
 
@@ -145,19 +228,26 @@ router.route('/reset').get(function (req, res) {
     } else {
         let user = { username: req.body.username };
         let selectStr = { username: user.username };
-        let dbhelp = new DBHelp();
-        dbhelp.FindOne('users', selectStr, function (result) {
-            if (result) {
-                let whereStr = { username: req.body.username };
-                let update = { $set: { password: '123456' } };
-                let dbhelp = new DBHelp();
-                dbhelp.Update('users', whereStr, update, function () {
-                    req.session.error = whereStr.username + '\'s password has been reset to 123456!';
-                    return res.redirect('/login');
-                });
+
+        UserModel.findOne(selectStr, function (err, doc) {
+            if (err) {
+                console.log(err);
             } else {
-                req.session.error = 'Player not exists!';
-                return res.redirect('/reset');
+                if (doc) {
+                    let whereStr = { username: req.body.username };
+                    let update = { $set: { password: encrypt(whereStr.username, SECRET) } };
+                    UserModel.update(whereStr, update, function (err) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            req.session.error = whereStr.username + '\'s password has been reset to YOUR NAME!';
+                            return res.redirect('/login');
+                        }
+                    });
+                } else {
+                    req.session.error = 'Player not exists!';
+                    return res.redirect('/reset');
+                }
             }
         });
     }
@@ -165,37 +255,37 @@ router.route('/reset').get(function (req, res) {
 
 // Account Settings
 router.route('/settings').all(LoginFirst).get(function (req, res) {
-    req.session.error = 'Change Password Here!';       
-    res.render('settings', { title: 'Player Settings', username: req.session.user.username });    
+    req.session.error = 'Change Password Here!';
+    res.render('settings', { title: 'Player Settings', username: req.session.user.username });
 }).post(function (req, res) {
-    if(req.body.new_password != req.body.new_passwordSec){
+    if (req.body.new_password != req.body.new_passwordSec) {
         req.session.error = 'Passwords do not agree with each other!';
         return res.redirect('/settings');
-    }else{
+    } else {
         // Change the password
-        let condition={
+        let condition = {
             username: req.session.user.username
         };
 
-        UserModel.findOne(condition, function(err, doc) {
+        UserModel.findOne(condition, function (err, doc) {
             if (err) {
                 console.log(err);
             } else {
-                if(doc.password === req.body.old_password){
-                    let operation={
-                        $set:{
-                            password: req.body.new_password,
+                if (doc.password === encrypt(req.body.old_password, SECRET)) {
+                    let operation = {
+                        $set: {
+                            password: encrypt(req.body.new_password, SECRET),
                         }
                     };
-                    UserModel.update(condition, operation, function(err) {
+                    UserModel.update(condition, operation, function (err) {
                         if (err) {
                             console.log(err);
-                        }else{
+                        } else {
                             req.session.error = 'Successfully reset your password!';
                             return res.redirect('/home');
                         }
                     });
-                }else{
+                } else {
                     req.session.error = 'The old password is wrong!';
                     return res.redirect('/settings');
                 }
@@ -208,13 +298,13 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
 
 // Rank
 router.route('/rank').all(LoginFirst).get(function (req, res) {
-    req.session.error = 'Players Rank!';           
+    req.session.error = 'Players Rank!';
     let fields = { username: 1, rank: 1, _id: 0 }
     UserModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
         } else {
-             res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
+            res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
         }
     });
     // UserModel.find({}, {sort: [['_id', -1]]}, function(err, docs){
@@ -229,8 +319,8 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
 
 // Personal Records
 router.route('/records').all(LoginFirst).get(function (req, res) {
-    req.session.error = 'See Your Records!';           
-    let condition={
+    req.session.error = 'See Your Records!';
+    let condition = {
         username: req.session.user.username
     };
     UserModel.findOne(condition, function (err, doc) {
@@ -241,13 +331,13 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
         else {
             res.render('records', { title: 'Ranks', username: req.session.user.username, Allrecords: doc.records });
         }
-    });   
+    });
 });
 
 // Help page
 router.route('/help').all(LoginFirst).get(function (req, res) {
     // TODO    
-    req.session.error = 'Get into Trouble?';           
+    req.session.error = 'Get into Trouble?';
     res.render('help', { title: 'Help', username: req.session.user.username });
 });
 
@@ -277,194 +367,6 @@ function LoginFirst(req, res, next) {
     }
     next();
 }
-
-// Graph Operations
-
-/**
- * Get all links in the db
- */
-router.route('/getAll').get(function (req, res) {
-    LinkModel.find({}, function (err, docs) {
-        if (err) {
-            console.log(err);
-            res.end('Error while retrieving.');
-        } else {
-            res.send(JSON.stringify(docs));
-        }
-    });
-});
-
-/**
- * Get all the links from one tile
- */
-router.route('/getLinks/:from').get(function (req, res) {
-    let condition = {
-        "from": req.params.from,
-        "supporters.username": req.session.user.username
-    };
-    LinkModel.find(condition, function (err, docs) {
-        if (err) {
-            console.log(err);
-            res.end('Error while retrieving.');
-        } else {
-            res.send(JSON.stringify(docs));
-        }
-    });
-});
-
-/**
- * FindOne: Check if one link exists in the db
- */
-router.get('/exist/:from/:to', function (req, res) {
-    let condition = {
-        from: req.params.from,
-        to: req.params.to
-    };
-    LinkModel.count(condition, function (err, count) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send({ count: count });
-        }
-    });
-});
-
-/**
- * Support one link
- * Case 1: not exist
- * Create one new link
- * Case 2: exist
- * Support this link
- */
-router.route('/support').post(function (req, res) {
-    let condition = {
-        from: req.body.from,
-        to: req.body.to
-    };
-    LinkModel.count(condition, function (err, count) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (count == 0) {
-                let operation = {
-                    from: req.body.from,
-                    to: req.body.to,
-                    supNum: 1,
-                    oppNum: 0,
-                    supporters: {
-                        username: req.session.user.username,
-                        direction: req.body.dir
-                    }
-                };
-                LinkModel.create(operation, function (err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log('++ ' + req.body.from + ' --> ' + req.body.to);
-                        res.send({ msg: '++' });
-                    }
-                });
-            } else {
-                let condition = {
-                    from: req.body.from,
-                    to: req.body.to
-                };
-                let operation = {
-                    $inc: {
-                        supNum: 1
-                    },
-                    $addToSet: { //if exists, give up add
-                        supporters:
-                        {
-                            // "_id": false, // to be fixed
-                            username: req.session.user.username,
-                            direction: req.body.dir
-                        }
-                    }
-                };
-
-                LinkModel.update(condition, operation, function (err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log('+ ' + req.body.from + ' --> ' + req.body.to);
-                        res.send({ msg: '+' });
-                    }
-                });
-            }
-        }
-    });
-});
-
-/**
- * Unsupport one link
- * Case 1: exist and supNum == 1
- * Remove this link
- * Case 2: exist and supNum > 1
- * Reduce one supporter for this link
- */
-router.route('/forget').post(function (req, res) {
-    let condition = {
-        from: req.body.from,
-        to: req.body.to
-    };
-    LinkModel.count(condition, function (err, count) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (count > 0) {
-                LinkModel.find(condition, function (err, docs) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        for (let d of docs) {
-                            if (d.supNum == 1) {
-                                LinkModel.remove(condition, function (err, docs) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        console.log('-- ' + req.body.from + ' --> ' + req.body.to);
-                                        res.send({ msg: '--' });
-                                    }
-                                });
-                            } else {
-                                let operation = {
-                                    $inc: {
-                                        supNum: -1,
-                                        oppNum: 1
-                                    },
-                                    $pull: {
-                                        supporters:
-                                        {
-                                            username: req.session.user.username
-                                        }
-                                    },
-                                    $push: {
-                                        opposers:
-                                        {
-                                            username: req.session.user.username,
-                                            direction: req.body.dir
-                                        }
-                                    }
-                                };
-                                LinkModel.update(condition, operation, function (err) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        console.log('- ' + req.body.from + ' --> ' + req.body.to);
-                                        res.send({ msg: '-' });
-                                    }
-                                });
-                            }
-                        }
-                    }
-                });
-            } else {
-                console.log('Link not created yet!');
-            }
-        }
-    });
-});
 
 /**
  * Get hint tile indexes from the server
@@ -496,10 +398,10 @@ router.get('/getHints/:from', function (req, res) {
                 let dir = counter.indexOf(Math.max.apply(Math, counter));
                 let operation = {
                     $set:
-                    {
-                        hintScore: score,
-                        hintDir: dir
-                    }
+                        {
+                            hintScore: score,
+                            hintDir: dir
+                        }
                 };
                 LinkModel.update(condition, operation, function (err) {
                     if (err) {
@@ -527,33 +429,6 @@ router.get('/getHints/:from', function (req, res) {
                         res.send(JSON.stringify(hintIndexes));
                     }
                 });
-        }
-    });
-});
-
-/**
- * Record the user's performance at the end of one game
- */
-router.post('/record', function (req, res) {
-    let condition = {
-        username: req.session.user.username
-    };
-    let operation={
-        $push: {
-            records:
-            {
-                level: req.body.level,
-                when: req.body.when,
-                steps: req.body.steps,
-                time: req.body.time
-            }
-        }
-    };
-    UserModel.update(condition, operation, function (err) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send({ msg: "Your record has been saved!" });
         }
     });
 });
