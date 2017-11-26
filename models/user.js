@@ -1,6 +1,7 @@
 var mongoose = require("mongoose"); 
 // create the user schema
 var UserSchema = new mongoose.Schema({
+    userid: { type: Number, required: true, unique: true, index: true },
     username: { type: String, required: true, unique: true, index: true },
     avatar: { type: String, default: 'images/placeholder.png' },
     password: { type: String }, // encrypted with crypto
