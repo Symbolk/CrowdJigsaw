@@ -58,23 +58,6 @@ function isCreator(req, res, next){
 
 
 /**
- * Init the graph for the round
- */
-function initGraph(round_id, level) {
-    let tiles_num = 64;
-    for (let i = 0; i < tiles_num; i++) {
-        new NodeModel({
-            index: i,
-            round_id: round_id
-        }).save(function (err) {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
-}
-
-/**
  * Get all rounds
  */
 router.route('/').all(LoginFirst).get(function (req, res, next) {
@@ -224,7 +207,6 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
                     if (err) {
                         console.log(err);
                     } else {
-                        initGraph(req.params.round_id, 1);
                         res.send({ msg: "Round Starts Now!" });
                         operation = {
                             $set: {

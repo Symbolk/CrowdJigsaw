@@ -60,65 +60,66 @@ router.route('/check').post(function (req, res, next) {
     let around = req.body.aroundTiles;
     let msgs = new Array();
     // For every posted nodes, add them to the nodes(graph), and decide which way 
+    var dirs = ['top', 'right', 'bottom', 'left'];
     NodeModel.findOne({ round_id: round_id, index: selected }, function (err, doc) {
         if (err) {
             console.log(err);
         } else {
-            var dirs = ['top', 'right', 'bottom', 'left'];
-            for (let d = 0; d < around.length; d++) { // d=0,1,2,3
-                let to = around[d];
-                if (to.before != to.after) {
-                    if (to.before == -1) { // new link in user view
-                        if (doc[dirs[d]].length == 0) {
-                            // ++ in global view
-                            let temp = {};
-                            temp[dirs[d]] = {
-                                index: to.after,
-                                sup_num: 1
-                            };
-                            NodeModel.findOneAndUpdate(
-                                { round_id: round_id, index: selected },
-                                { $push: temp },
-                                function (err) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
-                                        msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                    }
-                                });
-                        } else {
-                            let existed = false;
-                            for (let i of doc[dirs[d]]) {
-                                if (i.index == to.after) {
-                                    // + 
-                                    existed = true;
-                                    let condition = {
-                                        round_id: round_id, index: selected
-                                    };
-                                    condition[dirs[d] + '.index'] = to.after;
+            if (!doc) {
+                // new a node and new the links
+                // all ++
+                let new_node = {
+                    round_id: round_id,
+                    index: selected
+                };
+                NodeModel.create(new_node, function (err) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        for (let d = 0; d < around.length; d++) { // d=0,1,2,3
+                            let to = around[d];
+                            if (to.before != to.after) {
+                                // In practice, to.before is bound to be -1
+                                if (to.before == -1) {
                                     let temp = {};
-                                    temp[dirs[d] + '.$.sup_num'] = 1;
-                                    NodeModel.findOneAndUpdate(condition,
-                                        { $inc: temp },
-                                        function (err, doc) {
+                                    temp[dirs[d]] = {
+                                        index: to.after,
+                                        sup_num: 1
+                                    };
+                                    NodeModel.findOneAndUpdate(
+                                        { round_id: round_id, index: selected },
+                                        { $push: temp },
+                                        function (err) {
                                             if (err) {
                                                 console.log(err);
                                             } else {
-                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
-                                                msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                                msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
                                             }
                                         });
+                                } else if (to.after == -1) {
+                                    console.log("Unreachable case1.");
+                                } else { // to.before!=to.after!=-1
+                                    console.log("Unreachable case2.");
                                 }
                             }
-                            if (!existed) {
-                                // ++
+                        }
+                    }
+                });
+            } else {
+                // this node in this round already exists
+                for (let d = 0; d < around.length; d++) { // d=0,1,2,3
+                    let to = around[d];
+                    if (to.before != to.after) {
+                        if (to.before == -1) { // new link in user view
+                            if (doc[dirs[d]].length == 0) {
+                                // ++ in global view
                                 let temp = {};
                                 temp[dirs[d]] = {
                                     index: to.after,
                                     sup_num: 1
                                 };
-                                NodeModel.update(
+                                NodeModel.findOneAndUpdate(
                                     { round_id: round_id, index: selected },
                                     { $push: temp },
                                     function (err) {
@@ -129,12 +130,85 @@ router.route('/check').post(function (req, res, next) {
                                             msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
                                         }
                                     });
+                            } else {
+                                let existed = false;
+                                for (let i of doc[dirs[d]]) {
+                                    if (i.index == to.after) {
+                                        // + 
+                                        existed = true;
+                                        let condition = {
+                                            round_id: round_id, index: selected
+                                        };
+                                        condition[dirs[d] + '.index'] = to.after;
+                                        let temp = {};
+                                        temp[dirs[d] + '.$.sup_num'] = 1;
+                                        NodeModel.findOneAndUpdate(condition,
+                                            { $inc: temp },
+                                            function (err, doc) {
+                                                if (err) {
+                                                    console.log(err);
+                                                } else {
+                                                    writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
+                                                    msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                }
+                                            });
+                                    }
+                                }
+                                if (!existed) {
+                                    // ++
+                                    let temp = {};
+                                    temp[dirs[d]] = {
+                                        index: to.after,
+                                        sup_num: 1
+                                    };
+                                    NodeModel.update(
+                                        { round_id: round_id, index: selected },
+                                        { $push: temp },
+                                        function (err) {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                                msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                            }
+                                        });
+                                }
                             }
-                        }
-                    } else if (to.after == -1) {
-                        // existed&&sup_num>=1
-                        if (doc[dirs[d]].length > 0) {
-                            // --
+                        } else if (to.after == -1) {
+                            // existed&&sup_num>=1
+                            if (doc[dirs[d]].length > 0) {
+                                // --
+                                let condition = {
+                                    round_id: round_id, index: selected
+                                };
+                                condition[dirs[d] + '.index'] = to.before;
+                                let temp = {};
+                                temp[dirs[d] + '.$.sup_num'] = -1;
+                                temp[dirs[d] + '.$.opp_num'] = 1;
+                                NodeModel.findOneAndUpdate(condition,
+                                    { $inc: temp },
+                                    function (err, doc) {
+                                        if (err) {
+                                            console.log(err);
+                                        } else {
+                                            let op = '';
+                                            for (let i of doc[dirs[d]]) {
+                                                if (i.index == to.before) {
+                                                    if (i.sup_num == 0) {
+                                                        op = '-- ';
+                                                    } else {
+                                                        op = '- ';
+                                                    }
+                                                }
+                                            }
+                                            writeAction(NAME, round_id, op, selected, dirs[d], to.before);
+                                            msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
+                                        }
+                                    });
+                            }
+                        } else {
+                            // - 
+                            var to_send = {};
                             let condition = {
                                 round_id: round_id, index: selected
                             };
@@ -162,78 +236,48 @@ router.route('/check').post(function (req, res, next) {
                                         msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
                                     }
                                 });
-                        }
-                    } else {
-                        // - 
-                        var to_send = {};
-                        let condition = {
-                            round_id: round_id, index: selected
-                        };
-                        condition[dirs[d] + '.index'] = to.before;
-                        let temp = {};
-                        temp[dirs[d] + '.$.sup_num'] = -1;
-                        temp[dirs[d] + '.$.opp_num'] = 1;
-                        NodeModel.findOneAndUpdate(condition,
-                            { $inc: temp },
-                            function (err, doc) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    let op = '';
-                                    for (let i of doc[dirs[d]]) {
-                                        if (i.index == to.before) {
-                                            if (i.sup_num == 0) {
-                                                op = '-- ';
+                            // +
+                            let existed = false;
+                            for (let i of doc[dirs[d]]) {
+                                if (i.index == to.after) {
+                                    existed = true;
+                                    let condition = {
+                                        round_id: round_id, index: selected
+                                    };
+                                    condition[dirs[d] + '.index'] = to.after;
+                                    let temp = {};
+                                    temp[dirs[d] + '.$.sup_num'] = 1;
+                                    NodeModel.findOneAndUpdate(condition,
+                                        { $inc: temp },
+                                        function (err, doc) {
+                                            if (err) {
+                                                console.log(err);
                                             } else {
-                                                op = '- ';
+                                                msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
                                             }
-                                        }
-                                    }
-                                    writeAction(NAME, round_id, op, selected, dirs[d], to.before);
-                                    msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
+                                        });
                                 }
-                            });
-                        // +
-                        let existed = false;
-                        for (let i of doc[dirs[d]]) {
-                            if (i.index == to.after) {
-                                existed = true;
-                                let condition = {
-                                    round_id: round_id, index: selected
-                                };
-                                condition[dirs[d] + '.index'] = to.after;
+                            }
+                            if (!existed) {
+                                // ++
                                 let temp = {};
-                                temp[dirs[d] + '.$.sup_num'] = 1;
-                                NodeModel.findOneAndUpdate(condition,
-                                    { $inc: temp },
-                                    function (err, doc) {
+                                temp[dirs[d]] = {
+                                    index: to.after,
+                                    sup_num: 1
+                                };
+                                NodeModel.update(
+                                    { round_id: round_id, index: selected },
+                                    { $push: temp },
+                                    function (err) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                            writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
+                                            msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
                                         }
                                     });
                             }
-                        }
-                        if (!existed) {
-                            // ++
-                            let temp = {};
-                            temp[dirs[d]] = {
-                                index: to.after,
-                                sup_num: 1
-                            };
-                            NodeModel.update(
-                                { round_id: round_id, index: selected },
-                                { $push: temp },
-                                function (err) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                        writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
-                                    }
-                                });
                         }
                     }
                 }
@@ -248,13 +292,41 @@ router.route('/check').post(function (req, res, next) {
  * @return an array of recommended index, in 4 directions of the tile
  */
 router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (req, res) {
+// router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
     // query the 4 dirs of the selected tile
     let condition = {
         round_id: req.params.round_id,
         index: req.params.selected
     };
     // find the most-supported one of every dir
+    var hintIndexes = new Array();
+    var dirs = ['top', 'right', 'bottom', 'left'];
 
+    NodeModel.findOne(condition, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (!doc) {
+                res.send({ msg: "No hints." });
+            } else {
+                for (let d = 0; d < 4; d++) {
+                    let alternatives = doc[dirs[d]];
+                    if (alternatives.length == 0) {
+                        hintIndexes.push(-1);
+                    } else {
+                        let most_sup = alternatives[0];
+                        for (let a of alternatives) {
+                            if (a.sup_num > most_sup.sup_num) {
+                                most_sup = a;
+                            }
+                        }
+                        hintIndexes.push(most_sup.index);
+                    }
+                }
+                res.send(JSON.stringify(hintIndexes));
+            }
+        }
+    });
 });
 
 /**
