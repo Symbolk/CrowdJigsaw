@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 var UserModel = require('../models/user').User;
 var LinkModel = require('../models/link').Link;
 var crypto = require('crypto');
+var util = require('./util.js');
 
 const SECRET = "CrowdIntel";
 
@@ -30,24 +31,6 @@ function decrypt(str, secret) {
     var dec = decipher.update(str, 'hex', 'utf8');
     dec += decipher.final('utf8');
     return dec;
-}
-
-function getNowFormatDate() {
-    var date = new Date();
-    var seperator1 = "-";
-    var seperator2 = ":";
-    var month = date.getMonth() + 1;
-    var strDate = date.getDate();
-    if (month >= 1 && month <= 9) {
-        month = "0" + month;
-    }
-    if (strDate >= 0 && strDate <= 9) {
-        strDate = "0" + strDate;
-    }
-    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
-        + " " + date.getHours() + seperator2 + date.getMinutes()
-        + seperator2 + date.getSeconds();
-    return currentdate;
 }
 
 
@@ -77,7 +60,7 @@ router.route('/login').all(Logined).get(function (req, res) {
                     req.session.user = condition;
                     let operation = {
                         $set: {
-                            last_online_time: getNowFormatDate()
+                            last_online_time: util.getNowFormatDate()
                         }
                     };
                     UserModel.update(operation, function (err) {
@@ -112,10 +95,10 @@ router.route('/visitor').get(function (req, res) {
             var index = docs.length;
             let operation = {
                 userid: index,
-                username: 'Visitor ' + index,
+                username: 'Visitor#' + index,
                 password: "",
-                last_online_time: getNowFormatDate(),
-                register_time: getNowFormatDate()
+                last_online_time: util.getNowFormatDate(),
+                register_time: util.getNowFormatDate()
             };
             let user = { username: operation.username };
             UserModel.create(operation, function (err) {
@@ -152,8 +135,8 @@ router.route('/register').all(Logined).get(function (req, res) {
                 userid: index,
                 username: newUser.username,
                 password: newUser.password,
-                last_online_time: getNowFormatDate(),
-                register_time: getNowFormatDate()
+                last_online_time: util.getNowFormatDate(),
+                register_time: util.getNowFormatDate()
             };
             //用于查询用户名是否存在的条件
             // let selectStr={username:newUser.username};

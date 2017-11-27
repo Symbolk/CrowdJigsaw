@@ -9,35 +9,14 @@ var router = express.Router();
 const mongoose = require('mongoose');
 var NodeModel = require('../models/node').Node;
 var UserModel = require('../models/user').User;
-var LinkModel = require('../models/link').Link;
+var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
-
-var NAME = "Symbolk";//req.session.name
-
-
-function getNowFormatDate() {
-    var date = new Date();
-    var seperator1 = "-";
-    var seperator2 = ":";
-    var month = date.getMonth() + 1;
-    var strDate = date.getDate();
-    if (month >= 1 && month <= 9) {
-        month = "0" + month;
-    }
-    if (strDate >= 0 && strDate <= 9) {
-        strDate = "0" + strDate;
-    }
-    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
-        + " " + date.getHours() + seperator2 + date.getMinutes()
-        + seperator2 + date.getSeconds();
-    return currentdate;
-}
-
+var util = require('./util.js');
 
 /**
  * Get all the round graph
  */
-router.get('/:round_id', function (req, res, next) {
+router.route('/:round_id').all(JoinRoundFirst).get(function (req, res) {
     NodeModel.find({ round_id: req.params.round_id }, function (err, docs) {
         if (err) {
             console.log(err);
@@ -49,31 +28,12 @@ router.get('/:round_id', function (req, res, next) {
 
 
 /**
- * Init the graph for the round
- */
-router.get('/initGraph/:round_id', function (req, res, next) {
-    let tiles_num = 64;
-    for (let i = 0; i < tiles_num; i++) {
-        new NodeModel({
-            index: i,
-            round_id: req.params.round_id
-        }).save(function (err) {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
-    res.send({ msg: "Graph for Round " + req.params.round_id + "built." });
-});
-
-
-/**
  * Write one action into the action sequence
  */
-function writeAction(round_id, operation, from, direction, to) {
+function writeAction(NAME, round_id, operation, from, direction, to) {
     var action = {
         round_id: round_id,
-        time_stamp: getNowFormatDate(),
+        time_stamp: util.getNowFormatDate(),
         player_name: NAME,
         operation: operation,
         from: from,
@@ -93,10 +53,12 @@ function writeAction(round_id, operation, from, direction, to) {
 /**
  * Check the links and format the action object
  */
-router.post('/check', function (req, res, next) {
+router.route('/check').post(function (req, res, next) {
     let round_id = req.body.round_id;
+    var NAME = req.session.user.username;
     let selected = req.body.selectedTile;
     let around = req.body.aroundTiles;
+    let msgs = new Array();
     // For every posted nodes, add them to the nodes(graph), and decide which way 
     NodeModel.findOne({ round_id: round_id, index: selected }, function (err, doc) {
         if (err) {
@@ -121,8 +83,8 @@ router.post('/check', function (req, res, next) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                            writeAction(round_id, "++", selected, dirs[d], to.after);
-                                            res.send({ msg: '++ ' + selected + '-' + dirs[d] + '->' + to.after, data: doc });
+                                        writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                        msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
                                     }
                                 });
                         } else {
@@ -143,8 +105,8 @@ router.post('/check', function (req, res, next) {
                                             if (err) {
                                                 console.log(err);
                                             } else {
-                                                writeAction(round_id, "+", selected, dirs[d], to.after);
-                                                res.send({ msg: '+ ' + selected + '-' + dirs[d] + '->' + to.after, data: doc });
+                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
+                                                msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
                                             }
                                         });
                                 }
@@ -163,8 +125,8 @@ router.post('/check', function (req, res, next) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            writeAction(round_id, "++", selected, dirs[d], to.after);
-                                            res.send({ msg: '++ ' + selected + '-' + dirs[d] + '->' + to.after, data: doc });
+                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                            msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
                                         }
                                     });
                             }
@@ -196,8 +158,8 @@ router.post('/check', function (req, res, next) {
                                                 }
                                             }
                                         }
-                                        writeAction(round_id, op, selected, dirs[d], to.before);                                        
-                                        res.send({ msg: op + selected + '-' + dirs[d] + '->' + to.before, data: doc });
+                                        writeAction(NAME, round_id, op, selected, dirs[d], to.before);
+                                        msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
                                     }
                                 });
                         }
@@ -227,8 +189,8 @@ router.post('/check', function (req, res, next) {
                                             }
                                         }
                                     }
-                                    writeAction(round_id, op, selected, dirs[d], to.before);                                    
-                                    to_send["msg1"] = op + selected + '-' + dirs[d] + '->' + to.before;
+                                    writeAction(NAME, round_id, op, selected, dirs[d], to.before);
+                                    msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
                                 }
                             });
                         // +
@@ -248,10 +210,8 @@ router.post('/check', function (req, res, next) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            to_send["msg2"] = '+ ' + selected + '-' + dirs[d] + '->' + to.after;
-                                            to_send["data"] = doc;
-                                            writeAction(round_id, "+", selected, dirs[d], to.after);                                            
-                                            res.send(to_send);
+                                            msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                            writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
                                         }
                                     });
                             }
@@ -270,10 +230,8 @@ router.post('/check', function (req, res, next) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        to_send["msg2"] = '++ ' + selected + '-' + dirs[d] + '->' + to.after;
-                                        to_send["data"] = doc;
-                                        writeAction(round_id, "++", selected, dirs[d], to.after);                                        
-                                        res.send(to_send);
+                                        msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                        writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
                                     }
                                 });
                         }
@@ -289,6 +247,44 @@ router.post('/check', function (req, res, next) {
  * Get hints from the current graph data
  * @return an array of recommended index, in 4 directions of the tile
  */
+router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (req, res) {
+    // query the 4 dirs of the selected tile
+    let condition = {
+        round_id: req.params.round_id,
+        index: req.params.selected
+    };
+    // find the most-supported one of every dir
+
+});
+
+/**
+ * Access Control
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
+function JoinRoundFirst(req, res, next) {
+
+    RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, players: 1 }, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (!req.session.user) {
+                req.session.error = 'Please Login First!';
+                return res.redirect('/login');
+            }
+
+            let hasJoined = doc.players.some(function (p) {
+                return (p.player_name == req.session.user.username);
+            });
+            if (!hasJoined) {
+                req.session.error = "You haven't joined this Round!";
+                return res.redirect('/home');
+            }
+            next();
+        }
+    });
+}
 
 
 module.exports = router;
