@@ -63,15 +63,15 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
         timeout: 5000,
         success: function (data) {
             if(data.hasOwnProperty("msg")){
-                console.log(data.msg);
+                console.log('checkLinks: ' + data.msg);
             }else{
-                console.log(data.msg1);
-                console.log(data.msg2);
+                console.log('checkLinks: ' + data.msg1);
+                console.log('checkLinks: ' + data.msg2);
             }
           return true;
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
+            console.log('checkLinks: ' + 'error ' + textStatus + " " + errorThrown);
             return false;
         }
     });
@@ -94,10 +94,11 @@ function getHints(round_id, selectedTileIndex) {
         success: function (data) {
             // var data = $.parseJSON(data);
             // indexes = directions(0 1 2 3=T R B L)
+            console.log('getHints: ' + data);
             return data;
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
+            console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
         }
     });
 }
@@ -119,10 +120,10 @@ function sendRecord(round_id, level, when, steps, time) {
         cache: false,
         timeout: 5000,
         success: function (data) {
-          console.log(data.msg);
+          console.log('saveRecord: ' + data.msg);
         },
         error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
+            console.log('saveRecord: ' + 'error ' + textStatus + " " + errorThrown);
         }
     });
 }

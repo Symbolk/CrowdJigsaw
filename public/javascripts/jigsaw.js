@@ -1153,10 +1153,10 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
-                console.log(data);
+                console.log('saveGame: ' + data);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.log('error ' + textStatus + " " + errorThrown);
+                console.log('saveGame: ' + 'error ' + textStatus + " " + errorThrown);
             }
         });
     }
@@ -1169,15 +1169,14 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
-                console.log(data);
                 if(data.round_id != roundID){
                     return;
                 }
+                console.log('loadGame: ' + 'success');
                 time = data.time;
                 steps = data.steps;
                 document.getElementById("steps").innerHTML = instance.steps;
                 var tiles = JSON.parse(data.tiles);
-                console.log(tiles);
                 for(var i = 0; i < tiles.length; i++){
                     var tilePos = tiles[i];
                     var tile = instance.tiles[tilePos.index];
@@ -1185,7 +1184,7 @@ function JigsawPuzzle(config) {
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.log('error ' + textStatus + " " + errorThrown);
+                console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
             }
         });
     }
