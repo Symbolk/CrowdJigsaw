@@ -1,5 +1,4 @@
-var level = getUrlParams('level');
-var roundID = getUrlParams('roundID');
+
 
 function quitRound(roundID){
     $.ajax({
@@ -40,6 +39,22 @@ $('.restart').click(function () {
 $('.returnCenter').click(function () {
     view.scrollBy(new Point(560, 360) - view.center);
 });
+
+// var point = view.center;
+// var path = new Path.Circle(point, 5);
+// console.log(point);
+
+// path.fillColor = 'black';
+// var fuck = new Raster('images/cat.jpg', point);
+// console.log(fuck.positon);
+// fuck.position.x += 100;
+
+// // fuck.positon.x = point.x;
+
+// fuck.size = new Size(100,100);
+//var fuck2 = new Raster('images/minions.jpg');
+//fuck2.positon = view.center;
+//console.log(fuck2);
 
 /**
  * Ensure quit
@@ -111,7 +126,7 @@ view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
 
-$('#puzzle-image').attr('src', 'images/minions.jpg');
+$('#puzzle-image').attr('src', imgSrc);
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
@@ -349,6 +364,8 @@ function JigsawPuzzle(config) {
                 tile.positionMoved = false;
             }
         }
+        loadGame();
+        saveGame();
     }
 
     function createTiles(xTileCount, yTileCount) {
@@ -847,6 +864,7 @@ function JigsawPuzzle(config) {
             }
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
+                saveGame();
             }
 
             if (!hasConflict && instance.showHints) {
@@ -873,7 +891,7 @@ function JigsawPuzzle(config) {
                     clearTimeout(t);
                     gameFinishDialog.showModal();
                     // sendRecord('Level 1', '2017-10-31 14:00', 245, '16:24');
-                    sendRecord(level, getNowFormatDate(), Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
+                    sendRecord(roundID, level, getNowFormatDate(), Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
                     instance.gameFinished = true;
                 }
             }
@@ -1108,6 +1126,68 @@ function JigsawPuzzle(config) {
             instance.tiles[i].visible = visible;
         }
         instance.puzzleImage.visible = !visible;
+    }
+
+    function saveGame(){
+        var tilePositions = new Array();
+        for(var i = 0; i < instance.tiles.length; i++){
+            var tile = instance.tiles[i];
+            var tilePos = {
+                index: i,
+                x: tile.cellPosition.x,
+                y: tile.cellPosition.y
+            };
+            tilePositions.push(tilePos);
+        }
+        var params = {
+            round_id: roundID,
+            steps: instance.steps,
+            time: time,
+            tiles: JSON.stringify(tilePositions)
+        };
+        $.ajax({
+            url: requrl + 'round/saveGame',
+            data: params,
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
+    }
+
+    function loadGame(data){
+        $.ajax({
+            url: requrl + 'round/loadGame',
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                console.log(data);
+                if(data.round_id != roundID){
+                    return;
+                }
+                time = data.time;
+                steps = data.steps;
+                document.getElementById("steps").innerHTML = instance.steps;
+                var tiles = JSON.parse(data.tiles);
+                console.log(tiles);
+                for(var i = 0; i < tiles.length; i++){
+                    var tilePos = tiles[i];
+                    var tile = instance.tiles[tilePos.index];
+                    placeTile(tile, new Point(tilePos.x, tilePos.y));
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
     }
 
 }

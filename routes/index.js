@@ -188,18 +188,24 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 });
 
 // Puzzle
-router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-    // let selected_level=req.query.level;
-    req.session.error = 'Game Started!';
-    res.render('puzzle', { title: 'Puzzle' });
-});
+// router.route('/puzzle').all(LoginFirst).get(function (req, res) {
+//     // let selected_level=req.query.level;
+//     req.session.error = 'Game Started!';
+//     res.render('puzzle', { title: 'Puzzle' });
+// });
 
 // Round
-router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
-    // let selected_level=req.query.level;
-    req.session.error = 'Game Started!';   
+router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {  
     res.render('rounddisplay', { title: 'Round', username: req.session.user.username});
 });
+
+router.route('/puzzle').all(LoginFirst).get(function (req, res) {
+    let level = req.query.level;
+    let roundID = req.query.roundID;
+    let image = req.query.image;
+    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image});
+});
+
 
 // Reset Password
 router.route('/reset').get(function (req, res) {

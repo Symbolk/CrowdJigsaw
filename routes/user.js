@@ -6,6 +6,15 @@ const mongoose = require('mongoose');
 var UserModel = mongoose.model('User');
 var util = require('./util.js');
 
+function LoginFirst(req, res, next) {
+    if (!req.session.user) {
+        req.session.error = 'Please Login First!';
+        return res.redirect('/login');
+        //return res.redirect('back');//返回之前的页面
+    }
+    next();
+}
+
 /* GET users listing. */
 router.get('/', function (req, res, next) {
     UserModel.find({}, function (err, docs) {
@@ -36,6 +45,5 @@ router.post('/saveRecord', function (req, res, next) {
         }
     });
 });
-
 
 module.exports = router;

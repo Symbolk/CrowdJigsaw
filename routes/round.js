@@ -56,7 +56,6 @@ function isCreator(req, res, next){
     });
 }
 
-
 /**
  * Get all rounds
  */
@@ -81,6 +80,7 @@ router.route('/getJoinableRounds').all(LoginFirst).get(function (req, res, next)
         }
     });
 });
+
 
 /**
  * Join a round
@@ -232,7 +232,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
 /**
  * Quit a round, either by user or by accident, when unfinished
  */
-router.get('/quitRound/:round_id', function (req, res, next) {
+router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
     let condition = {
         round_id: req.params.round_id
     };
@@ -294,8 +294,8 @@ router.get('/quitRound/:round_id', function (req, res, next) {
 /**
  * Save a record by one user when he gets his puzzle done
  */
-router.post('/saveRecord', function (req, res, next) {
-    let TIME= util.getNowFormatDate();
+router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
+    let TIME=getNowFormatDate();
     let contri=0;// to be calculated
     let operation={
         $set:{
@@ -313,5 +313,46 @@ router.post('/saveRecord', function (req, res, next) {
         }
     });
 });
+
+/**
+ * Save a game by one user
+ */
+router.all(LoginFirst).post('/saveGame', function (req, res, next) {
+    var save_game = {
+        round_id: req.body.round_id,
+        steps: req.body.steps,
+        time: req.body.time,
+        tiles: req.body.tiles
+    }
+    let operation={
+        $set:{
+            save_game: save_game
+        }
+    };
+    UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
+        if(err){
+            console.log(err);
+        }else{
+            res.send({ msg:"Your game has been saved." });
+        }
+    });
+});
+
+/**
+ * Load a game by one user
+ */
+router.all(LoginFirst).get('/loadGame', function (req, res, next) {
+    let condition = {
+        username: req.session.user.username
+    };
+    UserModel.findOne(condition, function (err, doc) {
+        if(err){
+            console.log(err);
+        }else{
+            res.send(JSON.stringify(doc.save_game));
+        }
+    });
+});
+
 
 module.exports = router;
