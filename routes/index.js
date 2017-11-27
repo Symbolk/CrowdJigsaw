@@ -217,9 +217,9 @@ router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-    let level = req.param('level');
-    let roundID = req.param('roundID');
-    let image = req.param('image');
+    let level = req.query.level;
+    let roundID = req.query.roundID;
+    let image = req.query.image;
     res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image});
 });
 

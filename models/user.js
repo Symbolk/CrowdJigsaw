@@ -18,6 +18,12 @@ var UserSchema = new mongoose.Schema({
             contribution: { type: Number, default: -1 }// a contribution score, calculated when one round end
         }
     ],
+    save_game: {
+        round_id: { type: Number },
+        steps: { type: Number },
+        time: { type: Number },
+        tiles: { type: String}
+    }
     // rank: { type: Number, default: 0 }
 },
     // When no collection argument is passed, Mongoose pluralizes the name.

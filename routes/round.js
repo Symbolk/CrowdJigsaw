@@ -313,4 +313,45 @@ router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
     });
 });
 
+/**
+ * Save a game by one user
+ */
+router.all(LoginFirst).post('/saveGame', function (req, res, next) {
+    var save_game = {
+        round_id: req.body.round_id,
+        steps: req.body.steps,
+        time: req.body.time,
+        tiles: req.body.tiles
+    }
+    let operation={
+        $set:{
+            save_game: save_game
+        }
+    };
+    UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
+        if(err){
+            console.log(err);
+        }else{
+            res.send({ msg:"Your game has been saved." });
+        }
+    });
+});
+
+/**
+ * Load a game by one user
+ */
+router.all(LoginFirst).get('/loadGame', function (req, res, next) {
+    let condition = {
+        username: req.session.user.username
+    };
+    UserModel.findOne(condition, function (err, doc) {
+        if(err){
+            console.log(err);
+        }else{
+            res.send(JSON.stringify(doc.save_game));
+        }
+    });
+});
+
+
 module.exports = router;

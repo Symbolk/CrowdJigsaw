@@ -364,6 +364,8 @@ function JigsawPuzzle(config) {
                 tile.positionMoved = false;
             }
         }
+        loadGame();
+        saveGame();
     }
 
     function createTiles(xTileCount, yTileCount) {
@@ -862,6 +864,7 @@ function JigsawPuzzle(config) {
             }
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
+                saveGame();
             }
 
             if (!hasConflict && instance.showHints) {
@@ -1123,6 +1126,68 @@ function JigsawPuzzle(config) {
             instance.tiles[i].visible = visible;
         }
         instance.puzzleImage.visible = !visible;
+    }
+
+    function saveGame(){
+        var tilePositions = new Array();
+        for(var i = 0; i < instance.tiles.length; i++){
+            var tile = instance.tiles[i];
+            var tilePos = {
+                index: i,
+                x: tile.cellPosition.x,
+                y: tile.cellPosition.y
+            };
+            tilePositions.push(tilePos);
+        }
+        var params = {
+            round_id: roundID,
+            steps: instance.steps,
+            time: time,
+            tiles: JSON.stringify(tilePositions)
+        };
+        $.ajax({
+            url: requrl + 'round/saveGame',
+            data: params,
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
+    }
+
+    function loadGame(data){
+        $.ajax({
+            url: requrl + 'round/loadGame',
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                console.log(data);
+                if(data.round_id != roundID){
+                    return;
+                }
+                time = data.time;
+                steps = data.steps;
+                document.getElementById("steps").innerHTML = instance.steps;
+                var tiles = JSON.parse(data.tiles);
+                console.log(tiles);
+                for(var i = 0; i < tiles.length; i++){
+                    var tilePos = tiles[i];
+                    var tile = instance.tiles[tilePos.index];
+                    placeTile(tile, new Point(tilePos.x, tilePos.y));
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
     }
 
 }
