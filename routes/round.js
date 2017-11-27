@@ -5,24 +5,8 @@ var router = express.Router();
 const mongoose = require('mongoose');
 var RoundModel = require('../models/round').Round;
 var UserModel = require('../models/user').User;
-
-function getNowFormatDate() {
-    var date = new Date();
-    var seperator1 = "-";
-    var seperator2 = ":";
-    var month = date.getMonth() + 1;
-    var strDate = date.getDate();
-    if (month >= 1 && month <= 9) {
-        month = "0" + month;
-    }
-    if (strDate >= 0 && strDate <= 9) {
-        strDate = "0" + strDate;
-    }
-    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
-        + " " + date.getHours() + seperator2 + date.getMinutes()
-        + seperator2 + date.getSeconds();
-    return currentdate;
-}
+var NodeModel = require('../models/node').Node;
+var util = require('./util.js');
 
 function createRecord(player_name, round_id, join_time) {
     let condition = {
@@ -54,11 +38,28 @@ function LoginFirst(req, res, next) {
     next();
 }
 
+function isCreator(req, res, next){
+    RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, creator: 1 }, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (!req.session.user) {
+                req.session.error = 'Please Login First!';
+                return res.redirect('/login');
+            }
+
+            if (doc.creator!=req.session.user.username) {
+                req.session.error = "You are not the Boss!";
+            }
+            next();
+        }
+    });
+}
 
 /**
  * Get all rounds
  */
-router.get('/', function (req, res, next) {
+router.route('/').all(LoginFirst).get(function (req, res, next) {
     RoundModel.find({}, function (err, docs) {
         res.send(JSON.stringify(docs));
     });
@@ -67,7 +68,7 @@ router.get('/', function (req, res, next) {
 /**
  * Get all Joinable rounds
  */
-router.get('/getJoinableRounds', function (req, res, next) {
+router.route('/getJoinableRounds').all(LoginFirst).get(function (req, res, next) {
     let condition = {
         end_time: "-1"
     };
@@ -84,7 +85,7 @@ router.get('/getJoinableRounds', function (req, res, next) {
 /**
  * Join a round
  */
-router.all(LoginFirst).post('/joinRound', function (req, res, next) {
+router.route('/joinRound').all(LoginFirst).post(function (req, res, next) {
     let condition = {
         round_id: req.body.round_id
     };
@@ -97,7 +98,7 @@ router.all(LoginFirst).post('/joinRound', function (req, res, next) {
                 let isIn = doc.players.some(function (p) {
                     return (p.player_name == req.session.user.username);
                 });
-                let TIME = getNowFormatDate();
+                let TIME = util.getNowFormatDate();
                 if (!isIn) {
                     let operation = {
                         $addToSet: { //if exists, give up add
@@ -133,7 +134,7 @@ router.all(LoginFirst).post('/joinRound', function (req, res, next) {
 /**
  * Get player list for one round
  */
-router.get('/getPlayers/:round_id', function (req, res, next) {
+router.route('/getPlayers/:round_id').all(LoginFirst).get(function (req, res, next) {
     let condition = {
         round_id: req.params.round_id
     };
@@ -149,13 +150,13 @@ router.get('/getPlayers/:round_id', function (req, res, next) {
 /**
  * Create a new round
  */
-router.all(LoginFirst).post('/newRound', function (req, res, next) {
+router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
     RoundModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
         } else {
             let index = docs.length;
-            let TIME = getNowFormatDate();
+            let TIME = util.getNowFormatDate();
             let operation = {
                 round_id: index,
                 creator: req.session.user.username,
@@ -185,7 +186,7 @@ router.all(LoginFirst).post('/newRound', function (req, res, next) {
 /**
  * Start a round(only by the creator, after the player_num reached)
  */
-router.all(LoginFirst).get('/startRound/:round_id', function (req, res, next) {
+router.route('/startRound/:round_id').all(isCreator).get(function (req, res, next) {
     let condition = {
         round_id: req.params.round_id
     };
@@ -196,7 +197,7 @@ router.all(LoginFirst).get('/startRound/:round_id', function (req, res, next) {
             console.log(err);
         } else {
             if (doc.players.length == doc.players_num) {
-                let TIME = getNowFormatDate();
+                let TIME = util.getNowFormatDate();
                 let operation = {
                     $set: {
                         start_time: TIME
@@ -206,7 +207,7 @@ router.all(LoginFirst).get('/startRound/:round_id', function (req, res, next) {
                     if (err) {
                         console.log(err);
                     } else {
-                        res.send({ msg: "Round Starts Now!" })
+                        res.send({ msg: "Round Starts Now!" });
                         operation = {
                             $set: {
                                 start_time: TIME
@@ -252,7 +253,7 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
                                     player_name: req.session.user.username
                                 }
                         },
-                        end_time: getNowFormatDate()
+                        end_time: util.getNowFormatDate()
                     };
                     RoundModel.update(condition, operation, function (err) {
                         if (err) {

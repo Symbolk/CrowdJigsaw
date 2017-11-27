@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 var UserModel = require('../models/user').User;
 var LinkModel = require('../models/link').Link;
 var crypto = require('crypto');
+var util = require('./util.js');
 
 const SECRET = "CrowdIntel";
 
@@ -30,24 +31,6 @@ function decrypt(str, secret) {
     var dec = decipher.update(str, 'hex', 'utf8');
     dec += decipher.final('utf8');
     return dec;
-}
-
-function getNowFormatDate() {
-    var date = new Date();
-    var seperator1 = "-";
-    var seperator2 = ":";
-    var month = date.getMonth() + 1;
-    var strDate = date.getDate();
-    if (month >= 1 && month <= 9) {
-        month = "0" + month;
-    }
-    if (strDate >= 0 && strDate <= 9) {
-        strDate = "0" + strDate;
-    }
-    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
-        + " " + date.getHours() + seperator2 + date.getMinutes()
-        + seperator2 + date.getSeconds();
-    return currentdate;
 }
 
 
@@ -77,7 +60,7 @@ router.route('/login').all(Logined).get(function (req, res) {
                     req.session.user = condition;
                     let operation = {
                         $set: {
-                            last_online_time: getNowFormatDate()
+                            last_online_time: util.getNowFormatDate()
                         }
                     };
                     UserModel.update(operation, function (err) {
@@ -112,10 +95,10 @@ router.route('/visitor').get(function (req, res) {
             var index = docs.length;
             let operation = {
                 userid: index,
-                username: 'Visitor ' + index,
+                username: 'Visitor#' + index,
                 password: "",
-                last_online_time: getNowFormatDate(),
-                register_time: getNowFormatDate()
+                last_online_time: util.getNowFormatDate(),
+                register_time: util.getNowFormatDate()
             };
             let user = { username: operation.username };
             UserModel.create(operation, function (err) {
@@ -152,8 +135,8 @@ router.route('/register').all(Logined).get(function (req, res) {
                 userid: index,
                 username: newUser.username,
                 password: newUser.password,
-                last_online_time: getNowFormatDate(),
-                register_time: getNowFormatDate()
+                last_online_time: util.getNowFormatDate(),
+                register_time: util.getNowFormatDate()
             };
             //用于查询用户名是否存在的条件
             // let selectStr={username:newUser.username};
@@ -373,71 +356,6 @@ function LoginFirst(req, res, next) {
     }
     next();
 }
-
-/**
- * Get hint tile indexes from the server
- * 1, find all links from the selected tile
- * 2, update their hintScore and hintDir
- * 3, sort the links by hintScore desc
- * 4, return the hintIndexes in direction order
- */
-router.get('/getHints/:from', function (req, res) {
-    let condition = {
-        from: req.params.from
-    };
-    LinkModel.find(condition, function (err, docs) {
-        if (err) {
-            console.log(err);
-        } else {
-            // update the score and dir of every link
-            for (let d of docs) {
-                condition = {
-                    from: req.params.from,
-                    to: d.to
-                };
-                let score = d.supNum;
-                // calculate the direction
-                let counter = new Array(0, 0, 0, 0);//k:v=dir:num
-                for (let s of d.supporters) {
-                    counter[s.direction] += 1;
-                }
-                let dir = counter.indexOf(Math.max.apply(Math, counter));
-                let operation = {
-                    $set:
-                        {
-                            hintScore: score,
-                            hintDir: dir
-                        }
-                };
-                LinkModel.update(condition, operation, function (err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log('Scored ' + score);
-                    }
-                });
-            }
-            condition = {
-                from: req.params.from
-            };
-            let hintIndexes = new Array(-1, -1, -1, -1);
-            LinkModel.find(condition)
-                .sort({ score: -1 })
-                .limit(4)
-                .exec(function (err, docs) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        for (let d of docs) {
-                            hintIndexes[Number(d.hintDir)] = d.to;
-                        }
-                        // console.log(hintIndexes);
-                        res.send(JSON.stringify(hintIndexes));
-                    }
-                });
-        }
-    });
-});
 
 
 module.exports = router;

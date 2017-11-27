@@ -86,7 +86,7 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
 function getHints(round_id, selectedTileIndex) {
     // var hintTileIndexes=new Array(-1,-1,-1,-1);
     $.ajax({
-        url: requrl + 'graph/getHints' + '/' + selectedTileIndex,
+        url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
         type: 'get',
         dataType: 'json',
         cache: false,
