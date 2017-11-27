@@ -170,7 +170,7 @@ function renderRoundList(data){
             if(round.start_time != '-1'){
                 for(var player of round.players){
                     if(username == player.player_name){
-                        startPuzzle(level, roundID);
+                        startPuzzle(level, roundID, round.image);
                     }
                 }
                 continue;
@@ -321,7 +321,7 @@ function startRound(roundID){
         timeout: 5000,
         success: function (data) {
             console.log(data);
-            startPuzzle(level, roundID);
+            getJoinableRounds();
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
@@ -329,6 +329,6 @@ function startRound(roundID){
     });
 }
 
-function startPuzzle(level, roundID){
-    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID;
+function startPuzzle(level, roundID, imageURL){
+    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imageURL;
 }

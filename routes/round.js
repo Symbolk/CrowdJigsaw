@@ -45,6 +45,16 @@ function createRecord(player_name, round_id, join_time) {
     });
 }
 
+function LoginFirst(req, res, next) {
+    if (!req.session.user) {
+        req.session.error = 'Please Login First!';
+        return res.redirect('/login');
+        //return res.redirect('back');//返回之前的页面
+    }
+    next();
+}
+
+
 /**
  * Get all rounds
  */
@@ -70,10 +80,11 @@ router.get('/getJoinableRounds', function (req, res, next) {
     });
 });
 
+
 /**
  * Join a round
  */
-router.post('/joinRound', function (req, res, next) {
+router.all(LoginFirst).post('/joinRound', function (req, res, next) {
     let condition = {
         round_id: req.body.round_id
     };
@@ -122,7 +133,7 @@ router.post('/joinRound', function (req, res, next) {
 /**
  * Get player list for one round
  */
-router.route('/getPlayers/:round_id').get(function (req, res, next) {
+router.get('/getPlayers/:round_id', function (req, res, next) {
     let condition = {
         round_id: req.params.round_id
     };
@@ -138,7 +149,7 @@ router.route('/getPlayers/:round_id').get(function (req, res, next) {
 /**
  * Create a new round
  */
-router.post('/newRound', function (req, res, next) {
+router.all(LoginFirst).post('/newRound', function (req, res, next) {
     RoundModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
@@ -174,7 +185,7 @@ router.post('/newRound', function (req, res, next) {
 /**
  * Start a round(only by the creator, after the player_num reached)
  */
-router.get('/startRound/:round_id', function (req, res, next) {
+router.all(LoginFirst).get('/startRound/:round_id', function (req, res, next) {
     let condition = {
         round_id: req.params.round_id
     };
@@ -220,7 +231,7 @@ router.get('/startRound/:round_id', function (req, res, next) {
 /**
  * Quit a round, either by user or by accident, when unfinished
  */
-router.get('/quitRound/:round_id', function (req, res, next) {
+router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
     let condition = {
         round_id: req.params.round_id
     };
@@ -282,7 +293,7 @@ router.get('/quitRound/:round_id', function (req, res, next) {
 /**
  * Save a record by one user when he gets his puzzle done
  */
-router.post('/saveRecord', function (req, res, next) {
+router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
     let TIME=getNowFormatDate();
     let contri=0;// to be calculated
     let operation={

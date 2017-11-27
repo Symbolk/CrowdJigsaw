@@ -1,5 +1,4 @@
-var level = getUrlParams('level');
-var roundID = getUrlParams('roundID');
+
 
 function quitRound(roundID){
     $.ajax({
@@ -40,6 +39,22 @@ $('.restart').click(function () {
 $('.returnCenter').click(function () {
     view.scrollBy(new Point(560, 360) - view.center);
 });
+
+// var point = view.center;
+// var path = new Path.Circle(point, 5);
+// console.log(point);
+
+// path.fillColor = 'black';
+// var fuck = new Raster('images/cat.jpg', point);
+// console.log(fuck.positon);
+// fuck.position.x += 100;
+
+// // fuck.positon.x = point.x;
+
+// fuck.size = new Size(100,100);
+//var fuck2 = new Raster('images/minions.jpg');
+//fuck2.positon = view.center;
+//console.log(fuck2);
 
 /**
  * Ensure quit
@@ -111,7 +126,7 @@ view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
 
-$('#puzzle-image').attr('src', 'images/minions.jpg');
+$('#puzzle-image').attr('src', imgSrc);
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');

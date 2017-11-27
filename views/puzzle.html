@@ -1,6 +1,5 @@
 <link rel='stylesheet' href='/stylesheets/jigsaw.css' />
 <script type="text/javascript" src="/javascripts/paper-full.js"></script>
-<script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
 
 <% include header.html %>
     <div class="demo-layout-transparent mdl-layout mdl-js-layout">
@@ -41,5 +40,21 @@
             <main class="puzzle">
                 <canvas id="canvas" class="canvas" resize></canvas>
             </main>
+
+            <script type="text/javascript">
+                var level = "<%-level%>";
+                var roundID = "<%-roundID%>";
+                var imgSrc = "<%-image%>";
+
+                console.log(imgSrc);
+
+                var image = new Image();
+                image.src = imgSrc;
+                document.querySelector('.puzzle-image').width= image.width;
+                document.querySelector('.puzzle-image').height=image.height;
+                document.querySelector('.puzzle-image').src=imgSrc;
+            </script>
+
+            <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
     </div>
 <% include footer.html %>
