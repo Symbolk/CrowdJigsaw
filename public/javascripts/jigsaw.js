@@ -891,7 +891,7 @@ function JigsawPuzzle(config) {
                     clearTimeout(t);
                     gameFinishDialog.showModal();
                     // sendRecord('Level 1', '2017-10-31 14:00', 245, '16:24');
-                    sendRecord(level, getNowFormatDate(), Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
+                    sendRecord(roundID, level, getNowFormatDate(), Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
                     instance.gameFinished = true;
                 }
             }
