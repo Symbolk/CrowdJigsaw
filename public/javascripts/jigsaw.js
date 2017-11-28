@@ -371,8 +371,8 @@ function JigsawPuzzle(config) {
                     new Point(instance.puzzleImage.size.width, instance.puzzleImage.size.height / 2);
 
                 var cellPosition = new Point(
-                    Math.round(position.x / instance.tileWidth) + 1,//returns int closest to arg
-                    Math.round(position.y / instance.tileWidth) + 1);
+                    Math.round(position.x / instance.tileWidth),//returns int closest to arg
+                    Math.round(position.y / instance.tileWidth));
 
                 tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
                 tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
