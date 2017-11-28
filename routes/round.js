@@ -322,7 +322,8 @@ router.all(LoginFirst).post('/saveGame', function (req, res, next) {
         round_id: req.body.round_id,
         steps: req.body.steps,
         time: req.body.time,
-        tiles: req.body.tiles
+        tiles: req.body.tiles,
+        shape_array: req.body.shape_array
     }
     let operation={
         $set:{

@@ -22,7 +22,8 @@ var UserSchema = new mongoose.Schema({
         round_id: { type: Number },
         steps: { type: Number },
         time: { type: Number },
-        tiles: { type: String}
+        tiles: { type: String},
+        shape_array: { type: String}
     }
     // rank: { type: Number, default: 0 }
 },
