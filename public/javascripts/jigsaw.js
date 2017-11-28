@@ -38,22 +38,6 @@ $('.returnCenter').click(function () {
     view.scrollBy(new Point(560, 360) - view.center);
 });
 
-// var point = view.center;
-// var path = new Path.Circle(point, 5);
-// console.log(point);
-
-// path.fillColor = 'black';
-// var fuck = new Raster('images/cat.jpg', point);
-// console.log(fuck.positon);
-// fuck.position.x += 100;
-
-// // fuck.positon.x = point.x;
-
-// fuck.size = new Size(100,100);
-//var fuck2 = new Raster('images/minions.jpg');
-//fuck2.positon = view.center;
-//console.log(fuck2);
-
 /**
  * Ensure quit
  */
@@ -327,9 +311,9 @@ function JigsawPuzzle(config) {
 
     this.gameFinished = false;
 
-    //loadGame();
+    loadGame();
 
-    createAndPlaceTiles();
+    //createAndPlaceTiles();
 
     function createAndPlaceTiles(){
 
@@ -341,7 +325,7 @@ function JigsawPuzzle(config) {
         }
         randomPlaceTiles(instance.tilesPerRow, instance.tilesPerColumn);
         
-        //saveGame();
+        saveGame();
         // keep track of the steps of the current user
     }
 
@@ -353,6 +337,11 @@ function JigsawPuzzle(config) {
                 var tilePos = instance.saveTilePositions[i];
                 var tile = instance.tiles[tilePos.index];
                 placeTile(tile, new Point(tilePos.x, tilePos.y));
+                tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
+                tile.aroundTilesChanged = false;
+                tile.noAroundTiles = true;
+                tile.aroundTiles = new Array(-1, -1, -1, -1);
+                tile.positionMoved = false;
             }
             return;
         }
@@ -378,8 +367,6 @@ function JigsawPuzzle(config) {
                 tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
                 tile.relativePosition = new Point(0, 0);
                 tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
-                tile.groupID = -1; // to which group the tile belongs(-1 by default
-                tile.grouped = false;
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
@@ -834,7 +821,6 @@ function JigsawPuzzle(config) {
 
         if (aroundTilesChanged) {
             // selected, before, after
-            console.log('checkLinks roundID: ' + roundID);
             checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
         }
         
@@ -889,7 +875,7 @@ function JigsawPuzzle(config) {
             }
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
-                //saveGame();
+                saveGame();
             }
 
             if (!hasConflict && instance.showHints) {
@@ -1171,7 +1157,6 @@ function JigsawPuzzle(config) {
             tiles: JSON.stringify(tilePositions),
             shape_array: JSON.stringify(instance.shapeArray)
         };
-        console.log(params);
         $.ajax({
             url: requrl + 'round/saveGame',
             data: params,
@@ -1201,7 +1186,7 @@ function JigsawPuzzle(config) {
                     time = data.time;
                     steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
-                    instance.saveShapeArray = data.shape_array;
+                    instance.saveShapeArray = JSON.parse(data.shape_array);
                     instance.saveTilePositions = JSON.parse(data.tiles);
                 }
                 createAndPlaceTiles();
