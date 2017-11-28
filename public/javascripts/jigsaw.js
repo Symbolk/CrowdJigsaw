@@ -1,5 +1,3 @@
-
-
 function quitRound(roundID){
     $.ajax({
         url: requrl + 'round' + '/quitRound/' + roundID,
@@ -317,23 +315,47 @@ function JigsawPuzzle(config) {
     this.selectedTile = undefined;
     this.selectedGroup = undefined;
 
+    this.saveShapeArray = undefined;
+    this.saveTilePositions = undefined;
+    this.shapeArray = undefined;
+    this.tiles = undefined;
+
     this.shadowScale = 1.5;
-    if (this.tileShape == "voronoi") {
-        this.tiles = createVoronoiTiles(this.tilesPerRow, this.tilesPerColumn);
-    }
-    else {
-        this.tiles = createTiles(this.tilesPerRow, this.tilesPerColumn);
-    }
-    randomPlaceTiles(this.tilesPerRow, this.tilesPerColumn);
-    // keep track of the steps of the current user
+
     this.steps = 0;
     this.allowOverlap = config.allowOverlap;
 
     this.gameFinished = false;
 
+    //loadGame();
+
+    createAndPlaceTiles();
+
+    function createAndPlaceTiles(){
+
+        if (instance.tileShape == "voronoi") {
+            instance.tiles = createVoronoiTiles(instance.tilesPerRow, instance.tilesPerColumn);
+        }
+        else {
+            instance.tiles = createTiles(instance.tilesPerRow, instance.tilesPerColumn);
+        }
+        randomPlaceTiles(instance.tilesPerRow, instance.tilesPerColumn);
+        
+        //saveGame();
+        // keep track of the steps of the current user
+    }
+
     function randomPlaceTiles(xTileCount, yTileCount) {
         var tiles = instance.tiles;
         var tileIndexes = instance.tileIndexes;
+        if(instance.saveTilePositions){
+            for(var i = 0; i < instance.saveTilePositions.length; i++){
+                var tilePos = instance.saveTilePositions[i];
+                var tile = instance.tiles[tilePos.index];
+                placeTile(tile, new Point(tilePos.x, tilePos.y));
+            }
+            return;
+        }
         // randomly select tiles and place them one by one 
         for (var y = 0; y < yTileCount; y++) {
             for (var x = 0; x < xTileCount; x++) {
@@ -364,19 +386,22 @@ function JigsawPuzzle(config) {
                 tile.positionMoved = false;
             }
         }
-        loadGame();
     }
 
     function createTiles(xTileCount, yTileCount) {
         var tiles = new Array();
         var tileRatio = instance.tileWidth / 100.0;
-
-        var shapeArray = getRandomShapes(xTileCount, yTileCount);
+        if(instance.saveShapeArray){
+            instance.shapeArray = instance.saveShapeArray;
+        }
+        else{
+            instance.shapeArray = getRandomShapes(xTileCount, yTileCount);
+        }
         var tileIndexes = new Array();
         for (var y = 0; y < yTileCount; y++) {
             for (var x = 0; x < xTileCount; x++) {
 
-                var shape = shapeArray[y * xTileCount + x];
+                var shape = instance.shapeArray[y * xTileCount + x];
 
                 var mask = getMask(tileRatio, shape.topTab, shape.rightTab, shape.bottomTab, shape.leftTab, instance.tileWidth);
                 mask.opacity = 0.01;
@@ -809,6 +834,7 @@ function JigsawPuzzle(config) {
 
         if (aroundTilesChanged) {
             // selected, before, after
+            console.log('checkLinks roundID: ' + roundID);
             checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
         }
         
@@ -863,7 +889,7 @@ function JigsawPuzzle(config) {
             }
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
-                saveGame();
+                //saveGame();
             }
 
             if (!hasConflict && instance.showHints) {
@@ -1134,7 +1160,7 @@ function JigsawPuzzle(config) {
             var tilePos = {
                 index: i,
                 x: tile.cellPosition.x,
-                y: tile.cellPosition.y
+                y: tile.cellPosition.y,
             };
             tilePositions.push(tilePos);
         }
@@ -1142,8 +1168,10 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             steps: instance.steps,
             time: time,
-            tiles: JSON.stringify(tilePositions)
+            tiles: JSON.stringify(tilePositions),
+            shape_array: JSON.stringify(instance.shapeArray)
         };
+        console.log(params);
         $.ajax({
             url: requrl + 'round/saveGame',
             data: params,
@@ -1168,24 +1196,19 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
-                if(data.round_id != roundID){
-                    saveGame();
-                    return;
+                if(data.round_id == roundID){
+                    console.log('loadGame: ' + 'success');
+                    time = data.time;
+                    steps = data.steps;
+                    document.getElementById("steps").innerHTML = instance.steps;
+                    instance.saveShapeArray = data.shape_array;
+                    instance.saveTilePositions = JSON.parse(data.tiles);
                 }
-                console.log('loadGame: ' + 'success');
-                time = data.time;
-                steps = data.steps;
-                document.getElementById("steps").innerHTML = instance.steps;
-                var tiles = JSON.parse(data.tiles);
-                for(var i = 0; i < tiles.length; i++){
-                    var tilePos = tiles[i];
-                    var tile = instance.tiles[tilePos.index];
-                    placeTile(tile, new Point(tilePos.x, tilePos.y));
-                }
+                createAndPlaceTiles();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
-                saveGame();
+                createAndPlaceTiles();
             }
         });
     }

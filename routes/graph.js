@@ -15,7 +15,7 @@ var util = require('./util.js');
 
 /**
  * Get all the round graph
- */
+ *
 router.route('/:round_id').all(JoinRoundFirst).get(function (req, res) {
     NodeModel.find({ round_id: req.params.round_id }, function (err, docs) {
         if (err) {
@@ -25,7 +25,6 @@ router.route('/:round_id').all(JoinRoundFirst).get(function (req, res) {
         }
     });
 });
-
 
 /**
  * Write one action into the action sequence
@@ -53,11 +52,11 @@ function writeAction(NAME, round_id, operation, from, direction, to) {
 /**
  * Check the links and format the action object
  */
-router.route('/check').post(function (req, res, next) {
+router.post('/check', function (req, res, next) {
     let round_id = req.body.round_id;
     var NAME = req.session.user.username;
     let selected = req.body.selectedTile;
-    let around = req.body.aroundTiles;
+    let around = JSON.parse(req.body.aroundTiles);
     let msgs = new Array();
     // For every posted nodes, add them to the nodes(graph), and decide which way 
     var dirs = ['top', 'right', 'bottom', 'left'];

@@ -1,4 +1,4 @@
-const requrl = 'http://localhost:3000/'; //local dev
+const requrl = 'http://162.105.89.66:3000/'; //local dev
 // const requrl = 'http://39.106.112.44:3000/';  //server dep
 
 /**
@@ -40,18 +40,19 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
     selectedTileIndex = Number(selectedTileIndex);
 
     // format the params into a json object
-    var params={
-        "round_id": round_id,// get from newRound()
-        "selectedTile": selectedTileIndex,
-        "aroundTiles":  new Array()
-    };
+    var aroundTiles = new Array();
     for(var i=0;i<4;i++){
         var aroundTile={
-            "before": Number(aroundTilesBefore[i]),
-            "after": Number(aroundTilesAfter[i])
+            before: Number(aroundTilesBefore[i]),
+            after: Number(aroundTilesAfter[i])
         }
-        params.aroundTiles.push(aroundTile);
+        aroundTiles.push(aroundTile);
     }
+    var params={
+        round_id: round_id,// get from newRound()
+        selectedTile: selectedTileIndex,
+        aroundTiles:  JSON.stringify(aroundTiles)
+    };
     console.log(params);
     // send a request to post this step to the server
     $.ajax({
