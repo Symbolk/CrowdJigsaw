@@ -74,6 +74,7 @@ router.post('/check', function (req, res, next) {
                 NodeModel.create(new_node, function (err) {
                     if (err) {
                         console.log(err);
+                        res.send({msg: err});
                     } else {
                         for (let d = 0; d < around.length; d++) { // d=0,1,2,3
                             let to = around[d];
@@ -103,6 +104,7 @@ router.post('/check', function (req, res, next) {
                                 }
                             }
                         }
+                        res.send({msg: JSON.stringify(msgs)});
                     }
                 });
             } else {
@@ -280,6 +282,7 @@ router.post('/check', function (req, res, next) {
                         }
                     }
                 }
+                res.send({msg: JSON.stringify(msgs)});
             }
         }
     });

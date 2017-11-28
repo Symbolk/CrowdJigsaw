@@ -115,7 +115,7 @@ function sendRecord(round_id, steps, time) {
     };
     $.ajax({
         data: params,
-        url: requrl + 'user/saveRecord',
+        url: requrl + 'round/saveRecord',
         type: 'post',
         dataType: 'json',
         cache: false,
