@@ -895,8 +895,8 @@ function JigsawPuzzle(config) {
             if (!hasConflict && instance.showHints) {
                 for (var i = 0; i < instance.selectedTile.length == 1; i++) {
                     var tile = instance.selectedTile[i];
-                    if (!tile.noAroundTiles && tile.aroundTilesChanged && !tile.alreadyHinted) {
-                        showHints(tile);
+                    if (!tile.noAroundTiles && tile.aroundTilesChanged) {
+                        getHints(roundID, getTileIndex(tile));
                     }
                 }
             }
@@ -964,12 +964,38 @@ function JigsawPuzzle(config) {
         return hintTiles;
     }
 
-    function showHints(tile) {
+    /**
+     * Retrieve data from the server and return hint tiles for the player
+     * @param  selectedTileIndex
+     * @return hintTileIndexes
+     */
+    function getHints(round_id, selectedTileIndex) {
+        // var hintTileIndexes=new Array(-1,-1,-1,-1);
+        $.ajax({
+            url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 100,
+            success: function (data) {
+                // var data = $.parseJSON(data);
+                // indexes = directions(0 1 2 3=T R B L)
+                console.log('getHints: ' + data);
+                showHints(selectedTileIndex, data);
+                return data;
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
+            }
+        });
+    }
+
+    function showHints(selectedTileIndex, hintTiles) {
+        var tile = instance.tiles[selectedTileIndex];
+
         var cellPosition = tile.cellPosition;
 
-        var tileIndex = getTileIndex(tile);
-
-        var hintTiles = getHints(roundID, tileIndex);
+        console.log('hintTiles: ' + JSON.stringify(hintTiles));
 
         if (!hintTiles) {
             return;

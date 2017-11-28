@@ -79,30 +79,6 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
     return true;
 }
 
-/**
- * Retrieve data from the server and return hint tiles for the player
- * @param  selectedTileIndex
- * @return hintTileIndexes
- */
-function getHints(round_id, selectedTileIndex) {
-    // var hintTileIndexes=new Array(-1,-1,-1,-1);
-    $.ajax({
-        url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            // var data = $.parseJSON(data);
-            // indexes = directions(0 1 2 3=T R B L)
-            console.log('getHints: ' + data);
-            return data;
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
-        }
-    });
-}
 
 /**
  * Send personal records to the server at the end of one game
