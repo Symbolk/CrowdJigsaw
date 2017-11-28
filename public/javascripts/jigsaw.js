@@ -327,10 +327,11 @@ function JigsawPuzzle(config) {
 
     this.gameFinished = false;
 
-    loadGame();
+    //loadGame();
+
+    createAndPlaceTiles();
 
     function createAndPlaceTiles(){
-        instance.shapeArray = instance.saveShapeArray;
 
         if (instance.tileShape == "voronoi") {
             instance.tiles = createVoronoiTiles(instance.tilesPerRow, instance.tilesPerColumn);
@@ -339,16 +340,17 @@ function JigsawPuzzle(config) {
             instance.tiles = createTiles(instance.tilesPerRow, instance.tilesPerColumn);
         }
         randomPlaceTiles(instance.tilesPerRow, instance.tilesPerColumn);
-        saveGame();
+        
+        //saveGame();
         // keep track of the steps of the current user
     }
 
     function randomPlaceTiles(xTileCount, yTileCount) {
         var tiles = instance.tiles;
         var tileIndexes = instance.tileIndexes;
-        if(this.saveTilePositions){
-            for(var i = 0; i < this.saveTilePositions.length; i++){
-                var tilePos = this.saveTilePositions[i];
+        if(instance.saveTilePositions){
+            for(var i = 0; i < instance.saveTilePositions.length; i++){
+                var tilePos = instance.saveTilePositions[i];
                 var tile = instance.tiles[tilePos.index];
                 placeTile(tile, new Point(tilePos.x, tilePos.y));
             }
@@ -389,17 +391,17 @@ function JigsawPuzzle(config) {
     function createTiles(xTileCount, yTileCount) {
         var tiles = new Array();
         var tileRatio = instance.tileWidth / 100.0;
-        if(this.saveShapeArray){
-            this.shapeArray = this.saveShapeArray;
+        if(instance.saveShapeArray){
+            instance.shapeArray = instance.saveShapeArray;
         }
         else{
-            this.shapeArray = getRandomShapes(xTileCount, yTileCount);
+            instance.shapeArray = getRandomShapes(xTileCount, yTileCount);
         }
         var tileIndexes = new Array();
         for (var y = 0; y < yTileCount; y++) {
             for (var x = 0; x < xTileCount; x++) {
 
-                var shape = shapeArray[y * xTileCount + x];
+                var shape = instance.shapeArray[y * xTileCount + x];
 
                 var mask = getMask(tileRatio, shape.topTab, shape.rightTab, shape.bottomTab, shape.leftTab, instance.tileWidth);
                 mask.opacity = 0.01;
@@ -887,7 +889,7 @@ function JigsawPuzzle(config) {
             }
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
-                saveGame();
+                //saveGame();
             }
 
             if (!hasConflict && instance.showHints) {
@@ -1169,6 +1171,7 @@ function JigsawPuzzle(config) {
             tiles: JSON.stringify(tilePositions),
             shape_array: JSON.stringify(instance.shapeArray)
         };
+        console.log(params);
         $.ajax({
             url: requrl + 'round/saveGame',
             data: params,
