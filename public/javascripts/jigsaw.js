@@ -862,6 +862,7 @@ function JigsawPuzzle(config) {
                 tilesMoved = tilesMoved || tile.positionMoved;
                 sendLinks(tile);
             }
+
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
                 saveGame();
