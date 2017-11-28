@@ -365,7 +365,6 @@ function JigsawPuzzle(config) {
             }
         }
         loadGame();
-        saveGame();
     }
 
     function createTiles(xTileCount, yTileCount) {
@@ -891,7 +890,7 @@ function JigsawPuzzle(config) {
                     clearTimeout(t);
                     gameFinishDialog.showModal();
                     // sendRecord('Level 1', '2017-10-31 14:00', 245, '16:24');
-                    sendRecord(roundID, level, getNowFormatDate(), Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
+                    sendRecord(roundID, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
                     instance.gameFinished = true;
                 }
             }
@@ -1170,6 +1169,7 @@ function JigsawPuzzle(config) {
             timeout: 5000,
             success: function (data) {
                 if(data.round_id != roundID){
+                    saveGame();
                     return;
                 }
                 console.log('loadGame: ' + 'success');
@@ -1185,26 +1185,9 @@ function JigsawPuzzle(config) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
+                saveGame();
             }
         });
     }
 
-}
-
-function getNowFormatDate() {
-    var date = new Date();
-    var seperator1 = "-";
-    var seperator2 = ":";
-    var month = date.getMonth() + 1;
-    var strDate = date.getDate();
-    if (month >= 1 && month <= 9) {
-        month = "0" + month;
-    }
-    if (strDate >= 0 && strDate <= 9) {
-        strDate = "0" + strDate;
-    }
-    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
-        + " " + date.getHours() + seperator2 + date.getMinutes()
-        + seperator2 + date.getSeconds();
-    return currentdate;
 }

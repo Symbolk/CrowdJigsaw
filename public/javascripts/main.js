@@ -106,7 +106,7 @@ function getHints(round_id, selectedTileIndex) {
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, level, when, steps, time) {
+function sendRecord(round_id, steps, time) {
     var params={
         steps: steps,
         time: time,
