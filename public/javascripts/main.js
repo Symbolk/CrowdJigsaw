@@ -53,7 +53,6 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
         selectedTile: selectedTileIndex,
         aroundTiles:  JSON.stringify(aroundTiles)
     };
-    console.log(params);
     // send a request to post this step to the server
     $.ajax({
         data: params,
@@ -63,13 +62,8 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
         cache: false,
         timeout: 5000,
         success: function (data) {
-            if(data.hasOwnProperty("msg")){
-                console.log('checkLinks: ' + data.msg);
-            }else{
-                console.log('checkLinks: ' + data.msg1);
-                console.log('checkLinks: ' + data.msg2);
-            }
-          return true;
+            console.log(data);
+            return true;
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('checkLinks: ' + 'error ' + textStatus + " " + errorThrown);

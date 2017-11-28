@@ -24,7 +24,7 @@ function createRecord(player_name, round_id, join_time) {
         if (err) {
             console.log(err);
         }else{
-            console.log(player_name+'are in Round'+ round_id);
+            console.log(player_name+'has joined Round'+ round_id);
         }
     });
 }
@@ -114,7 +114,7 @@ router.route('/joinRound').all(LoginFirst).post(function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
-                            console.log(req.session.user.username +' join Round' + condition.round_id);
+                            console.log(req.session.user.username +' joins Round' + condition.round_id);
                             res.send({ msg: 'You joined the round successfully.' });
                             createRecord(req.session.user.username, req.body.round_id, TIME);
                         }
@@ -217,7 +217,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
                             if(err){
                                 console.log(err);
                             }else{
-                                console.log(req.session.user.username + 'started playing.');
+                                console.log(req.session.user.username + ' starts playing.');
                             }
                         });
                     }

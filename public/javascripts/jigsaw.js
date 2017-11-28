@@ -252,17 +252,6 @@ function getOriginImage(config) {
 }
 
 function JigsawPuzzle(config) {
-    // API test
-    // getHints();
-    // var params = {
-    //     from: 4,
-    //     to: 8,
-    //     dir: 3
-    // };
-
-    // getHints(4);
-    // checkLinks(4, [1,3,-1,0]);
-
     var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
     this.level = config.level;
