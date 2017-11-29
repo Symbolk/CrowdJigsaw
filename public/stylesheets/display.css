@@ -86,6 +86,7 @@
   padding-bottom: 0;
 }
 
+
 .portfolio-blog-card-full-bg {
   background: url(images/example-blog03.jpg) center / cover;
 }
@@ -117,6 +118,7 @@ img.article-image {
   max-width: 900px;
   margin: auto;
 }
+
 
 .portfolio-copy {
   max-width: 700px;
@@ -153,6 +155,11 @@ img.article-image {
     display: -ms-flexbox;
     display: flex;
 }
+
+.mdl-card__supporting-text{
+  font-size: 20px;
+}
+
 
 .portfolio-contact .mdl-textfield {
   width: 100%;
