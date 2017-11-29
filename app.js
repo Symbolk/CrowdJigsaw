@@ -10,6 +10,7 @@ var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
 
+
 // 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
 // Control-Allow-Origin
@@ -105,3 +106,57 @@ if (app.get('env') === 'development') {
 /* app.listen(config.port, function(){
    console.log(`${pkg.name} listening on port ${config.port}`);
 });*/
+
+var schedule = require('node-schedule');
+var util = require('./routes/util.js');
+var ActionModel = require('./models/action').Action;
+var RoundModel = require('./models/round').Round;
+var round = require('./routes/round')
+//once an hour
+schedule.scheduleJob('0 0 * * * *', function(){
+  let condition = {
+        end_time: "-1"
+  };
+  var round_ids = new Array();
+  RoundModel.find(condition, function (err, docs) {
+  if (err) {
+    console.log(err);
+  } 
+  else {
+    for(var round of docs){
+      ActionModel.find().where("round_id").equals(round.round_id).sort({time_stamp:-1})
+      .exec(function(err,docs){
+        if(err){
+          console.log(err);
+        }
+        else{
+          if(docs[0]){
+            var timeStamp = Date.parse(new Date(docs[0].time_stamp))/1000;
+            var time_stamp_now = Date.parse(new Date())/1000;
+            //100minutes
+            if(time_stamp_now-timeStamp >= 6000){
+              let condition = {
+                round_id: docs[0].round_id
+              }
+              RoundModel.find(condition,function(err,docs){
+                if(err){
+                  console.log(err);
+                }
+                else{
+                  if(docs[0]){
+                    let TIME = util.getNowFormatDate();
+                    docs[0].end_time = TIME;
+                    docs[0].save();
+                    console.log("close round"+docs[0].round_id);
+                  }
+                }
+              })
+            }
+          }
+        }
+      })
+      }
+    }
+  } 
+);     
+});
