@@ -275,7 +275,7 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
-                            console.log(req.session.user.username+ ' quits Round'+ index);                    
+                            console.log(req.session.user.username+ ' quits Round'+ req.params.round_id);                    
                             res.send({ msg: "You just quitted the round..." });
                         }
                     });
@@ -310,7 +310,7 @@ router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
         if(err){
             console.log(err);
         }else{
-            console.log(req.session.user.username+ 'finishs Round'+ index);            
+            console.log(req.session.user.username+ ' saves the record.');            
             res.send({ msg:"Your record has been saved." });
         }
     });
