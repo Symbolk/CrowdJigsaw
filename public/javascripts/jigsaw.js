@@ -1,18 +1,3 @@
-function quitRound(roundID){
-    $.ajax({
-        url: requrl + 'round' + '/quitRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            console.log(data);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
-}
 /*
 * Drawer functions
 */
@@ -56,13 +41,27 @@ $('.returnCenter').click(function () {
     });
 
     showButton.addEventListener('click', function (event) {
+        $('.quit-dialog-text').text('Are You Sure?');
         dialog.showModal();
     });
 
     applyButton.addEventListener('click', function (event) {
-        dialog.close();
-        quitRound(roundID);
-        window.location = '/home';
+        $.ajax({
+            url: requrl + 'round' + '/quitRound/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                dialog.close();
+                window.location = '/home';
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('.quit-dialog-text').text('Connection error, please try again.');
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
     });
 }());
 
@@ -321,12 +320,30 @@ function JigsawPuzzle(config) {
             if (!instance.gameFinished) {
                 var errors = checkTiles();
                 if (errors == 0) {
-                    clearTimeout(t);
-                    gameFinishDialog.showModal();
-                    instance.gameFinished = true;
+                    finishGame();
                 }
             }
         }
+    }
+
+    function finishGame(){
+        clearTimeout(t);
+        instance.gameFinished = true;
+        $.ajax({
+            url: requrl + 'round' + '/quitRound/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                gameFinishDialog.showModal();
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                finishGame();
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
     }
 
     function randomPlaceTiles(xTileCount, yTileCount) {
@@ -902,11 +919,8 @@ function JigsawPuzzle(config) {
             if (!instance.gameFinished) {
                 var errors = checkTiles();
                 if (errors == 0) {
-                    clearTimeout(t);
-                    gameFinishDialog.showModal();
-                    // sendRecord('Level 1', '2017-10-31 14:00', 245, '16:24');
                     sendRecord(roundID, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
-                    instance.gameFinished = true;
+                    finishGame();
                 }
             }
         }
