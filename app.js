@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const session = require('express-session');
 const ejs = require('ejs');
+var fs = require('fs');  
 var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
@@ -53,7 +54,14 @@ app.set('view engine', 'html');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
+console.log("Environment : "+process.env.NODE_ENV);
+var accessLog = fs.createWriteStream('logs/access.log', {flags : 'a'}); 
+if (app.get('env') == 'production') {
+  app.use(logger('common', { skip: function(req, res) { return res.statusCode < 400 }, stream: accessLog }));
+} else {
+  // app.use(logger('common', { stream: accessLog }));
+  app.use(logger('dev'));
+}
 //Node.js body parsing middleware. req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -77,7 +85,6 @@ app.use(function (req, res, next) {
   next(err);
 });
 
-console.log(process.env.NODE_ENV);
 
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
@@ -114,7 +121,7 @@ var RoundModel = require('./models/round').Round;
 var round = require('./routes/round')
 //once an hour
 schedule.scheduleJob('0 0 * * * *', function(){
-  let condition = {
+  var condition = {
         end_time: "-1"
   };
   var round_ids = new Array();
@@ -135,7 +142,7 @@ schedule.scheduleJob('0 0 * * * *', function(){
             var time_stamp_now = Date.parse(new Date())/1000;
             //100minutes
             if(time_stamp_now-timeStamp >= 6000){
-              let condition = {
+              var condition = {
                 round_id: docs[0].round_id
               }
               RoundModel.find(condition,function(err,docs){
@@ -144,7 +151,7 @@ schedule.scheduleJob('0 0 * * * *', function(){
                 }
                 else{
                   if(docs[0]){
-                    let TIME = util.getNowFormatDate();
+                    var TIME = util.getNowFormatDate();
                     docs[0].end_time = TIME;
                     docs[0].save();
                     console.log("close round"+docs[0].round_id);

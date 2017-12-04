@@ -24,7 +24,7 @@ function createRecord(player_name, round_id, join_time) {
         if (err) {
             console.log(err);
         }else{
-            console.log(player_name+'has joined Round'+ round_id);
+            console.log(player_name+' joins Round'+ round_id);
         }
     });
 }
@@ -174,7 +174,7 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log(req.session.user.username+ ' new a round '+ index);
+                    console.log(req.session.user.username+ ' creates Round'+ index);
                     res.send({ msg: "Created round successfully.", round_id: index});
                     createRecord(req.session.user.username, operation.round_id, TIME);
                 }
@@ -217,7 +217,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
                             if(err){
                                 console.log(err);
                             }else{
-                                console.log(req.session.user.username + ' starts playing.');
+                                console.log(req.session.user.username + ' starts playing...');
                             }
                         });
                     }
@@ -275,6 +275,7 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
+                            console.log(req.session.user.username+ ' quits Round'+ index);                    
                             res.send({ msg: "You just quitted the round..." });
                         }
                     });
@@ -309,6 +310,7 @@ router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
         if(err){
             console.log(err);
         }else{
+            console.log(req.session.user.username+ 'finishs Round'+ index);            
             res.send({ msg:"Your record has been saved." });
         }
     });
@@ -333,7 +335,7 @@ router.all(LoginFirst).post('/saveGame', function (req, res, next) {
     UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
         if(err){
             console.log(err);
-        }else{
+        }else{                     
             res.send({ msg:"Your game has been saved." });
         }
     });
