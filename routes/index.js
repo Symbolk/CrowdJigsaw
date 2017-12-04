@@ -196,7 +196,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 
 // Round
 router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {  
-    res.render('rounddisplay', { title: 'Round', username: req.session.user.username});
+    res.render('rounddisplay', { title: 'Playground', username: req.session.user.username});
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {

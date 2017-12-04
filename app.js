@@ -50,10 +50,10 @@ app.use(function (req, res, next) {
 app.set('views', path.join(__dirname, 'views'));
 app.engine('.html', ejs.__express);
 app.set('view engine', 'html');
-
-
 // uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(favicon(path.join(__dirname, 'public', 'favicon.png')));
+
+
 console.log("Environment : "+process.env.NODE_ENV);
 var accessLog = fs.createWriteStream('logs/access.log', {flags : 'a'}); 
 if (app.get('env') == 'production') {

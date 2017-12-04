@@ -259,6 +259,7 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
+                            console.log(req.session.user.username+ ' stops Round'+ req.params.round_id);                                                
                             res.send({ msg: "You just stopped the round..." });
                         }
                     });

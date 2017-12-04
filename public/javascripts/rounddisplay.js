@@ -214,7 +214,7 @@ function getJoinableRounds() {
         cache: false,
         timeout: 5000,
         success: function (data) {
-        	console.log(data);
+        	// console.log(data);
             renderRoundList(data);
         },
         error: function (jqXHR, textStatus, errorThrown) {
