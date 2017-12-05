@@ -52,9 +52,10 @@ function writeAction(NAME, round_id, operation, from, direction, to) {
 /**
  * Check the links and format the action object
  */
-router.post('/check', function (req, res, next) {
+router.route('/check').post(function (req, res, next) {
     let round_id = req.body.round_id;
     var NAME = req.session.user.username;
+
     let selected = req.body.selectedTile;
     let around = JSON.parse(req.body.aroundTiles);
     let msgs = new Array();
@@ -74,7 +75,7 @@ router.post('/check', function (req, res, next) {
                 NodeModel.create(new_node, function (err) {
                     if (err) {
                         console.log(err);
-                        res.send({msg: err});
+                        res.send({ msg: err });
                     } else {
                         for (let d = 0; d < around.length; d++) { // d=0,1,2,3
                             let to = around[d];
@@ -86,7 +87,7 @@ router.post('/check', function (req, res, next) {
                                         index: to.after,
                                         sup_num: 1
                                     };
-                                    NodeModel.findOneAndUpdate(
+                                    NodeModel.update(
                                         { round_id: round_id, index: selected },
                                         { $push: temp },
                                         function (err) {
@@ -104,7 +105,7 @@ router.post('/check', function (req, res, next) {
                                 }
                             }
                         }
-                        res.send({msg: JSON.stringify(msgs)});
+                        res.send({ msg: JSON.stringify(msgs) });
                     }
                 });
             } else {
@@ -120,7 +121,7 @@ router.post('/check', function (req, res, next) {
                                     index: to.after,
                                     sup_num: 1
                                 };
-                                NodeModel.findOneAndUpdate(
+                                NodeModel.update(
                                     { round_id: round_id, index: selected },
                                     { $push: temp },
                                     function (err) {
@@ -143,7 +144,7 @@ router.post('/check', function (req, res, next) {
                                         condition[dirs[d] + '.index'] = to.after;
                                         let temp = {};
                                         temp[dirs[d] + '.$.sup_num'] = 1;
-                                        NodeModel.findOneAndUpdate(condition,
+                                        NodeModel.update(condition,
                                             { $inc: temp },
                                             function (err, doc) {
                                                 if (err) {
@@ -178,7 +179,7 @@ router.post('/check', function (req, res, next) {
                         } else if (to.after == -1) {
                             // existed&&sup_num>=1
                             if (doc[dirs[d]].length > 0) {
-                                // --
+                                // --/-
                                 let condition = {
                                     round_id: round_id, index: selected
                                 };
@@ -187,19 +188,15 @@ router.post('/check', function (req, res, next) {
                                 temp[dirs[d] + '.$.sup_num'] = -1;
                                 temp[dirs[d] + '.$.opp_num'] = 1;
                                 NodeModel.findOneAndUpdate(condition,
-                                    { $inc: temp },
+                                    { $inc: temp }, {new: true},
                                     function (err, doc) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            let op = '';
+                                            let op = '';              
                                             for (let i of doc[dirs[d]]) {
                                                 if (i.index == to.before) {
-                                                    if (i.sup_num == 0) {
-                                                        op = '-- ';
-                                                    } else {
-                                                        op = '- ';
-                                                    }
+                                                    op = i.sup_num <= 0 ? '-- ' : '- ';
                                                 }
                                             }
                                             writeAction(NAME, round_id, op, selected, dirs[d], to.before);
@@ -218,7 +215,7 @@ router.post('/check', function (req, res, next) {
                             temp[dirs[d] + '.$.sup_num'] = -1;
                             temp[dirs[d] + '.$.opp_num'] = 1;
                             NodeModel.findOneAndUpdate(condition,
-                                { $inc: temp },
+                                { $inc: temp },{new: true},
                                 function (err, doc) {
                                     if (err) {
                                         console.log(err);
@@ -226,11 +223,7 @@ router.post('/check', function (req, res, next) {
                                         let op = '';
                                         for (let i of doc[dirs[d]]) {
                                             if (i.index == to.before) {
-                                                if (i.sup_num == 0) {
-                                                    op = '-- ';
-                                                } else {
-                                                    op = '- ';
-                                                }
+                                                op = i.sup_num <= 0 ? '-- ' : '- ';
                                             }
                                         }
                                         writeAction(NAME, round_id, op, selected, dirs[d], to.before);
@@ -248,7 +241,7 @@ router.post('/check', function (req, res, next) {
                                     condition[dirs[d] + '.index'] = to.after;
                                     let temp = {};
                                     temp[dirs[d] + '.$.sup_num'] = 1;
-                                    NodeModel.findOneAndUpdate(condition,
+                                    NodeModel.update(condition,
                                         { $inc: temp },
                                         function (err, doc) {
                                             if (err) {
@@ -282,7 +275,7 @@ router.post('/check', function (req, res, next) {
                         }
                     }
                 }
-                res.send({msg: JSON.stringify(msgs)});
+                res.send({ msg: JSON.stringify(msgs) });
             }
         }
     });
@@ -294,7 +287,7 @@ router.post('/check', function (req, res, next) {
  * @return an array of recommended index, in 4 directions of the tile
  */
 router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (req, res) {
-// router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
+    // router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
     // query the 4 dirs of the selected tile
     let condition = {
         round_id: req.params.round_id,
@@ -322,7 +315,12 @@ router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (
                                 most_sup = a;
                             }
                         }
-                        hintIndexes.push(most_sup.index);
+                        // to guarantee zero sup nodes won't be hinted
+                        if (most_sup.sup_num > 0) {
+                            hintIndexes.push(most_sup.index);
+                        } else {
+                            hintIndexes.push(-1);
+                        }
                     }
                 }
                 res.send(JSON.stringify(hintIndexes));
@@ -347,15 +345,16 @@ function JoinRoundFirst(req, res, next) {
                 req.session.error = 'Please Login First!';
                 return res.redirect('/login');
             }
-
-            let hasJoined = doc.players.some(function (p) {
-                return (p.player_name == req.session.user.username);
-            });
-            if (!hasJoined) {
-                req.session.error = "You haven't joined this Round!";
-                return res.redirect('/home');
+            if (doc) {
+                let hasJoined = doc.players.some(function (p) {
+                    return (p.player_name == req.session.user.username);
+                });
+                if (!hasJoined) {
+                    req.session.error = "You haven't joined this Round!";
+                    return res.redirect('/home');
+                }
+                next();
             }
-            next();
         }
     });
 }

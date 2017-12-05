@@ -41,17 +41,17 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
 
     // format the params into a json object
     var aroundTiles = new Array();
-    for(var i=0;i<4;i++){
-        var aroundTile={
+    for (var i = 0; i < 4; i++) {
+        var aroundTile = {
             before: Number(aroundTilesBefore[i]),
             after: Number(aroundTilesAfter[i])
         }
         aroundTiles.push(aroundTile);
     }
-    var params={
+    var params = {
         round_id: round_id,// get from newRound()
         selectedTile: selectedTileIndex,
-        aroundTiles:  JSON.stringify(aroundTiles)
+        aroundTiles: JSON.stringify(aroundTiles)
     };
     // send a request to post this step to the server
     $.ajax({
@@ -78,7 +78,7 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
  * Send personal records to the server at the end of one game
  */
 function sendRecord(round_id, steps, time) {
-    var params={
+    var params = {
         steps: steps,
         time: time,
         round_id: round_id
@@ -91,7 +91,7 @@ function sendRecord(round_id, steps, time) {
         cache: false,
         timeout: 5000,
         success: function (data) {
-          console.log('saveRecord: ' + data.msg);
+            console.log('saveRecord: ' + data.msg);
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('saveRecord: ' + 'error ' + textStatus + " " + errorThrown);

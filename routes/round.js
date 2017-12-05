@@ -217,7 +217,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
                             if(err){
                                 console.log(err);
                             }else{
-                                console.log(req.session.user.username + ' starts playing...');
+                                console.log(req.session.user.username + ' starts Round'+req.params.round_id);
                             }
                         });
                     }

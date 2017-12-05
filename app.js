@@ -60,7 +60,7 @@ if (app.get('env') == 'production') {
   app.use(logger('common', { skip: function(req, res) { return res.statusCode < 400 }, stream: accessLog }));
 } else {
   // app.use(logger('common', { stream: accessLog }));
-  app.use(logger('dev'));
+  app.use(logger('dev',  { skip: function(req, res) { return res.statusCode ==304 }}));
 }
 //Node.js body parsing middleware. req.body
 app.use(bodyParser.json());

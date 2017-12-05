@@ -275,8 +275,6 @@ function JigsawPuzzle(config) {
     this.showHints = config.showHints;
 
     this.tileNum = this.tilesPerRow * this.tilesPerColumn;
-    // output some info about this puzzle
-    console.log('Level ' + level + ' started : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
 
     if (this.tileShape == "voronoi") {
         this.tileMarginWidth = this.tileWidth * 0.5;
@@ -299,6 +297,8 @@ function JigsawPuzzle(config) {
 
     this.gameFinished = false;
 
+    console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
+    
     loadGame();
 
     //createAndPlaceTiles();
@@ -841,8 +841,11 @@ function JigsawPuzzle(config) {
             }
         }
 
+        console.log('Moving '+tileIndex);
         if (aroundTilesChanged) {
             // selected, before, after
+            console.log('Before:'+tile.aroundTiles);
+            console.log('After:'+aroundTiles);            
             checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
         }
         
@@ -967,31 +970,31 @@ function JigsawPuzzle(config) {
         return hintTiles;
     }
 
-    /**
-     * Retrieve data from the server and return hint tiles for the player
-     * @param  selectedTileIndex
-     * @return hintTileIndexes
-     */
-    function getHints(round_id, selectedTileIndex) {
-        // var hintTileIndexes=new Array(-1,-1,-1,-1);
-        $.ajax({
-            url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 100,
-            success: function (data) {
-                // var data = $.parseJSON(data);
-                // indexes = directions(0 1 2 3=T R B L)
-                console.log('getHints: ' + data);
-                showHints(selectedTileIndex, data);
-                return data;
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
-            }
-        });
-    }
+/**
+ * Retrieve data from the server and return hint tiles for the player
+ * @param  selectedTileIndex
+ * @return hintTileIndexes
+ */
+function getHints(round_id, selectedTileIndex) {
+    // var hintTileIndexes=new Array(-1,-1,-1,-1);
+    $.ajax({
+        url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
+        type: 'get',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+            // var data = $.parseJSON(data);
+            // indexes = directions(0 1 2 3=T R B L)
+            console.log('getHints: ' + data);
+            showHints(selectedTileIndex, data);
+            return data;
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
+        }
+    });
+}
 
     function showHints(selectedTileIndex, hintTiles) {
         var tile = instance.tiles[selectedTileIndex];
