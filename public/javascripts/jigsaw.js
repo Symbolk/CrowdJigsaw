@@ -46,6 +46,8 @@ $('.returnCenter').click(function () {
     });
 
     applyButton.addEventListener('click', function (event) {
+        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);        
+        
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
             type: 'get',
@@ -327,8 +329,10 @@ function JigsawPuzzle(config) {
     }
 
     function finishGame(){
-        clearTimeout(t);
         instance.gameFinished = true;
+        sendRecord(roundID, instance.gameFinished, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
+        
+        clearTimeout(t);
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
             type: 'get',
@@ -922,7 +926,6 @@ function JigsawPuzzle(config) {
             if (!instance.gameFinished) {
                 var errors = checkTiles();
                 if (errors == 0) {
-                    sendRecord(roundID, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
                     finishGame();
                 }
             }

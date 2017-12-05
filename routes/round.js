@@ -23,8 +23,8 @@ function createRecord(player_name, round_id, join_time) {
     UserModel.findOneAndUpdate(condition, operation, function (err) {
         if (err) {
             console.log(err);
-        }else{
-            console.log(player_name+' joins Round'+ round_id);
+        } else {
+            console.log(player_name + ' joins Round' + round_id);
         }
     });
 }
@@ -33,12 +33,11 @@ function LoginFirst(req, res, next) {
     if (!req.session.user) {
         req.session.error = 'Please Login First!';
         return res.redirect('/login');
-        //return res.redirect('back');//返回之前的页面
     }
     next();
 }
 
-function isCreator(req, res, next){
+function isCreator(req, res, next) {
     RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, creator: 1 }, function (err, doc) {
         if (err) {
             console.log(err);
@@ -48,7 +47,7 @@ function isCreator(req, res, next){
                 return res.redirect('/login');
             }
 
-            if (doc.creator!=req.session.user.username) {
+            if (doc.creator != req.session.user.username) {
                 req.session.error = "You are not the Boss!";
             }
             next();
@@ -114,7 +113,7 @@ router.route('/joinRound').all(LoginFirst).post(function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
-                            console.log(req.session.user.username +' joins Round' + condition.round_id);
+                            console.log(req.session.user.username + ' joins Round' + condition.round_id);
                             res.send({ msg: 'You joined the round successfully.' });
                             createRecord(req.session.user.username, req.body.round_id, TIME);
                         }
@@ -174,8 +173,8 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log(req.session.user.username+ ' creates Round'+ index);
-                    res.send({ msg: "Created round successfully.", round_id: index});
+                    console.log(req.session.user.username + ' creates Round' + index);
+                    res.send({ msg: "Created round successfully.", round_id: index });
                     createRecord(req.session.user.username, operation.round_id, TIME);
                 }
             });
@@ -198,6 +197,20 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
         } else {
             if (doc.players.length == doc.players_num) {
                 let TIME = util.getNowFormatDate();
+                // set start_time for all players
+                for (let p of doc.players) {
+                    let operation = {
+                        $set: {
+                            "records.$.start_time": TIME
+                        }
+                    };
+                    UserModel.update({ username: p.player_name, "records.round_id": req.params.round_id }, operation, function (err) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
+                }
+                // set start time for round
                 let operation = {
                     $set: {
                         start_time: TIME
@@ -208,18 +221,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
                         console.log(err);
                     } else {
                         res.send({ msg: "Round Starts Now!" });
-                        operation = {
-                            $set: {
-                                start_time: TIME
-                            }
-                        };
-                        UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
-                            if(err){
-                                console.log(err);
-                            }else{
-                                console.log(req.session.user.username + ' starts Round'+req.params.round_id);
-                            }
-                        });
+                        console.log(req.session.user.username + ' starts Round' + req.params.round_id);
                     }
                 });
             } else {
@@ -259,7 +261,7 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
-                            console.log(req.session.user.username+ ' stops Round'+ req.params.round_id);                                                
+                            console.log(req.session.user.username + ' stops Round' + req.params.round_id);
                             res.send({ msg: "You just stopped the round..." });
                         }
                     });
@@ -276,7 +278,7 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
                         if (err) {
                             console.log(err);
                         } else {
-                            console.log(req.session.user.username+ ' quits Round'+ req.params.round_id);                    
+                            console.log(req.session.user.username + ' quits Round' + req.params.round_id);
                             res.send({ msg: "You just quitted the round..." });
                         }
                     });
@@ -297,22 +299,36 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
  * Save a record by one user when he gets his puzzle done
  */
 router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
-    let TIME=getNowFormatDate();
-    let contri=0;// to be calculated
-    let operation={
-        $set:{
-            end_time: TIME,
-            steps: req.body.steps,
-            time: req.body.time,
-            contribution: contri
-        }
-    };
-    UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
-        if(err){
+    let contri = 0;// to be calculated
+    let operation = {};
+
+    if (req.body.finished=="true") {     
+        let TIME = util.getNowFormatDate();
+        operation = {
+            $set: {
+                "records.$.end_time": TIME,
+                "records.$.steps": req.body.steps,
+                "records.$.time": req.body.time,
+                "records.$.contribution": contri
+            }
+        };
+    } else if(req.body.finished=="false"){
+        operation = {
+            $set: {
+                // records.$.end_time: -1
+                "records.$.steps": req.body.steps,
+                "records.$.time": req.body.time,
+                "records.$.contribution": contri
+            }
+        };
+    }
+
+    UserModel.update({ username: req.session.user.username, "records.round_id": req.body.round_id }, operation, function (err, doc) {
+        if (err) {
             console.log(err);
-        }else{
-            console.log(req.session.user.username+ ' saves the record.');            
-            res.send({ msg:"Your record has been saved." });
+        } else {
+            console.log(req.session.user.username + ' saves his record.');
+            res.send({ msg: "Your record has been saved." });
         }
     });
 });
@@ -328,16 +344,16 @@ router.all(LoginFirst).post('/saveGame', function (req, res, next) {
         tiles: req.body.tiles,
         shape_array: req.body.shape_array
     }
-    let operation={
-        $set:{
+    let operation = {
+        $set: {
             save_game: save_game
         }
     };
-    UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function(err, doc){
-        if(err){
+    UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function (err, doc) {
+        if (err) {
             console.log(err);
-        }else{                     
-            res.send({ msg:"Your game has been saved." });
+        } else {
+            res.send({ msg: "Your game has been saved." });
         }
     });
 });
@@ -350,9 +366,9 @@ router.all(LoginFirst).get('/loadGame', function (req, res, next) {
         username: req.session.user.username
     };
     UserModel.findOne(condition, function (err, doc) {
-        if(err){
+        if (err) {
             console.log(err);
-        }else{
+        } else {
             res.send(JSON.stringify(doc.save_game));
         }
     });

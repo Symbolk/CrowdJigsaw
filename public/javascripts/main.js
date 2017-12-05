@@ -77,11 +77,12 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, steps, time) {
+function sendRecord(round_id, finished, steps, time) {
     var params = {
+        round_id: round_id,
+        finished: finished,
         steps: steps,
-        time: time,
-        round_id: round_id
+        time: time
     };
     $.ajax({
         data: params,

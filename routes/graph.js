@@ -52,7 +52,7 @@ function writeAction(NAME, round_id, operation, from, direction, to) {
 /**
  * Check the links and format the action object
  */
-router.route('/check').post(function (req, res, next) {
+router.route('/check').all(LoginFirst).post(function (req, res, next) {
     let round_id = req.body.round_id;
     var NAME = req.session.user.username;
 
@@ -329,6 +329,16 @@ router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (
     });
 });
 
+
+function LoginFirst(req, res, next) {
+    if (!req.session.user) {
+        req.session.error = 'Please Login First!';
+        return res.redirect('/login');
+        //return res.redirect('back');//返回之前的页面
+    }
+    next();
+}
+
 /**
  * Access Control
  * @param {*} req 
@@ -341,10 +351,6 @@ function JoinRoundFirst(req, res, next) {
         if (err) {
             console.log(err);
         } else {
-            if (!req.session.user) {
-                req.session.error = 'Please Login First!';
-                return res.redirect('/login');
-            }
             if (doc) {
                 let hasJoined = doc.players.some(function (p) {
                     return (p.player_name == req.session.user.username);
@@ -354,10 +360,13 @@ function JoinRoundFirst(req, res, next) {
                     return res.redirect('/home');
                 }
                 next();
+            }else{
+                return res.redirect('/home');
             }
         }
     });
 }
+
 
 
 module.exports = router;
