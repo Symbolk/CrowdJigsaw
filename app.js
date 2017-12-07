@@ -154,7 +154,7 @@ schedule.scheduleJob('0 0 * * * *', function(){
                     var TIME = util.getNowFormatDate();
                     docs[0].end_time = TIME;
                     docs[0].save();
-                    console.log("close round"+docs[0].round_id);
+                    console.log("Autoclose Round"+docs[0].round_id);
                   }
                 }
               })

@@ -188,12 +188,12 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                 temp[dirs[d] + '.$.sup_num'] = -1;
                                 temp[dirs[d] + '.$.opp_num'] = 1;
                                 NodeModel.findOneAndUpdate(condition,
-                                    { $inc: temp }, {new: true},
+                                    { $inc: temp }, { new: true },
                                     function (err, doc) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            let op = '';              
+                                            let op = '';
                                             for (let i of doc[dirs[d]]) {
                                                 if (i.index == to.before) {
                                                     op = i.sup_num <= 0 ? '-- ' : '- ';
@@ -215,7 +215,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                             temp[dirs[d] + '.$.sup_num'] = -1;
                             temp[dirs[d] + '.$.opp_num'] = 1;
                             NodeModel.findOneAndUpdate(condition,
-                                { $inc: temp },{new: true},
+                                { $inc: temp }, { new: true },
                                 function (err, doc) {
                                     if (err) {
                                         console.log(err);
@@ -297,6 +297,47 @@ router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (
     var hintIndexes = new Array();
     var dirs = ['top', 'right', 'bottom', 'left'];
 
+    // Stratey1: conservative
+    // get the players_num of the round
+    // RoundModel.findOne(condition,{_id:0, players_num:1}, function(err, doc){
+    //     if(err){
+    //         console.log(err);
+    //     }else{
+    //         let players_num=doc.players_num;
+    //         NodeModel.findOne(condition, function (err, doc) {
+    //             if (err) {
+    //                 console.log(err);
+    //             } else {
+    //                 if (!doc) {
+    //                     res.send({ msg: "No hints." });
+    //                 } else {
+    //                     for (let d = 0; d < 4; d++) {
+    //                         let alternatives = doc[dirs[d]];
+    //                         if (alternatives.length == 0) {
+    //                             hintIndexes.push(-1);
+    //                         } else {
+    //                             let most_sup = alternatives[0];
+    //                             for (let a of alternatives) {
+    //                                 if (a.sup_num > most_sup.sup_num) {
+    //                                     most_sup = a;
+    //                                 }
+    //                             }
+    //                             // to guarantee zero sup nodes won't be hinted
+    //                             // 1/5 of the crowd have supported
+    //                             if (most_sup.sup_num > (players_num/5)) {
+    //                                 hintIndexes.push(most_sup.index);
+    //                             } else {
+    //                                 hintIndexes.push(-1);
+    //                             }
+    //                         }
+    //                     }
+    //                     res.send(JSON.stringify(hintIndexes));
+    //                 }
+    //             }
+    //         });
+    //     }
+    // }); 
+    // Strategy 3: considerate
     NodeModel.findOne(condition, function (err, doc) {
         if (err) {
             console.log(err);
@@ -309,15 +350,16 @@ router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (
                     if (alternatives.length == 0) {
                         hintIndexes.push(-1);
                     } else {
-                        let most_sup = alternatives[0];
+                        let best = alternatives[0];
                         for (let a of alternatives) {
-                            if (a.sup_num > most_sup.sup_num) {
-                                most_sup = a;
+                            if ((a.sup_num-a.opp_num) > 0 && (a.sup_num-a.opp_num) > (best.sup_num-best.opp_num)) {
+                                best = a;
                             }
                         }
                         // to guarantee zero sup nodes won't be hinted
-                        if (most_sup.sup_num > 0) {
-                            hintIndexes.push(most_sup.index);
+                        // 1/5 of the crowd have supported
+                        if ((best.sup_num-best.opp_num)>0) {
+                            hintIndexes.push(best.index);
                         } else {
                             hintIndexes.push(-1);
                         }
@@ -327,6 +369,7 @@ router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (
             }
         }
     });
+
 });
 
 
@@ -360,7 +403,7 @@ function JoinRoundFirst(req, res, next) {
                     return res.redirect('/home');
                 }
                 next();
-            }else{
+            } else {
                 return res.redirect('/home');
             }
         }
