@@ -314,6 +314,12 @@ function JigsawPuzzle(config) {
             instance.tiles = createTiles(instance.tilesPerRow, instance.tilesPerColumn);
         }
         randomPlaceTiles(instance.tilesPerRow, instance.tilesPerColumn);
+
+        for(var i = 0; i < instance.tiles.length; i++){
+            var tile = instance.tiles[i];
+            refreshAroundTiles(tile);
+            tile.aroundTilesChanged = false;
+        }
         
         if(!instance.saveTilePositions){
             saveGame();
@@ -326,6 +332,33 @@ function JigsawPuzzle(config) {
                 }
             }
         }
+    }
+
+    function refreshAroundTiles(tile){
+        var cellPosition = tile.cellPosition;
+            
+        var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
+        var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
+        var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
+        var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
+
+        var aroundTiles = new Array(getTileIndex(topTile), getTileIndex(rightTile),
+            getTileIndex(bottomTile), getTileIndex(leftTile));
+
+        var aroundTilesChanged = false;
+
+        if(!tile.aroundTiles){
+            tile.aroundTiles = new Array(-1, -1, -1, -1);
+        }
+
+        for(var i = 0; i < aroundTiles.length; i++){
+            if(tile.aroundTiles[i] != aroundTiles[i]){
+                aroundTilesChanged = true;
+            }
+        }
+
+        tile.aroundTiles = aroundTiles;
+        tile.aroundTilesChanged = aroundTilesChanged;
     }
 
     function finishGame(){
@@ -844,56 +877,33 @@ function JigsawPuzzle(config) {
                         var neighborTile = instance.tiles[tile.aroundTiles[i]];
                         neighborTile.conflictTiles.push(tileIndex);
                     }
+                    
                     if(tile.aroundTiles[i] == -1){ // remove conflict record to both tile
-                        console.log('fuck');
-                        var len = tile.conflictTiles.length;
-                        console.log(tile.conflictTiles);
-                        for(var j = 0; j < len; j++){
-                            if(tile.conflictTiles[j] == aroundTiles[i]){
-                                tile.conflictTiles.splice(j, 1);
-                                len--;
+                        var tmpConflictTiles = new Array();
+                        for(var j = 0; j < tile.conflictTiles.length; j++){
+                            if(tile.conflictTiles[j] != aroundTiles[i]){
+                                tmpConflictTiles.push(tile.conflictTiles[j]);
                             }
                         }
+                        tile.conflictTiles = tmpConflictTiles;
+
                         var neighborTile = instance.tiles[aroundTiles[i]];
-                        len = neighborTile.conflictTiles.length;
-                        for(var j = 0; j < len; j++){
-                            if(neighborTile.conflictTiles[j] == tileIndex){
-                                neighborTile.conflictTiles.splice(j, 1);
-                                len--;
+                        tmpConflictTiles = new Array();
+                        for(var j = 0; j < neighborTile.conflictTiles.length; j++){
+                            if(neighborTile.conflictTiles[j] != tileIndex){
+                                tmpConflictTiles.push(neighborTile.conflictTiles[j]);
                             }
                         }
-                        console.log('fuck');
+                        neighborTile.conflictTiles = tmpConflictTiles;
                     }
                 }
-                console.log(tile.conflictTiles);
-                console.log(tile.aroundTiles);
                 if(aroundTiles[i] >= 0){
                     var neighborTile = instance.tiles[aroundTiles[i]];
-                    if(!neighborTile.aroundTiles){
-                        neighborTile.aroundTiles = new Array(-1, -1, -1, -1);
-                    }
-                    var oppositeIndex = -1;
-                    if(i % 2 == 0){ // top or bottom
-                        oppositeIndex = 2 - i;
-                    }
-                    else{ // left or right
-                        oppositeIndex = 4 - i;
-                    }
-                    neighborTile.aroundTiles[oppositeIndex] = tileIndex;
+                    refreshAroundTiles(neighborTile);
                 }
-                if(tile.aroundTiles[i] > 0){
+                if(tile.aroundTiles[i] >= 0){
                     var neighborTile = instance.tiles[tile.aroundTiles[i]];
-                    if(!neighborTile.aroundTiles){
-                        neighborTile.aroundTiles = new Array(-1, -1, -1, -1);
-                    }
-                    var oppositeIndex = -1;
-                    if(i % 2 == 0){ // top or bottom
-                        oppositeIndex = 2 - i;
-                    }
-                    else{ // left or right
-                        oppositeIndex = 4 - i;
-                    }
-                    neighborTile.aroundTiles[oppositeIndex] = -1;
+                    refreshAroundTiles(neighborTile);
                 }
             }
         }
