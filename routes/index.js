@@ -179,9 +179,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
         } else {
             if (docs) {
                 req.session.error = 'Welcome! ' + req.session.user.username;
-                res.render('home', { title: 'Home', username: req.session.user.username });
-            } else {
-                res.render('home', { title: 'Home' });
+                res.render('rounddisplay', { title: 'Home', username: req.session.user.username });
             }
         }
     });
