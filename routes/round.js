@@ -164,10 +164,6 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 level: req.body.level,
                 create_time: TIME,
                 players_num: req.body.players_num,
-                players: {
-                    player_name: req.session.user.username,
-                    join_time: TIME
-                }
             };
             RoundModel.create(operation, function (err) {
                 if (err) {
@@ -187,7 +183,8 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
  */
 router.route('/startRound/:round_id').all(isCreator).get(function (req, res, next) {
     let condition = {
-        round_id: req.params.round_id
+        round_id: req.params.round_id,
+        start_time: "-1"
     };
     // check if the players are enough
     // findOneAndUpdate

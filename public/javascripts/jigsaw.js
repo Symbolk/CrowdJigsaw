@@ -314,6 +314,12 @@ function JigsawPuzzle(config) {
             instance.tiles = createTiles(instance.tilesPerRow, instance.tilesPerColumn);
         }
         randomPlaceTiles(instance.tilesPerRow, instance.tilesPerColumn);
+
+        for(var i = 0; i < instance.tiles.length; i++){
+            var tile = instance.tiles[i];
+            refreshAroundTiles(tile);
+            tile.aroundTilesChanged = false;
+        }
         
         if(!instance.saveTilePositions){
             saveGame();
@@ -326,6 +332,33 @@ function JigsawPuzzle(config) {
                 }
             }
         }
+    }
+
+    function refreshAroundTiles(tile){
+        var cellPosition = tile.cellPosition;
+            
+        var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
+        var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
+        var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
+        var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
+
+        var aroundTiles = new Array(getTileIndex(topTile), getTileIndex(rightTile),
+            getTileIndex(bottomTile), getTileIndex(leftTile));
+
+        var aroundTilesChanged = false;
+
+        if(!tile.aroundTiles){
+            tile.aroundTiles = new Array(-1, -1, -1, -1);
+        }
+
+        for(var i = 0; i < aroundTiles.length; i++){
+            if(tile.aroundTiles[i] != aroundTiles[i]){
+                aroundTilesChanged = true;
+            }
+        }
+
+        tile.aroundTiles = aroundTiles;
+        tile.aroundTilesChanged = aroundTilesChanged;
     }
 
     function finishGame(){
@@ -362,6 +395,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
+                tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
             return;
@@ -391,6 +425,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
+                tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
         }
@@ -832,17 +867,48 @@ function JigsawPuzzle(config) {
         var aroundTiles = new Array(getTileIndex(topTile), getTileIndex(rightTile),
             getTileIndex(bottomTile), getTileIndex(leftTile));
 
-        var aroundTilesChanged = true;
+        var aroundTilesChanged = false;
         if (tile.aroundTiles) {
-            var i = 0;
-            for (; i < aroundTiles.length; i++) {
+            for (var i = 0; i < aroundTiles.length; i++) {
                 if (tile.aroundTiles[i] != aroundTiles[i]) {
-                    break;
+                    aroundTilesChanged = true;
+                    if(aroundTiles[i] == -1){ // add conflict record to both tile connected before
+                        tile.conflictTiles.push(tile.aroundTiles[i]);
+                        var neighborTile = instance.tiles[tile.aroundTiles[i]];
+                        neighborTile.conflictTiles.push(tileIndex);
+                    }
+                    
+                    if(tile.aroundTiles[i] == -1){ // remove conflict record to both tile
+                        var tmpConflictTiles = new Array();
+                        for(var j = 0; j < tile.conflictTiles.length; j++){
+                            if(tile.conflictTiles[j] != aroundTiles[i]){
+                                tmpConflictTiles.push(tile.conflictTiles[j]);
+                            }
+                        }
+                        tile.conflictTiles = tmpConflictTiles;
+
+                        var neighborTile = instance.tiles[aroundTiles[i]];
+                        tmpConflictTiles = new Array();
+                        for(var j = 0; j < neighborTile.conflictTiles.length; j++){
+                            if(neighborTile.conflictTiles[j] != tileIndex){
+                                tmpConflictTiles.push(neighborTile.conflictTiles[j]);
+                            }
+                        }
+                        neighborTile.conflictTiles = tmpConflictTiles;
+                    }
+                }
+                if(aroundTiles[i] >= 0){
+                    var neighborTile = instance.tiles[aroundTiles[i]];
+                    refreshAroundTiles(neighborTile);
+                }
+                if(tile.aroundTiles[i] >= 0){
+                    var neighborTile = instance.tiles[tile.aroundTiles[i]];
+                    refreshAroundTiles(neighborTile);
                 }
             }
-            if (i == aroundTiles.length) {
-                aroundTilesChanged = false;
-            }
+        }
+        else{
+            aroundTilesChanged = true;
         }
 
         console.log('Moving '+tileIndex);
@@ -932,72 +998,26 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function getCheatHints(roundID, tileIndex) {
-        var trueHints = getHints(roundID, tileIndex);
-        if (!trueHints) {
-            trueHints = new Array(-1, -1, -1, -1);
-        }
-
-        var topTile = undefined;
-        var rightTile = undefined;
-        var bottomTile = undefined;
-        var leftTile = undefined;
-        if (tileIndex % instance.tilesPerRow != 0) {
-            leftTile = instance.tiles[tileIndex - 1];
-        }
-        if (tileIndex % instance.tilesPerRow != instance.tilesPerRow - 1) {
-            rightTile = instance.tiles[tileIndex + 1];
-        }
-        if (tileIndex / instance.tilesPerRow != 0) {
-            topTile = instance.tiles[tileIndex - instance.tilesPerRow];
-        }
-        if (tileIndex / instance.tilesPerRow != instance.tilesPerColumn - 1) {
-            bottomTile = instance.tiles[tileIndex + instance.tilesPerRow];
-        }
-
-        var cheatHints = new Array(getTileIndex(topTile), getTileIndex(rightTile),
-            getTileIndex(bottomTile), getTileIndex(leftTile));
-
-        var hintTiles = new Array();
-
-        for (var i = 0; i < cheatHints.length; i++) {
-            var steps = instance.steps;
-            if (Math.random() < 0.5) {
-                hintTiles.push(cheatHints[i]);
+    function getHints(round_id, selectedTileIndex) {
+        // var hintTileIndexes=new Array(-1,-1,-1,-1);
+        $.ajax({
+            url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                // var data = $.parseJSON(data);
+                // indexes = directions(0 1 2 3=T R B L)
+                console.log('getHints: ' + data);
+                showHints(selectedTileIndex, data);
+                return data;
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
             }
-            else {
-                hintTiles.push(trueHints[i]);
-            }
-        }
-
-        return hintTiles;
+        });
     }
-
-/**
- * Retrieve data from the server and return hint tiles for the player
- * @param  selectedTileIndex
- * @return hintTileIndexes
- */
-function getHints(round_id, selectedTileIndex) {
-    // var hintTileIndexes=new Array(-1,-1,-1,-1);
-    $.ajax({
-        url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            // var data = $.parseJSON(data);
-            // indexes = directions(0 1 2 3=T R B L)
-            console.log('getHints: ' + data);
-            showHints(selectedTileIndex, data);
-            return data;
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
-        }
-    });
-}
 
     function showHints(selectedTileIndex, hintTiles) {
         var tile = instance.tiles[selectedTileIndex];
@@ -1017,9 +1037,24 @@ function getHints(round_id, selectedTileIndex) {
                 continue;
             }
 
+            if(tile.aroundTiles && tile.aroundTiles[j] > 0){
+                continue;
+            }
+
+            var isConflictTile = false;
+            for(var i = 0; i < tile.conflictTiles.length; i++){
+                if(tile.conflictTiles[i] == correctTileIndex){
+                    isConflictTile = true;
+                    break;
+                }
+            }
+            if(isConflictTile){
+                continue;
+            }
+
             var correctTile = instance.tiles[correctTileIndex];
 
-            if (correctTile.aroundTiles && correctTile.aroundTiles[j] > 0) {
+            if (correctTile.picking) {
                 continue;
             }
 
@@ -1028,6 +1063,17 @@ function getHints(round_id, selectedTileIndex) {
             var groupTiles = new Array();
 
             DFSTiles(correctTile, groupTiles, new Point(0, 0));
+
+            var sameGroup = false;
+            for (var i = 0; i < groupTiles.length; i++) {
+                if(getTileIndex(groupTiles[i]) == selectedTileIndex){
+                    sameGroup = true;
+                    break;
+                }
+            }
+            if(sameGroup){
+                continue;
+            }
 
             for (var i = 0; i < groupTiles.length; i++) {
                 groupTiles[i].picking = true;

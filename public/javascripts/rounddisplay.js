@@ -13,10 +13,7 @@ if (!roundDetailDialog.showModal) {
 var roundDetailJoinButton = $('#rounddetail_joinbutton');
 roundDetailJoinButton.click(function() {
     var roundID = $('#rounddetail_id').text();
-    if(roundDetailJoinButton.text() == 'Start'){
-        startRound(roundID);
-    }
-    else if(roundDetailJoinButton.text() == 'Join'){
+    if(roundDetailJoinButton.text() == 'Join'){
         joinRound(roundID);
     }
     else{
@@ -140,15 +137,9 @@ function renderRoundDetail(roundID){
         if(player.player_name == username){
             roundDetailJoinButton.text('Waiting for Players');
             roundDetailCancelButton.text('Quit');
-        }
-    }
-
-    if(round.players.length >= round.players_num){
-        if(round.creator == username){
-            roundDetailJoinButton.text('Start');
-        }
-        else{
-            roundDetailJoinButton.text('Waiting for Creator to Start');
+            if(round.players.length == round.players_num){
+                startRound(roundID);
+            }
         }
     }
 
@@ -197,6 +188,13 @@ function renderRoundList(data){
             if(round.creator == username){
                 renderRoundDetail(roundID);
             }
+            else{
+                for(var player of round.players){
+                    if(username == player.player_name){
+                        renderRoundDetail(roundID);
+                    }
+                }
+            }
         }
     }
     if(roundDetailDialog.open){
@@ -241,10 +239,7 @@ function postNewRound(imgSrc, playersNum) {
         success: function (data) {
         	console.log(data);
             var roundID = data.round_id;
-            if(playersNum == 1){
-                startRound(roundID);
-            }
-            getJoinableRounds();
+            joinRound(roundID);
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
@@ -304,7 +299,7 @@ function joinRound(roundID){
         timeout: 5000,
         success: function (data) {
             console.log(data);
-            getPlayersList(roundID);
+            getJoinableRounds(roundID);
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
