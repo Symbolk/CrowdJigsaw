@@ -147,6 +147,22 @@ router.route('/getPlayers/:round_id').all(LoginFirst).get(function (req, res, ne
 });
 
 /**
+ * Get a specify round
+ */
+router.route('/getRound/:round_id').all(LoginFirst).get(function (req, res, next) {
+    let condition = {
+        round_id: req.params.round_id
+    };
+    RoundModel.findOne(condition, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send(doc);
+        }
+    });
+});
+
+/**
  * Create a new round
  */
 router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
@@ -184,7 +200,6 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
 router.route('/startRound/:round_id').all(isCreator).get(function (req, res, next) {
     let condition = {
         round_id: req.params.round_id,
-        start_time: "-1"
     };
     // check if the players are enough
     // findOneAndUpdate
@@ -192,6 +207,10 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
         if (err) {
             console.log(err);
         } else {
+            if(doc.start_time != '-1'){
+                res.send({ msg: "Round is Already Start!" });
+                return;
+            }
             if (doc.players.length == doc.players_num) {
                 let TIME = util.getNowFormatDate();
                 // set start_time for all players
@@ -259,7 +278,8 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
                             console.log(err);
                         } else {
                             console.log(req.session.user.username + ' stops Round' + req.params.round_id);
-                            res.send({ msg: "You just stopped the round..." });
+                            res.send({ msg: "You just stopped the round...",
+                                stop_round: true });
                         }
                     });
                 } else { // online>=2
