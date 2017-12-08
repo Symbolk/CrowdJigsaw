@@ -20,7 +20,7 @@ roundDetailCancelButton.click(function() {
     var round = roundsList[parseInt(roundID)];
     if(roundDetailCancelButton.text() == 'Quit'){
         quitRound(roundID);
-        roundDetailCancelButton.text('Cancel');
+        roundDetailCancelButton.text('Close');
     }
     else{
         roundDetailDialog.close();
@@ -35,7 +35,7 @@ if (!newRoundDialog.showModal) {
 var newRoundCreateButton = $('#newround_createbutton');
 newRoundCreateButton.click(function() {
 	var imgSrc = $('#newround_image').attr('src');
-    var level = $('#newround_level').val(); 
+    var level = $('#newround_level').val();
 	var playersNum = $('#newround_number').val();
     var shape = 'jagged';
     if(level == 2){
@@ -115,7 +115,8 @@ function renderRoundDetail(round){
     var roundDetailCreator = $('#rounddetail_author');
     var roundDetailCreateTime = $('#rounddetail_createtime');
     var roundDetailShape = $('#rounddetail_shape');
-    var roundDetailNum = $('#rounddetail_playernum');
+    var roundDetailProgress = document.querySelector('#rounddetail_progress');
+
     var roundDetailLevel = $('#rounddetail_level');
 
     roundDetailImage.attr('src', round.image);
@@ -123,13 +124,15 @@ function renderRoundDetail(round){
     roundDetailCreator.text(round.creator);
     roundDetailCreateTime.text(round.create_time);
     roundDetailShape.text(round.shape);
-    roundDetailNum.text(round.players.length + '/' + round.players_num);
+
+    roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
+
     roundDetailLevel.text('Level' + round.level);
     
     var roundDetailPlayerList = $('#rounddetail_playerlist');
     roundDetailPlayerList.empty();
     roundDetailJoinButton.text('Join');
-    roundDetailCancelButton.text('Cancel');
+    roundDetailCancelButton.text('Close');
     for(var player of round.players){
         var li = $($('#rounddetail_li_template').html());
         li.find('.player-name').text(player.player_name);
@@ -137,7 +140,7 @@ function renderRoundDetail(round){
         li.appendTo('#rounddetail_playerlist');
         
         if(player.player_name == username){
-            roundDetailJoinButton.text('Waiting for Players');
+            roundDetailJoinButton.text('Waiting...');
             roundDetailCancelButton.text('Quit');
             if(round.players.length == round.players_num){
                 startRound(roundID);

@@ -1,21 +1,57 @@
-<dialog class="mdl-dialog" id="rounddetail_dialog">
-    <div class="mdl-dialog__content">
-      <h4 class="mdl-dialog__title">Details</h4>
-      <br>
-      <img class="article-image" id="rounddetail_image">
-      <br>
-      <b>ID: </b><p id="rounddetail_id"></p>
-      <b id="rounddetail_level"></b>
-      <b>Author: </b><p id="rounddetail_author"></p>
-      <b>Create Time: </b><p id="rounddetail_createtime"></p>
-      <b>Shape: </b><p id="rounddetail_shape"></p>
-      <b>Waiting Players: </b><p id="rounddetail_playernum"></p>
-      <b>Players List</b>
-      <ul class="mdl-list" id="rounddetail_playerlist"></ul>
-      <br>
-    </div>
-    <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
-      <button type="button" class="mdl-button" id="rounddetail_joinbutton">Join</button>
-      <button type="button" class="mdl-button" id="rounddetail_cancelbutton">Cancel</button>
-    </div>
-</dialog>
+<!-- <div class="mdl-grid"> -->
+  <!-- <div class="mdl-cell mdl-cell--6-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"> -->
+    <dialog class="mdl-dialog" id="rounddetail_dialog">
+      <div class="mdl-dialog__content">
+        <h4 class="mdl-dialog__title">Details</h4>
+        <br>
+        <img class="article-image" id="rounddetail_image">
+        <br>
+
+        <ul class="mdl-list">
+          <li class="mdl-list__item">
+            <span class="mdl-list__item-primary-content">
+              <b>ID:</b>
+            </span>
+            <span class="mdl-list__item-primary-content">
+              <span id="rounddetail_id"></span>
+            </span>
+          </li>
+          <li class="mdl-list__item">
+            <span class="mdl-list__item-primary-content">
+              <b>Creator: </b>
+            </span>
+            <span class="mdl-list__item-primary-content">
+              <span id="rounddetail_author"></span>
+            </span>
+          </li>
+          <li class="mdl-list__item">
+            <span class="mdl-list__item-primary-content">
+              <b>Create Time: </b>
+            </span>
+            <span class="mdl-list__item-primary-content">
+              <span id="rounddetail_createtime"></span>
+            </span>
+          </li>
+          <li class="mdl-list__item">
+            <span class="mdl-list__item-primary-content">
+              <b>Shape: </b>
+            </span>
+            <span class="mdl-list__item-primary-content">
+              <span id="rounddetail_shape"></span>
+            </span>
+          </li>
+        </ul>
+        <div id="rounddetail_progress" class="mdl-progress mdl-js-progress"></div>
+
+        <b>Players List</b>
+        <ul class="mdl-list" id="rounddetail_playerlist"></ul>
+        <br>
+      </div>
+      <div class="mdl-dialog__actions mdl-card--border">
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="rounddetail_joinbutton">Join</button>
+        <button type="button" class="cancel_button mdl-button mdl-js-button mdl-button--raised" id="rounddetail_cancelbutton">Cancel</button>
+      </div>
+    </dialog>
+
+  <!-- </div> -->
+<!-- </div> -->

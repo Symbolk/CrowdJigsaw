@@ -195,7 +195,7 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
 });
 
 /**
- * Start a round(only by the creator, after the player_num reached)
+ * Start a round(when the player_num reached)
  */
 router.route('/startRound/:round_id').all(isCreator).get(function (req, res, next) {
     let condition = {
@@ -250,7 +250,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
 /**
  * Quit a round, either by user or by accident, when unfinished
  */
-router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
+router.route('/quitRound/:round_id').all(LoginFirst).get(function (req, res, next) {
     let condition = {
         round_id: req.params.round_id
     };
@@ -315,7 +315,7 @@ router.all(LoginFirst).get('/quitRound/:round_id', function (req, res, next) {
 /**
  * Save a record by one user when he gets his puzzle done
  */
-router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
+router.route('/saveRecord').all(LoginFirst).post(function (req, res, next) {
     let contri = 0;// to be calculated
     let operation = {};
 
@@ -353,7 +353,7 @@ router.all(LoginFirst).post('/saveRecord', function (req, res, next) {
 /**
  * Save a game by one user
  */
-router.all(LoginFirst).post('/saveGame', function (req, res, next) {
+router.route('/saveGame').all(LoginFirst).post(function (req, res, next) {
     var save_game = {
         round_id: req.body.round_id,
         steps: req.body.steps,
@@ -378,7 +378,7 @@ router.all(LoginFirst).post('/saveGame', function (req, res, next) {
 /**
  * Load a game by one user
  */
-router.all(LoginFirst).get('/loadGame', function (req, res, next) {
+router.route('/loadGame').all(LoginFirst).get(function (req, res, next) {
     let condition = {
         username: req.session.user.username
     };

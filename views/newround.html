@@ -7,12 +7,25 @@
         <br>
         <img class="article-image" id="newround_image" src="images/add2.png" border="0" alt="">
         <br>
+        <br>        
+        <!-- <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
+            <input class="mdl-textfield__input" type="text" id="newround_level" value="1" readonly tabIndex="-1">
+            <label for="newround_level">
+                <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
+            </label>
+            <label for="newround_level" class="mdl-textfield__label">Level</label>
+            <ul for="newround_level" class="mdl-menu mdl-menu--bottom-left mdl-js-menu">
+                <li class="mdl-menu__item" data-val="One">1</li>
+                <li class="mdl-menu__item" data-val="Two">2</li>
+            </ul>
+        </div> -->
         <b>Select Level: </b>
         <select id="newround_level">
           <option value="1">1</option>
           <option value="2">2</option>
         </select>
         <br>
+
         <b>Select Number of Players: </b>
         <select id="newround_number">
           <option value="1">1</option>
@@ -22,8 +35,8 @@
         </select>
       </form>
     </div>
-    <div class="mdl-dialog__actions mdl-dialog__actions--full-width">
-      <button type="button" class="mdl-button" id="newround_createbutton">Create</button>
-      <button type="button" class="mdl-button" id="newround_cancelbutton">Cancel</button>
+    <div class="mdl-dialog__actions">
+      <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="newround_createbutton">Create</button>
+      <button type="button" class="cancel_button mdl-button mdl-js-button mdl-button--raised" id="newround_cancelbutton">Cancel</button>
     </div>
 </dialog>

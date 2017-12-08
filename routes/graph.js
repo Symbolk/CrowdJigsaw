@@ -36,8 +36,8 @@ function writeAction(NAME, round_id, operation, from, direction, to) {
         player_name: NAME,
         operation: operation,
         from: from,
-        direction: to,
-        to: direction
+        direction: direction,
+        to: to
     };
     ActionModel.create(action, function (err) {
         if (err) {
@@ -49,8 +49,139 @@ function writeAction(NAME, round_id, operation, from, direction, to) {
     });
 }
 
+// Bidirectionally add one link to the other side
+function biAdd(round_id, from, to, dir) {
+    
+    NodeModel.findOne({ round_id: round_id, index: from }, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (!doc) {
+                // create the from node
+                let new_node = {
+                    round_id: round_id,
+                    index: from
+                };
+                NodeModel.create(new_node, function (err) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        // and push a new one
+                        let temp = {};
+                        temp[dir] = {
+                            index: to,
+                            sup_num: 1
+                        };
+                        NodeModel.update(
+                            { round_id: round_id, index: from },
+                            { $push: temp },
+                            function (err) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            });
+                    }
+                });
+            } else {
+                // the from node exists
+                // check if the 
+                if (doc[dir].length == 0) {
+                    // not exists
+                    // push a new one
+                    let temp = {};
+                    temp[dir] = {
+                        index: to,
+                        sup_num: 1
+                    };
+                    NodeModel.update(
+                        { round_id: round_id, index: from },
+                        { $push: temp },
+                        function (err) {
+                            if (err) {
+                                console.log(err);
+                            }
+                        });
+                } else {
+                    // check if the to link exists
+                    let existed = false;
+                    for (let i of doc[dir]) {
+                        if (i.index == to) {
+                            // if yes, inc the node
+                            existed = true;
+                            let condition = {
+                                round_id: round_id, index: from
+                            };
+                            condition[dir + '.index'] = to;
+                            let temp = {};
+                            temp[dir + '.$.sup_num'] = 1;
+                            NodeModel.update(condition,
+                                { $inc: temp },
+                                function (err, doc) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                });
+                        }
+                    }
+                    // if not, push a new one
+                    if (!existed) {
+                        // ++
+                        let temp = {};
+                        temp[dir] = {
+                            index: to,
+                            sup_num: 1
+                        };
+                        NodeModel.update(
+                            { round_id: round_id, index: from },
+                            { $push: temp },
+                            function (err) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            });
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+/**
+ * Bidirectionally remove one link to the other side
+ */
+function biRemove(round_id, from, to, dir) {
+    NodeModel.findOne({ round_id: round_id, index: from }, function(err, doc){
+        if(err){
+            console.log(err);
+        }else{
+            if(!doc){
+                // it's sure that it exists
+                if (doc[dir].length > 0) {
+                    // --/-
+                    let condition = {
+                        round_id: round_id, index: from
+                    };
+                    condition[dir + '.index'] = to;
+                    let temp = {};
+                    temp[dir + '.$.sup_num'] = -1;
+                    temp[dir + '.$.opp_num'] = 1;
+                    NodeModel.findOneAndUpdate(condition,
+                        { $inc: temp }, { new: true },
+                        function (err, doc) {
+                            if (err) {
+                                console.log(err);
+                            }
+                        });
+                }
+            }
+        }
+    });
+}
+
 /**
  * Check the links and format the action object
+ * Bidirectionally
  */
 router.route('/check').all(LoginFirst).post(function (req, res, next) {
     let round_id = req.body.round_id;
@@ -61,6 +192,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
     let msgs = new Array();
     // For every posted nodes, add them to the nodes(graph), and decide which way 
     var dirs = ['top', 'right', 'bottom', 'left'];
+    var reverseDirs = ['bottom', 'left', 'top', 'right'];    
     NodeModel.findOne({ round_id: round_id, index: selected }, function (err, doc) {
         if (err) {
             console.log(err);
@@ -96,6 +228,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             } else {
                                                 writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
                                                 msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                biAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
                                         });
                                 } else if (to.after == -1) {
@@ -105,7 +238,8 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                 }
                             }
                         }
-                        res.send({ msg: JSON.stringify(msgs) });
+                        console.log(msgs);
+                        // res.send({ msg: JSON.stringify(msgs) });
                     }
                 });
             } else {
@@ -130,6 +264,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         } else {
                                             writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
                                             msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                            biAdd(round_id, to.after, selected, reverseDirs[d]);                                    
                                         }
                                     });
                             } else {
@@ -152,6 +287,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                 } else {
                                                     writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
                                                     msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                    biAdd(round_id, to.after, selected, reverseDirs[d]);                                    
                                                 }
                                             });
                                     }
@@ -172,12 +308,13 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             } else {
                                                 writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
                                                 msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                biAdd(round_id, to.after, selected, reverseDirs[d]);                                    
                                             }
                                         });
                                 }
                             }
                         } else if (to.after == -1) {
-                            // existed&&sup_num>=1
+                            // assert: existed&&sup_num>=1
                             if (doc[dirs[d]].length > 0) {
                                 // --/-
                                 let condition = {
@@ -201,10 +338,11 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             }
                                             writeAction(NAME, round_id, op, selected, dirs[d], to.before);
                                             msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
+                                            biRemove(round_id, to.before, selected, reverseDirs[d]);
                                         }
                                     });
                             }
-                        } else {
+                        } else { // to.before!=to.after!=-1
                             // - 
                             var to_send = {};
                             let condition = {
@@ -228,6 +366,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         }
                                         writeAction(NAME, round_id, op, selected, dirs[d], to.before);
                                         msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
+                                        biRemove(round_id, to.before, selected, reverseDirs[d]);                                        
                                     }
                                 });
                             // +
@@ -249,6 +388,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             } else {
                                                 msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
                                                 writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
+                                                biAdd(round_id, to.after, selected, reverseDirs[d]);                                                                                    
                                             }
                                         });
                                 }
@@ -269,14 +409,16 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         } else {
                                             msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
                                             writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                            biAdd(round_id, to.after, selected, reverseDirs[d]);                                                                                                                                
                                         }
                                     });
                             }
                         }
                     }
                 }
-                res.send({ msg: JSON.stringify(msgs) });
             }
+            console.log(msgs);
+            // res.send({ msg: JSON.stringify(msgs) });
         }
     });
 });
@@ -352,13 +494,13 @@ router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (
                     } else {
                         let best = alternatives[0];
                         for (let a of alternatives) {
-                            if ((a.sup_num-a.opp_num) > 0 && (a.sup_num-a.opp_num) > (best.sup_num-best.opp_num)) {
+                            if ((a.sup_num - a.opp_num) > 0 && (a.sup_num - a.opp_num) > (best.sup_num - best.opp_num)) {
                                 best = a;
                             }
                         }
                         // to guarantee zero sup nodes won't be hinted
                         // 1/5 of the crowd have supported
-                        if ((best.sup_num-best.opp_num)>0) {
+                        if ((best.sup_num - best.opp_num) > 0) {
                             hintIndexes.push(best.index);
                         } else {
                             hintIndexes.push(-1);
