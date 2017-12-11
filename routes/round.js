@@ -395,7 +395,8 @@ router.route('/getRoundRank/:round_id').all(LoginFirst).get(function(req, res, n
             for(let t of temp){
                 rankedPlayers.push({
                     "player_name": t.player_name,
-                    "contribution": t.contribution
+                    "contribution": t.contribution.toFixed(3)
+                    //Math.round(t.contribution*1000)/1000
                 });
             }
             // res.render('roundrank', { title: 'Round Rank', AllPlayers: JSON.stringify(rankedPlayers), username: req.session.user.username });
