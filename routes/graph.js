@@ -88,7 +88,7 @@ function writeAction(NAME, round_id, operation, from, direction, to, contri) {
                     if (err) {
                         console.log(err);
                     } else {
-                        console.log(doc);
+                        // console.log(doc);
                     }
                 });
         }
@@ -273,7 +273,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                 console.log(err);
                                             } else {
                                                 writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                                msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
                                                 mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
                                         });
@@ -284,7 +284,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                 }
                             }
                         }
-                        console.log(msgs);
+                        res.send({ msg: 'success' });
                         // res.send({ msg: JSON.stringify(msgs) });
                     }
                 });
@@ -309,7 +309,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             console.log(err);
                                         } else {
                                             writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                            msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                            // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
                                             mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                         }
                                     });
@@ -334,7 +334,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                     console.log(err);
                                                 } else {
                                                     writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
-                                                    msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                    // res.send({msg:'+ ' + selected + '-' + dirs[d] + '->' + to.after});
                                                     mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                                 }
                                             });
@@ -355,7 +355,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                 console.log(err);
                                             } else {
                                                 writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                                msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
                                                 mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
                                         });
@@ -387,7 +387,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                 }
                                             }
                                             writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
-                                            msgs.push(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                                            // res.send({msg:op + ' ' + selected + '-' + dirs[d] + '->' + to.before});
                                             mutualRemove(round_id, to.before, selected, reverseDirs[d]);
                                         }
                                     });
@@ -408,7 +408,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        if (!doc) {
+                                        if (!doc[dirs[d]]) {
                                             let op = "";
                                             let opp_before = 0;
                                             for (let i of doc[dirs[d]]) {
@@ -418,7 +418,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                 }
                                             }
                                             writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
-                                            msgs.push(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                                            // res.send(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
                                             mutualRemove(round_id, to.before, selected, reverseDirs[d]);
                                         }
                                     }
@@ -442,7 +442,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                 console.log(err);
                                             } else {
                                                 writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
-                                                msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                                // res.send({msg:'+ ' + selected + '-' + dirs[d] + '->' + to.after});
                                                 mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
                                         });
@@ -463,7 +463,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             console.log(err);
                                         } else {
                                             writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                            msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
+                                            // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
                                             mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                         }
                                     });
@@ -471,9 +471,8 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                         }
                     }
                 }
+                res.send({ msg: 'success' });                
             }
-            console.log(msgs);
-            // res.send({ msg: JSON.stringify(msgs) });
         }
     });
 });
