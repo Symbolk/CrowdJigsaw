@@ -83,14 +83,14 @@ function writeAction(NAME, round_id, operation, from, direction, to, contri) {
             });
             // Update the players contribution in this round
             RoundModel.findOneAndUpdate(
-            { round_id: round_id,"players.player_name": NAME },
-            {$inc: { "players.$.contribution": contri }}, function(err, doc){
-                if(err){
-                    console.log(err);
-                }else{
-                    console.log(doc);
-                }
-            });
+                { round_id: round_id, "players.player_name": NAME },
+                { $inc: { "players.$.contribution": contri } }, function (err, doc) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log(doc);
+                    }
+                });
         }
     });
 }
@@ -408,17 +408,19 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        let op = "";
-                                        let opp_before = 0;
-                                        for (let i of doc[dirs[d]]) {
-                                            if (i.index == to.before) {
-                                                op = i.sup_num <= 0 ? "--" : "-";
-                                                opp_before = i.opp_num - 1;
+                                        if (!doc) {
+                                            let op = "";
+                                            let opp_before = 0;
+                                            for (let i of doc[dirs[d]]) {
+                                                if (i.index == to.before) {
+                                                    op = i.sup_num <= 0 ? "--" : "-";
+                                                    opp_before = i.opp_num - 1;
+                                                }
                                             }
+                                            writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
+                                            msgs.push(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                                            mutualRemove(round_id, to.before, selected, reverseDirs[d]);
                                         }
-                                        writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
-                                        msgs.push(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
-                                        mutualRemove(round_id, to.before, selected, reverseDirs[d]);
                                     }
                                 });
                             // +
@@ -439,7 +441,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             if (err) {
                                                 console.log(err);
                                             } else {
-                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calContri("+", sup_before));
+                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
                                                 msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
                                                 mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
@@ -460,7 +462,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calContri("++", 0));
+                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
                                             msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
                                             mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                         }
