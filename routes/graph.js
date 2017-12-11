@@ -402,27 +402,52 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                             let temp = {};
                             temp[dirs[d] + '.$.sup_num'] = -1;
                             temp[dirs[d] + '.$.opp_num'] = 1;
-                            NodeModel.findOneAndUpdate(condition,
-                                { $inc: temp }, { new: true },
-                                function (err, doc) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        if (!doc[dirs[d]]) {
-                                            let op = "";
-                                            let opp_before = 0;
-                                            for (let i of doc[dirs[d]]) {
-                                                if (i.index == to.before) {
-                                                    op = i.sup_num <= 0 ? "--" : "-";
-                                                    opp_before = i.opp_num - 1;
-                                                }
+                            NodeModel.findOne(condition, function (err, doc) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    if (!doc) {
+                                        let op = "";
+                                        let opp_before = 0;
+                                        for (let i of doc[dirs[d]]) {
+                                            if (i.index == to.before) {
+                                                op = i.sup_num <= 1 ? "--" : "-"; // 0/1-1=-1/0;
+                                                opp_before = i.opp_num;
                                             }
-                                            writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
-                                            // res.send(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
-                                            mutualRemove(round_id, to.before, selected, reverseDirs[d]);
                                         }
+                                        NodeModel.update(condition, { $inc: temp }, function (err) {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
+                                                // res.send(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                                                mutualRemove(round_id, to.before, selected, reverseDirs[d]);
+                                            }
+                                        });
                                     }
-                                });
+                                }
+                            });
+                            // NodeModel.findOneAndUpdate(condition,
+                            // { $inc: temp }, { new: true },
+                            // function (err, doc) {
+                            //     if (err) {
+                            //         console.log(err);
+                            //     } else {
+                            //         if (!doc){
+                            //             let op = "";
+                            //             let opp_before = 0;
+                            //             for (let i of doc[dirs[d]]) {
+                            //                 if (i.index == to.before) {
+                            //                     op = i.sup_num <= 0 ? "--" : "-";
+                            //                     opp_before = i.opp_num - 1;
+                            //                 }
+                            //             }
+                            //             writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
+                            //             // res.send(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                            //             mutualRemove(round_id, to.before, selected, reverseDirs[d]);
+                            //         }
+                            //     }
+                            // });
                             // +
                             let existed = false;
                             for (let i of doc[dirs[d]]) {
@@ -471,7 +496,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                         }
                     }
                 }
-                res.send({ msg: 'success' });                
+                res.send({ msg: 'success' });
             }
         }
     });
