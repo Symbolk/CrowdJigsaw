@@ -995,6 +995,9 @@ function JigsawPuzzle(config) {
             // selected, before, after
             console.log('Before:' + tile.aroundTiles);
             console.log('After:' + aroundTiles);
+            if(!tile.aroundTiles){
+                tile.aroundTiles = new Array(-1, -1, -1, -1);
+            }
             checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
         }
 
