@@ -14,6 +14,24 @@ var util = require('./util.js');
 
 const SECRET = "CrowdIntel";
 
+var compare = function (prop) {
+    return function (obj1, obj2) {
+        var val1 = obj1[prop];
+        var val2 = obj2[prop];
+        if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
+            val1 = Number(val1);
+            val2 = Number(val2);
+        }
+        if (val1 < val2) {
+            return 1;
+        } else if (val1 > val2) {
+            return -1;
+        } else {
+            return 0;
+        }            
+    } 
+}
+
 /**
  *  MD5 encryption
  *  let md5 = crypto.createHash("md5");
@@ -105,7 +123,7 @@ router.route('/visitor').get(function (req, res) {
                 if (err) {
                     console.log(err);
                 } else {
-                    req.session.user=user
+                    req.session.user = user
                     req.session.error = 'Welcome! ' + operation.username;
                     return res.redirect('/home');
                 }
@@ -193,15 +211,15 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 // });
 
 // Round
-router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {  
-    res.render('rounddisplay', { title: 'Playground', username: req.session.user.username});
+router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
+    res.render('rounddisplay', { title: 'Playground', username: req.session.user.username });
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     let level = req.query.level;
     let roundID = req.query.roundID;
     let image = req.query.image;
-    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image});
+    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image });
 });
 
 
@@ -282,7 +300,49 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
     }
 });
 
+// Jump to the round rank page
+router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
+    let condition = { "records.round_id": req.params.round_id };
+    let fields = { _id: 0, username: 1, avatar: 1, records: 1 };
+    UserModel.find(condition, fields, function (err, docs) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (docs) {
+                let finished = new Array();
+                let unfinished = new Array();
 
+                for (let d of docs) {
+                    for (let r of d.records) {
+                        if (r.round_id == req.params.round_id) {
+                            if (r.end_time != -1) {
+                                finished.push({
+                                    "playername": d.username,
+                                    "avatar": d.avatar,
+                                    "time": r.time,
+                                    "steps": r.steps,
+                                    "contribution": r.contribution
+                                });
+                            } else {
+                                unfinished.push({
+                                    "playername": d.username,
+                                    "avatar": d.avatar,
+                                    "time": r.time,
+                                    "steps": r.steps,
+                                    "contribution": r.contribution
+                                });
+                            }
+                        }
+                    }
+                }
+                // sort the players
+                finished=finished.sort(compare("time"));
+                unfinished=unfinished.sort(compare("contribution"));
+                res.render('roundrank', { title: 'Round Rank', Finished: finished, Unfinished: unfinished, username: req.session.user.username });
+            }
+        }
+    });
+});
 // Rank
 router.route('/rank').all(LoginFirst).get(function (req, res) {
     req.session.error = 'Players Rank!';

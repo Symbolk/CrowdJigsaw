@@ -25,25 +25,25 @@ router.get('/', function (req, res, next) {
 /**
  * Save a record by one user when he gets his puzzle done
  */
-router.post('/saveRecord', function (req, res, next) {
-    let TIME = util.getNowFormatDate();
-    let contri = 0;// to be calculated
-    let operation = {
-        $set: {
-            end_time: TIME,
-            steps: req.body.steps,
-            time: req.body.time,
-            contribution: contri
-        }
-    };
-    var NAME = req.session.user.username;
-    UserModel.findOneAndUpdate({ username: NAME }, operation, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.send({ msg: "Your record has been saved." });
-        }
-    });
-});
+// router.post('/saveRecord', function (req, res, next) {
+//     let TIME = util.getNowFormatDate();
+//     let contri = 0;// to be calculated
+//     let operation = {
+//         $set: {
+//             end_time: TIME,
+//             steps: req.body.steps,
+//             time: req.body.time,
+//             contribution: contri
+//         }
+//     };
+//     var NAME = req.session.user.username;
+//     UserModel.findOneAndUpdate({ username: NAME }, operation, function (err, doc) {
+//         if (err) {
+//             console.log(err);
+//         } else {
+//             res.send({ msg: "Your record has been saved." });
+//         }
+//     });
+// });
 
 module.exports = router;

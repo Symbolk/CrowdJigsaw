@@ -376,7 +376,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        if (!doc) {
+                                        if (doc!==null) {
                                             let op = "";
                                             let opp_before = 0;
                                             for (let i of doc[dirs[d]]) {
@@ -431,7 +431,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    if (!doc) {
+                                    if (doc!==null) {
                                         let op = "";
                                         let opp_before = 0;
                                         for (let i of doc[dirs[d]]) {
