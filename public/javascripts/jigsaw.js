@@ -1087,6 +1087,27 @@ function JigsawPuzzle(config) {
                     finishGame();
                 }
             }
+
+            normalizeTiles();
+        }
+    }
+
+    function normalizeTiles(){
+        for(var i = 0; i < instance.tiles.length; i++){
+            var tile = instance.tiles[i];
+            var position = tile.position;
+
+            var cellPosition = new Point(
+                Math.round(position.x / instance.tileWidth),//returns int closest to arg
+                Math.round(position.y / instance.tileWidth));
+
+            tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
+            tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
+                
+            tile.relativePosition = new Point(0, 0);
+            tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
+            tile.aroundTilesChanged = false;
+            tile.positionMoved = false;
         }
     }
 
@@ -1105,6 +1126,7 @@ function JigsawPuzzle(config) {
                 if(!mousedowned){
                     instance.hintsShowing = true;
                     showHints(selectedTileIndex, data);
+                    normalizeTiles();
                     instance.hintsShowing = false;
                 }
                 return data;
