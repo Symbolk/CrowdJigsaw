@@ -15,12 +15,13 @@ var RoundSchema = new mongoose.Schema({
         {
             player_name: { type: String },
             join_time: { type: String }, // formatted time, e.g. 2017-10-31 14:00:20
+            contribution: { type: Number, default:0 }// the real time contribution of the player
         }
     ],
-    // all past and now players can give sequences
-    actions: [
+    // // all past and now players can give sequences
+    // actions: [
 
-    ],
+    // ],
     // graph = a set of nodes
     graph: [ { type: mongoose.Schema.Types.ObjectId, ref: 'Node' } ],
     collective_time: { type: String, default: "-1" } //"-1"=unfinished

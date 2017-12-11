@@ -1,0 +1,48 @@
+<p class="roundRank-dialog-text">
+    <% title %>
+    <i class="fa fa-bar-chart fa-lg"></i>
+</p>
+<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th class="mdl-data-table__cell--non-numeric">Avatar</th>
+            <th>PlayerName</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% locals.r = 0; %>
+            <% AllPlayers.forEach(function(u){ %>
+                <tr>
+                    <% locals.r++  %>
+                        <td class="mdl-data-table__cell--non-numeric">
+                            <!-- <% if(u.playername===user.username){%>
+                                <span style="color:#3c3;">
+                                    <%= locals.r  %>
+                                </span>
+                                <%}
+                        else{%> -->
+                                    <span>
+                                        <%= locals.r %>
+                                    </span>
+                                    <!-- <%} %> -->
+                        </td>
+                        <td>
+                            <img class="mdl-list__item-avatar" src="images/placeholder.jpg">
+                        </td>
+                        <td>
+                            <!-- <% if(u.playername===user.username){%>
+                                <span style="color:#3c3;">
+                                    <%- u.username %>
+                                </span>
+                                <%} -->
+                                    <!-- else{%> -->
+                                    <span>
+                                        <%- u.username %>
+                                    </span>
+                                    <!-- <%} %> -->
+                        </td>
+                </tr>
+                <% }) %>
+    </tbody>
+</table>

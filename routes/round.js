@@ -6,7 +6,27 @@ const mongoose = require('mongoose');
 var RoundModel = require('../models/round').Round;
 var UserModel = require('../models/user').User;
 var NodeModel = require('../models/node').Node;
+var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
+
+var compare = function (prop) {
+    return function (obj1, obj2) {
+        var val1 = obj1[prop];
+        var val2 = obj2[prop];
+        if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
+            val1 = Number(val1);
+            val2 = Number(val2);
+        }
+        if (val1 < val2) {
+            return 1;
+        } else if (val1 > val2) {
+            return -1;
+        } else {
+            return 0;
+        }            
+    } 
+  }
+
 
 function createRecord(player_name, round_id, join_time) {
     let condition = {
@@ -207,7 +227,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
         if (err) {
             console.log(err);
         } else {
-            if(doc.start_time != '-1'){
+            if (doc.start_time != '-1') {
                 res.send({ msg: "Round is Already Start!" });
                 return;
             }
@@ -278,8 +298,10 @@ router.route('/quitRound/:round_id').all(LoginFirst).get(function (req, res, nex
                             console.log(err);
                         } else {
                             console.log(req.session.user.username + ' stops Round' + req.params.round_id);
-                            res.send({ msg: "You just stopped the round...",
-                                stop_round: true });
+                            res.send({
+                                msg: "You just stopped the round...",
+                                stop_round: true
+                            });
                         }
                     });
                 } else { // online>=2
@@ -316,40 +338,72 @@ router.route('/quitRound/:round_id').all(LoginFirst).get(function (req, res, nex
  * Save a record by one user when he gets his puzzle done
  */
 router.route('/saveRecord').all(LoginFirst).post(function (req, res, next) {
-    let contri = 0;// to be calculated
+
     let operation = {};
-
-    if (req.body.finished=="true") {     
-        let TIME = util.getNowFormatDate();
-        operation = {
-            $set: {
-                "records.$.end_time": TIME,
-                "records.$.steps": req.body.steps,
-                "records.$.time": req.body.time,
-                "records.$.contribution": contri
-            }
-        };
-    } else if(req.body.finished=="false"){
-        operation = {
-            $set: {
-                // records.$.end_time: -1
-                "records.$.steps": req.body.steps,
-                "records.$.time": req.body.time,
-                "records.$.contribution": contri
-            }
-        };
-    }
-
-    UserModel.update({ username: req.session.user.username, "records.round_id": req.body.round_id }, operation, function (err, doc) {
+    let contri = 0;
+    ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, { _id: 0, contribution: 1 }, function (err, docs) {
         if (err) {
             console.log(err);
         } else {
-            console.log(req.session.user.username + ' saves his record.');
-            res.send({ msg: "Your record has been saved." });
+            for (let d of docs) {
+                contri += d.contribution;
+            }
+            if (req.body.finished == "true") {
+                let TIME = util.getNowFormatDate();
+                operation = {
+                    $set: {
+                        "records.$.end_time": TIME,
+                        "records.$.steps": req.body.steps,
+                        "records.$.time": req.body.time,
+                        "records.$.contribution": contri
+                    }
+                };
+            } else if (req.body.finished == "false") {
+                operation = {
+                    $set: {
+                        // records.$.end_time: -1
+                        "records.$.steps": req.body.steps,
+                        "records.$.time": req.body.time,
+                        "records.$.contribution": contri
+                    }
+                };
+            }
+
+            UserModel.update({ username: req.session.user.username, "records.round_id": req.body.round_id }, operation, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(req.session.user.username + ' saves his record.');
+                    res.send({ msg: "Your record has been saved." });
+                }
+            });
         }
     });
 });
 
+/**
+ * Get the round contribution rank
+ */
+router.route('/getRoundRank/:round_id').all(LoginFirst).get(function(req, res, next){
+    RoundModel.findOne({ round_id: req.params.round_id }, {_id:0, players:1 }, {}, function(err, doc){
+        if(err){
+            console.log(err);
+        }else{
+            let rankedPlayers=new Array();
+            let temp=doc.players;
+            temp=temp.sort(compare("contribution"));
+            for(let t of temp){
+                rankedPlayers.push({
+                    "player_name": t.player_name,
+                    "contribution": t.contribution
+                });
+            }
+            // res.render('roundrank', { title: 'Round Rank', AllPlayers: JSON.stringify(rankedPlayers), username: req.session.user.username });
+            res.send({ AllPlayers: rankedPlayers });
+        }
+    });
+});
+ 
 /**
  * Save a game by one user
  */

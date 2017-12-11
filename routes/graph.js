@@ -27,31 +27,77 @@ router.route('/:round_id').all(JoinRoundFirst).get(function (req, res) {
 });
 
 /**
+ * Calculate the contribution according to the alpha decay function
+ * num_before can be sup or opp
+ */
+function calcContri(operation, num_before) {
+    const alpha = 0.8;
+    num_before = Number(num_before);
+    let contribution = 0;
+    switch (operation) {
+        case "++":
+            contribution = 1;
+            break;
+        case "+":
+            contribution = Math.pow(0.8, num_before);
+            break;
+        case "--":
+            contribution = -1;
+            break;
+        case "-":
+            contribution = 0 - Math.pow(0.8, num_before);
+            break;
+        default:
+            contribution = 0;
+    }
+    return contribution;
+}
+
+/**
  * Write one action into the action sequence
  */
-function writeAction(NAME, round_id, operation, from, direction, to) {
-    var action = {
-        round_id: round_id,
-        time_stamp: util.getNowFormatDate(),
-        player_name: NAME,
-        operation: operation,
-        from: from,
-        direction: direction,
-        to: to
-    };
-    ActionModel.create(action, function (err) {
+function writeAction(NAME, round_id, operation, from, direction, to, contri) {
+    ActionModel.find({ round_id: round_id }, function (err, docs) {
         if (err) {
             console.log(err);
-            return false;
         } else {
-            return true;
+            let aid = docs.length;
+            var action = {
+                round_id: round_id,
+                action_id: aid,
+                time_stamp: util.getNowFormatDate(),
+                player_name: NAME,
+                operation: operation,
+                from: from,
+                direction: direction,
+                to: to,
+                contribution: contri
+            };
+            ActionModel.create(action, function (err) {
+                if (err) {
+                    console.log(err);
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+            // Update the players contribution in this round
+            RoundModel.findOneAndUpdate(
+            { round_id: round_id,"players.player_name": NAME },
+            {$inc: { "players.$.contribution": contri }}, function(err, doc){
+                if(err){
+                    console.log(err);
+                }else{
+                    console.log(doc);
+                }
+            });
         }
     });
 }
 
 // Bidirectionally add one link to the other side
-function biAdd(round_id, from, to, dir) {
-    
+function mutualAdd(round_id, from, to, dir) {
+
     NodeModel.findOne({ round_id: round_id, index: from }, function (err, doc) {
         if (err) {
             console.log(err);
@@ -150,12 +196,12 @@ function biAdd(round_id, from, to, dir) {
 /**
  * Bidirectionally remove one link to the other side
  */
-function biRemove(round_id, from, to, dir) {
-    NodeModel.findOne({ round_id: round_id, index: from }, function(err, doc){
-        if(err){
+function mutualRemove(round_id, from, to, dir) {
+    NodeModel.findOne({ round_id: round_id, index: from }, function (err, doc) {
+        if (err) {
             console.log(err);
-        }else{
-            if(!doc){
+        } else {
+            if (!doc) {
                 // it's sure that it exists
                 if (doc[dir].length > 0) {
                     // --/-
@@ -192,12 +238,12 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
     let msgs = new Array();
     // For every posted nodes, add them to the nodes(graph), and decide which way 
     var dirs = ['top', 'right', 'bottom', 'left'];
-    var reverseDirs = ['bottom', 'left', 'top', 'right'];    
+    var reverseDirs = ['bottom', 'left', 'top', 'right'];
     NodeModel.findOne({ round_id: round_id, index: selected }, function (err, doc) {
         if (err) {
             console.log(err);
         } else {
-            if (!doc) {
+            if (!doc) { // Case1: Add(node not existed)
                 // new a node and new the links
                 // all ++
                 let new_node = {
@@ -226,9 +272,9 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             if (err) {
                                                 console.log(err);
                                             } else {
-                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
                                                 msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                                biAdd(round_id, to.after, selected, reverseDirs[d]);
+                                                mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
                                         });
                                 } else if (to.after == -1) {
@@ -247,7 +293,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                 for (let d = 0; d < around.length; d++) { // d=0,1,2,3
                     let to = around[d];
                     if (to.before != to.after) {
-                        if (to.before == -1) { // new link in user view
+                        if (to.before == -1) {  // Case2: Add(node existed, -1 to !-1)
                             if (doc[dirs[d]].length == 0) {
                                 // ++ in global view
                                 let temp = {};
@@ -262,9 +308,9 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
                                             msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                            biAdd(round_id, to.after, selected, reverseDirs[d]);                                    
+                                            mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                         }
                                     });
                             } else {
@@ -279,15 +325,17 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         condition[dirs[d] + '.index'] = to.after;
                                         let temp = {};
                                         temp[dirs[d] + '.$.sup_num'] = 1;
+                                        let sup_before = i.sup_num;
+
                                         NodeModel.update(condition,
                                             { $inc: temp },
                                             function (err, doc) {
                                                 if (err) {
                                                     console.log(err);
                                                 } else {
-                                                    writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
+                                                    writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
                                                     msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                                    biAdd(round_id, to.after, selected, reverseDirs[d]);                                    
+                                                    mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                                 }
                                             });
                                     }
@@ -306,14 +354,14 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                             if (err) {
                                                 console.log(err);
                                             } else {
-                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
+                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
                                                 msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                                biAdd(round_id, to.after, selected, reverseDirs[d]);                                    
+                                                mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
                                         });
                                 }
                             }
-                        } else if (to.after == -1) {
+                        } else if (to.after == -1) { // Case3: Remove(edge existed, !-1 to -1)
                             // assert: existed&&sup_num>=1
                             if (doc[dirs[d]].length > 0) {
                                 // --/-
@@ -325,24 +373,26 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                 temp[dirs[d] + '.$.sup_num'] = -1;
                                 temp[dirs[d] + '.$.opp_num'] = 1;
                                 NodeModel.findOneAndUpdate(condition,
-                                    { $inc: temp }, { new: true },
+                                    { $inc: temp }, { new: true }, // return the modified doc
                                     function (err, doc) {
                                         if (err) {
                                             console.log(err);
                                         } else {
-                                            let op = '';
+                                            let op = "";
+                                            let opp_before = 0;
                                             for (let i of doc[dirs[d]]) {
                                                 if (i.index == to.before) {
-                                                    op = i.sup_num <= 0 ? '-- ' : '- ';
+                                                    op = i.sup_num <= 0 ? "--" : "-";
+                                                    opp_before = i.opp_num - 1;
                                                 }
                                             }
-                                            writeAction(NAME, round_id, op, selected, dirs[d], to.before);
-                                            msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
-                                            biRemove(round_id, to.before, selected, reverseDirs[d]);
+                                            writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
+                                            msgs.push(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                                            mutualRemove(round_id, to.before, selected, reverseDirs[d]);
                                         }
                                     });
                             }
-                        } else { // to.before!=to.after!=-1
+                        } else { // Case4: Update(to.before!=to.after!=-1)
                             // - 
                             var to_send = {};
                             let condition = {
@@ -358,15 +408,17 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        let op = '';
+                                        let op = "";
+                                        let opp_before = 0;
                                         for (let i of doc[dirs[d]]) {
                                             if (i.index == to.before) {
-                                                op = i.sup_num <= 0 ? '-- ' : '- ';
+                                                op = i.sup_num <= 0 ? "--" : "-";
+                                                opp_before = i.opp_num - 1;
                                             }
                                         }
-                                        writeAction(NAME, round_id, op, selected, dirs[d], to.before);
-                                        msgs.push(op + selected + '-' + dirs[d] + '->' + to.before);
-                                        biRemove(round_id, to.before, selected, reverseDirs[d]);                                        
+                                        writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
+                                        msgs.push(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                                        mutualRemove(round_id, to.before, selected, reverseDirs[d]);
                                     }
                                 });
                             // +
@@ -380,15 +432,16 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                     condition[dirs[d] + '.index'] = to.after;
                                     let temp = {};
                                     temp[dirs[d] + '.$.sup_num'] = 1;
+                                    let sup_before = i.sup_num;
                                     NodeModel.update(condition,
                                         { $inc: temp },
                                         function (err, doc) {
                                             if (err) {
                                                 console.log(err);
                                             } else {
+                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calContri("+", sup_before));
                                                 msgs.push('+ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after);
-                                                biAdd(round_id, to.after, selected, reverseDirs[d]);                                                                                    
+                                                mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                             }
                                         });
                                 }
@@ -407,9 +460,9 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         if (err) {
                                             console.log(err);
                                         } else {
+                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calContri("++", 0));
                                             msgs.push('++ ' + selected + '-' + dirs[d] + '->' + to.after);
-                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after);
-                                            biAdd(round_id, to.after, selected, reverseDirs[d]);                                                                                                                                
+                                            mutualAdd(round_id, to.after, selected, reverseDirs[d]);
                                         }
                                     });
                             }
@@ -428,7 +481,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
  * Get hints from the current graph data
  * @return an array of recommended index, in 4 directions of the tile
  */
-router.route('/getHints/:round_id/:selected').all(JoinRoundFirst).get(function (req, res) {
+router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req, res) {
     // router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
     // query the 4 dirs of the selected tile
     let condition = {

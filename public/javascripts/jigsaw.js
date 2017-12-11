@@ -9,9 +9,9 @@ $('.zoomOut').click(function () {
     puzzle.zoom(-.1);
 });
 
-$('.help').mousedown(function () {
-    puzzle.showLastResult();
-});
+// $('.help').mousedown(function () {
+//     puzzle.showLastResult();
+// });
 
 $('.restart').click(function () {
     // document.execCommand('Refresh');
@@ -22,6 +22,85 @@ $('.restart').click(function () {
 $('.returnCenter').click(function () {
     view.scrollBy(new Point(560, 360) - view.center);
 });
+
+// $('.roundRank').click(function () {
+
+// $.ajax({
+//     url: requrl + 'round' + '/getRoundRank/' + roundID,
+//     type: 'get',
+//     dataType: 'json',
+//     cache: false,
+//     timeout: 5000,
+//     success: function (data) {
+//         // window.location = '/roundrank';
+//         console.log(data);
+//     },
+//     error: function (jqXHR, textStatus, errorThrown) {
+//         console.log('error ' + textStatus + " " + errorThrown);
+//     }
+// });
+// }); 
+
+// round rank as dialog
+(function () {
+    var showButton = document.querySelector('.roundRank');
+    var dialog = document.querySelector('#roundRank_dialog');
+    var closeButton = document.querySelector('#close-button');
+
+    if (!dialog.showModal) {
+        dialogPolyfill.registerDialog(dialog);
+    }
+
+    closeButton.addEventListener('click', function (event) {
+        var ranklist = document.getElementById("ranklist");
+        var table = document.getElementById("ranktable");
+        ranklist.removeChild(table);
+        dialog.close();
+    });
+
+    showButton.addEventListener('click', function (event) {
+        $.ajax({
+            url: requrl + 'round' + '/getRoundRank/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                // $('.roundRank-dialog-text').text(data.AllPlayers); 
+                var ranklist = document.getElementById("ranklist");
+                var table = document.createElement("table");//创建table 
+                table.id="ranktable";
+                var row = table.insertRow();
+                var rank = row.insertCell();
+                rank.width = "150";
+                rank.innerHTML = "Rank";
+                var name = row.insertCell();
+                name.width = "150";                
+                name.innerHTML = "Name";
+                var contri=row.insertCell();
+                rank.width = "150";                
+                contri.innerHTML="Contribution";
+                             
+                
+                for (var i = 0; i < data.AllPlayers.length; i++) {
+                    var row = table.insertRow();//创建一行 
+                    var rank = row.insertCell();//创建一个单元 
+                    rank.width = "150";//更改cell的各种属性 
+                    rank.innerHTML = i;
+                    var name = row.insertCell();//创建一个单元                     
+                    name.innerHTML = data.AllPlayers[i].player_name;
+                    var contri = row.insertCell();//创建一个单元                     
+                    contri.innerHTML = data.AllPlayers[i].contribution;
+                }
+                ranklist.appendChild(table);
+                dialog.showModal();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
+    });
+}());
 
 /**
  * Ensure quit
@@ -46,8 +125,8 @@ $('.returnCenter').click(function () {
     });
 
     applyButton.addEventListener('click', function (event) {
-        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);        
-        
+        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
+
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
             type: 'get',
@@ -207,7 +286,7 @@ var downTime, alreadyDragged, dragTime, draggingGroup;
 var timeoutFunction;
 function onMouseDown(event) {
     var tilesCount = puzzle.pickTile(event.point);
-    if(tilesCount > 0){
+    if (tilesCount > 0) {
         timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
     }
 }
@@ -300,12 +379,12 @@ function JigsawPuzzle(config) {
     this.gameFinished = false;
 
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
-    
+
     loadGame();
 
     //createAndPlaceTiles();
 
-    function createAndPlaceTiles(){
+    function createAndPlaceTiles() {
 
         if (instance.tileShape == "voronoi") {
             instance.tiles = createVoronoiTiles(instance.tilesPerRow, instance.tilesPerColumn);
@@ -315,16 +394,16 @@ function JigsawPuzzle(config) {
         }
         randomPlaceTiles(instance.tilesPerRow, instance.tilesPerColumn);
 
-        for(var i = 0; i < instance.tiles.length; i++){
+        for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             refreshAroundTiles(tile);
             tile.aroundTilesChanged = false;
         }
-        
-        if(!instance.saveTilePositions){
+
+        if (!instance.saveTilePositions) {
             saveGame();
         }
-        else{
+        else {
             if (!instance.gameFinished) {
                 var errors = checkTiles();
                 if (errors == 0) {
@@ -334,9 +413,9 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function refreshAroundTiles(tile){
+    function refreshAroundTiles(tile) {
         var cellPosition = tile.cellPosition;
-            
+
         var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
         var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
         var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
@@ -347,12 +426,12 @@ function JigsawPuzzle(config) {
 
         var aroundTilesChanged = false;
 
-        if(!tile.aroundTiles){
+        if (!tile.aroundTiles) {
             tile.aroundTiles = new Array(-1, -1, -1, -1);
         }
 
-        for(var i = 0; i < aroundTiles.length; i++){
-            if(tile.aroundTiles[i] != aroundTiles[i]){
+        for (var i = 0; i < aroundTiles.length; i++) {
+            if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
             }
         }
@@ -361,10 +440,10 @@ function JigsawPuzzle(config) {
         tile.aroundTilesChanged = aroundTilesChanged;
     }
 
-    function finishGame(){
+    function finishGame() {
         instance.gameFinished = true;
         sendRecord(roundID, instance.gameFinished, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
-        
+
         clearTimeout(t);
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -386,8 +465,8 @@ function JigsawPuzzle(config) {
     function randomPlaceTiles(xTileCount, yTileCount) {
         var tiles = instance.tiles;
         var tileIndexes = instance.tileIndexes;
-        if(instance.saveTilePositions){
-            for(var i = 0; i < instance.saveTilePositions.length; i++){
+        if (instance.saveTilePositions) {
+            for (var i = 0; i < instance.saveTilePositions.length; i++) {
                 var tilePos = instance.saveTilePositions[i];
                 var tile = instance.tiles[tilePos.index];
                 placeTile(tile, new Point(tilePos.x, tilePos.y));
@@ -434,10 +513,10 @@ function JigsawPuzzle(config) {
     function createTiles(xTileCount, yTileCount) {
         var tiles = new Array();
         var tileRatio = instance.tileWidth / 100.0;
-        if(instance.saveShapeArray){
+        if (instance.saveShapeArray) {
             instance.shapeArray = instance.saveShapeArray;
         }
-        else{
+        else {
             instance.shapeArray = getRandomShapes(xTileCount, yTileCount);
         }
         var tileIndexes = new Array();
@@ -835,7 +914,7 @@ function JigsawPuzzle(config) {
     function placeTile(tile, cellPosition) {
         var roundPosition = cellPosition * instance.tileWidth;
         tile.position = roundPosition;
-        if(tile.originPosition){
+        if (tile.originPosition) {
             if (cellPosition == tile.originPosition) {
                 tile.positionMoved = false;
             }
@@ -843,7 +922,7 @@ function JigsawPuzzle(config) {
                 tile.positionMoved = true;
             }
         }
-        else{
+        else {
             tile.positionMoved = false;
         }
         tile.cellPosition = cellPosition;
@@ -853,7 +932,7 @@ function JigsawPuzzle(config) {
     function sendLinks(tile) {
         var tileIndex = getTileIndex(tile);
 
-        if(tileIndex < 0)
+        if (tileIndex < 0)
             return;
 
         var cellPosition = tile.cellPosition;
@@ -872,16 +951,16 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < aroundTiles.length; i++) {
                 if (tile.aroundTiles[i] != aroundTiles[i]) {
                     aroundTilesChanged = true;
-                    if(aroundTiles[i] == -1){ // add conflict record to both tile connected before
+                    if (aroundTiles[i] == -1) { // add conflict record to both tile connected before
                         tile.conflictTiles.push(tile.aroundTiles[i]);
                         var neighborTile = instance.tiles[tile.aroundTiles[i]];
                         neighborTile.conflictTiles.push(tileIndex);
                     }
-                    
-                    if(tile.aroundTiles[i] == -1){ // remove conflict record to both tile
+
+                    if (tile.aroundTiles[i] == -1) { // remove conflict record to both tile
                         var tmpConflictTiles = new Array();
-                        for(var j = 0; j < tile.conflictTiles.length; j++){
-                            if(tile.conflictTiles[j] != aroundTiles[i]){
+                        for (var j = 0; j < tile.conflictTiles.length; j++) {
+                            if (tile.conflictTiles[j] != aroundTiles[i]) {
                                 tmpConflictTiles.push(tile.conflictTiles[j]);
                             }
                         }
@@ -889,36 +968,36 @@ function JigsawPuzzle(config) {
 
                         var neighborTile = instance.tiles[aroundTiles[i]];
                         tmpConflictTiles = new Array();
-                        for(var j = 0; j < neighborTile.conflictTiles.length; j++){
-                            if(neighborTile.conflictTiles[j] != tileIndex){
+                        for (var j = 0; j < neighborTile.conflictTiles.length; j++) {
+                            if (neighborTile.conflictTiles[j] != tileIndex) {
                                 tmpConflictTiles.push(neighborTile.conflictTiles[j]);
                             }
                         }
                         neighborTile.conflictTiles = tmpConflictTiles;
                     }
                 }
-                if(aroundTiles[i] >= 0){
+                if (aroundTiles[i] >= 0) {
                     var neighborTile = instance.tiles[aroundTiles[i]];
                     refreshAroundTiles(neighborTile);
                 }
-                if(tile.aroundTiles[i] >= 0){
+                if (tile.aroundTiles[i] >= 0) {
                     var neighborTile = instance.tiles[tile.aroundTiles[i]];
                     refreshAroundTiles(neighborTile);
                 }
             }
         }
-        else{
+        else {
             aroundTilesChanged = true;
         }
 
-        console.log('Moving '+tileIndex);
+        console.log('Moving ' + tileIndex);
         if (aroundTilesChanged) {
             // selected, before, after
-            console.log('Before:'+tile.aroundTiles);
-            console.log('After:'+aroundTiles);            
+            console.log('Before:' + tile.aroundTiles);
+            console.log('After:' + aroundTiles);
             checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
         }
-        
+
         var sum = 0;
         for (var i = 0; i < aroundTiles.length; i++) {
             sum += aroundTiles[i];
@@ -1037,18 +1116,18 @@ function JigsawPuzzle(config) {
                 continue;
             }
 
-            if(tile.aroundTiles && tile.aroundTiles[j] > 0){
+            if (tile.aroundTiles && tile.aroundTiles[j] > 0) {
                 continue;
             }
 
             var isConflictTile = false;
-            for(var i = 0; i < tile.conflictTiles.length; i++){
-                if(tile.conflictTiles[i] == correctTileIndex){
+            for (var i = 0; i < tile.conflictTiles.length; i++) {
+                if (tile.conflictTiles[i] == correctTileIndex) {
                     isConflictTile = true;
                     break;
                 }
             }
-            if(isConflictTile){
+            if (isConflictTile) {
                 continue;
             }
 
@@ -1066,12 +1145,12 @@ function JigsawPuzzle(config) {
 
             var sameGroup = false;
             for (var i = 0; i < groupTiles.length; i++) {
-                if(getTileIndex(groupTiles[i]) == selectedTileIndex){
+                if (getTileIndex(groupTiles[i]) == selectedTileIndex) {
                     sameGroup = true;
                     break;
                 }
             }
-            if(sameGroup){
+            if (sameGroup) {
                 continue;
             }
 
@@ -1234,9 +1313,9 @@ function JigsawPuzzle(config) {
         instance.puzzleImage.visible = !visible;
     }
 
-    function saveGame(){
+    function saveGame() {
         var tilePositions = new Array();
-        for(var i = 0; i < instance.tiles.length; i++){
+        for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var tilePos = {
                 index: i,
@@ -1268,7 +1347,7 @@ function JigsawPuzzle(config) {
         });
     }
 
-    function loadGame(data){
+    function loadGame(data) {
         $.ajax({
             url: requrl + 'round/loadGame',
             type: 'get',
@@ -1276,7 +1355,7 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
-                if(data.round_id == roundID){
+                if (data.round_id == roundID) {
                     console.log('loadGame: ' + 'success');
                     time = data.time;
                     instance.steps = data.steps;
