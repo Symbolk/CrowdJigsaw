@@ -1,3 +1,13 @@
+var loadReady = false;
+
+$(document).ready(function(){
+  loadReady = true;
+});
+while(!loadReady){
+    continue;
+}
+console.log('page already loaded');
+
 /*
 * Drawer functions
 */
