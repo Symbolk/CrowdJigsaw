@@ -1,48 +1,168 @@
-<p class="roundRank-dialog-text">
-    <% title %>
-    <i class="fa fa-bar-chart fa-lg"></i>
-</p>
-<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
-    <thead>
-        <tr>
-            <th>Rank</th>
-            <th class="mdl-data-table__cell--non-numeric">Avatar</th>
-            <th>PlayerName</th>
-        </tr>
-    </thead>
-    <tbody>
-        <% locals.r = 0; %>
-            <% AllPlayers.forEach(function(u){ %>
-                <tr>
-                    <% locals.r++  %>
-                        <td class="mdl-data-table__cell--non-numeric">
-                            <!-- <% if(u.playername===user.username){%>
-                                <span style="color:#3c3;">
-                                    <%= locals.r  %>
-                                </span>
-                                <%}
-                        else{%> -->
-                                    <span>
-                                        <%= locals.r %>
-                                    </span>
-                                    <!-- <%} %> -->
-                        </td>
-                        <td>
-                            <img class="mdl-list__item-avatar" src="images/placeholder.jpg">
-                        </td>
-                        <td>
-                            <!-- <% if(u.playername===user.username){%>
-                                <span style="color:#3c3;">
-                                    <%- u.username %>
-                                </span>
-                                <%} -->
-                                    <!-- else{%> -->
-                                    <span>
-                                        <%- u.username %>
-                                    </span>
-                                    <!-- <%} %> -->
-                        </td>
-                </tr>
-                <% }) %>
-    </tbody>
-</table>
+<% include header.html %>
+
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+    <% include navigation.html %>
+    <main class="mdl-layout__content">
+        <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--12-col-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone">
+                <br/>
+                <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th class="mdl-data-table__cell--non-numeric">Avatar</th>
+                            <th>PlayerName</th>
+                            <th>Time</th>
+                            <th>Steps</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% locals.r = 0; %>
+                        <tr>
+                            <td colspan="3">Finished</td> 
+                            <td colspan="3"></td>
+                         </tr>
+                        <% Unfinished.forEach(function(u){ %>
+                            <tr>
+                                    <% locals.r++  %>
+                                        <td class="mdl-data-table__cell--non-numeric">
+                                            <% if(u.playername===user.username){%>
+                                                <span style="color:#3c3;">
+                                                    <%= locals.r  %>
+                                                </span>
+                                                <%}
+                        else{%>
+                                                    <span>
+                                                        <%= locals.r %>
+                                                    </span>
+                                                    <%} %>
+                                        </td>
+                                        <td>
+                                            <img class="mdl-list__item-avatar" src="../images/placeholder.jpg">
+                                        </td>
+                                        <td>
+                                            <% if(u.playername===user.username){%>
+                                                <span style="color:#3c3;">
+                                                    <%- u.playername %>
+                                                </span>
+                                                <%}
+                                    else{%>
+                                                    <span>
+                                                        <%- u.playername %>
+                                                    </span>
+                                                    <%} %>
+                                        </td>
+                                        <td>
+                                            <% if(u.playername===user.username){%>
+                                                <span style="color:#3c3;">
+                                                    <%- u.time %>
+                                                </span>
+                                                <%}
+                                        else{%>
+                                                    <span>
+                                                        <%- u.time %>
+                                                    </span>
+                                                    <%} %>
+                                        </td>
+                                        <td>
+                                            <% if(u.playername===user.username){%>
+                                                <span style="color:#3c3;">
+                                                    <%- u.steps %>
+                                                </span>
+                                                <%}
+                                            else{%>
+                                                    <span>
+                                                        <%- u.steps %>
+                                                    </span>
+                                                    <%} %>
+                                        </td>
+                                        <td>
+                                            <% if(u.playername===user.username){%>
+                                                <span style="color:#3c3;">
+                                                    <%- u.contribution %>
+                                                </span>
+                                                <%}
+                                                else{%>
+                                                    <span>
+                                                        <%- u.contribution %>
+                                                    </span>
+                                                    <%} %>
+                                        </td>
+                                </tr>
+                                <% }) %>
+                                <td colspan="3">Unfinished</td>
+                                <td colspan="3"></td>                                
+                                <% Unfinished.forEach(function(u){ %>
+                                    <tr>
+                                        <% locals.r++  %>
+                                            <td class="mdl-data-table__cell--non-numeric">
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%= locals.r  %>
+                                                    </span>
+                                                    <%}
+                            else{%>
+                                                        <span>
+                                                            <%= locals.r %>
+                                                        </span>
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <img class="mdl-list__item-avatar" src="../images/placeholder.jpg">
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.playername %>
+                                                    </span>
+                                                    <%}
+                                        else{%>
+                                                        <span>
+                                                            <%- u.playername %>
+                                                        </span>
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.time %>
+                                                    </span>
+                                                    <%}
+                                            else{%>
+                                                        <span>
+                                                            <%- u.time %>
+                                                        </span>
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.steps %>
+                                                    </span>
+                                                    <%}
+                                                else{%>
+                                                        <span>
+                                                            <%- u.steps %>
+                                                        </span>
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.contribution %>
+                                                    </span>
+                                                    <%}
+                                                    else{%>
+                                                        <span>
+                                                            <%- u.contribution %>
+                                                        </span>
+                                                        <%} %>
+                                            </td>
+                                    </tr>
+                                    <% }) %>
+                    </tbody>
+                </table>
+
+            </div>
+            <% include footer.html %>

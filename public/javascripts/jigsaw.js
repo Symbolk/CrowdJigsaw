@@ -163,14 +163,15 @@ $('.returnCenter').click(function () {
 
 var gameFinishDialog = document.querySelector('#game_finish_dialog');
 (function () {
-    var stayButton = document.querySelector('#stay-button');
+    var rankButton = document.querySelector('#rank-button');
     var returnButton = document.querySelector('#return-button');
 
     if (!gameFinishDialog.showModal) {
         dialogPolyfill.registerDialog(gameFinishDialog);
     }
-    stayButton.addEventListener('click', function (event) {
+    rankButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
+        window.location = '/roundrank/'+roundID;
     });
 
     returnButton.addEventListener('click', function (event) {

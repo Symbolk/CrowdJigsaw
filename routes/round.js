@@ -95,6 +95,12 @@ router.route('/getJoinableRounds').all(LoginFirst).get(function (req, res, next)
         if (err) {
             console.log(err);
         } else {
+            // let temp=new Array();
+            // for(let d of docs){
+            //     if(d.players.length < d.player_name){
+            //         temp.push(d);
+            //     }
+            // }
             res.send(JSON.stringify(docs));
         }
     });
@@ -207,7 +213,7 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 } else {
                     console.log(req.session.user.username + ' creates Round' + index);
                     res.send({ msg: "Created round successfully.", round_id: index });
-                    createRecord(req.session.user.username, operation.round_id, TIME);
+                    // createRecord(req.session.user.username, operation.round_id, TIME);
                 }
             });
         }
@@ -395,7 +401,8 @@ router.route('/getRoundRank/:round_id').all(LoginFirst).get(function(req, res, n
             for(let t of temp){
                 rankedPlayers.push({
                     "player_name": t.player_name,
-                    "contribution": t.contribution
+                    "contribution": t.contribution.toFixed(3)
+                    //Math.round(t.contribution*1000)/1000
                 });
             }
             // res.render('roundrank', { title: 'Round Rank', AllPlayers: JSON.stringify(rankedPlayers), username: req.session.user.username });
