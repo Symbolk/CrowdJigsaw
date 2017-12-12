@@ -126,46 +126,22 @@ schedule.scheduleJob('0 0 * * * *', function(){
   var condition = {
         end_time: "-1"
   };
-  var round_ids = new Array();
   RoundModel.find(condition, function (err, docs) {
   if (err) {
     console.log(err);
-  } 
+  }
   else {
     for(var round of docs){
-      ActionModel.find().where("round_id").equals(round.round_id).sort({time_stamp:-1})
-      .exec(function(err,docs){
-        if(err){
-          console.log(err);
-        }
-        else{
-          if(docs[0]){
-            var timeStamp = Date.parse(new Date(docs[0].time_stamp))/1000;
-            var time_stamp_now = Date.parse(new Date())/1000;
-            //100minutes
-            if(time_stamp_now-timeStamp >= 6000){
-              var condition = {
-                round_id: docs[0].round_id
-              }
-              RoundModel.find(condition,function(err,docs){
-                if(err){
-                  console.log(err);
-                }
-                else{
-                  if(docs[0]){
-                    var TIME = util.getNowFormatDate();
-                    docs[0].end_time = TIME;
-                    docs[0].save();
-                    console.log("Autoclose Round"+docs[0].round_id);
-                  }
-                }
-              })
-            }
-          }
-        }
-      })
+      var createTime = Date.parse(new Date(round.create_time))/1000;
+      var timeNow = Date.parse(new Date())/1000;
+      if(timeNow - createTime >= 7200){
+          var TIME = util.getNowFormatDate();
+          round.end_time = TIME;
+          round.save();
+          console.log("Autoclose Round"+round.round_id);
+      }
       }
     }
-  } 
-);     
+  }
+);
 });
