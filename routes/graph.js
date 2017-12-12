@@ -54,6 +54,40 @@ function calcContri(operation, num_before) {
 }
 
 /**
+ * Generate a solution and test if correct
+ */
+function collectiveTest(round_id){
+    var dirs = ['top', 'right', 'bottom', 'left'];    
+    NodeModel.find({ round_id: round_id }, function(err, docs){
+        if(err){
+            console.log(err);
+        }else{
+            // for every node, find its most supported link
+
+            // for(let d of docs){
+            //     for(let )
+            // }
+            // var errors = 0;
+            // for (var y = 0; y < round.tilesCol; y++) {
+            //     for (var x = 0; x < round.tilesRow; x++) {
+            //         var index = y * round.tilesRow + x;
+            //         if (cellPosition != firstCellPosition + new Point(x, y)) {
+            //             errors++;
+            //         }
+            //     }
+            // }
+    
+            // if empty, push -1, complete=false 
+
+            // if complete=true, cal the errors
+
+            // return colletive finished or not
+
+        }
+    });
+}
+
+/**
  * Write one action into the action sequence
  */
 function writeAction(NAME, round_id, operation, from, direction, to, contri) {
@@ -379,6 +413,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         if (doc!==null) {
                                             let op = "";
                                             let opp_before = 0;
+                                            console.log("AHFA--: "+doc);
                                             for (let i of doc[dirs[d]]) {
                                                 if (i.index == to.before) {
                                                     op = i.sup_num <= 1 ? "--" : "-"; // 0/1-1=-1/0;
@@ -434,6 +469,7 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                     if (doc!==null) {
                                         let op = "";
                                         let opp_before = 0;
+                                        console.log("AHFA-: "+doc);                                        
                                         for (let i of doc[dirs[d]]) {
                                             if (i.index == to.before) {
                                                 op = i.sup_num <= 1 ? "--" : "-"; // 0/1-1=-1/0;
