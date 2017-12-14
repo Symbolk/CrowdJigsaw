@@ -1,3 +1,13 @@
+var loadReady = false;
+
+$(document).ready(function(){
+  loadReady = true;
+});
+while(!loadReady){
+    continue;
+}
+console.log('page already loaded');
+
 /*
 * Drawer functions
 */
@@ -56,7 +66,6 @@ $('.returnCenter').click(function () {
         var table = document.getElementById("ranktable");
         ranklist.removeChild(table);
         dialog.close();
-        window.location = '/roundrank/'+roundID;   // temp     
     });
 
     showButton.addEventListener('click', function (event) {
@@ -162,7 +171,7 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
     }
     rankButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
-        window.location = '/roundrank';
+        window.location = '/roundrank/'+roundID;
     });
 
     returnButton.addEventListener('click', function (event) {
