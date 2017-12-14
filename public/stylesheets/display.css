@@ -252,3 +252,13 @@ footer {
   .mdl-dialog__content {
     padding: 20px 24px 24px 24px;
     color: rgba(0,0,0, 0.54); }
+
+#rounddetail_dialog {
+  width:400px;
+  height:850px;
+  overflow:scroll;
+}
+
+#players_list {
+  display: none;
+}

@@ -2,49 +2,73 @@
   <!-- <div class="mdl-cell mdl-cell--6-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"> -->
     <dialog class="mdl-dialog" id="rounddetail_dialog">
       <div class="mdl-dialog__content">
-        <h4 class="mdl-dialog__title">Details</h4>
+        <h2 class="mdl-dialog__title">Round Details</h2>
         <br>
         <img class="article-image" id="rounddetail_image">
         <br>
 
-        <ul class="mdl-list">
-          <li class="mdl-list__item">
-            <span class="mdl-list__item-primary-content">
-              <b>ID:</b>
-            </span>
-            <span class="mdl-list__item-primary-content">
-              <span id="rounddetail_id"></span>
-            </span>
-          </li>
-          <li class="mdl-list__item">
-            <span class="mdl-list__item-primary-content">
-              <b>Creator: </b>
-            </span>
-            <span class="mdl-list__item-primary-content">
-              <span id="rounddetail_author"></span>
-            </span>
-          </li>
-          <li class="mdl-list__item">
-            <span class="mdl-list__item-primary-content">
-              <b>Create Time: </b>
-            </span>
-            <span class="mdl-list__item-primary-content">
-              <span id="rounddetail_createtime"></span>
-            </span>
-          </li>
-          <li class="mdl-list__item">
-            <span class="mdl-list__item-primary-content">
-              <b>Shape: </b>
-            </span>
-            <span class="mdl-list__item-primary-content">
-              <span id="rounddetail_shape"></span>
-            </span>
-          </li>
-        </ul>
-        <div id="rounddetail_progress" class="mdl-progress mdl-js-progress"></div>
+        <!--<ul class="mdl-list">-->
+          <!--<li class="mdl-list__item">-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<b>ID:</b>-->
+            <!--</span>-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<span id="rounddetail_id"></span>-->
+            <!--</span>-->
+          <!--</li>-->
+          <!--<li class="mdl-list__item">-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<b>Creator: </b>-->
+            <!--</span>-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<span id="rounddetail_author"></span>-->
+            <!--</span>-->
+          <!--</li>-->
+          <!--<li class="mdl-list__item">-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<b>Create Time: </b>-->
+            <!--</span>-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<span id="rounddetail_createtime"></span>-->
+            <!--</span>-->
+          <!--</li>-->
+          <!--<li class="mdl-list__item">-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<b>Shape: </b>-->
+            <!--</span>-->
+            <!--<span class="mdl-list__item-primary-content">-->
+              <!--<span id="rounddetail_shape"></span>-->
+            <!--</span>-->
+          <!--</li>-->
+        <!--</ul>-->
+        <br>
+        <table class="mdl-data-table mdl-js-data-table" >
+          <thead>
+          <tr>
+            <th class="mdl-data-table__cell--non-numeric">ID</th>
+            <th class="mdl-data-table__cell--non-numeric">Creator</th>
+            <th class="mdl-data-table__cell--non-numeric">Create Time</th>
+            <th class="mdl-data-table__cell--non-numeric">Shape</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_id"></td>
+            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_author"></td>
+            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_createtime"></td>
+            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_shape"></td>
+          </tr>
+          </tbody>
+        </table>
+        <br>
 
-        <b>Players List</b>
-        <ul class="mdl-list" id="rounddetail_playerlist"></ul>
+        <div id="rounddetail_progress" class="mdl-progress mdl-js-progress" style="height: 20px"></div>
+
+
+        <div id = "players_list">
+          <b>Players List</b>
+          <ul class="mdl-list" id="rounddetail_playerlist"></ul>
+        </div>
         <br>
       </div>
       <div class="mdl-dialog__actions mdl-card--border">

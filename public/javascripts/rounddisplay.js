@@ -100,7 +100,9 @@ round.appendTo('#round_list');
 var getJoinableRoundsInterval = setInterval(getJoinableRounds, 1000);
 getJoinableRounds();
 
-
+$('#rounddetail_progress').click(function () {
+    $('#players_list').toggle();
+});
 function renderRoundDetail(round){
     var roundID = round.round_id;
     if(!roundsList[roundID]){
