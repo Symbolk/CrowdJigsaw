@@ -220,10 +220,6 @@ var config = ({
     imgName: 'puzzle-image',
     tileShape: 'straight', // curved or straight or voronoi
     tileWidth: tileWidth,
-    tilesPerRow: Math.floor(imgWidth / tileWidth), //returns min int >= arg
-    tilesPerColumn: Math.floor(imgHeight / tileWidth),
-    imgWidth: imgWidth,
-    imgHeight: imgHeight,
     showHints: true,
     shadowWidth: 120,
     dragMode: 'tile-First',// tile-First or group-First
@@ -358,11 +354,13 @@ function JigsawPuzzle(config) {
     this.imgName = config.imgName;
     this.shadowWidth = config.shadowWidth;
     this.tileWidth = config.tileWidth;
-    this.tilesPerRow = config.tilesPerRow;
-    this.tilesPerColumn = config.tilesPerColumn;
     this.originImage = getOriginImage(config);
-    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0,
-        this.tileWidth * this.tilesPerRow, this.tileWidth * this.tilesPerColumn));
+    this.imgSize = this.originImage.size;
+    this.imgWidth = this.imgSize.width;
+    this.imgHeight = this.imgSize.height;
+    this.tilesPerRow = Math.floor(this.imgWidth / this.tileWidth);
+    this.tilesPerColumn = Math.floor(this.imgHeight / this.tileWidth),
+    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
     this.puzzleImage.position = view.center;
 
     this.originImage.visible = false;
