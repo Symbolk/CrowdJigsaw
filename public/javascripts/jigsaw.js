@@ -1,9 +1,11 @@
+console.log('this is the beginning of jigsaw.js');
+
 var loadReady = false;
 
 $(document).ready(function(){
   loadReady = true;
 });
-while(!loadReady){
+while(!(loadReady && image.complete && imgReady)){
     continue;
 }
 console.log('page already loaded');
