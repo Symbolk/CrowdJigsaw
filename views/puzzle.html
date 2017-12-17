@@ -44,7 +44,7 @@
             </dialog>
 
             <div class="solution">
-                <img width="640" height="341" id="puzzle-image" class="puzzle-image" style="display: none;" src="images/minions.jpg" />
+                <img id="puzzle-image" class="puzzle-image" style="display: none;"/>
                 <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
             </div>
 
@@ -59,8 +59,18 @@
                 roundID = parseInt(roundID);
                 var imgSrc = "<%-image%>";
 
+                var imgReady = false;
                 var image = new Image();
                 image.src = imgSrc;
+
+                image.onload = function(){
+                    imgReady = true;
+                }
+
+                if(image.complete){
+                    imgReady = true;
+                }
+
                 document.querySelector('.puzzle-image').width= image.width;
                 document.querySelector('.puzzle-image').height=image.height;
                 document.querySelector('.puzzle-image').src=imgSrc;
