@@ -128,6 +128,8 @@ function renderRoundDetail(round){
     roundDetailCreateTime.text(round.create_time);
     roundDetailShape.text(round.shape);
 
+    // console.log(roundDetailProgress.style.width);
+    // document.getElementById('prog').style.width=(100*round.players.length/round.players_num) + '%'; 
     roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
 
     roundDetailLevel.text('Level' + round.level);

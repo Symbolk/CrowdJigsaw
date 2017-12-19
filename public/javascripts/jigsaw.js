@@ -2,14 +2,13 @@ console.log('this is the beginning of jigsaw.js');
 
 var loadReady = false;
 
-$(document).ready(function(){
-  loadReady = true;
+$(document).ready(function () {
+    loadReady = true;
 });
-while(!(loadReady && image.complete && imgReady)){
+while (!(loadReady && image.complete && imgReady)) {
     continue;
 }
-console.log('page already loaded');
-
+$("#loading").fadeOut();
 /*
 * Drawer functions
 */
@@ -78,22 +77,27 @@ $('.returnCenter').click(function () {
             cache: false,
             timeout: 5000,
             success: function (data) {
+                // $("#round-rank").css("display", "block");
+                // $("#round-rank").toggle();
+                // $("#rank-table").bootstrapTable({
+                //     data: data.AllPlayers
+                // });
                 // $('.roundRank-dialog-text').text(data.AllPlayers); 
                 var ranklist = document.getElementById("ranklist");
                 var table = document.createElement("table");//创建table 
-                table.id="ranktable";
+                table.id = "ranktable";
                 var row = table.insertRow();
                 var rank = row.insertCell();
                 rank.width = "150";
                 rank.innerHTML = "Rank";
                 var name = row.insertCell();
-                name.width = "150";                
+                name.width = "150";
                 name.innerHTML = "Name";
-                var contri=row.insertCell();
-                rank.width = "150";                
-                contri.innerHTML="Contribution";
-                             
-                
+                var contri = row.insertCell();
+                rank.width = "150";
+                contri.innerHTML = "Contribution";
+
+
                 for (var i = 0; i < data.AllPlayers.length; i++) {
                     var row = table.insertRow();//创建一行 
                     var rank = row.insertCell();//创建一个单元 
@@ -173,7 +177,7 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
     }
     rankButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
-        window.location = '/roundrank/'+roundID;
+        window.location = '/roundrank/' + roundID;
     });
 
     returnButton.addEventListener('click', function (event) {
@@ -360,7 +364,7 @@ function JigsawPuzzle(config) {
     this.imgHeight = this.imgSize.height;
     this.tilesPerRow = Math.floor(this.imgWidth / this.tileWidth);
     this.tilesPerColumn = Math.floor(this.imgHeight / this.tileWidth),
-    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
+        this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
     this.puzzleImage.position = view.center;
 
     this.originImage.visible = false;
@@ -872,7 +876,7 @@ function JigsawPuzzle(config) {
     }
 
     this.pickTile = function (point) {
-        if(instance.hintsShowing){
+        if (instance.hintsShowing) {
             return;
         }
         findSelectTile(point);
@@ -1016,7 +1020,7 @@ function JigsawPuzzle(config) {
             // selected, before, after
             console.log('Before:' + tile.aroundTiles);
             console.log('After:' + aroundTiles);
-            if(!tile.aroundTiles){
+            if (!tile.aroundTiles) {
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
             }
             checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
@@ -1103,8 +1107,8 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function normalizeTiles(){
-        for(var i = 0; i < instance.tiles.length; i++){
+    function normalizeTiles() {
+        for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var position = tile.position;
 
@@ -1114,7 +1118,7 @@ function JigsawPuzzle(config) {
 
             tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
             tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
-                
+
             tile.relativePosition = new Point(0, 0);
             tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
             tile.aroundTilesChanged = false;
@@ -1134,7 +1138,7 @@ function JigsawPuzzle(config) {
                 // var data = $.parseJSON(data);
                 // indexes = directions(0 1 2 3=T R B L)
                 console.log('getHints: ' + data);
-                if(!mousedowned){
+                if (!mousedowned) {
                     instance.hintsShowing = true;
                     showHints(selectedTileIndex, data);
                     normalizeTiles();
@@ -1222,10 +1226,10 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < groupTiles.length; i++) {
                 groupTiles[i].picking = false;
                 refreshAroundTiles(groupTiles[i]);
-                if(groupTiles[i].aroundTilesChanged){
-                    for(var t = 0; t < groupTiles[i].aroundTiles.length; t++){
+                if (groupTiles[i].aroundTilesChanged) {
+                    for (var t = 0; t < groupTiles[i].aroundTiles.length; t++) {
                         var neighborIndex = groupTiles[i].aroundTiles[t];
-                        if(neighborIndex >= 0){
+                        if (neighborIndex >= 0) {
                             var neighborTile = instance.tiles[neighborIndex];
                             refreshAroundTiles(neighborTile);
                         }
@@ -1362,6 +1366,66 @@ function JigsawPuzzle(config) {
             }
         }
 
+        var credits = 0;
+        // for every tile, check its neighbors
+        for (var index = 0; index < instance.tileNum; index++) {
+            // current tile cellpos
+            var cellPosition = instance.tiles[index].cellPosition;
+            // for 4 directions
+            // top
+            if (index - instance.tilesPerRow >= 0) {
+                var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
+                if (getTileIndex(topTile) == index - instance.tilesPerRow) {
+                    credits++;
+                }
+            } else {
+                credits++;// out of the map
+            }
+            // right
+            if (index + 1 < instance.tileNum) {
+                var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
+                if (getTileIndex(rightTile) == index + 1) {
+                    credits++;
+                }
+            } else {
+                credits++;//  out of the map
+            }
+            // bottom
+            if (index + instance.tilesPerRow < instance.tileNum) {
+                var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
+                if (getTileIndex(bottomTile) == index + instance.tilesPerRow) {
+                    credits++;
+                }
+            } else {
+                credits++;//  out of the map
+            }
+            // left
+            if (index - 1 >= 0) {
+                var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
+                if (getTileIndex(leftTile) == index - 1) {
+                    credits++;
+                }
+            } else {
+                credits++;//  out of the map
+            }
+        }
+        var progress = Number((credits+2) / (Number(instance.tileNum)*4))*100;
+        $("#prog").css("width", progress + "%").text(progress + "%");
+        if (progress >= 0 && progress <= 30) {
+            $("#prog").addClass("progress-bar-success");
+        }
+        else if (progress >= 30 && progress <= 60) {
+            $("#prog").removeClass("progress-bar-success");
+            $("#prog").addClass("progress-bar-warning");
+        }
+        else if (progress >= 60 && progress <= 90) {
+            $("#prog").removeClass("progress-bar-warning");
+            $("#prog").addClass("progress-bar-info");
+        }
+        else if (progress >= 90 && progress <= 100) {
+            $("#prog").removeClass("progress-bar-info");
+            $("#prog").addClass("progress-bar-danger");
+        }
         return errors;
     }
 
@@ -1386,6 +1450,8 @@ function JigsawPuzzle(config) {
         }
         var params = {
             round_id: roundID,
+            tiles_num: instance.tileNum,
+            tiles_row: instance.tilesPerRow,
             steps: instance.steps,
             time: time,
             tiles: JSON.stringify(tilePositions),
