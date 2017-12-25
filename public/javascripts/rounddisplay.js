@@ -36,11 +36,12 @@ if (!newRoundDialog.showModal) {
 var newRoundCreateButton = $('#newround_createbutton');
 newRoundCreateButton.click(function() {
 	var imgSrc = $('#newround_image').attr('src');
-    var level = $('#newround_level').val();
-	var playersNum = $('#newround_number').val();
+	var playersNum = $('#newround_number_slider').val();
     var shape = 'jagged';
-    if(level == 2){
+    var level = 1;
+    if($('.newround-shape-square').prop( "checked" )){
         shape = 'square';
+        level = 2;
     }
     postNewRound(imgSrc, level, playersNum, shape);
     getJoinableRounds();
@@ -49,6 +50,9 @@ newRoundCreateButton.click(function() {
 var newRoundCancelButton = $('#newround_cancelbutton');
 newRoundCancelButton.click(function() {
     newRoundDialog.close();
+});
+$('#newround_number_slider').change(function() {
+    $('#newround_num').text($('#newround_number_slider').val());
 });
 
 var selectImageDialog = $('#selectimage_dialog').get(0);
@@ -70,9 +74,15 @@ $('#newround_image').click(function() {
 	selectImageDialog.showModal();
 });
 
+$('#newround_image_button').click(function() {
+    selectImageDialog.showModal();
+});
+
 $('.selector-image').click(function(){
 	var imgSrc = $(this).attr('src');
 	$('#newround_image').attr('src', imgSrc);
+    newRoundCreateButton.removeAttr('disabled');
+    $('#newround_blank').css('display', 'inline');
 	selectImageDialog.close();
 });
 
@@ -89,8 +99,30 @@ $('#newround_preview').click(function(){
 });
 
 $('#newround_button').click(function(){
+    newRoundCreateButton.attr('disabled','true');
+    $('#newround_blank').css('display', 'none');
+    $('#newround_image').removeAttr('src')
 	newRoundDialog.showModal();
 });
+
+$('#newround_button').mousedown(function(){
+    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+});
+
+$('#newround_button').mouseup(function(){
+    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
+});
+
+$('#newround_button').mouseover(function(){
+    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+});
+
+$('#newround_button').mouseout(function(){
+    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
+});
+
+
+
 /*
 var template = $('#roundcard_template');
 var round = $(template.html());
@@ -101,7 +133,7 @@ round.appendTo('#round_list');
 var getJoinableRoundsInterval = setInterval(getJoinableRounds, 3000);
 getJoinableRounds();
 
-$('#rounddetail_progress').click(function () {
+$('.rounddetail-progress').click(function () {
     $('#players_list').toggle();
 });
 function renderRoundDetail(round){
@@ -117,8 +149,8 @@ function renderRoundDetail(round){
     var roundDetailID = $('#rounddetail_id');
     var roundDetailCreator = $('#rounddetail_author');
     var roundDetailCreateTime = $('#rounddetail_createtime');
-    var roundDetailShape = $('#rounddetail_shape');
-    var roundDetailProgress = document.querySelector('#rounddetail_progress');
+    var roundDetailShapeImage = $('#rounddetail_shape_image');
+    var roundDetailProgress = $('#rounddetail_progress');
 
     var roundDetailLevel = $('#rounddetail_level');
 
@@ -126,11 +158,16 @@ function renderRoundDetail(round){
     roundDetailID.text(round.round_id);
     roundDetailCreator.text(round.creator);
     roundDetailCreateTime.text(round.create_time);
-    roundDetailShape.text(round.shape);
+    if(round.shape == 'square'){
+        roundDetailShapeImage.attr('src', '/images/square.jpg');
+    }
+    else{
+        roundDetailShapeImage.attr('src', '/images/jagged.jpg');
+    }
 
-    // console.log(roundDetailProgress.style.width);
-    // document.getElementById('prog').style.width=(100*round.players.length/round.players_num) + '%'; 
-    roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
+    //roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
+    roundDetailProgress.css('width', (100*round.players.length/round.players_num) + '%');
+    roundDetailProgress.text(round.players.length + '/' + round.players_num);
 
     roundDetailLevel.text('Level' + round.level);
     
@@ -141,7 +178,6 @@ function renderRoundDetail(round){
     for(var player of round.players){
         var li = $($('#rounddetail_li_template').html());
         li.find('.player-name').text(player.player_name);
-        li.find('.join-time').text(player.join_time);
         li.appendTo('#rounddetail_playerlist');
         
         if(player.player_name == username){
