@@ -43,6 +43,10 @@ newRoundCreateButton.click(function() {
         shape = 'square';
         level = 2;
     }
+    else{
+        shape = 'jagged';
+        level = 1;
+    }
     postNewRound(imgSrc, level, playersNum, shape);
     getJoinableRounds();
     newRoundDialog.close();
