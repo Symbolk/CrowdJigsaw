@@ -400,7 +400,7 @@ function JigsawPuzzle(config) {
 
     this.gameFinished = false;
 
-    console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' rows * ' + this.tilesPerColumn + ' cols)');
+    console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
 
     loadGame();
 
@@ -1365,67 +1365,7 @@ function JigsawPuzzle(config) {
                 }
             }
         }
-
-        var credits = 0;
-        // for every tile, check its neighbors
-        for (var index = 0; index < instance.tileNum; index++) {
-            // current tile cellpos
-            var cellPosition = instance.tiles[index].cellPosition;
-            // for 4 directions
-            // top
-            if (index - instance.tilesPerRow >= 0) {
-                var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
-                if (getTileIndex(topTile) == index - instance.tilesPerRow) {
-                    credits++;
-                }
-            } else {
-                credits++;// out of the map
-            }
-            // right
-            if (index + 1 < instance.tileNum) {
-                var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
-                if (getTileIndex(rightTile) == index + 1) {
-                    credits++;
-                }
-            } else {
-                credits++;//  out of the map
-            }
-            // bottom
-            if (index + instance.tilesPerRow < instance.tileNum) {
-                var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
-                if (getTileIndex(bottomTile) == index + instance.tilesPerRow) {
-                    credits++;
-                }
-            } else {
-                credits++;//  out of the map
-            }
-            // left
-            if (index - 1 >= 0) {
-                var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
-                if (getTileIndex(leftTile) == index - 1) {
-                    credits++;
-                }
-            } else {
-                credits++;//  out of the map
-            }
-        }
-        var progress = Number((credits+2) / (Number(instance.tileNum)*4))*100;
-        $("#prog").css("width", progress + "%").text(progress + "%");
-        if (progress >= 0 && progress <= 30) {
-            $("#prog").addClass("progress-bar-success");
-        }
-        else if (progress >= 30 && progress <= 60) {
-            $("#prog").removeClass("progress-bar-success");
-            $("#prog").addClass("progress-bar-warning");
-        }
-        else if (progress >= 60 && progress <= 90) {
-            $("#prog").removeClass("progress-bar-warning");
-            $("#prog").addClass("progress-bar-info");
-        }
-        else if (progress >= 90 && progress <= 100) {
-            $("#prog").removeClass("progress-bar-info");
-            $("#prog").addClass("progress-bar-danger");
-        }
+        
         return errors;
     }
 

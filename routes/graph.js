@@ -13,18 +13,176 @@ var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
 
+var compare = function (prop) {
+    return function (obj1, obj2) {
+        var val1 = obj1[prop];
+        var val2 = obj2[prop];
+        if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
+            val1 = Number(val1);
+            val2 = Number(val2);
+        }
+        if (val1 < val2) {
+            return 1;
+        } else if (val1 > val2) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+}
+
 /**
- * Get all the round graph
- *
-router.route('/:round_id').all(JoinRoundFirst).get(function (req, res) {
-    NodeModel.find({ round_id: req.params.round_id }, function (err, docs) {
+ * Get the best link with different strategies
+ * @param {*} links
+ */
+function getBest(links) {
+    if (links) {
+        let sortedLinks = links.sort(compare("sup_num"));
+        return sortedLinks[0].index;
+    } else {
+        console.log("Unreachable.");
+    }
+}
+
+/**
+ * Generate a solution and test if correct
+ */
+function generateSolution(round_id) {
+    var dirs = ['top', 'right', 'bottom', 'left'];
+    var row_num = 4;
+    var tile_num = 8;
+    NodeModel.find({ round_id: round_id }, function (err, docs) {
         if (err) {
             console.log(err);
         } else {
-            res.send(JSON.stringify(docs));
+            // for every node, find its most supported link            
+            let solution = new Array();
+            // if not all nodes are visited, just return false
+            if (docs.length == tile_num) {
+                for (let node of docs) {
+                    /* One a node are not complete yet, not feasible
+                     * for every directions, judge if there is tile
+                     * if yes, try to get a tile
+                     */
+                    // top
+                    let top = -1;
+                    if (node.index - row_num >= 0) {
+                        if (node.top.length > 0) {
+                            top = getBest(node.top);
+                        }
+                    } else {
+                        top = -2;// out of the map
+                    }
+                    // right
+                    let right = -1;
+                    if (node.index + 1 < tile_num) {
+                        if (node.right.length > 0) {
+                            right = getBest(node.right);
+                        }
+                    } else {
+                        right = -2;//  out of the map
+                    }
+                    // bottom
+                    let bottom = -1;
+                    if (node.index + row_num < tile_num) {
+                        if (node.bottom.length > 0) {
+                            bottom = getBest(node.bottom);
+                        }
+                    } else {
+                        bottom = -2;//  out of the map
+                    }
+                    // left
+                    let left = -1;
+                    if (node.index - 1 >= 0) {
+                        if (node.left.length > 0) {
+                            left = getBest(node.left);
+                        }
+                    } else {
+                        left = -2;//  out of the map
+                    }
+                    // form the node's neighbors
+                    if (top != -1 && right != -1 && bottom != -1 && left != -1) {
+                        let temp = {
+                            "index": node.index,
+                            "top": top,
+                            "right": right,
+                            "bottom": bottom,
+                            "left": left
+                        };
+                        solution.push(temp);
+                    }
+                }
+            }
+
+            console.log(solution);
+            // return colletive finished or not
+            // if true, notify the user and record the time
+            if (solution.length == tile_num) {
+                console.log("Feasible");
+                // Test if the feasible solution is correct
+                if (testSolution(row_num, tile_num, solution)) {
+                    // if correct, save the time&tell the users
+                    RoundModel.findOneAndUpdate({ round_id: round_id },
+                        { $set: { collective_time: util.getNowFormatDate() } },
+                        { new: true }, function (err, doc) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                console.log('Crowd bingo! @' + doc.collective_time);
+                            }
+                        });
+                }
+            } else {
+                console.log("Not feasible yet.");
+                return false;
+            }
         }
     });
+}
+
+router.route('/ct').get(function (req, res) {
+    generateSolution(42);
 });
+
+/**
+ * Test the collective solution, just return it is right or false
+ */
+function testSolution(row_num, tile_num, solution) {
+    // to test for every node, once wrong, break and return.
+    let result = true;
+    for (let node of solution) {
+        if (node.index - row_num >= 0) {
+            if (node.top != node.index - row_num) {
+                result = fasle;
+                return false;
+            }
+        }
+        // right
+        if (node.index + 1 < tile_num) {
+            if (node.right != node.index + 1) {
+                result = fasle;
+                return false;
+            }
+        }
+        // bottom
+        if (node.index + row_num < tile_num) {
+            if (node.bottom != node.index + row_num) {
+                result = fasle;
+                return false;
+            }
+        }
+        // left
+        if (node.index - 1 >= 0) {
+            if (node.left != node.index - 1) {
+                result = fasle;
+                return false;
+            }
+        }
+    }
+    return result;
+}
+
+
 
 /**
  * Calculate the contribution according to the alpha decay function
@@ -54,43 +212,10 @@ function calcContri(operation, num_before) {
 }
 
 /**
- * Generate a solution and test if correct
- */
-function collectiveTest(round_id){
-    var dirs = ['top', 'right', 'bottom', 'left'];    
-    NodeModel.find({ round_id: round_id }, function(err, docs){
-        if(err){
-            console.log(err);
-        }else{
-            // for every node, find its most supported link
-
-            // for(let d of docs){
-            //     for(let )
-            // }
-            // var errors = 0;
-            // for (var y = 0; y < round.tilesCol; y++) {
-            //     for (var x = 0; x < round.tilesRow; x++) {
-            //         var index = y * round.tilesRow + x;
-            //         if (cellPosition != firstCellPosition + new Point(x, y)) {
-            //             errors++;
-            //         }
-            //     }
-            // }
-    
-            // if empty, push -1, complete=false 
-
-            // if complete=true, cal the errors
-
-            // return colletive finished or not
-
-        }
-    });
-}
-
-/**
  * Write one action into the action sequence
  */
 function writeAction(NAME, round_id, operation, from, direction, to, contri) {
+    generateSolution(round_id);
     ActionModel.find({ round_id: round_id }, function (err, docs) {
         if (err) {
             console.log(err);
@@ -410,10 +535,9 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        if (doc!==null) {
+                                        if (doc) {
                                             let op = "";
                                             let opp_before = 0;
-                                            console.log("AHFA--: "+doc);
                                             for (let i of doc[dirs[d]]) {
                                                 if (i.index == to.before) {
                                                     op = i.sup_num <= 1 ? "--" : "-"; // 0/1-1=-1/0;
@@ -466,10 +590,9 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    if (doc!==null) {
+                                    if (doc) {
                                         let op = "";
                                         let opp_before = 0;
-                                        console.log("AHFA-: "+doc);                                        
                                         for (let i of doc[dirs[d]]) {
                                             if (i.index == to.before) {
                                                 op = i.sup_num <= 1 ? "--" : "-"; // 0/1-1=-1/0;
