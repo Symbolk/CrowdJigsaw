@@ -1,40 +1,39 @@
 <!-- <div class="mdl-grid"> -->
   <!-- <div class="mdl-cell mdl-cell--6-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone"> -->
     <dialog class="mdl-dialog" id="rounddetail_dialog">
+      <h2 class="mdl-dialog__title">Detail</h2>
       <div class="mdl-dialog__content">
-        <h2 class="mdl-dialog__title">Round Details</h2>
-        <br>
+        <div id="rounddetail_id" style="display: none;"></div>
         <img class="article-image" id="rounddetail_image">
         <br>
-
         <br>
-        <table class="mdl-data-table mdl-js-data-table" >
-          <thead>
-          <tr>
-            <th class="mdl-data-table__cell--non-numeric">ID</th>
-            <th class="mdl-data-table__cell--non-numeric">Creator</th>
-            <th class="mdl-data-table__cell--non-numeric">Create Time</th>
-            <th class="mdl-data-table__cell--non-numeric">Shape</th>
-          </tr>
-          </thead>
+        <table class="mdl-data-table mdl-js-data-table" id="rounddetail_table">
           <tbody>
-          <tr>
-            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_id"></td>
-            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_author"></td>
-            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_createtime"></td>
-            <td class="mdl-data-table__cell--non-numeric" id="rounddetail_shape"></td>
-          </tr>
+            <tr>
+              <td colspan="2" class="mdl-data-table__cell--non-numeric" id="rounddetail_createtime"></td>
+            </tr>
+            <tr>
+              <td class="mdl-data-table__cell--non-numeric">Creator</td>
+              <td class="mdl-data-table__cell--non-numeric" id="rounddetail_author"></td>
+            </tr>
+            <tr>
+              <td class="mdl-data-table__cell--non-numeric">Shape</td>
+              <td class="mdl-data-table__cell--non-numeric" id="rounddetail_shape">
+                <img id="rounddetail_shape_image" height="100%" width="height" src="/images/jagged.jpg">
+              </td>
+            </tr>
           </tbody>
         </table>
         <br>
 
-        <div id="rounddetail_progress" class="mdl-progress mdl-js-progress" style="height: 20px"></div>
+        <div class="progress  progress-striped active rounddetail-progress">
+          <div id="rounddetail_progress" class="progress-bar progress-bar-success" role="progressbar"></div>
+        </div>
 
         <div id = "players_list">
           <b>Players List</b>
           <ul class="mdl-list" id="rounddetail_playerlist"></ul>
         </div>
-        <br>
       </div>
       <div class="mdl-dialog__actions mdl-card--border">
         <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="rounddetail_joinbutton">Join</button>

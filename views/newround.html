@@ -1,13 +1,16 @@
 <dialog class="mdl-dialog" id="newround_dialog">
     <div class="mdl-dialog__content">
-      <h4 class="mdl-dialog__title">New Round</h4>
-      <br>
       <form>
-        <b>Select a Picture</b>
-        <br>
-        <img class="article-image" id="newround_image" src="images/add2.png" border="0" alt="">
-        <br>
-        <br>        
+        <!-- Flat button with ripple -->
+        <div class="mdl-button mdl-js-button mdl-js-ripple-effect" id="newround_image_button">
+            <b>Select Picture</b>
+        </div>
+        <img class="article-image" id="newround_image" border="0" alt="">  
+
+        <div id="newround_blank">
+          <br><br>
+        </div>
+
         <!-- <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
             <input class="mdl-textfield__input" type="text" id="newround_level" value="1" readonly tabIndex="-1">
             <label for="newround_level">
@@ -19,20 +22,37 @@
                 <li class="mdl-menu__item" data-val="Two">2</li>
             </ul>
         </div> -->
-        <b>Select Level: </b>
-        <select id="newround_level">
-          <option value="1">1</option>
-          <option value="2">2</option>
-        </select>
+        <table class="mdl-data-table" id="newround_table">
+          <tbody>
+          <tr>
+            <td class="mdl-data-table__cell--non-numeric">
+              <label class = "mdl-radio mdl-js-radio mdl-js-ripple-effect" 
+                  for = "option2">
+                  <input type = "radio" id = "option2" name = "shape" 
+                     class = "mdl-radio__button newround-shape-jagged" checked>
+                  <span class = "mdl-radio__label">
+                    <img height="100%" width="height" src="/images/jagged.jpg">
+                  </span>
+               </label>
+            </td>
+            <td class="mdl-data-table__cell--non-numeric">
+              <label class = "mdl-radio mdl-js-radio" for = "option1">
+                  <input type = "radio" id = "option1" name = "shape" 
+                     class = "mdl-radio__button newround-shape-square">
+                  <span class = "mdl-radio__label">
+                    <img height="100%" width="height" src="/images/square.jpg">
+                  </span>
+               </label>
+            </td>
+          </tr>
+          </tbody>
+        </table>
         <br>
-
-        <b>Select Number of Players: </b>
-        <select id="newround_number">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="5">5</option>
-          <option value="10">10</option>
-        </select>
+        <div id="newround_num_area">
+          <b id="newround_num_text">Players Number: </b>
+          <b id="newround_num">1</b>
+        </div>
+        <input class="mdl-slider mdl-js-slider" id="newround_number_slider" type="range" min="1" max="10" value="1">
       </form>
     </div>
     <div class="mdl-dialog__actions">

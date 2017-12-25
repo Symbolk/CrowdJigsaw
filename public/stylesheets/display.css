@@ -70,6 +70,53 @@
   font-weight: bold;
 }
 
+.mdl-card {
+  height: 425px;
+}
+
+.newround-card {
+  background-color: rgba(200, 200, 200, 0.4);
+  border-style: dashed;
+  border-width: thick;
+  border-color: rgba(200, 200, 200, 0.5);;
+}
+
+.newround-card > .mdl-card__title {
+  color: rgba(50, 50, 50, 0.5);
+  position: relative;
+  height: 52%;
+  padding-left: 42px;
+}
+
+#newround_image_button{
+  width: 100%;
+}
+
+#newround_table{
+  width: 100%;
+}
+
+#newround_num_area{
+  width: 100%;
+}
+
+#newround_num_text{
+  position: relative;
+  left: 1%;
+  color: #000;
+}
+
+#newround_num{
+  position: relative;
+  left: 37%;
+  color: #000;
+}
+
+#newround_number_slider{
+  width: 100%;
+}
+
+
 .portfolio-navigation-row .is-active:after {
   content: "";
   width: 70%;
@@ -189,17 +236,6 @@ img.article-image {
   width: 70%;
 }
 
-#newround_button {
-  position: fixed;
-  display: block;
-  right: 0;
-  bottom: 0;
-  margin-right: 40px;
-  margin-bottom: 40px;
-  z-index: 900;
-  color: white;
-  background-color: rgba(255, 0, 0, 0.863);
-}
 
 .cancel_button{
   color: white;  
@@ -253,10 +289,13 @@ footer {
     padding: 20px 24px 24px 24px;
     color: rgba(0,0,0, 0.54); }
 
-#rounddetail_dialog {
-  width:400px;
-  height:850px;
-  overflow:scroll;
+#rounddetail_table{
+  position: relative;
+  width: 100%;
+}
+
+#rounddetail_progress{
+  background-color: rgb(0, 125, 100);
 }
 
 #players_list {
