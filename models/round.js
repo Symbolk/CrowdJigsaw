@@ -6,7 +6,9 @@ var RoundSchema = new mongoose.Schema({
     creator: { type: String }, //creator of the round
     image: { type: String, required: true }, //image url
     shape: { type: String, required: true }, // jagged or square
-    level: { type: Number, required: true }, //1-4
+    level: { type: Number, required: true }, //1-3
+    row_num:  { type: Number, default: -1 },
+    tile_num: { type: Number, default: -1 },
     create_time: { type: String, default: "-1" },  // formatted time, e.g. 2017-10-31 14:00:20
     start_time: { type: String, default: "-1" },  // formatted time, e.g. 2017-10-31 14:00:20
     end_time: { type: String, default: "-1" },  // formatted time, e.g. 2017-10-31 14:00:20

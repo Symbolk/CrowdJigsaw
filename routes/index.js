@@ -321,7 +321,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                     "avatar": d.avatar,
                                     "time": r.time,
                                     "steps": r.steps,
-                                    "contribution": r.contribution
+                                    "contribution": r.contribution.toFixed(3)
                                 });
                             } else {
                                 unfinished.push({
@@ -329,7 +329,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                     "avatar": d.avatar,
                                     "time": r.time,
                                     "steps": r.steps,
-                                    "contribution": r.contribution
+                                    "contribution": r.contribution.toFixed(3)
                                 });
                             }
                         }

@@ -47,10 +47,8 @@ function getBest(links) {
 /**
  * Generate a solution and test if correct
  */
-function generateSolution(round_id) {
+function generateSolution(round_id, row_num, tile_num) {
     var dirs = ['top', 'right', 'bottom', 'left'];
-    var row_num = 4;
-    var tile_num = 8;
     NodeModel.find({ round_id: round_id }, function (err, docs) {
         if (err) {
             console.log(err);
@@ -58,7 +56,7 @@ function generateSolution(round_id) {
             // for every node, find its most supported link            
             let solution = new Array();
             // if not all nodes are visited, just return false
-            if (docs.length == tile_num) {
+            if (docs) {
                 for (let node of docs) {
                     /* One a node are not complete yet, not feasible
                      * for every directions, judge if there is tile
@@ -75,7 +73,7 @@ function generateSolution(round_id) {
                     }
                     // right
                     let right = -1;
-                    if (node.index + 1 < tile_num) {
+                    if (((node.index + 1)) < tile_num && (node.index + 1)%row_num != 0) {
                         if (node.right.length > 0) {
                             right = getBest(node.right);
                         }
@@ -93,7 +91,7 @@ function generateSolution(round_id) {
                     }
                     // left
                     let left = -1;
-                    if (node.index - 1 >= 0) {
+                    if (node.index - 1 >= 0 && node.index%row_num != 0) {
                         if (node.left.length > 0) {
                             left = getBest(node.left);
                         }
@@ -112,37 +110,33 @@ function generateSolution(round_id) {
                         solution.push(temp);
                     }
                 }
-            }
 
-            console.log(solution);
-            // return colletive finished or not
-            // if true, notify the user and record the time
-            if (solution.length == tile_num) {
-                console.log("Feasible");
-                // Test if the feasible solution is correct
-                if (testSolution(row_num, tile_num, solution)) {
-                    // if correct, save the time&tell the users
-                    RoundModel.findOneAndUpdate({ round_id: round_id },
-                        { $set: { collective_time: util.getNowFormatDate() } },
-                        { new: true }, function (err, doc) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                console.log('Crowd bingo! @' + doc.collective_time);
-                            }
-                        });
+                // console.log(solution);
+                // return colletive finished or not
+                // if true, notify the user and record the time
+                if (solution.length == tile_num) {
+                    console.log("Feasible");
+                    // Test if the feasible solution is correct
+                    if (testSolution(row_num, tile_num, solution)) {
+                        // if correct, save the time&tell the users
+                        RoundModel.findOneAndUpdate({ round_id: round_id },
+                            { $set: { collective_time: util.getNowFormatDate() } },
+                            { new: true }, function (err, doc) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    console.log('Crowd bingo! @' + doc.collective_time);
+                                }
+                            });
+                    }
+                } else {
+                    console.log("Not feasible yet.");
+                    return false;
                 }
-            } else {
-                console.log("Not feasible yet.");
-                return false;
             }
         }
     });
 }
-
-router.route('/ct').get(function (req, res) {
-    generateSolution(42);
-});
 
 /**
  * Test the collective solution, just return it is right or false
@@ -158,7 +152,7 @@ function testSolution(row_num, tile_num, solution) {
             }
         }
         // right
-        if (node.index + 1 < tile_num) {
+        if (node.index + 1 < tile_num && (node.index + 1)%row_num != 0) {
             if (node.right != node.index + 1) {
                 result = fasle;
                 return false;
@@ -172,7 +166,7 @@ function testSolution(row_num, tile_num, solution) {
             }
         }
         // left
-        if (node.index - 1 >= 0) {
+        if (node.index - 1 >= 0 && node.index%row_num != 0) {
             if (node.left != node.index - 1) {
                 result = fasle;
                 return false;
@@ -215,7 +209,6 @@ function calcContri(operation, num_before) {
  * Write one action into the action sequence
  */
 function writeAction(NAME, round_id, operation, from, direction, to, contri) {
-    generateSolution(round_id);
     ActionModel.find({ round_id: round_id }, function (err, docs) {
         if (err) {
             console.log(err);
@@ -243,10 +236,13 @@ function writeAction(NAME, round_id, operation, from, direction, to, contri) {
             // Update the players contribution in this round
             RoundModel.findOneAndUpdate(
                 { round_id: round_id, "players.player_name": NAME },
-                { $inc: { "players.$.contribution": contri } }, function (err, doc) {
+                { $inc: { "players.$.contribution": contri } },
+                { new: true },
+                function (err, doc) {
                     if (err) {
                         console.log(err);
                     } else {
+                        generateSolution(round_id, doc.row_num, doc.tile_num);
                         // console.log(doc);
                     }
                 });

@@ -177,12 +177,36 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
     }
     rankButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
-        window.location = '/roundrank/' + roundID;
+        $.ajax({
+            url: requrl + 'round' + '/quitRound/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                window.location = '/roundrank/' + roundID;                
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
     });
 
     returnButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
-        window.location = '/home';
+        $.ajax({
+            url: requrl + 'round' + '/quitRound/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                window.location = '/home';
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
     });
 }());
 
@@ -401,9 +425,10 @@ function JigsawPuzzle(config) {
     this.gameFinished = false;
 
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
+    uploadSize(roundID,this.tilesPerRow,this.tileNum);
 
     loadGame();
-
+    
     //createAndPlaceTiles();
 
     function createAndPlaceTiles() {
@@ -467,21 +492,24 @@ function JigsawPuzzle(config) {
         sendRecord(roundID, instance.gameFinished, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
 
         clearTimeout(t);
-        $.ajax({
-            url: requrl + 'round' + '/quitRound/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                gameFinishDialog.showModal();
-                console.log(data);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                finishGame();
-                console.log('error ' + textStatus + " " + errorThrown);
-            }
-        });
+        gameFinishDialog.showModal();
+        
+        // once game starts, don't pull players
+        // $.ajax({
+        //     url: requrl + 'round' + '/quitRound/' + roundID,
+        //     type: 'get',
+        //     dataType: 'json',
+        //     cache: false,
+        //     timeout: 5000,
+        //     success: function (data) {
+        //         gameFinishDialog.showModal();
+        //         console.log(data);
+        //     },
+        //     error: function (jqXHR, textStatus, errorThrown) {
+        //         finishGame();
+        //         console.log('error ' + textStatus + " " + errorThrown);
+        //     }
+        // });
     }
 
     function randomPlaceTiles(xTileCount, yTileCount) {
@@ -1437,5 +1465,32 @@ function JigsawPuzzle(config) {
             }
         });
     }
-
+    /**
+     * Upload the row_num and tile_num to the round 
+     */
+    function uploadSize(round_id, row_num, tile_num){
+        $.ajax({
+            data:{
+                round_id: round_id,
+                row_num: row_num,
+                tile_num: tile_num
+            },
+            url: requrl + 'round/uploadSize',
+            type: 'post',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                if(data.success){
+                    console.log("Puzzle size uploaded!");
+                }else{
+                    console.log("Failed for server error.");
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log(errorThrown);
+                console.log("Puzzle size upload failed!");                
+            }
+        });
+    }
 }

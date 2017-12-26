@@ -221,6 +221,35 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
 });
 
 /**
+ * Upload the puzzle size after the puzzle starts(only once)
+ */
+router.route('/uploadSize').all(LoginFirst).post(function (req, res, next) {
+    RoundModel.findOne({ round_id: req.body.round_id }, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if(doc){
+                if(doc.tile_num==-1||doc.row_num==-1){
+                    let operation={
+                        $set:{
+                            row_num: req.body.row_num,
+                            tile_num: req.body.tile_num
+                        }
+                    };
+                    RoundModel.update({ round_id: req.body.round_id }, operation, function(err){
+                        if(err){
+                            res.send({ success: false});
+                        }else{
+                            res.send({ success: true });
+                        }
+                    });
+                }
+            }
+        }
+    });
+});
+
+/**
  * Start a round(when the player_num reached)
  */
 router.route('/startRound/:round_id').all(isCreator).get(function (req, res, next) {
