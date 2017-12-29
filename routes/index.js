@@ -216,10 +216,11 @@ router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
+    let shape = req.query.shape;
     let level = req.query.level;
     let roundID = req.query.roundID;
     let image = req.query.image;
-    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image });
+    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image, shape: shape});
 });
 
 

@@ -63,6 +63,11 @@
                 var roundID = "<%-roundID%>";
                 roundID = parseInt(roundID);
                 var imgSrc = "<%-image%>";
+                var roundShape = "<%-shape%>";
+                var egdeInfo = true;
+                if(roundShape == 'jagged_without_edge'){
+                    egdeInfo = false;
+                }
 
                 var imgReady = false;
                 var image = new Image();

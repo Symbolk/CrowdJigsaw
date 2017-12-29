@@ -389,6 +389,10 @@ function JigsawPuzzle(config) {
     this.tilesPerRow = Math.floor(this.imgWidth / this.tileWidth);
     this.tilesPerColumn = Math.floor(this.imgHeight / this.tileWidth),
         this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
+    if(!egdeInfo){
+        this.puzzleImage.size *= Math.max((this.tileWidth/2)/this.puzzleImage.size.width,
+            (this.tileWidth/2)/this.puzzleImage.size.height)+1
+    }
     this.puzzleImage.position = view.center;
 
     this.originImage.visible = false;
@@ -576,20 +580,23 @@ function JigsawPuzzle(config) {
                 var shape = instance.shapeArray[y * xTileCount + x];
 
                 var mask = getMask(tileRatio, shape.topTab, shape.rightTab, shape.bottomTab, shape.leftTab, instance.tileWidth);
-                mask.opacity = 0.01;
-                mask.strokeColor = '#fff'; //white
+                
                 var cloneImg = instance.puzzleImage.clone();
+                var offset = new Point(instance.tileWidth * x, instance.tileWidth * y);
+                if(!egdeInfo){
+                    offset += new Point(instance.tileWidth/4, instance.tileWidth/4);
+                }
                 var img = getTileRaster(
                     cloneImg,
                     new Size(instance.tileWidth, instance.tileWidth),
-                    new Point(instance.tileWidth * x, instance.tileWidth * y)
+                    offset
                 );
-                //var border = mask.clone();
-                //border.strokeColor = 'red'; //grey
-                //border.strokeWidth = 0;
+                var border = mask.clone();
+                border.strokeColor = 'black'; //grey
+                border.strokeWidth = 5;
 
                 // each tile is a group of
-                var tile = new Group(mask, img);
+                var tile = new Group(mask, img, border);
                 tile.picking = false;
                 tile.alreadyHinted = false;
                 tile.clipped = true;
@@ -622,17 +629,41 @@ function JigsawPuzzle(config) {
                 var bottomTab = undefined;
                 var leftTab = undefined;
 
-                if (y == 0)
-                    topTab = 0;
+                if (y == 0){
+                    if(egdeInfo){
+                        topTab = 0;
+                    }
+                    else{
+                        topTab = getRandomTabValue();
+                    }
+                }
 
-                if (y == height - 1)
-                    bottomTab = 0;
+                if (y == height - 1){
+                    if(egdeInfo){
+                        bottomTab = 0;
+                    }
+                    else{
+                        bottomTab = getRandomTabValue();
+                    }
+                }
 
-                if (x == 0)
-                    leftTab = 0;
+                if (x == 0){
+                    if(egdeInfo){
+                        leftTab = 0;
+                    }
+                    else{
+                        leftTab = getRandomTabValue();
+                    }
+                }
 
-                if (x == width - 1)
-                    rightTab = 0;
+                if (x == width - 1){
+                    if(egdeInfo){
+                        rightTab = 0;
+                    }
+                    else{
+                        rightTab = getRandomTabValue();
+                    }
+                }
 
                 shapeArray.push(
                     ({
