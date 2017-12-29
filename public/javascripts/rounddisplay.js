@@ -28,6 +28,16 @@ roundDetailCancelButton.click(function() {
     }
 });
 
+var newRoundCheckBoxRow = $('#egde_checkbox_row');
+
+$('#shape_radio input').change(function() {
+    if($('.newround-shape-square').prop( "checked" )){
+        newRoundCheckBoxRow.remove();
+    }
+    else{
+        newRoundCheckBoxRow.appendTo('#newround_table');
+    }
+});
 
 var newRoundDialog = $('#newround_dialog').get(0);
 if (!newRoundDialog.showModal) {
@@ -46,6 +56,9 @@ newRoundCreateButton.click(function() {
     else{
         shape = 'jagged';
         level = 1;
+        if (!$('#egde_checkbox').prop( "checked" )) {
+            shape = 'jagged_without_edge';
+        }
     }
     postNewRound(imgSrc, level, playersNum, shape);
     getJoinableRounds();
@@ -140,6 +153,7 @@ getJoinableRounds();
 $('.rounddetail-progress').click(function () {
     $('#players_list').toggle();
 });
+var roundDetailEdgeRow = $('#rounddetail_edge_row');
 function renderRoundDetail(round){
     var roundID = round.round_id;
     if(!roundsList[roundID]){
@@ -162,11 +176,20 @@ function renderRoundDetail(round){
     roundDetailID.text(round.round_id);
     roundDetailCreator.text(round.creator);
     roundDetailCreateTime.text(round.create_time);
+
+    roundDetailEdgeRow.remove()
     if(round.shape == 'square'){
         roundDetailShapeImage.attr('src', '/images/square.jpg');
     }
     else{
         roundDetailShapeImage.attr('src', '/images/jagged.jpg');
+        roundDetailEdgeRow.appendTo('#rounddetail_table');
+        if(round.shape == 'jagged'){
+            $('#rounddetail_edge').text('with egde info');
+        }
+        else{
+            $('#rounddetail_edge').text('without egde info');
+        }
     }
 
     //roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
@@ -223,7 +246,7 @@ function renderRoundList(data){
         if(round.start_time != '-1'){
             for(var player of round.players){
                 if(username == player.player_name){
-                    startPuzzle(round.level, roundID, round.image);
+                    startPuzzle(roundID, round.image, round.level, round.shape);
                 }
             }
             continue;
@@ -386,6 +409,6 @@ function startRound(roundID){
     });
 }
 
-function startPuzzle(level, roundID, imageURL){
-    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imageURL;
+function startPuzzle(roundID, imageURL, level, shape){
+    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imageURL + '&shape=' + shape;
 }
