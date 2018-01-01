@@ -327,24 +327,29 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
         }
     });
 });
+
 // Rank
 router.route('/rank').all(LoginFirst).get(function (req, res) {
     req.session.error = 'Players Rank!';
-    let fields = { username: 1, rank: 1, _id: 0 }
+    let fields = { username: 1, records: 1, _id: 0 }
+    // Rank all the users according to the sum contribution
     UserModel.find({}, function (err, docs) {
         if (err) {
             console.log(err);
         } else {
-            res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
+            if(docs){
+                let temp=docs;
+                for(let t of temp){
+                    t.credits=0;
+                    for(let r of t.records){
+                        t.credits+=r.contribution;
+                    }
+                }
+                temp=temp.sort(util.descending("credits"));
+                res.render('rank', { title: 'Ranks', Allusers: temp, username: req.session.user.username });
+            }
         }
     });
-    // UserModel.find({}, {sort: [['_id', -1]]}, function(err, docs){
-    //     if (err) {
-    //         console.log(err);
-    //     } else {
-    //         res.render('rank', { title: 'Ranks', Allusers: docs, username: req.session.user.username });
-    //     }
-    // });
 });
 
 

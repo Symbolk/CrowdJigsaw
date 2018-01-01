@@ -25,7 +25,6 @@ var UserSchema = new mongoose.Schema({
         tiles: { type: String},
         shape_array: { type: String}
     }
-    // rank: { type: Number, default: 0 }
 },
     // When no collection argument is passed, Mongoose pluralizes the name.
     { collection: 'users' }
