@@ -14,23 +14,6 @@ var util = require('./util.js');
 
 const SECRET = "CrowdIntel";
 
-var compare = function (prop) {
-    return function (obj1, obj2) {
-        var val1 = obj1[prop];
-        var val2 = obj2[prop];
-        if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
-            val1 = Number(val1);
-            val2 = Number(val2);
-        }
-        if (val1 < val2) {
-            return 1;
-        } else if (val1 > val2) {
-            return -1;
-        } else {
-            return 0;
-        }            
-    } 
-}
 
 /**
  *  MD5 encryption
@@ -337,8 +320,8 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                     }
                 }
                 // sort the players
-                finished=finished.sort(compare("time"));
-                unfinished=unfinished.sort(compare("contribution"));
+                finished=finished.sort(util.descending("time"));
+                unfinished=unfinished.sort(util.descending("contribution"));
                 res.render('roundrank', { title: 'Round Rank', Finished: finished, Unfinished: unfinished, username: req.session.user.username });
             }
         }

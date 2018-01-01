@@ -13,23 +13,6 @@ var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
 
-var compare = function (prop) {
-    return function (obj1, obj2) {
-        var val1 = obj1[prop];
-        var val2 = obj2[prop];
-        if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
-            val1 = Number(val1);
-            val2 = Number(val2);
-        }
-        if (val1 < val2) {
-            return 1;
-        } else if (val1 > val2) {
-            return -1;
-        } else {
-            return 0;
-        }
-    }
-}
 
 /**
  * Get the best link with different strategies
@@ -37,7 +20,7 @@ var compare = function (prop) {
  */
 function getBest(links) {
     if (links) {
-        let sortedLinks = links.sort(compare("sup_num"));
+        let sortedLinks = links.sort(util.descending("sup_num"));
         return sortedLinks[0].index;
     } else {
         console.log("Unreachable.");
@@ -147,28 +130,28 @@ function testSolution(row_num, tile_num, solution) {
     for (let node of solution) {
         if (node.index - row_num >= 0) {
             if (node.top != node.index - row_num) {
-                result = fasle;
+                result = false;
                 return false;
             }
         }
         // right
         if (node.index + 1 < tile_num && (node.index + 1)%row_num != 0) {
             if (node.right != node.index + 1) {
-                result = fasle;
+                result = false;
                 return false;
             }
         }
         // bottom
         if (node.index + row_num < tile_num) {
             if (node.bottom != node.index + row_num) {
-                result = fasle;
+                result = false;
                 return false;
             }
         }
         // left
         if (node.index - 1 >= 0 && node.index%row_num != 0) {
             if (node.left != node.index - 1) {
-                result = fasle;
+                result = false;
                 return false;
             }
         }
