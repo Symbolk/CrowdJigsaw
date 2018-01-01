@@ -3,16 +3,14 @@
 ---
 
 **Crowd Jigsaw is an online game, where multiple players work together to figure out a complex jigsaw puzzle.**
+
 **Designed to be an Application of Crowd Wisdom/Collective Intelligence**
-**As a Refactored Version of Crowd Jigsaw Puzzle**
+
+**As a Refactored Version for Experiments of Crowd Jigsaw Puzzle**
 
 _Powered By_
 
-_[@Symbolk](http://www.symbolk.com)_
-
-_[@Yuhan Wei](https://github.com/weiyuhan)_
-
-_[@Xinyue Zhang](https://github.com/ZXinyue)_
+_[@Symbolk](http://www.symbolk.com)_  _[@Yuhan Wei](https://github.com/weiyuhan)_ _[@Xinyue Zhang](https://github.com/ZXinyue)_
 
 ## Overview
 
@@ -30,37 +28,40 @@ Based on :
 
 Requirements :
 
-> OS: Windows/Linux/iOS/Android
-
-> Chrome ~59.0/Safari
-
-> Node.js ~6.11.0
-
-> Express ~4.15.0
-
-> Mongodb ~3.4.7
+Platform  | Support  |  Version
+------------ | -------------  | -------------
+OS | Windows/Linux/iOS/Android | N/A
+Browser | Chrome/Safari | ~60.0
+Node.js | Node.js | ~6.11.0
+Express | Express | ~4.15.0
+Mongodb | Mongodb | ~3.4.7
 
 _P.S. See npm dependencies in package.json_
  
 ---
 ## Usage
 
-![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home.jpg)
-![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone.jpg)
-![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer.jpg)
-### Level1 : Jagged Pictorial Tiles
+![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home2.jpg)
+![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone2.jpg)
+![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer2.jpg)
 
-![Level1](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_1.jpg)
-### Level2 : Square Pictorial Tiles
+### Step1 : New a Game Round
 
-![Level2](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_2.jpg)
-### Level3 : Voronoi Pictorial Tiles
+![round_wait](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/round_new.jpg)
 
-![Level3](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_3.jpg)
+### Step2 : Wait for Players to Join
 
-### Level4 : Voronoi Non-Pictorial Tiles
+![round_new](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/round_wait.jpg)
 
-![Level4](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/thumbnail_4.jpg)
+### Step3 : Puzzle Started Automatically(when players are enough)
+
+![puzzle](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/puzzle.jpg)
+
+**In one round, a crowd of players are playing together to figure out the same jigsaw puzzle(which can be overwhelming for any individual). In this process, explicit communication is not necessary, people just focus on their work but assistance comes to him continually from the crowd.**
+
+### Step4 : Check the Contribution Rank
+
+![round_rank](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/round_rank.jpg)
 
 ## Development(Windows)
 

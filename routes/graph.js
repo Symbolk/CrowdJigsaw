@@ -12,7 +12,7 @@ var UserModel = require('../models/user').User;
 var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
-
+var constants = require('../config/constants');
 
 /**
  * Get the best link with different strategies
@@ -56,7 +56,7 @@ function generateSolution(round_id, row_num, tile_num) {
                     }
                     // right
                     let right = -1;
-                    if (((node.index + 1)) < tile_num && (node.index + 1)%row_num != 0) {
+                    if (((node.index + 1)) < tile_num && (node.index + 1) % row_num != 0) {
                         if (node.right.length > 0) {
                             right = getBest(node.right);
                         }
@@ -74,7 +74,7 @@ function generateSolution(round_id, row_num, tile_num) {
                     }
                     // left
                     let left = -1;
-                    if (node.index - 1 >= 0 && node.index%row_num != 0) {
+                    if (node.index - 1 >= 0 && node.index % row_num != 0) {
                         if (node.left.length > 0) {
                             left = getBest(node.left);
                         }
@@ -98,7 +98,7 @@ function generateSolution(round_id, row_num, tile_num) {
                 // return colletive finished or not
                 // if true, notify the user and record the time
                 if (solution.length == tile_num) {
-                    console.log("Feasible");
+                    // console.log("Feasible");
                     // Test if the feasible solution is correct
                     if (testSolution(row_num, tile_num, solution)) {
                         // if correct, save the time&tell the users
@@ -108,12 +108,12 @@ function generateSolution(round_id, row_num, tile_num) {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    console.log('Crowd bingo! @' + doc.collective_time);
+                                    console.log('Round' + round_id + ': Crowd bingo! @' + doc.collective_time);
                                 }
                             });
                     }
                 } else {
-                    console.log("Not feasible yet.");
+                    // console.log("Not feasible yet.");
                     return false;
                 }
             }
@@ -135,7 +135,7 @@ function testSolution(row_num, tile_num, solution) {
             }
         }
         // right
-        if (node.index + 1 < tile_num && (node.index + 1)%row_num != 0) {
+        if (node.index + 1 < tile_num && (node.index + 1) % row_num != 0) {
             if (node.right != node.index + 1) {
                 result = false;
                 return false;
@@ -149,7 +149,7 @@ function testSolution(row_num, tile_num, solution) {
             }
         }
         // left
-        if (node.index - 1 >= 0 && node.index%row_num != 0) {
+        if (node.index - 1 >= 0 && node.index % row_num != 0) {
             if (node.left != node.index - 1) {
                 result = false;
                 return false;
@@ -166,7 +166,7 @@ function testSolution(row_num, tile_num, solution) {
  * num_before can be sup or opp
  */
 function calcContri(operation, num_before) {
-    const alpha = 0.8;
+    var alpha = constants.alpha;
     num_before = Number(num_before);
     let contribution = 0;
     switch (operation) {
@@ -681,79 +681,114 @@ router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req,
     var hintIndexes = new Array();
     var dirs = ['top', 'right', 'bottom', 'left'];
 
-    // Stratey1: conservative
-    // get the players_num of the round
-    // RoundModel.findOne(condition,{_id:0, players_num:1}, function(err, doc){
-    //     if(err){
-    //         console.log(err);
-    //     }else{
-    //         let players_num=doc.players_num;
-    //         NodeModel.findOne(condition, function (err, doc) {
-    //             if (err) {
-    //                 console.log(err);
-    //             } else {
-    //                 if (!doc) {
-    //                     res.send({ msg: "No hints." });
-    //                 } else {
-    //                     for (let d = 0; d < 4; d++) {
-    //                         let alternatives = doc[dirs[d]];
-    //                         if (alternatives.length == 0) {
-    //                             hintIndexes.push(-1);
-    //                         } else {
-    //                             let most_sup = alternatives[0];
-    //                             for (let a of alternatives) {
-    //                                 if (a.sup_num > most_sup.sup_num) {
-    //                                     most_sup = a;
-    //                                 }
-    //                             }
-    //                             // to guarantee zero sup nodes won't be hinted
-    //                             // 1/5 of the crowd have supported
-    //                             if (most_sup.sup_num > (players_num/5)) {
-    //                                 hintIndexes.push(most_sup.index);
-    //                             } else {
-    //                                 hintIndexes.push(-1);
-    //                             }
-    //                         }
-    //                     }
-    //                     res.send(JSON.stringify(hintIndexes));
-    //                 }
-    //             }
-    //         });
-    //     }
-    // }); 
-    // Strategy 3: considerate
-    NodeModel.findOne(condition, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (!doc) {
-                res.send({ msg: "No hints." });
+    var strategy = constants.strategy;
+
+    if (strategy == "conservative") {
+        // Stratey1: conservative
+        // get the players_num of the round
+        RoundModel.findOne(condition, { _id: 0, players_num: 1 }, function (err, doc) {
+            if (err) {
+                console.log(err);
             } else {
-                for (let d = 0; d < 4; d++) {
-                    let alternatives = doc[dirs[d]];
-                    if (alternatives.length == 0) {
-                        hintIndexes.push(-1);
+                let players_num = doc.players_num;
+                NodeModel.findOne(condition, function (err, doc) {
+                    if (err) {
+                        console.log(err);
                     } else {
-                        let best = alternatives[0];
-                        for (let a of alternatives) {
-                            if ((a.sup_num - a.opp_num) > 0 && (a.sup_num - a.opp_num) > (best.sup_num - best.opp_num)) {
-                                best = a;
-                            }
-                        }
-                        // to guarantee zero sup nodes won't be hinted
-                        // 1/5 of the crowd have supported
-                        if ((best.sup_num - best.opp_num) > 0) {
-                            hintIndexes.push(best.index);
+                        if (!doc) {
+                            res.send({ msg: "No hints." });
                         } else {
-                            hintIndexes.push(-1);
+                            for (let d = 0; d < 4; d++) {
+                                let alternatives = doc[dirs[d]];
+                                if (alternatives.length == 0) {
+                                    hintIndexes.push(-1);
+                                } else {
+                                    let most_sup = alternatives[0];
+                                    for (let a of alternatives) {
+                                        if (a.sup_num > most_sup.sup_num) {
+                                            most_sup = a;
+                                        }
+                                    }
+                                    // to guarantee zero sup nodes won't be hinted
+                                    // 1/5 of the crowd have supported
+                                    if (most_sup.sup_num > (players_num / 5)) {
+                                        hintIndexes.push(most_sup.index);
+                                    } else {
+                                        hintIndexes.push(-1);
+                                    }
+                                }
+                            }
+                            res.send(JSON.stringify(hintIndexes));
                         }
                     }
-                }
-                res.send(JSON.stringify(hintIndexes));
+                });
             }
-        }
-    });
-
+        });
+    } else if(strategy == "aggressive"){
+        // Strategy 2: aggressive
+        NodeModel.findOne(condition, function (err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                if (!doc) {
+                    res.send({ msg: "No hints." });
+                } else {
+                    for (let d = 0; d < 4; d++) {
+                        let alternatives = doc[dirs[d]];
+                        if (alternatives.length == 0) {
+                            hintIndexes.push(-1);
+                        } else {
+                            let most_sup = alternatives[0];
+                            for (let a of alternatives) {
+                                if (a.sup_num > most_sup.sup_num) {
+                                    most_sup = a;
+                                }
+                            }
+                            if (most_sup.sup_num > 0) {
+                                hintIndexes.push(most_sup.index);
+                            } else {
+                                hintIndexes.push(-1);
+                            }
+                        }
+                    }
+                    res.send(JSON.stringify(hintIndexes));
+                }
+            }
+        });
+    }else if (strategy == "considerate") {
+        // Strategy 3: considerate
+        NodeModel.findOne(condition, function (err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                if (!doc) {
+                    res.send({ msg: "No hints." });
+                } else {
+                    for (let d = 0; d < 4; d++) {
+                        let alternatives = doc[dirs[d]];
+                        if (alternatives.length == 0) {
+                            hintIndexes.push(-1);
+                        } else {
+                            let best = alternatives[0];
+                            for (let a of alternatives) {
+                                if ((a.sup_num - a.opp_num) > 0 && (a.sup_num - a.opp_num) > (best.sup_num - best.opp_num)) {
+                                    best = a;
+                                }
+                            }
+                            // to guarantee zero sup nodes won't be hinted
+                            // 1/5 of the crowd have supported
+                            if ((best.sup_num - best.opp_num) > 0) {
+                                hintIndexes.push(best.index);
+                            } else {
+                                hintIndexes.push(-1);
+                            }
+                        }
+                    }
+                    res.send(JSON.stringify(hintIndexes));
+                }
+            }
+        });
+    }
 });
 
 

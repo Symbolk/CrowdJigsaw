@@ -1,4 +1,3 @@
-console.log('this is the beginning of jigsaw.js');
 
 var loadReady = false;
 
@@ -1110,7 +1109,6 @@ function JigsawPuzzle(config) {
             var originCenterCellPostion = instance.selectedTile[0].originPosition;
 
             // console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
-
             var hasConflict = checkConflict(instance.selectedTile, centerCellPosition);
             if (instance.selectedTile[0].picking) {
                 for (var i = 0; i < instance.selectedTile.length; i++) {
