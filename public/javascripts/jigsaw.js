@@ -591,7 +591,7 @@ function JigsawPuzzle(config) {
                     offset
                 );
                 var border = mask.clone();
-                border.strokeColor = 'black'; //grey
+                border.strokeColor = 'white'; //grey
                 border.strokeWidth = 5;
 
                 // each tile is a group of

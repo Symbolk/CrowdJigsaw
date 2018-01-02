@@ -174,13 +174,13 @@ function calcContri(operation, num_before) {
             contribution = 1;
             break;
         case "+":
-            contribution = Math.pow(0.8, num_before);
+            contribution = Math.pow(alpha, num_before);
             break;
         case "--":
             contribution = -1;
             break;
         case "-":
-            contribution = 0 - Math.pow(0.8, num_before);
+            contribution = 0 - Math.pow(alpha, num_before);
             break;
         default:
             contribution = 0;

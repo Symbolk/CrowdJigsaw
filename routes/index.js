@@ -320,7 +320,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                     }
                 }
                 // sort the players
-                finished=finished.sort(util.descending("time"));
+                finished=finished.sort(util.ascending("time"));
                 unfinished=unfinished.sort(util.descending("contribution"));
                 res.render('roundrank', { title: 'Round Rank', Finished: finished, Unfinished: unfinished, username: req.session.user.username });
             }
