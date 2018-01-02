@@ -587,7 +587,7 @@ function JigsawPuzzle(config) {
                     offset
                 );
                 var border = mask.clone();
-                border.strokeColor = 'white'; //grey
+                border.strokeColor = 'grey'; //grey
                 border.strokeWidth = 5;
 
                 // each tile is a group of
@@ -1542,3 +1542,10 @@ function JigsawPuzzle(config) {
         });
     }
 }
+
+function resizeCanvas(){
+    var canvas = document.getElementById('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight
+}
+resizeCanvas();
