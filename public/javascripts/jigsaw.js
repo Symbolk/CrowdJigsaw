@@ -262,24 +262,20 @@ var directions = [
 /**
  * Start building the puzzle
  */
-
+if(roundShape == 'square'){
+    config.tileShape = 'straight';
+}
+else{
+    config.tileShape = 'curved';
+}
 
 if (level == 1) {
-    config.tileShape = 'curved';
     config.level = 1;
     //config others here
 } else if (level == 2) {
-    config.tileShape = 'straight';
     config.level = 2;
     //config others here    
-} else if (level == 3) {
-    config.tileShape = 'voronoi';
-    config.level = 3;
-} else if (level == 4) {
-    config.tileShape = 'voronoi';
-    config.level = 4;
-    config.imgName = 'grey';
-}
+} 
 
 var puzzle = new JigsawPuzzle(config);
 /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? puzzle.zoom(-0.5) : puzzle.zoom(-0.1);
@@ -387,7 +383,7 @@ function JigsawPuzzle(config) {
     this.imgHeight = this.imgSize.height;
     this.tilesPerRow = Math.floor(this.imgWidth / this.tileWidth);
     this.tilesPerColumn = Math.floor(this.imgHeight / this.tileWidth),
-        this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
+    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
     if(!egdeInfo){
         this.puzzleImage.size *= Math.max((this.tileWidth/2)/this.puzzleImage.size.width,
             (this.tileWidth/2)/this.puzzleImage.size.height)+1
@@ -407,7 +403,7 @@ function JigsawPuzzle(config) {
         this.tileMarginWidth = this.tileWidth * 0.5;
     }
     else {
-        this.tileMarginWidth = this.tileWidth * 0.203125;
+        this.tileMarginWidth = this.tileWidth * ((100 / this.tileWidth - 1) / 2);
     }
     this.selectedTile = undefined;
     this.selectedGroup = undefined;
@@ -916,9 +912,17 @@ function JigsawPuzzle(config) {
     function getTileRaster(sourceRaster, size, offset) {
         var targetRaster = new Raster('empty');
         var tileWithMarginWidth = size.width + instance.tileMarginWidth * 2;
+        var offsetX = offset.x - instance.tileMarginWidth;
+        if(offsetX <= 0){
+            offsetX = offset.x;
+        }
+        var offsetY = offset.y - instance.tileMarginWidth;
+        if(offsetY <= 0){
+            offsetY = offset.y;
+        }
         var imageData = sourceRaster.getImageData(new Rectangle(
-            offset.x - instance.tileMarginWidth,
-            offset.y - instance.tileMarginWidth,
+            offsetX,
+            offsetY,
             tileWithMarginWidth,
             tileWithMarginWidth));
         targetRaster.setImageData(imageData, new Point(0, 0))
@@ -1310,6 +1314,7 @@ function JigsawPuzzle(config) {
             }
             var img = hitResult.item;
             var tile = img.parent;
+            console.log(tile.name);
             if (!tile.picking) {
                 retTile = tile;
             }
@@ -1350,7 +1355,21 @@ function JigsawPuzzle(config) {
     }
 
     function findSelectTile(point) {
-        var tile = getTileAtCellPosition(point / instance.tileWidth);
+        var cellPosition = new Point(
+                Math.round(point.x / instance.tileWidth),//returns int closest to arg
+                Math.round(point.y / instance.tileWidth));
+        var hitResult = project.hitTest(point);
+        if (!hitResult || hitResult.type != "pixel") {
+            instance.selectedTile = null;
+            return;
+        }
+        var img = hitResult.item;
+        var tile = img.parent;
+        console.log(tile.name);
+        if (tile.picking) {
+            instance.selectedTile = null;
+            return;
+        }
         if (tile && tile.name) {
             instance.selectedTile = new Array();
             if (instance.dragMode == "tile-First") {
