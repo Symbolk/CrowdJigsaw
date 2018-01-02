@@ -95,14 +95,6 @@ $('#newround_image_button').click(function() {
     selectImageDialog.showModal();
 });
 
-$('.selector-image').click(function(){
-	var imgSrc = $(this).attr('src');
-	$('#newround_image').attr('src', imgSrc);
-    newRoundCreateButton.removeAttr('disabled');
-    $('#newround_blank').css('display', 'inline');
-	selectImageDialog.close();
-});
-
 $('#rounddetail_preview').click(function(){
 	var imgSrc = $('#rounddetail_image').attr('src');
 	$('#showimage_image').attr('src', imgSrc);
@@ -149,6 +141,8 @@ round.appendTo('#round_list');
 
 var getJoinableRoundsInterval = setInterval(getJoinableRounds, 3000);
 getJoinableRounds();
+
+getSeletorImage();
 
 $('.rounddetail-progress').click(function () {
     $('#players_list').toggle();
@@ -411,4 +405,20 @@ function startRound(roundID){
 
 function startPuzzle(roundID, imageURL, level, shape){
     window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imageURL + '&shape=' + shape;
+}
+
+function getSeletorImage(){
+    for(var i = 0; i < puzzleImageSrcList.length; i++){
+        var imgSrc = puzzleImageSrcList[i];
+        var template = $($('#selectimage_template').html());
+        template.find('.selector-image').attr('src', imgSrc);
+        template.appendTo('#selectimage_table');
+    }
+    $('.selector-image').click(function(){
+        var imgSrc = $(this).attr('src');
+        $('#newround_image').attr('src', imgSrc);
+        newRoundCreateButton.removeAttr('disabled');
+        $('#newround_blank').css('display', 'inline');
+        selectImageDialog.close();
+    });
 }
