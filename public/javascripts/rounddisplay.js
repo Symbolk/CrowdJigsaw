@@ -141,7 +141,6 @@ round.appendTo('#round_list');
 
 var getJoinableRoundsInterval = setInterval(getJoinableRounds, 3000);
 getJoinableRounds();
-
 getSeletorImage();
 
 $('.rounddetail-progress').click(function () {
