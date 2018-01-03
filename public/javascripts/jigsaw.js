@@ -384,10 +384,8 @@ function JigsawPuzzle(config) {
     this.tilesPerRow = Math.floor(this.imgWidth / this.tileWidth);
     this.tilesPerColumn = Math.floor(this.imgHeight / this.tileWidth),
     this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
-    if(!egdeInfo){
-        this.puzzleImage.size *= Math.max((this.tileWidth/2)/this.puzzleImage.size.width,
-            (this.tileWidth/2)/this.puzzleImage.size.height)+1
-    }
+    this.puzzleImage.size *= Math.max((this.tileWidth/2)/this.puzzleImage.size.width,
+        (this.tileWidth/2)/this.puzzleImage.size.height)+1
     this.puzzleImage.position = view.center;
 
     this.originImage.visible = false;
@@ -578,9 +576,7 @@ function JigsawPuzzle(config) {
                 
                 var cloneImg = instance.puzzleImage.clone();
                 var offset = new Point(instance.tileWidth * x, instance.tileWidth * y);
-                if(!egdeInfo){
-                    offset += new Point(instance.tileWidth/4, instance.tileWidth/4);
-                }
+                offset += new Point(instance.tileWidth/4, instance.tileWidth/4);
                 var img = getTileRaster(
                     cloneImg,
                     new Size(instance.tileWidth, instance.tileWidth),
@@ -912,17 +908,9 @@ function JigsawPuzzle(config) {
     function getTileRaster(sourceRaster, size, offset) {
         var targetRaster = new Raster('empty');
         var tileWithMarginWidth = size.width + instance.tileMarginWidth * 2;
-        var offsetX = offset.x - instance.tileMarginWidth;
-        if(offsetX <= 0){
-            offsetX = offset.x;
-        }
-        var offsetY = offset.y - instance.tileMarginWidth;
-        if(offsetY <= 0){
-            offsetY = offset.y;
-        }
         var imageData = sourceRaster.getImageData(new Rectangle(
-            offsetX,
-            offsetY,
+            offset.x - instance.tileMarginWidth,
+            offset.y - instance.tileMarginWidth,
             tileWithMarginWidth,
             tileWithMarginWidth));
         targetRaster.setImageData(imageData, new Point(0, 0))
@@ -1543,9 +1531,11 @@ function JigsawPuzzle(config) {
     }
 }
 
+$(window).resize();
 function resizeCanvas(){
     var canvas = document.getElementById('canvas');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight
 }
+$('#canvas').resize();
 resizeCanvas();
