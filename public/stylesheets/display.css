@@ -28,13 +28,13 @@
   min-height: auto;
 }
 
-.portfolio-logo {
+/* .portfolio-logo {
   background: url(images/logo.png) 50% no-repeat;
   background-size: cover;
   height: 150px;
   width: 150px;
   margin: auto auto 10px;
-}
+} */
 
 .is-compact .portfolio-logo {
   height: 50px;
