@@ -1,152 +1,167 @@
+var imgReadyCount = 0;
 var roundsList = new Array();
 var roundsIDList = new Array();
-
 var roundDetailDialog = $('#rounddetail_dialog').get(0);
-if (!roundDetailDialog.showModal) {
-    dialogPolyfill.registerDialog(roundDetailDialog);
-}
 var roundDetailJoinButton = $('#rounddetail_joinbutton');
-roundDetailJoinButton.click(function() {
-    var roundID = $('#rounddetail_id').text();
-    if(roundDetailJoinButton.text() == 'Join'){
-        joinRound(roundID);
-    }
-    else{
-        getRound(roundID);
-    }
-});
 var roundDetailCancelButton = $('#rounddetail_cancelbutton');
-roundDetailCancelButton.click(function() {
-    var roundID = $('#rounddetail_id').text();
-    var round = roundsList[parseInt(roundID)];
-    if(roundDetailCancelButton.text() == 'Quit'){
-        quitRound(roundID);
-        roundDetailCancelButton.text('Close');
-    }
-    else{
-        roundDetailDialog.close();
-    }
-});
-
-var newRoundCheckBoxRow = $('#egde_checkbox_row');
-
-$('#shape_radio input').change(function() {
-    if($('.newround-shape-square').prop( "checked" )){
-        newRoundCheckBoxRow.remove();
-    }
-    else{
-        newRoundCheckBoxRow.appendTo('#newround_table');
-    }
-});
-
+var roundDetailEdgeRow = $('#rounddetail_edge_row');
 var newRoundDialog = $('#newround_dialog').get(0);
-if (!newRoundDialog.showModal) {
-    dialogPolyfill.registerDialog(newRoundDialog);
-}
+var newRoundCheckBoxRow = $('#egde_checkbox_row');
 var newRoundCreateButton = $('#newround_createbutton');
-newRoundCreateButton.click(function() {
-	var imgSrc = $('#newround_image').attr('src');
-	var playersNum = $('#newround_number_slider').val();
-    var shape = 'jagged';
-    var level = 1;
-    if($('.newround-shape-square').prop( "checked" )){
-        shape = 'square';
-        level = 2;
-    }
-    else{
-        shape = 'jagged';
-        level = 1;
-        if (!$('#egde_checkbox').prop( "checked" )) {
-            shape = 'jagged_without_edge';
-        }
-    }
-    postNewRound(imgSrc, level, playersNum, shape);
-    getJoinableRounds();
-    newRoundDialog.close();
-});
 var newRoundCancelButton = $('#newround_cancelbutton');
-newRoundCancelButton.click(function() {
-    newRoundDialog.close();
-});
-$('#newround_number_slider').change(function() {
-    $('#newround_num').text($('#newround_number_slider').val());
-});
-
 var selectImageDialog = $('#selectimage_dialog').get(0);
-if (!selectImageDialog.showModal) {
-    dialogPolyfill.registerDialog(selectImageDialog);
-}
 
-var showImageDialog = $('#showimage_dialog').get(0);
-if (!showImageDialog.showModal) {
-    dialogPolyfill.registerDialog(showImageDialog);
-}
-var showImageCancelButton = $('#showimage_cancelbutton');
-showImageCancelButton.click(function() {
-    showImageDialog.close();
-});
-
-
-$('#newround_image').click(function() {
-	selectImageDialog.showModal();
-});
-
-$('#newround_image_button').click(function() {
-    selectImageDialog.showModal();
-});
-
-$('#rounddetail_preview').click(function(){
-	var imgSrc = $('#rounddetail_image').attr('src');
-	$('#showimage_image').attr('src', imgSrc);
-	showImageDialog.showModal();
-});
-
-$('#newround_preview').click(function(){
-	var imgSrc = $('#newround_image').attr('src');
-	$('#showimage_image').attr('src', imgSrc);
-	showImageDialog.showModal();
-});
-
-$('#newround_button').click(function(){
-    newRoundCreateButton.attr('disabled','true');
-    $('#newround_blank').css('display', 'none');
-    $('#newround_image').removeAttr('src')
-	newRoundDialog.showModal();
-});
-
-$('#newround_button').mousedown(function(){
-    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
-});
-
-$('#newround_button').mouseup(function(){
-    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
-});
-
-$('#newround_button').mouseover(function(){
-    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
-});
-
-$('#newround_button').mouseout(function(){
-    $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
-});
-
-
-
-/*
-var template = $('#roundcard_template');
-var round = $(template.html());
-round.attr('id', 'round_0');
-round.appendTo('#round_list');
-*/
-
-var getJoinableRoundsInterval = setInterval(getJoinableRounds, 3000);
-getJoinableRounds();
 getSeletorImage();
 
-$('.rounddetail-progress').click(function () {
-    $('#players_list').toggle();
-});
-var roundDetailEdgeRow = $('#rounddetail_edge_row');
+function getSeletorImage(){
+    for(var i = 0; i < puzzleImageSrcList.length; i++){
+        var imgSrc = puzzleImageSrcList[i];
+        var template = $($('#selectimage_template').html());
+        var img = new Image();
+        img.src = imgSrc;
+        $(img).addClass('article-image');
+        $(img).addClass('selector-image');
+        img.onload = function(){
+            imgReadyCount += 1;
+            if(imgReadyCount == puzzleImageSrcList.length){
+                 allImageReadyCallback();
+            }
+        };
+        template.find('.mdl-card__media').append(img);
+        template.appendTo('#selectimage_table');
+    }
+    $('.selector-image').click(function(){
+        var imgSrc = $(this).attr('src');
+        $('#newround_image').attr('src', imgSrc);
+        newRoundCreateButton.removeAttr('disabled');
+        $('#newround_blank').css('display', 'inline');
+        selectImageDialog.close();
+    });
+}
+
+function allImageReadyCallback(){
+    console.log('all image load ready');
+
+    initRoundDetailDialog();
+    initNewRoundDialog();
+    initSelectImageDialog();
+
+    var getJoinableRoundsInterval = setInterval(getJoinableRounds, 3000);
+    getJoinableRounds();
+}
+
+function initRoundDetailDialog(){
+    if (!roundDetailDialog.showModal) {
+        dialogPolyfill.registerDialog(roundDetailDialog);
+    }
+    roundDetailJoinButton.click(function() {
+        var roundID = $('#rounddetail_id').text();
+        if(roundDetailJoinButton.text() == 'Join'){
+            joinRound(roundID);
+        }
+        else{
+            getRound(roundID);
+        }
+    });
+    roundDetailCancelButton.click(function() {
+        var roundID = $('#rounddetail_id').text();
+        var round = roundsList[parseInt(roundID)];
+        if(roundDetailCancelButton.text() == 'Quit'){
+            quitRound(roundID);
+            roundDetailCancelButton.text('Close');
+        }
+        else{
+            roundDetailDialog.close();
+        }
+    });
+
+    $('.rounddetail-progress').click(function () {
+        $('#players_list').toggle();
+    });
+}
+
+
+function initNewRoundDialog(){
+
+    $('#shape_radio input').change(function() {
+        if($('.newround-shape-square').prop( "checked" )){
+            newRoundCheckBoxRow.remove();
+        }
+        else{
+            newRoundCheckBoxRow.appendTo('#newround_table');
+        }
+    });
+
+    if (!newRoundDialog.showModal) {
+        dialogPolyfill.registerDialog(newRoundDialog);
+    }
+    newRoundCreateButton.click(function() {
+        var imgSrc = $('#newround_image').attr('src');
+        var playersNum = $('#newround_number_slider').val();
+        var shape = 'jagged';
+        var level = 1;
+        if($('.newround-shape-square').prop( "checked" )){
+            shape = 'square';
+            level = 2;
+        }
+        else{
+            shape = 'jagged';
+            level = 1;
+            if (!$('#egde_checkbox').prop( "checked" )) {
+                shape = 'jagged_without_edge';
+            }
+        }
+        postNewRound(imgSrc, level, playersNum, shape);
+        getJoinableRounds();
+        newRoundDialog.close();
+    });
+    newRoundCancelButton.click(function() {
+        newRoundDialog.close();
+    });
+    $('#newround_number_slider').change(function() {
+        $('#newround_num').text($('#newround_number_slider').val());
+    });
+
+    $('#newround_button').click(function(){
+        newRoundCreateButton.attr('disabled','true');
+        $('#newround_blank').css('display', 'none');
+        $('#newround_image').removeAttr('src')
+        newRoundDialog.showModal();
+    });
+
+    $('#newround_button').mousedown(function(){
+        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+    });
+
+    $('#newround_button').mouseup(function(){
+        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
+    });
+
+    $('#newround_button').mouseover(function(){
+        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+    });
+
+    $('#newround_button').mouseout(function(){
+        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
+    });
+
+}
+
+function initSelectImageDialog(){
+    if (!selectImageDialog.showModal) {
+        dialogPolyfill.registerDialog(selectImageDialog);
+    }
+
+    $('#newround_image').click(function() {
+        selectImageDialog.showModal();
+    });
+
+    $('#newround_image_button').click(function() {
+        selectImageDialog.showModal();
+    });
+}
+
+
 function renderRoundDetail(round){
     var roundID = round.round_id;
     if(!roundsList[roundID]){
@@ -403,21 +418,12 @@ function startRound(roundID){
 }
 
 function startPuzzle(roundID, imageURL, level, shape){
-    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imageURL + '&shape=' + shape;
+    var imgSrc = imageURL;
+    var thumbStr = '_thumb';
+    var thumbIndex = imageURL.indexOf(thumbStr);
+    if(thumbIndex >= 0){
+        imgSrc = imageURL.substring(0, thumbIndex) + imageURL.substring(thumbIndex + thumbStr.length);
+    }
+    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imgSrc + '&shape=' + shape;
 }
 
-function getSeletorImage(){
-    for(var i = 0; i < puzzleImageSrcList.length; i++){
-        var imgSrc = puzzleImageSrcList[i];
-        var template = $($('#selectimage_template').html());
-        template.find('.selector-image').attr('src', imgSrc);
-        template.appendTo('#selectimage_table');
-    }
-    $('.selector-image').click(function(){
-        var imgSrc = $(this).attr('src');
-        $('#newround_image').attr('src', imgSrc);
-        newRoundCreateButton.removeAttr('disabled');
-        $('#newround_blank').css('display', 'inline');
-        selectImageDialog.close();
-    });
-}
