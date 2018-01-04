@@ -64,10 +64,8 @@
                 roundID = parseInt(roundID);
                 var imgSrc = "<%-image%>";
                 var roundShape = "<%-shape%>";
-                var egdeInfo = true;
-                if(roundShape == 'jagged_without_edge'){
-                    egdeInfo = false;
-                }
+                var hasEdge = "<%-edge%>";;
+                var hasBorder = "<%-border%>";
 
                 var imgReady = false;
                 var image = new Image();
@@ -76,7 +74,6 @@
                 image.onload = function () {
                     imgReady = true;
                 }
-
                 if (image.complete) {
                     imgReady = true;
                 }

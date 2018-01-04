@@ -4,7 +4,7 @@ var roundsIDList = new Array();
 var roundDetailDialog = $('#rounddetail_dialog').get(0);
 var roundDetailJoinButton = $('#rounddetail_joinbutton');
 var roundDetailCancelButton = $('#rounddetail_cancelbutton');
-var roundDetailEdgeRow = $('#rounddetail_edge_row');
+var roundDetailEdgeRow = $('#rounddetail_info_row');
 var newRoundDialog = $('#newround_dialog').get(0);
 var newRoundCheckBoxRow = $('#egde_checkbox_row');
 var newRoundCreateButton = $('#newround_createbutton');
@@ -40,7 +40,7 @@ function getSeletorImage(){
 }
 
 function allImageReadyCallback(){
-    console.log('all image load ready');
+    console.log('Images Loaded.');
 
     initRoundDetailDialog();
     initNewRoundDialog();
@@ -100,6 +100,8 @@ function initNewRoundDialog(){
         var playersNum = $('#newround_number_slider').val();
         var shape = 'jagged';
         var level = 1;
+        var edge = false;
+        var border = false;
         if($('.newround-shape-square').prop( "checked" )){
             shape = 'square';
             level = 2;
@@ -107,11 +109,15 @@ function initNewRoundDialog(){
         else{
             shape = 'jagged';
             level = 1;
-            if (!$('#egde_checkbox').prop( "checked" )) {
-                shape = 'jagged_without_edge';
+            if ($('#egde_checkbox').prop( "checked" )) {
+                // shape = 'jagged_without_edge';
+                edge = true;
+            }
+            if($('#border_checkbox').prop("checked")){
+                border = true;
             }
         }
-        postNewRound(imgSrc, level, playersNum, shape);
+        postNewRound(imgSrc, level, playersNum, shape, edge, border);
         getJoinableRounds();
         newRoundDialog.close();
     });
@@ -192,12 +198,8 @@ function renderRoundDetail(round){
     else{
         roundDetailShapeImage.attr('src', '/images/jagged.jpg');
         roundDetailEdgeRow.appendTo('#rounddetail_table');
-        if(round.shape == 'jagged'){
-            $('#rounddetail_edge').text('with egde info');
-        }
-        else{
-            $('#rounddetail_edge').text('without egde info');
-        }
+        var info="Edge: "+round.edge+"   "+"Border: " + round.border;
+        $('#rounddetail_info').text(info);
     }
 
     //roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
@@ -254,7 +256,7 @@ function renderRoundList(data){
         if(round.start_time != '-1'){
             for(var player of round.players){
                 if(username == player.player_name){
-                    startPuzzle(roundID, round.image, round.level, round.shape);
+                    startPuzzle(roundID, round.image, round.level, round.shape, round.edge, round.border);
                 }
             }
             continue;
@@ -333,11 +335,13 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, level, playersNum, shape) {
+function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
 	var param = {
-		level: level,
-		shape: shape,
 		imageURL: imgSrc,
+        level: level,
+        edge: edge,
+        shape: shape,
+        border: border,
 		players_num: playersNum
 	};
 
@@ -417,13 +421,13 @@ function startRound(roundID){
     });
 }
 
-function startPuzzle(roundID, imageURL, level, shape){
+function startPuzzle(roundID, imageURL, level, shape, edge, border){
     var imgSrc = imageURL;
     var thumbStr = '_thumb';
     var thumbIndex = imageURL.indexOf(thumbStr);
     if(thumbIndex >= 0){
         imgSrc = imageURL.substring(0, thumbIndex) + imageURL.substring(thumbIndex + thumbStr.length);
     }
-    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imgSrc + '&shape=' + shape;
+    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imgSrc + '&shape=' + shape  + '&edge=' + edge + '&border=' + border ;
 }
 

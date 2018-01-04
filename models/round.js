@@ -7,6 +7,8 @@ var RoundSchema = new mongoose.Schema({
     image: { type: String, required: true }, //image url
     shape: { type: String, required: true }, // jagged or square
     level: { type: Number, required: true }, //1-3
+    edge: { type: Boolean, default: false }, // whether the tile has edge
+    border: { type: Boolean, default: false },// whether the tile has border
     row_num:  { type: Number, default: -1 },
     tile_num: { type: Number, default: -1 },
     create_time: { type: String, default: "-1" },  // formatted time, e.g. 2017-10-31 14:00:20
@@ -25,7 +27,7 @@ var RoundSchema = new mongoose.Schema({
 
     // ],
     // graph = a set of nodes
-    graph: [ { type: mongoose.Schema.Types.ObjectId, ref: 'Node' } ],
+    // graph: [ { type: mongoose.Schema.Types.ObjectId, ref: 'Node' } ],
     collective_time: { type: String, default: "-1" } //"-1"=unfinished
 }, { collection: 'rounds' });
 

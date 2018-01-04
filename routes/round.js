@@ -186,8 +186,10 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 round_id: index,
                 creator: req.session.user.username,
                 image: req.body.imageURL,
-                shape: req.body.shape,
                 level: req.body.level,
+                shape: req.body.shape,
+                edge: req.body.edge,
+                border: req.body.border,
                 create_time: TIME,
                 players_num: req.body.players_num,
             };

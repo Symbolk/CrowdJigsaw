@@ -234,6 +234,7 @@ var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
 var tileWidth = 64;
 
+
 if (level == 3) {
     tileWidth = 32;
 }
@@ -584,7 +585,7 @@ function JigsawPuzzle(config) {
                 );
                 var border = mask.clone();
                 border.strokeColor = 'grey'; //grey
-                border.strokeWidth = 5;
+                border.strokeWidth = (hasBorder=="true") ? 5:0;
 
                 // each tile is a group of
                 var tile = new Group(mask, img, border);
@@ -621,39 +622,19 @@ function JigsawPuzzle(config) {
                 var leftTab = undefined;
 
                 if (y == 0){
-                    if(egdeInfo){
-                        topTab = 0;
-                    }
-                    else{
-                        topTab = getRandomTabValue();
-                    }
+                    topTab = (hasEdge=="true") ? 0 : getRandomTabValue();
                 }
 
                 if (y == height - 1){
-                    if(egdeInfo){
-                        bottomTab = 0;
-                    }
-                    else{
-                        bottomTab = getRandomTabValue();
-                    }
+                    bottomTab = (hasEdge=="true") ? 0 : getRandomTabValue();
                 }
 
                 if (x == 0){
-                    if(egdeInfo){
-                        leftTab = 0;
-                    }
-                    else{
-                        leftTab = getRandomTabValue();
-                    }
+                    leftTab = (hasEdge=="true") ? 0 : getRandomTabValue();
                 }
 
                 if (x == width - 1){
-                    if(egdeInfo){
-                        rightTab = 0;
-                    }
-                    else{
-                        rightTab = getRandomTabValue();
-                    }
+                    rightTab = (hasEdge=="true") ? 0 : getRandomTabValue();
                 }
 
                 shapeArray.push(
