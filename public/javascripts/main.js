@@ -1,5 +1,6 @@
-const requrl = 'http://localhost:3000/'; //local dev
-// const requrl = 'http://39.106.112.44:3000/';  //server dep
+// const requrl = 'http://localhost:3000/'; //local dev
+const requrl = window.location.protocol + '//' + window.location.host + '/';
+console.log(requrl);
 
 /**
  *  Update links in the background graph

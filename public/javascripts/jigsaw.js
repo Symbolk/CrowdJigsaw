@@ -1283,7 +1283,7 @@ function JigsawPuzzle(config) {
             }
             var img = hitResult.item;
             var tile = img.parent;
-            console.log(tile.name);
+            // console.log(tile.name);
             if (!tile.picking) {
                 retTile = tile;
             }
@@ -1334,7 +1334,7 @@ function JigsawPuzzle(config) {
         }
         var img = hitResult.item;
         var tile = img.parent;
-        console.log(tile.name);
+        // console.log(tile.name);
         if (tile.picking) {
             instance.selectedTile = null;
             return;
