@@ -31,6 +31,7 @@
 <body>
     <script>
         var username = "<%=username%>";
+        var admin = "<%=admin%>";
     </script>
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
@@ -38,11 +39,13 @@
          <% include navigation.html %>
             <main class="mdl-layout__content">
                 <div class="mdl-grid portfolio-max-width" id="round_list">    
+                    <% if(admin==true){%>
                     <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card newround-card" id="newround_button">
                         <div class="mdl-card__title">
                             <h2 class="mdl-card__title-text roundcard-title">Add a New Round</h2>
                         </div>
                     </div>
+                    <%}%>
                 </div>
             </main>
         <% include rounddetail.html %>

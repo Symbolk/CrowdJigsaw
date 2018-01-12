@@ -281,7 +281,11 @@ function renderRoundList(data){
         var roundCardNum = roundCard.find('.roundcard-num');
         var roundCardJoin = roundCard.find('.roundcard-join');
 
-        roundCardImage.attr('src', round.image);
+        if(admin=="true"){
+            roundCardImage.attr('src', round.image);
+        }else{
+            roundCardImage.attr('src', '/images/logo.png');            
+        }
         roundCardTitle.text('Round' + roundID);
         roundCardNum.text('level' + round.level + '    players: ' + round.players.length + '/' + round.players_num);
         roundCardJoin.click(function(){

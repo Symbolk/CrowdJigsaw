@@ -173,14 +173,14 @@ router.route('/register').all(Logined).get(function (req, res) {
 //Home 
 router.route('/home').all(LoginFirst).get(function (req, res) {
     let selectStr = { username: req.session.user.username };
-    let fields = { _id: 0, username: 1, avatar: 1 };
-    UserModel.findOne(selectStr, fields, function (err, docs) {
+    let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
+    UserModel.findOne(selectStr, fields, function (err, doc) {
         if (err) {
             console.log(err);
         } else {
-            if (docs) {
+            if (doc) {
                 req.session.error = 'Welcome! ' + req.session.user.username;
-                res.render('rounddisplay', { title: 'Home', username: req.session.user.username });
+                res.render('rounddisplay', { title: 'Home', username: doc.username, admin: doc.admin });
             }
         }
     });
@@ -195,7 +195,17 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 
 // Round
 router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
-    res.render('rounddisplay', { title: 'Playground', username: req.session.user.username });
+    let selectStr = { username: req.session.user.username };
+    let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
+    UserModel.findOne(selectStr, fields, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (doc) {
+                res.render('rounddisplay', { title: 'Playground', username: doc.username, admin: doc.admin });
+            }
+        }
+    });
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
@@ -203,9 +213,9 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     let level = req.query.level;
     let shape = req.query.shape;
     let edge = req.query.edge;
-    let border = req.query.border;    
+    let border = req.query.border;
     let roundID = req.query.roundID;
-    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image, shape: shape, edge: edge, border: border});
+    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image, shape: shape, edge: edge, border: border });
 });
 
 
@@ -322,8 +332,8 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                     }
                 }
                 // sort the players
-                finished=finished.sort(util.ascending("time"));
-                unfinished=unfinished.sort(util.descending("contribution"));
+                finished = finished.sort(util.ascending("time"));
+                unfinished = unfinished.sort(util.descending("contribution"));
                 res.render('roundrank', { title: 'Round Rank', Finished: finished, Unfinished: unfinished, username: req.session.user.username });
             }
         }
@@ -339,15 +349,15 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            if(docs){
-                let temp=docs;
-                for(let t of temp){
-                    t.credits=0;
-                    for(let r of t.records){
-                        t.credits+=r.contribution;
+            if (docs) {
+                let temp = docs;
+                for (let t of temp) {
+                    t.credits = 0;
+                    for (let r of t.records) {
+                        t.credits += r.contribution;
                     }
                 }
-                temp=temp.sort(util.descending("credits"));
+                temp = temp.sort(util.descending("credits"));
                 res.render('rank', { title: 'Ranks', Allusers: temp, username: req.session.user.username });
             }
         }
