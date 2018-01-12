@@ -186,7 +186,11 @@ function renderRoundDetail(round){
 
     var roundDetailLevel = $('#rounddetail_level');
 
-    roundDetailImage.attr('src', round.image);
+    if(admin=="true"){
+        roundDetailImage.attr('src', round.image);
+    }else{
+        roundDetailImage.attr('src', '/images/logo.png');            
+    }
     roundDetailID.text(round.round_id);
     roundDetailCreator.text(round.creator);
     roundDetailCreateTime.text(round.create_time);
