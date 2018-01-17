@@ -59,16 +59,17 @@ router.route('/login').all(Logined).get(function (req, res) {
                 if (doc.password === user.password) {
                     //出于安全，只把包含用户名的对象存入session
                     req.session.user = condition;
+                    let time=util.getNowFormatDate();
                     let operation = {
                         $set: {
-                            last_online_time: util.getNowFormatDate()
+                            last_online_time: time
                         }
                     };
-                    UserModel.update(operation, function (err) {
+                    UserModel.update(condition, operation, function (err) {
                         if (err) {
                             console.log(err);
                         } else {
-                            req.session.error = 'Welcome! ' + user.username;
+                            req.session.error = 'Welcome! ' + time;
                             return res.redirect('/home');
                         }
                     });
