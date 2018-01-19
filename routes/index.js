@@ -372,13 +372,20 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
     let condition = {
         username: req.session.user.username
     };
-    UserModel.findOne(condition, function (err, doc) {
+    
+    UserModel.findOne(condition, {_id:0, records:1 }, function (err, doc) {
         if (err) {
-            res.render('records', { title: 'Personal Records' });
+            // res.render('records', { title: 'Personal Records' });
             console.log(err);
-        }
-        else {
-            res.render('records', { title: 'Ranks', username: req.session.user.username, Allrecords: doc.records });
+        }else {
+            let results=new Array();
+            // or use populate()
+            for(let r of doc.records){
+                if(r.start_time!="-1"){
+                    results.push(r);
+                }
+            }
+            res.render('records', { title: 'Ranks', username: req.session.user.username, Allrecords: results });
         }
     });
 });

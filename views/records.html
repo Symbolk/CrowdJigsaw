@@ -2,50 +2,98 @@
 <% include header.html %>
         <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
                 <% include navigation.html %>
-                        <main class="mdl-layout__content">
+
+                        <div class="col-md-offset-4">
+                                <br/>
+                                <h2 class="mdl-color-text-black">
+                                        <%= username %>'s Records</h2>
+                                <br/>
+                                <br/>
                                 <div class="mdl-grid">
-                                        <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--2-col-tablet"></div>
-                                        <div class="mdl-cell mdl-cell--6-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
-                                                <br/>
-                                                <h2 class="mdl-color-text-black"><%= username %>'s Records</h2>
-                                                <br/>
-                                                <br/>
-                                                <table class="mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow--2dp">
-                                                        <thead>
+                                        <table id="records" data-toggle="table" data-detail-view="true" data-search="true" data-show-refresh="true" data-show-toggle="true"
+                                                data-show-columns="true">
+                                                <thead>
+                                                        <tr>
+                                                                <th data-field="round_id" data-halign="center" data-align="center">Round ID</th>
+                                                                <th data-field="when" data-halign="center" data-align="center" data-sortable="true">When</th>
+                                                                <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
+                                                                <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time</th>
+                                                                <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
+                                                        </tr>
+                                                </thead>
+                                                <tbody>
+                                                        <% Allrecords.forEach(function(r){ %>
                                                                 <tr>
-                                                                        <th class="mdl-data-table__cell--non-numeric">Level</th>
-                                                                        <th class="mdl-data-table__cell--non-numeric">When</th>
-                                                                        <th>Steps</th>
-                                                                        <th>Time</th>
+                                                                        <td>
+                                                                                <%- r.round_id %>
+                                                                        </td>
+                                                                        <td>
+                                                                                <%- r.start_time %>
+                                                                        </td>
+                                                                        <td>
+                                                                                <%- r.steps %>
+                                                                        </td>
+                                                                        <td>
+                                                                                <%- r.time %>
+                                                                        </td>
+                                                                        <td>
+                                                                                <%- r.contribution %>
+                                                                        </td>
                                                                 </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                                <% Allrecords.forEach(function(r){ %>
-                                                                        <tr>
-                                                                                <td class="mdl-data-table__cell--non-numeric">
-                                                                                        <%- r.level %>
-                                                                                </td>
-                                                                                <td>
-                                                                                        <%- r.when %>
-                                                                                </td>
-                                                                                <td>
-                                                                                        <%- r.steps %>
-                                                                                </td>
-                                                                                <td>
-                                                                                        <%- r.time %>
-                                                                                </td>
-                                                                        </tr>
-                                                                        <% }) %>
+                                                                <% }) %>
 
-                                                        </tbody>
-                                                </table>
-                                                <br />
-                                                <br />
-                                                <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect" style="align-self:center;"
-                                                id="share" name="share">Share</button>
-                                        </div>
+                                                </tbody>
+                                        </table>
+                                        <br />
+                                        <br />
+                                        <!-- <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+                                                style="align-self:center;" id="share" name="share">Share</button> -->
                                 </div>
-                        </main>
+                        </div>
         </div>
-
         <% include footer.html %>
+                <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+                <script src="/javascripts/bootstrap-table.min.js"></script>
+                <script type="text/javascript">
+                        /**
+                         * Show detailed records
+                         */
+                        var $table = $("#records");
+                        $table.bootstrapTable({
+                                onExpandRow: function (index, row, $detail) {
+                                        showDetails($detail, row.round_id);
+                                }
+                        });
+
+
+                        function showDetails($detail, round_id) {
+                                var $el = $detail.html('<table></table>').find('table');
+                                // get the data from ajax
+                                $.ajax({
+                                        url: requrl + 'round' + '/getRoundDetails/' + round_id,
+                                        type: 'get',
+                                        dataType: 'json',
+                                        cache: false,
+                                        timeout: 5000,
+                                        success: function (data) {
+                                                console.log(data);
+                                                var columns=[], rowdata=[];
+                                                for(var key in data){
+                                                        columns.push({
+                                                                field: key,
+                                                                title: key
+                                                        });
+                                                
+                                                }
+                                                rowdata.push(data);
+                                                $el.bootstrapTable({
+                                                        columns: columns,
+                                                        data: rowdata
+                                                });
+                                        },
+                                        error: function (jqXHR, textStatus, errorThrown) {
+                                                console.log('error ' + textStatus + " " + errorThrown);
+                                        }
+                                });
+                        }    
+                </script>

@@ -214,18 +214,18 @@ router.route('/uploadSize').all(LoginFirst).post(function (req, res, next) {
         if (err) {
             console.log(err);
         } else {
-            if(doc){
-                if(doc.tile_num==-1||doc.row_num==-1){
-                    let operation={
-                        $set:{
+            if (doc) {
+                if (doc.tile_num == -1 || doc.row_num == -1) {
+                    let operation = {
+                        $set: {
                             row_num: req.body.row_num,
                             tile_num: req.body.tile_num
                         }
                     };
-                    RoundModel.update({ round_id: req.body.round_id }, operation, function(err){
-                        if(err){
-                            res.send({ success: false});
-                        }else{
+                    RoundModel.update({ round_id: req.body.round_id }, operation, function (err) {
+                        if (err) {
+                            res.send({ success: false });
+                        } else {
                             res.send({ success: true });
                         }
                     });
@@ -405,19 +405,19 @@ router.route('/saveRecord').all(LoginFirst).post(function (req, res, next) {
 /**
  * Get the round contribution rank
  */
-router.route('/getRoundRank/:round_id').all(LoginFirst).get(function(req, res, next){
-    RoundModel.findOne({ round_id: req.params.round_id }, {_id:0, players:1 }, {}, function(err, doc){
-        if(err){
+router.route('/getRoundRank/:round_id').all(LoginFirst).get(function (req, res, next) {
+    RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, players: 1 }, {}, function (err, doc) {
+        if (err) {
             console.log(err);
-        }else{
-            if(doc){
-                let rankedPlayers=new Array();
-                let temp=doc.players;
-                temp=temp.sort(util.descending("contribution"));
-                for(let i=0;i<temp.length;i++){
-                    let t=temp[i];
+        } else {
+            if (doc) {
+                let rankedPlayers = new Array();
+                let temp = doc.players;
+                temp = temp.sort(util.descending("contribution"));
+                for (let i = 0; i < temp.length; i++) {
+                    let t = temp[i];
                     rankedPlayers.push({
-                        "rank": i+1,
+                        "rank": i + 1,
                         "player_name": t.player_name,
                         "contribution": t.contribution.toFixed(3)
                         //Math.round(t.contribution*1000)/1000
@@ -429,7 +429,7 @@ router.route('/getRoundRank/:round_id').all(LoginFirst).get(function(req, res, n
         }
     });
 });
- 
+
 /**
  * Save the game status and calculate the progress
  */
@@ -442,8 +442,8 @@ router.route('/saveGame').all(LoginFirst).post(function (req, res, next) {
         tiles: req.body.tiles,
         shape_array: req.body.shape_array
     }
-    var tiles_row=req.body.tile_row;
-    var tiles_num=req.body.tiles_num;
+    var tiles_row = req.body.tile_row;
+    var tiles_num = req.body.tiles_num;
     // find all actions and calc the right nodes
     // tileNum tilesPerRow
     // let credits=0;
@@ -504,5 +504,31 @@ router.route('/loadGame').all(LoginFirst).get(function (req, res, next) {
     });
 });
 
+/**
+ * Get round details with roundid
+ */
+router.route('/getRoundDetails/:round_id').all(LoginFirst).get(function (req, res, next) {
+    let condition = {
+        round_id: req.params.round_id
+    };
+    let fields = {
+        _id: 0,
+        creator: 1,
+        // image: 1,
+        shape: 1,
+        level: 1,
+        edge: 1,
+        border: 1,
+        tile_num: 1,
+        collective_time: 1
+    };
+    RoundModel.findOne(condition, fields, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send(doc);
+        }
+    });
+});
 
 module.exports = router;
