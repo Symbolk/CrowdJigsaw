@@ -1,4 +1,4 @@
-var mongoose=require("mongoose");
+const mongoose=require("mongoose");
 
 var ActionSchema=new mongoose.Schema({
         round_id: { type: Number,required: true, index:true },  

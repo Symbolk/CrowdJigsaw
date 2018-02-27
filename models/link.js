@@ -1,7 +1,7 @@
 /**
- * Legacy
+ * Deprecated
  */
-var mongoose = require("mongoose"); 
+const mongoose = require("mongoose"); 
 
 var LinkSchema = new mongoose.Schema({
     from: { type: Number },

@@ -1,4 +1,4 @@
-var mongoose = require("mongoose"); 
+const mongoose = require("mongoose"); 
 // create the user schema
 var UserSchema = new mongoose.Schema({
     userid: { type: Number, required: true, unique: true, index: true },

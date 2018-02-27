@@ -1,7 +1,8 @@
-const mongoose = require('mongoose');
+var mongoose = require('mongoose');
 const config = require('./config/dev');
 
 const DB_URL = config.database;
+mongoose.Promise=require('bluebird');
 mongoose.connect(DB_URL, { useMongoClient: true });
 const db = mongoose.connection;
 

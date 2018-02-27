@@ -1,4 +1,4 @@
-var mongoose = require("mongoose"); 
+const mongoose = require("mongoose"); 
 
 var NodeSchema = new mongoose.Schema({
     index: { type: Number,required: true, index:true }, // index of the center node
