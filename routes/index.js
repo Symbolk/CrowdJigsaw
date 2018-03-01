@@ -210,7 +210,6 @@ router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-    console.log(req.query);
     let image = req.query.image;
     let level = req.query.level;
     let shape = req.query.shape;
