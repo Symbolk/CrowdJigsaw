@@ -423,7 +423,8 @@ function JigsawPuzzle(config) {
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
 
     loadGame();
-    
+
+
     //createAndPlaceTiles();
 
     function createAndPlaceTiles() {
@@ -453,6 +454,55 @@ function JigsawPuzzle(config) {
                 }
             }
         }
+        $('.mdl-layout__drawer-button').click();
+        introJs().setOption("overlayOpacity", 0).setOptions({
+            steps: [
+                {
+                    element: '#step1',
+                    intro: "click here to check your rank!"
+                },
+                {
+                    element: '#step2',
+                    intro: "click here to zoom in!"
+                },
+                {
+                    element: '#step3',
+                    intro: "click here to zoom out!"
+                },
+                {
+                    element: '#step4',
+                    intro: "click here to restart the game!"
+                },
+                {
+                    element: '#ensure_quit',
+                    intro: "click here to quit the game!"
+                },
+                {
+                    element: '#step6',
+                    intro: "click here to get back to the center of the puzzle!"
+                },
+                {
+                    element: '#myselect',
+                    intro: "click here to change select mode!"
+                },
+                {
+                    element: '#steps_chip',
+                    intro: "click here to open or close the step counter!"
+                },
+                {
+                    element: '#timer_chip',
+                    intro: "click here to open or close the time counter!"
+                },
+                {
+                    intro: "if you set dragmode 'dragTileFirst',then short press to drag a tile and extended press to drag a group of tiles， and vice versa."
+                },
+                {
+                    intro: "now enjoy your game!"
+                }
+            ],
+            scrollToElement: false
+        }).start();
+        introJs().addHints();
     }
 
     function refreshAroundTiles(tile) {
