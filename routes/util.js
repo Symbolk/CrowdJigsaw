@@ -70,6 +70,81 @@ var ascending = function (prop) {
         }            
     } 
   }
+
+function getRandomShapes(width, height, shapeType, hasEdge) {
+    console.log(hasEdge);
+    var getRandomTabValue = function() {
+        //math.floor() returns max int <= arg
+        switch (shapeType) {
+            case 'square': {
+                return 0;
+                break;
+            }
+            case 'jagged': {
+                return Math.pow(-1, Math.floor(Math.random() * 2));;
+                break;
+            }
+            default: {
+                return 0;
+            }
+        }
+    };
+
+    var shapeArray = new Array();
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var topTab = undefined;
+            var rightTab = undefined;
+            var bottomTab = undefined;
+            var leftTab = undefined;
+            if (y == 0){
+                topTab = (hasEdge == 'true') ? 0 : getRandomTabValue();
+            }
+            if (y == height - 1){
+                bottomTab = (hasEdge == 'true') ? 0 : getRandomTabValue();
+            }
+            if (x == 0){
+                leftTab = (hasEdge == 'true') ? 0 : getRandomTabValue();
+            }
+            if (x == width - 1){
+                rightTab = (hasEdge == 'true') ? 0 : getRandomTabValue();
+            }
+            shapeArray.push(
+                ({
+                    topTab: topTab,
+                    rightTab: rightTab,
+                    bottomTab: bottomTab,
+                    leftTab: leftTab
+                })
+            );
+        }
+    }
+    console.log(shapeArray);
+    for (var y = 0; y < height; y++) {
+        for (var x = 0; x < width; x++) {
+            var shape = shapeArray[y * width + x];
+            var shapeRight = (x < width - 1) ?
+                shapeArray[y * width + (x + 1)] :
+                undefined;
+            var shapeBottom = (y < height - 1) ?
+                shapeArray[(y + 1) * width + x] :
+                undefined;
+            shape.rightTab = (x < width - 1) ?
+                getRandomTabValue() :
+                shape.rightTab;
+            if (shapeRight)
+                shapeRight.leftTab = -shape.rightTab;
+            shape.bottomTab = (y < height - 1) ?
+                getRandomTabValue() :
+                shape.bottomTab;
+            if (shapeBottom)
+                shapeBottom.topTab = -shape.bottomTab;
+        }
+    }
+    return JSON.stringify(shapeArray);
+}
+
 exports.getNowFormatDate=getNowFormatDate;
 exports.descending=descending;
 exports.ascending=ascending;
+exports.getRandomShapes = getRandomShapes;

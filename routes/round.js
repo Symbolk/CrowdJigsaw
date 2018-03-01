@@ -182,6 +182,10 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
         } else {
             let index = docs.length;
             let TIME = util.getNowFormatDate();
+            let shapeArray = util.getRandomShapes(req.body.tilesPerRow, 
+                req.body.tilesPerColunm, 
+                req.body.shape,
+                req.body.edge);
             let operation = {
                 round_id: index,
                 creator: req.session.user.username,
@@ -192,6 +196,14 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 border: req.body.border,
                 create_time: TIME,
                 players_num: req.body.players_num,
+                imageWidth: req.body.imageWidth,
+                imageHeight: req.body.imageHeight,
+                tileWidth: req.body.tileWidth,
+                tilesPerRow:  req.body.tilesPerRow,
+                tilesPerColunm: req.body.tilesPerColunm,
+                tile_num: req.body.tilesPerRow * req.body.tilesPerColunm,
+                row_num: req.body.tilesPerRow,
+                shapeArray: shapeArray
             };
             RoundModel.create(operation, function (err) {
                 if (err) {
@@ -206,34 +218,6 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
     });
 });
 
-/**
- * Upload the puzzle size after the puzzle starts(only once)
- */
-router.route('/uploadSize').all(LoginFirst).post(function (req, res, next) {
-    RoundModel.findOne({ round_id: req.body.round_id }, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (doc) {
-                if (doc.tile_num == -1 || doc.row_num == -1) {
-                    let operation = {
-                        $set: {
-                            row_num: req.body.row_num,
-                            tile_num: req.body.tile_num
-                        }
-                    };
-                    RoundModel.update({ round_id: req.body.round_id }, operation, function (err) {
-                        if (err) {
-                            res.send({ success: false });
-                        } else {
-                            res.send({ success: true });
-                        }
-                    });
-                }
-            }
-        }
-    });
-});
 
 /**
  * Start a round(when the player_num reached)
@@ -270,7 +254,7 @@ router.route('/startRound/:round_id').all(isCreator).get(function (req, res, nex
                 // set start time for round
                 let operation = {
                     $set: {
-                        start_time: TIME
+                        start_time: TIME,
                     }
                 };
                 RoundModel.update(condition, operation, function (err) {
@@ -500,6 +484,22 @@ router.route('/loadGame').all(LoginFirst).get(function (req, res, next) {
             console.log(err);
         } else {
             res.send(JSON.stringify(doc.save_game));
+        }
+    });
+});
+
+/**
+ * Get ShapeArray by one user
+ */
+router.route('/getShapeArray/:round_id').all(LoginFirst).get(function (req, res, next) {
+    let condition = {
+        round_id: parseInt(req.params.round_id)
+    };
+    RoundModel.findOne(condition, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.send(doc.shapeArray);
         }
     });
 });

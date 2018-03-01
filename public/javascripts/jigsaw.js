@@ -232,8 +232,6 @@ $('#puzzle-image').attr('src', imgSrc);
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 64;
-
 
 if (level == 3) {
     tileWidth = 32;
@@ -423,7 +421,6 @@ function JigsawPuzzle(config) {
     this.gameFinished = false;
 
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
-    uploadSize(roundID,this.tilesPerRow,this.tileNum);
 
     loadGame();
     
@@ -1458,7 +1455,7 @@ function JigsawPuzzle(config) {
         });
     }
 
-    function loadGame(data) {
+    function loadGame() {
         $.ajax({
             url: requrl + 'round/loadGame',
             type: 'get',
@@ -1471,42 +1468,32 @@ function JigsawPuzzle(config) {
                     time = data.time;
                     instance.steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
-                    instance.saveShapeArray = JSON.parse(data.shape_array);
                     instance.saveTilePositions = JSON.parse(data.tiles);
                 }
+                getShapeArray();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
+                getShapeArray();
+            }
+        });
+    }
+
+    function getShapeArray() {
+        $.ajax({
+            url: requrl + 'round/getShapeArray/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                console.log(data);
+                instance.saveShapeArray = data;
                 createAndPlaceTiles();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
                 createAndPlaceTiles();
-            }
-        });
-    }
-    /**
-     * Upload the row_num and tile_num to the round 
-     */
-    function uploadSize(round_id, row_num, tile_num){
-        $.ajax({
-            data:{
-                round_id: round_id,
-                row_num: row_num,
-                tile_num: tile_num
-            },
-            url: requrl + 'round/uploadSize',
-            type: 'post',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                if(data.success){
-                    console.log("Puzzle size uploaded!");
-                }else{
-                    console.log("Failed for server error.");
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log(errorThrown);
-                console.log("Puzzle size upload failed!");                
             }
         });
     }

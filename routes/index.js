@@ -210,13 +210,15 @@ router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
+    console.log(req.query);
     let image = req.query.image;
     let level = req.query.level;
     let shape = req.query.shape;
     let edge = req.query.edge;
     let border = req.query.border;
     let roundID = req.query.roundID;
-    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image, shape: shape, edge: edge, border: border });
+    let tileWidth = req.query.tileWidth;
+    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image, tileWidth: tileWidth, shape: shape, edge: edge, border: border });
 });
 
 

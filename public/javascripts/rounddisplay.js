@@ -260,7 +260,7 @@ function renderRoundList(data){
         if(round.start_time != '-1'){
             for(var player of round.players){
                 if(username == player.player_name){
-                    startPuzzle(roundID, round.image, round.level, round.shape, round.edge, round.border);
+                    startPuzzle(round);
                 }
             }
             continue;
@@ -344,13 +344,21 @@ function getJoinableRounds() {
 }
 
 function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
+    var img = new Image();
+    img.src = imgSrc;
+    var tileWidth = 64;
 	var param = {
 		imageURL: imgSrc,
         level: level,
         edge: edge,
         shape: shape,
         border: border,
-		players_num: playersNum
+		players_num: playersNum,
+        imageWidth: img.width,
+        imageHeight: img.height,
+        tileWidth: tileWidth,
+        tilesPerRow:  Math.floor(img.width / tileWidth),
+        tilesPerColunm: Math.floor(img.height / tileWidth)
 	};
 
 	$.ajax({
@@ -429,13 +437,27 @@ function startRound(roundID){
     });
 }
 
-function startPuzzle(roundID, imageURL, level, shape, edge, border){
+function startPuzzle(round){
+    var imageURL = round.image;
     var imgSrc = imageURL;
     var thumbStr = '_thumb';
     var thumbIndex = imageURL.indexOf(thumbStr);
     if(thumbIndex >= 0){
         imgSrc = imageURL.substring(0, thumbIndex) + imageURL.substring(thumbIndex + thumbStr.length);
     }
-    window.location.href = requrl + 'puzzle?level=' + level + '&roundID=' + roundID + '&image=' + imgSrc + '&shape=' + shape  + '&edge=' + edge + '&border=' + border ;
-}
+    round.image = imgSrc;
+    $.ajax({
+        data: round,
+        url: requrl + '/puzzle',
+        type: 'post',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+            console.log(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });}
 
