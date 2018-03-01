@@ -4,7 +4,7 @@ var loadReady = false;
 $(document).ready(function () {
     loadReady = true;
 });
-while (!(loadReady && image.complete && imgReady)) {
+while (!(loadReady)) {
     continue;
 }
 $("#loading").fadeOut();
@@ -232,8 +232,6 @@ $('#puzzle-image').attr('src', imgSrc);
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
 var imgHeight = $('.puzzle-image').css('height').replace('px', '');
-var tileWidth = 64;
-
 
 if (level == 3) {
     tileWidth = 32;
@@ -380,10 +378,10 @@ function JigsawPuzzle(config) {
     this.tileWidth = config.tileWidth;
     this.originImage = getOriginImage(config);
     this.imgSize = this.originImage.size;
-    this.imgWidth = this.imgSize.width;
-    this.imgHeight = this.imgSize.height;
-    this.tilesPerRow = Math.floor(this.imgWidth / this.tileWidth);
-    this.tilesPerColumn = Math.floor(this.imgHeight / this.tileWidth),
+    this.imgWidth = imageWidth;
+    this.imgHeight = imageHeight;
+    this.tilesPerRow = tilesPerRow;
+    this.tilesPerColumn = tilesPerColumn,
     this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
     this.puzzleImage.size *= Math.max((this.tileWidth/2)/this.puzzleImage.size.width,
         (this.tileWidth/2)/this.puzzleImage.size.height)+1
@@ -407,7 +405,7 @@ function JigsawPuzzle(config) {
     this.selectedTile = undefined;
     this.selectedGroup = undefined;
 
-    this.saveShapeArray = undefined;
+    this.saveShapeArray = shapeArray;
     this.saveTilePositions = undefined;
     this.shapeArray = undefined;
     this.tiles = undefined;
@@ -423,7 +421,6 @@ function JigsawPuzzle(config) {
     this.gameFinished = false;
 
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
-    uploadSize(roundID,this.tilesPerRow,this.tileNum);
 
     loadGame();
     
@@ -1046,7 +1043,6 @@ function JigsawPuzzle(config) {
             aroundTilesChanged = true;
         }
 
-        console.log('Moving ' + tileIndex);
         if (aroundTilesChanged) {
             // selected, before, after
             console.log('Before:' + tile.aroundTiles);
@@ -1450,7 +1446,6 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
-                console.log('saveGame: ' + JSON.stringify(data));
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('saveGame: ' + 'error ' + textStatus + " " + errorThrown);
@@ -1458,7 +1453,7 @@ function JigsawPuzzle(config) {
         });
     }
 
-    function loadGame(data) {
+    function loadGame() {
         $.ajax({
             url: requrl + 'round/loadGame',
             type: 'get',
@@ -1471,42 +1466,13 @@ function JigsawPuzzle(config) {
                     time = data.time;
                     instance.steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
-                    instance.saveShapeArray = JSON.parse(data.shape_array);
                     instance.saveTilePositions = JSON.parse(data.tiles);
                 }
-                createAndPlaceTiles();
+                createAndPlaceTiles()
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
                 createAndPlaceTiles();
-            }
-        });
-    }
-    /**
-     * Upload the row_num and tile_num to the round 
-     */
-    function uploadSize(round_id, row_num, tile_num){
-        $.ajax({
-            data:{
-                round_id: round_id,
-                row_num: row_num,
-                tile_num: tile_num
-            },
-            url: requrl + 'round/uploadSize',
-            type: 'post',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                if(data.success){
-                    console.log("Puzzle size uploaded!");
-                }else{
-                    console.log("Failed for server error.");
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log(errorThrown);
-                console.log("Puzzle size upload failed!");                
             }
         });
     }

@@ -58,28 +58,29 @@
             </main>
 
             <script type="text/javascript">
-                var level = "<%-level%>";
+                var level = '<%-level%>';
                 level = parseInt(level);
-                var roundID = "<%-roundID%>";
+                var roundID = '<%-roundID%>';
                 roundID = parseInt(roundID);
-                var imgSrc = "<%-image%>";
-                var roundShape = "<%-shape%>";
-                var hasEdge = "<%-edge%>";;
-                var hasBorder = "<%-border%>";
+                var imgSrc = '<%-image%>';
+                var tileWidth = '<%-tileWidth%>';
+                tileWidth = parseInt(tileWidth);
 
-                var imgReady = false;
-                var image = new Image();
-                image.src = imgSrc;
+                var roundShape = '<%-shape%>';
+                var hasEdge = '<%-edge%>';
+                var hasBorder = '<%-border%>';
 
-                image.onload = function () {
-                    imgReady = true;
-                }
-                if (image.complete) {
-                    imgReady = true;
-                }
+                var imageWidth = '<%-imageWidth%>';
+                var imageHeight = '<%-imageHeight%>';
 
-                document.querySelector('.puzzle-image').width = image.width;
-                document.querySelector('.puzzle-image').height = image.height;
+                var tilesPerRow = '<%-tilesPerRow%>';;
+                var tilesPerColumn = '<%-tilesPerColumn%>';
+
+                var shapeArrayStr = '<%-shapeArray%>';
+                var shapeArray = JSON.parse(shapeArrayStr);
+
+                document.querySelector('.puzzle-image').width = imageWidth;
+                document.querySelector('.puzzle-image').height = imageHeight;
                 document.querySelector('.puzzle-image').src = imgSrc;
             </script>
 

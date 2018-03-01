@@ -8,6 +8,7 @@ var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
 var UserModel = require('../models/user').User;
+var RoundModel = require('../models/round').Round;
 var LinkModel = require('../models/link').Link;
 var crypto = require('crypto');
 var util = require('./util.js');
@@ -210,13 +211,33 @@ router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
 });
 
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-    let image = req.query.image;
-    let level = req.query.level;
-    let shape = req.query.shape;
-    let edge = req.query.edge;
-    let border = req.query.border;
     let roundID = req.query.roundID;
-    res.render('puzzle', { title: 'Puzzle', level: level, roundID: roundID, image: image, shape: shape, edge: edge, border: border });
+    let condition = {
+        round_id: parseInt(roundID)
+    };
+    RoundModel.findOne(condition, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            var round = doc;
+            res.render('puzzle', 
+                { 
+                    title: 'Puzzle', 
+                    level: round.level, 
+                    roundID: roundID, 
+                    image: round.image, 
+                    tileWidth: round.tileWidth, 
+                    shape: round.shape, 
+                    edge: round.edge, 
+                    border: round.border,
+                    tilesPerRow: round.tilesPerRow,
+                    tilesPerColumn: round.tilesPerColumn,
+                    imageWidth: round.imageWidth,
+                    imageHeight: round.imageHeight,
+                    shapeArray: round.shapeArray
+                });
+        }
+    });
 });
 
 
