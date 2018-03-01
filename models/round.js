@@ -5,6 +5,7 @@ var RoundSchema = new mongoose.Schema({
     round_id: { type: Number, required: true, unique: true, index: true }, //inc
     creator: { type: String }, //creator of the round
     image: { type: String, required: true }, //image url
+    thumbImage: { type: String, required: true }, //thumb image url
     imageWidth: { type: Number}, //image url
     imageHeight: { type: Number}, //image url
     shape: { type: String, required: true }, // jagged or square

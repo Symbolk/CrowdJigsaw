@@ -119,7 +119,6 @@ function getRandomShapes(width, height, shapeType, hasEdge) {
             );
         }
     }
-    console.log(shapeArray);
     for (var y = 0; y < height; y++) {
         for (var x = 0; x < width; x++) {
             var shape = shapeArray[y * width + x];

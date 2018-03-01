@@ -186,10 +186,18 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 req.body.tilesPerColunm, 
                 req.body.shape,
                 req.body.edge);
+            var thumbImageSrc = req.body.imageURL;
+            var imgSrc = thumbImageSrc;
+            var thumbStr = '_thumb';
+            var thumbIndex = thumbImageSrc.indexOf(thumbStr);
+            if(thumbIndex >= 0){
+                imgSrc = thumbImageSrc.substring(0, thumbIndex) + thumbImageSrc.substring(thumbIndex + thumbStr.length);
+            }
             let operation = {
                 round_id: index,
                 creator: req.session.user.username,
-                image: req.body.imageURL,
+                image: imgSrc,
+                thumbImage: thumbImageSrc,
                 level: req.body.level,
                 shape: req.body.shape,
                 edge: req.body.edge,

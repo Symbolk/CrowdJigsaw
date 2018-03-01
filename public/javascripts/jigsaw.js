@@ -4,7 +4,7 @@ var loadReady = false;
 $(document).ready(function () {
     loadReady = true;
 });
-while (!(loadReady && image.complete && imgReady)) {
+while (!(loadReady)) {
     continue;
 }
 $("#loading").fadeOut();
@@ -378,10 +378,10 @@ function JigsawPuzzle(config) {
     this.tileWidth = config.tileWidth;
     this.originImage = getOriginImage(config);
     this.imgSize = this.originImage.size;
-    this.imgWidth = this.imgSize.width;
-    this.imgHeight = this.imgSize.height;
-    this.tilesPerRow = Math.floor(this.imgWidth / this.tileWidth);
-    this.tilesPerColumn = Math.floor(this.imgHeight / this.tileWidth),
+    this.imgWidth = imageWidth;
+    this.imgHeight = imageHeight;
+    this.tilesPerRow = tilesPerRow;
+    this.tilesPerColumn = tilesPerColumn,
     this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
     this.puzzleImage.size *= Math.max((this.tileWidth/2)/this.puzzleImage.size.width,
         (this.tileWidth/2)/this.puzzleImage.size.height)+1
@@ -405,7 +405,7 @@ function JigsawPuzzle(config) {
     this.selectedTile = undefined;
     this.selectedGroup = undefined;
 
-    this.saveShapeArray = undefined;
+    this.saveShapeArray = shapeArray;
     this.saveTilePositions = undefined;
     this.shapeArray = undefined;
     this.tiles = undefined;
@@ -1043,7 +1043,6 @@ function JigsawPuzzle(config) {
             aroundTilesChanged = true;
         }
 
-        console.log('Moving ' + tileIndex);
         if (aroundTilesChanged) {
             // selected, before, after
             console.log('Before:' + tile.aroundTiles);
@@ -1447,7 +1446,6 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
-                console.log('saveGame: ' + JSON.stringify(data));
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('saveGame: ' + 'error ' + textStatus + " " + errorThrown);
@@ -1470,26 +1468,7 @@ function JigsawPuzzle(config) {
                     document.getElementById("steps").innerHTML = instance.steps;
                     instance.saveTilePositions = JSON.parse(data.tiles);
                 }
-                getShapeArray();
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
-                getShapeArray();
-            }
-        });
-    }
-
-    function getShapeArray() {
-        $.ajax({
-            url: requrl + 'round/getShapeArray/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                console.log(data);
-                instance.saveShapeArray = data;
-                createAndPlaceTiles();
+                createAndPlaceTiles()
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
