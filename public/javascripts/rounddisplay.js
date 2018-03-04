@@ -358,7 +358,7 @@ function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
         imageHeight: img.height,
         tileWidth: tileWidth,
         tilesPerRow:  Math.floor(img.width / tileWidth),
-        tilesPerColunm: Math.floor(img.height / tileWidth)
+        tilesPerColumn: Math.floor(img.height / tileWidth)
 	};
 
 	$.ajax({
