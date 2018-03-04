@@ -5,7 +5,9 @@ module.exports = {
       key: 'CrowdJigsaw',
       maxAge: 2592000000
     },
-    database: 'mongodb://root:klobmys5@localhost:27017/CrowdJigsaw',
+    database: 'mongodb://localhost:27017/CrowdJigsaw',
+    user: 'root',
+    pass: 'Saw@CISE@pku',
     url: 'http://localhost:3000/'
   };
   
