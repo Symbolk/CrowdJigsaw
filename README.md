@@ -4,13 +4,10 @@
 
 **Crowd Jigsaw is an online game, where multiple players work together to figure out a complex jigsaw puzzle.**
 
-**Designed to be an Application of Crowd Wisdom/Collective Intelligence**
+**As a Refactored Version of CrowdJigsawPuzzle based on Firebase.**
 
-**As a Refactored Version for Experiments of Crowd Jigsaw Puzzle**
-
-_Powered By_
-
-_[@Symbolk](http://www.symbolk.com)_  _[@Yuhan Wei](https://github.com/weiyuhan)_ _[@Xinyue Zhang](https://github.com/ZXinyue)_
+_Designed to be an Application of Crowd Wisdom/Collective Intelligence_
+_Powered By_: _[@Symbolk](http://www.symbolk.com)_  _[@Yuhan Wei](https://github.com/weiyuhan)_  _[@Xinyue Zhang](https://github.com/ZXinyue)_
 
 ## Overview
 
@@ -18,7 +15,7 @@ Language :
 
 > [Javascript/Paperscript/Html5/CSS3]
 
-Based on :
+Framework :
 
 > [Express](http://www.expressjs.com.cn/ "Express offical site") 
 > [Mongodb](https://www.mongodb.com/ "Mongodb offical site")
@@ -32,7 +29,7 @@ Platform  | Support  |  Version
 ------------ | -------------  | -------------
 OS | Windows/Linux/iOS/Android | N/A
 Browser | Chrome/Safari | ~60.0
-Node.js | Node.js | ~6.11.0
+Node.js | Node.js | ~8.9.4
 Express | Express | ~4.15.0
 Mongodb | Mongodb | ~3.4.7
 
@@ -68,6 +65,8 @@ _P.S. See npm dependencies in package.json_
 0, Set the env as development:
 
 ```shell
+# edit config/example.js and rename as dev.js
+rm config/example.js config/dev.js
 # windows
 set NODE_ENV=development
 # linux/macOS
@@ -115,6 +114,8 @@ nodemon app.js
 0, Set the env as production:
 
 ```shell
+# edit config/example.js and rename as pro.js
+rm config/example.js config/pro.js
 # windows
 set NODE_ENV=production
 # linux/macOS
@@ -127,15 +128,7 @@ export NODE_ENV=production
 # Make a new folder as your database, e.g. /var/www/database
 nohup mongod --dbpath /var/www/database &
 ```
-
-2, Edit config.pro.js in the end:
-
-```javascript
-    ...
-    database: 'mongodb://localhost:27017/CrowdJigsaw',    
-    url: 'http://SERVERIP:3000/'
-  };
-3, Start the server:
+2, Start the server:
 
 ```sh
 # install forever first

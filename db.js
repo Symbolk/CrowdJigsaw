@@ -2,8 +2,14 @@ var mongoose = require('mongoose');
 const config = require('./config/dev');
 
 const DB_URL = config.database;
-mongoose.Promise=require('bluebird');
-mongoose.connect(DB_URL, { useMongoClient: true });
+mongoose.Promise = require('bluebird');
+var options = {
+    useMongoClient: true,
+    auth: { authdb: 'admin' },
+    user: config.user,
+    pass: config.pass
+};
+mongoose.connect(DB_URL, options);
 const db = mongoose.connection;
 
 // const User = require('../models/user.js');

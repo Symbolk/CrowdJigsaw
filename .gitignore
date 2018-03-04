@@ -59,3 +59,6 @@ typings/
 
 # macOS
 .DS_Store
+
+config/dev.js
+config/pro.js
