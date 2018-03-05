@@ -72,7 +72,6 @@ var ascending = function (prop) {
   }
 
 function getRandomShapes(width, height, shapeType, hasEdge) {
-    console.log(hasEdge);
     var getRandomTabValue = function() {
         //math.floor() returns max int <= arg
         switch (shapeType) {

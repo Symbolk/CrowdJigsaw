@@ -183,7 +183,7 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
             let index = docs.length;
             let TIME = util.getNowFormatDate();
             let shapeArray = util.getRandomShapes(req.body.tilesPerRow, 
-                req.body.tilesPerColunm, 
+                req.body.tilesPerColumn, 
                 req.body.shape,
                 req.body.edge);
             var thumbImageSrc = req.body.imageURL;
@@ -208,11 +208,12 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
                 imageHeight: req.body.imageHeight,
                 tileWidth: req.body.tileWidth,
                 tilesPerRow:  req.body.tilesPerRow,
-                tilesPerColunm: req.body.tilesPerColunm,
-                tile_num: req.body.tilesPerRow * req.body.tilesPerColunm,
+                tilesPerColumn: req.body.tilesPerColumn,
+                tile_num: req.body.tilesPerRow * req.body.tilesPerColumn,
                 row_num: req.body.tilesPerRow,
                 shapeArray: shapeArray
             };
+
             RoundModel.create(operation, function (err) {
                 if (err) {
                     console.log(err);
