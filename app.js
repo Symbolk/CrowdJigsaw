@@ -11,7 +11,6 @@ var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
 
-
 // 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
 // Control-Allow-Origin
