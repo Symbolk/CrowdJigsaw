@@ -5,9 +5,9 @@ const DB_URL = config.database;
 mongoose.Promise = require('bluebird');
 var options = {
     useMongoClient: true,
-    //auth: { authdb: 'admin' },
-    //user: config.user,
-    //pass: config.pass
+    auth: { authdb: 'admin' },
+    user: config.user,
+    pass: config.pass
 };
 mongoose.connect(DB_URL, options);
 const db = mongoose.connection;
