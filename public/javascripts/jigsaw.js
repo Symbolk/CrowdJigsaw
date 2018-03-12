@@ -420,6 +420,10 @@ function JigsawPuzzle(config) {
 
     this.gameFinished = false;
 
+    this.edgeColor = ['red', 'green', 'yellow', 'blue'];
+    this.colorBorderWidth = 5;
+
+
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
 
     loadGame();
@@ -454,6 +458,7 @@ function JigsawPuzzle(config) {
                 }
             }
         }
+
         $('.mdl-layout__drawer-button').click();
         introJs().setOption("overlayOpacity", 0).setOptions({
             steps: [
@@ -620,8 +625,30 @@ function JigsawPuzzle(config) {
 
                 var shape = instance.shapeArray[y * xTileCount + x];
 
-                var mask = getMask(tileRatio, shape.topTab, shape.rightTab, shape.bottomTab, shape.leftTab, instance.tileWidth);
+                var maskMap = getMask(tileRatio, shape.topTab, shape.rightTab, shape.bottomTab, shape.leftTab, instance.tileWidth);
                 
+                var mask = maskMap.mask;
+
+                var topEdge = maskMap.topEdge;
+                topEdge.strokeColor = instance.edgeColor[0];
+                topEdge.strokeWidth = instance.colorBorderWidth;
+                topEdge.visible = false;
+
+                var rightEdge = maskMap.rightEdge;
+                rightEdge.strokeColor = instance.edgeColor[1];
+                rightEdge.strokeWidth = instance.colorBorderWidth;
+                rightEdge.visible = false;
+
+                var bottomEdge = maskMap.bottomEdge;
+                bottomEdge.strokeColor = instance.edgeColor[2];
+                bottomEdge.strokeWidth = instance.colorBorderWidth;
+                bottomEdge.visible = false;
+
+                var leftEdge = maskMap.leftEdge;
+                leftEdge.strokeColor = instance.edgeColor[3];
+                leftEdge.strokeWidth = instance.colorBorderWidth;
+                leftEdge.visible = false;
+
                 var cloneImg = instance.puzzleImage.clone();
                 var offset = new Point(instance.tileWidth * x, instance.tileWidth * y);
                 offset += new Point(instance.tileWidth/4, instance.tileWidth/4);
@@ -634,8 +661,21 @@ function JigsawPuzzle(config) {
                 border.strokeColor = 'grey'; //grey
                 border.strokeWidth = (hasBorder=="true") ? 5:0;
 
+                var colorBorder = mask.clone();
+                colorBorder.strokeWidth = instance.colorBorderWidth;
+                colorBorder.visible = false;
+
                 // each tile is a group of
-                var tile = new Group(mask, img, border);
+                var tile = new Group(mask, img, border, topEdge, rightEdge, bottomEdge, leftEdge, colorBorder);
+                
+                tile.topEdge = topEdge;
+                tile.rightEdge = rightEdge;
+                tile.bottomEdge = bottomEdge;
+                tile.leftEdge = leftEdge;
+                tile.colorBorder = colorBorder;
+                tile.differentColor = -1;
+                tile.colorDirection = -1;
+
                 tile.picking = false;
                 tile.alreadyHinted = false;
                 tile.clipped = true;
@@ -655,6 +695,13 @@ function JigsawPuzzle(config) {
         }
         instance.tileIndexes = tileIndexes;
         return tiles;
+    }
+
+    function showHintColor(tileIndex, hintTilesIndexs, direction){
+        showColorBorder(tileIndex, direction, direction);
+        for(var i = 0; i < hintTilesIndexs.length; i++){
+            showColorBorder(hintTilesIndexs[i], 4, direction);
+        }
     }
 
     function getRandomShapes(width, height) {
@@ -760,7 +807,8 @@ function JigsawPuzzle(config) {
         var topLeftEdge = new Point(0, 0);
 
         mask.moveTo(topLeftEdge);
-
+        var topEdge = new Path();
+        topEdge.moveTo(topLeftEdge);
         //Top
         for (var i = 0; i < curvyCoords.length / 6; i++) {
             var p1 = topLeftEdge + new Point(curvyCoords[i * 6 + 0] * tileRatio, topTab * curvyCoords[i * 6 + 1] * tileRatio);
@@ -768,35 +816,55 @@ function JigsawPuzzle(config) {
             var p3 = topLeftEdge + new Point(curvyCoords[i * 6 + 4] * tileRatio, topTab * curvyCoords[i * 6 + 5] * tileRatio);
 
             mask.cubicCurveTo(p1, p2, p3);
+            topEdge.cubicCurveTo(p1, p2, p3);
         }
+
         //Right
         var topRightEdge = topLeftEdge + new Point(tileWidth, 0);
+        var rightEdge = new Path();
+        rightEdge.moveTo(topRightEdge);
         for (var i = 0; i < curvyCoords.length / 6; i++) {
             var p1 = topRightEdge + new Point(-rightTab * curvyCoords[i * 6 + 1] * tileRatio, curvyCoords[i * 6 + 0] * tileRatio);
             var p2 = topRightEdge + new Point(-rightTab * curvyCoords[i * 6 + 3] * tileRatio, curvyCoords[i * 6 + 2] * tileRatio);
             var p3 = topRightEdge + new Point(-rightTab * curvyCoords[i * 6 + 5] * tileRatio, curvyCoords[i * 6 + 4] * tileRatio);
 
             mask.cubicCurveTo(p1, p2, p3);
+            rightEdge.cubicCurveTo(p1, p2, p3);
         }
+
         //Bottom
         var bottomRightEdge = topRightEdge + new Point(0, tileWidth);
+        var bottomEdge = new Path();
+        bottomEdge.moveTo(bottomRightEdge);
         for (var i = 0; i < curvyCoords.length / 6; i++) {
             var p1 = bottomRightEdge - new Point(curvyCoords[i * 6 + 0] * tileRatio, bottomTab * curvyCoords[i * 6 + 1] * tileRatio);
             var p2 = bottomRightEdge - new Point(curvyCoords[i * 6 + 2] * tileRatio, bottomTab * curvyCoords[i * 6 + 3] * tileRatio);
             var p3 = bottomRightEdge - new Point(curvyCoords[i * 6 + 4] * tileRatio, bottomTab * curvyCoords[i * 6 + 5] * tileRatio);
 
             mask.cubicCurveTo(p1, p2, p3);
+            bottomEdge.cubicCurveTo(p1, p2, p3);
         }
+
         //Left
         var bottomLeftEdge = bottomRightEdge - new Point(tileWidth, 0);
+        var leftEdge = new Path();
+        leftEdge.moveTo(bottomLeftEdge);
         for (var i = 0; i < curvyCoords.length / 6; i++) {
             var p1 = bottomLeftEdge - new Point(-leftTab * curvyCoords[i * 6 + 1] * tileRatio, curvyCoords[i * 6 + 0] * tileRatio);
             var p2 = bottomLeftEdge - new Point(-leftTab * curvyCoords[i * 6 + 3] * tileRatio, curvyCoords[i * 6 + 2] * tileRatio);
             var p3 = bottomLeftEdge - new Point(-leftTab * curvyCoords[i * 6 + 5] * tileRatio, curvyCoords[i * 6 + 4] * tileRatio);
 
             mask.cubicCurveTo(p1, p2, p3);
+            leftEdge.cubicCurveTo(p1, p2, p3);
         }
-        return mask;
+        maskMap =  {
+            mask: mask, 
+            topEdge: topEdge, 
+            rightEdge: rightEdge, 
+            bottomEdge: bottomEdge, 
+            leftEdge: leftEdge
+        };
+        return maskMap;
     }
 
     var hitOptions = {
@@ -1147,6 +1215,9 @@ function JigsawPuzzle(config) {
                 }
                 placeTile(tile, cellPosition);
                 tilesMoved = tilesMoved || tile.positionMoved;
+                if(tile.differentColor >= 0){
+                    showColorBorder(getTileIndex(tile), tile.differentColor, tile.colorDirection);
+                }
                 sendLinks(tile);
             }
             if (tilesMoved && !instance.gameFinished) {
@@ -1181,6 +1252,60 @@ function JigsawPuzzle(config) {
 
             normalizeTiles();
         }
+    }
+
+    function hideAllColorBorder(){
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            if(tile.differentColor >= 0){
+                tile.topEdge.visible = false;
+                tile.rightEdge.visible = false;
+                tile.bottomEdge.visible = false;
+                tile.leftEdge.visible = false;
+                tile.colorBorder.visible = false;
+                tile.differentColor = -1;
+                tile.colorDirection = -1;
+            }
+        }
+    }
+
+    function hideColorBorder(index){
+        var tile = instance.tiles[index];
+        if(tile.differentColor >= 0){
+            tile.topEdge.visible = false;
+            tile.rightEdge.visible = false;
+            tile.bottomEdge.visible = false;
+            tile.leftEdge.visible = false;
+            tile.colorBorder.visible = false;
+        }
+    }
+
+    function showColorBorder(index, direction, colorDirection){
+        var tile = instance.tiles[index];
+        switch(direction){
+            case 0: 
+                tile.topEdge.visible = true; 
+                tile.topEdge.strokeColor = instance.edgeColor[colorDirection];
+                break;
+            case 1: 
+                tile.rightEdge.visible = true; 
+                tile.rightEdge.strokeColor = instance.edgeColor[colorDirection];
+                break;
+            case 2: 
+                tile.bottomEdge.visible = true; 
+                tile.bottomEdge.strokeColor = instance.edgeColor[colorDirection];
+                break;
+            case 3: 
+                tile.leftEdge.visible = true; 
+                tile.leftEdge.strokeColor = instance.edgeColor[colorDirection];
+                break;
+            default: 
+                tile.colorBorder.visible = true;
+                tile.colorBorder.strokeColor = instance.edgeColor[colorDirection];
+                break;
+        }
+        tile.differentColor = direction;
+        tile.colorDirection = colorDirection;
     }
 
     function normalizeTiles() {
@@ -1340,6 +1465,12 @@ function JigsawPuzzle(config) {
     this.dragTile = function (delta) {
         if (instance.draging) {
             var centerPosition = instance.selectedTile[0].position;
+            if(instance.selectedTile[0].differentColor >= 0){
+                hideColorBorder(getTileIndex(instance.selectedTile[0]));
+            }
+            else{
+                hideAllColorBorder();
+            }
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
                 tile.opacity = 1;

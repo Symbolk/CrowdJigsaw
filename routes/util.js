@@ -1,8 +1,8 @@
-var paper = require('paper');
+/*var paper = require('paper');
 paper.setup([1080, 1080]);
 
 getTiles('../public/images/starter.jpg', 4, 4, null);
-
+*/
 function getTiles(imgSrc, tilesPerRow, tilesPerColumn, shapeArray){
     var puzzleImage = new paper.Raster('http://assets.paperjs.org/images/marilyn.jpg');
     console.log(puzzleImage);
