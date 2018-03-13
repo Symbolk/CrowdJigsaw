@@ -421,7 +421,7 @@ function JigsawPuzzle(config) {
     this.gameFinished = false;
 
     this.edgeColor = ['red', 'green', 'yellow', 'blue'];
-    this.colorBorderWidth = 5;
+    this.colorBorderWidth = 10;
 
 
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
@@ -458,8 +458,10 @@ function JigsawPuzzle(config) {
                 }
             }
         }
-
-        showHintColor(1, [2,3], 2);
+        showHintColor(1, [2,3], 0);
+        showHintColor(1, [3,4], 1);
+        showHintColor(1, [5,6], 2);
+        showHintColor(1, [6,7], 3);
 
         $('.mdl-layout__drawer-button').click();
         introJs().setOption("overlayOpacity", 0).setOptions({
@@ -674,8 +676,8 @@ function JigsawPuzzle(config) {
                 tile.bottomEdge = bottomEdge;
                 tile.leftEdge = leftEdge;
                 tile.colorBorder = colorBorder;
-                tile.differentColor = -1;
-                tile.colorDirection = -1;
+                tile.differentColor = new Array();
+                tile.colorDirection = new Array();
 
                 tile.picking = false;
                 tile.alreadyHinted = false;
@@ -699,9 +701,16 @@ function JigsawPuzzle(config) {
     }
 
     function showHintColor(tileIndex, hintTilesIndexs, direction){
-        showColorBorder(tileIndex, direction, direction);
+        showColorBorder(tileIndex, direction, direction, true);
         for(var i = 0; i < hintTilesIndexs.length; i++){
-            showColorBorder(hintTilesIndexs[i], 4, direction);
+            var reverseDirection = 4;
+            if(direction % 2 == 0){
+                reverseDirection = 2 - direction;
+            }
+            else{
+                reverseDirection = 4 - direction;
+            }
+            showColorBorder(hintTilesIndexs[i], reverseDirection, direction, true);
         }
     }
 
@@ -1215,8 +1224,14 @@ function JigsawPuzzle(config) {
                 }
                 placeTile(tile, cellPosition);
                 tilesMoved = tilesMoved || tile.positionMoved;
-                if(tile.differentColor >= 0){
-                    showColorBorder(getTileIndex(tile), tile.differentColor, tile.colorDirection);
+                
+                if(tile.differentColor.length > 0){
+                    var tileIndex = getTileIndex(tile);
+                    console.log(tile.differentColor);
+                    console.log(tile.colorDirection);
+                    for(var j = 0; j < tile.differentColor.length; j++){
+                        showColorBorder(tileIndex, tile.differentColor[j], tile.colorDirection[j], false);
+                    }
                 }
                 sendLinks(tile);
             }
@@ -1257,21 +1272,21 @@ function JigsawPuzzle(config) {
     function hideAllColorBorder(){
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
-            if(tile.differentColor >= 0){
+            if(tile.differentColor.length > 0){
                 tile.topEdge.visible = false;
                 tile.rightEdge.visible = false;
                 tile.bottomEdge.visible = false;
                 tile.leftEdge.visible = false;
                 tile.colorBorder.visible = false;
-                tile.differentColor = -1;
-                tile.colorDirection = -1;
+                tile.differentColor = new Array();
+                tile.colorDirection = new Array();
             }
         }
     }
 
     function hideColorBorder(index){
         var tile = instance.tiles[index];
-        if(tile.differentColor >= 0){
+        if(tile.differentColor.length > 0){
             tile.topEdge.visible = false;
             tile.rightEdge.visible = false;
             tile.bottomEdge.visible = false;
@@ -1280,7 +1295,7 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function showColorBorder(index, direction, colorDirection){
+    function showColorBorder(index, direction, colorDirection, pushToArray){
         var tile = instance.tiles[index];
         switch(direction){
             case 0: 
@@ -1304,8 +1319,10 @@ function JigsawPuzzle(config) {
                 tile.colorBorder.strokeColor = instance.edgeColor[colorDirection];
                 break;
         }
-        tile.differentColor = direction;
-        tile.colorDirection = colorDirection;
+        if(pushToArray){
+            tile.differentColor.push(direction);
+            tile.colorDirection.push(colorDirection);
+        }
     }
 
     function normalizeTiles() {
@@ -1341,7 +1358,15 @@ function JigsawPuzzle(config) {
                 console.log('getHints: ' + data);
                 if (!mousedowned) {
                     instance.hintsShowing = true;
-                    showHints(selectedTileIndex, data);
+                    console.log(data);
+                    if(data.sure){
+                        var sureHintTiles = JSON.parse(data.sure);
+                        var unsureHintTiles = JSON.parse(data.unsure);
+                        showHints(selectedTileIndex, sureHintTiles);
+                    }
+                    else{
+                        showHints(selectedTileIndex, dataType);
+                    }
                     normalizeTiles();
                     instance.hintsShowing = false;
                 }
@@ -1385,7 +1410,7 @@ function JigsawPuzzle(config) {
             if (isConflictTile) {
                 continue;
             }
-
+            console.log(correctTileIndex);
             var correctTile = instance.tiles[correctTileIndex];
 
             if (correctTile.picking) {
@@ -1465,7 +1490,7 @@ function JigsawPuzzle(config) {
     this.dragTile = function (delta) {
         if (instance.draging) {
             var centerPosition = instance.selectedTile[0].position;
-            if(instance.selectedTile[0].differentColor >= 0){
+            if(instance.selectedTile[0].differentColor.length > 0){
                 hideColorBorder(getTileIndex(instance.selectedTile[0]));
             }
             else{
