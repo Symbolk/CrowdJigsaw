@@ -649,11 +649,10 @@ function JigsawPuzzle(config) {
                 leftEdge.strokeWidth = instance.colorBorderWidth;
                 leftEdge.visible = false;
 
-                var cloneImg = instance.puzzleImage.clone();
                 var offset = new Point(instance.tileWidth * x, instance.tileWidth * y);
                 offset += new Point(instance.tileWidth/4, instance.tileWidth/4);
                 var img = getTileRaster(
-                    cloneImg,
+                    instance.puzzleImage,
                     new Size(instance.tileWidth, instance.tileWidth),
                     offset
                 );
@@ -964,9 +963,8 @@ function JigsawPuzzle(config) {
                 mask.opacity = 0.01;
                 mask.strokeColor = '#fff'; //white
 
-                var cloneImg = instance.puzzleImage.clone();
                 var img = getTileRaster(
-                    cloneImg,
+                    instance.puzzleImage,
                     new Size(instance.tileWidth, instance.tileWidth),
                     new Point(instance.tileWidth * x, instance.tileWidth * y)
                 );
