@@ -464,45 +464,45 @@ function JigsawPuzzle(config) {
             steps: [
                 {
                     element: '#step1',
-                    intro: "click here to check your rank!"
+                    intro: "See current rank!"
                 },
                 {
                     element: '#step2',
-                    intro: "click here to zoom in!"
+                    intro: "Zoom in!"
                 },
                 {
                     element: '#step3',
-                    intro: "click here to zoom out!"
+                    intro: "Zoom out!"
                 },
                 {
                     element: '#step4',
-                    intro: "click here to restart the game!"
+                    intro: "Restart the game!"
                 },
                 {
                     element: '#ensure_quit',
-                    intro: "click here to quit the game!"
+                    intro: "Quit the game!"
                 },
                 {
                     element: '#step6',
-                    intro: "click here to get back to the center of the puzzle!"
+                    intro: "Return to the center!"
                 },
                 {
                     element: '#myselect',
-                    intro: "click here to change select mode!"
+                    intro: "Change the drag mode here!"
                 },
                 {
                     element: '#steps_chip',
-                    intro: "click here to open or close the step counter!"
+                    intro: "Show/Hide the step counter!"
                 },
                 {
                     element: '#timer_chip',
-                    intro: "click here to open or close the time counter!"
+                    intro: "Show/Hide the time counter!"
                 },
                 {
-                    intro: "if you set dragmode 'dragTileFirst',then short press to drag a tile and extended press to drag a group of tiles， and vice versa."
+                    intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
                 },
                 {
-                    intro: "now enjoy your game!"
+                    intro: "Now Let's Begin!"
                 }
             ],
             scrollToElement: false

@@ -668,8 +668,12 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
 
 /**
  * Get hints from the current graph data
- * @return an array of recommended index, in 4 directions of the tile
+ * @return If sure: an array of recommended index, in 4 directions of the tile
+ * @return If unsure: the latest tile that requires more information(highlight in the client to collect votes)
  */
+var unsureLinks=new Array();
+var strategy = constants.strategy;
+var unsure_gap=constants.unsure_gap;
 router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req, res) {
     // router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
     // query the 4 dirs of the selected tile
@@ -680,8 +684,6 @@ router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req,
     // find the most-supported one of every dir
     var hintIndexes = new Array();
     var dirs = ['top', 'right', 'bottom', 'left'];
-
-    var strategy = constants.strategy;
 
     if (strategy == "conservative") {
         // Stratey1: conservative
@@ -770,21 +772,39 @@ router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req,
                             hintIndexes.push(-1);
                         } else {
                             let best = alternatives[0];
+                            let best_score=best.sup_num - best.opp_num;
                             for (let a of alternatives) {
-                                if ((a.sup_num - a.opp_num) > 0 && (a.sup_num - a.opp_num) > (best.sup_num - best.opp_num)) {
+                                let score=a.sup_num - a.opp_num;
+                                if (score > 0 && score > best_score) {
                                     best = a;
+                                    best_score=score;
                                 }
                             }
-                            // to guarantee zero sup nodes won't be hinted
-                            // 1/5 of the crowd have supported
-                            if ((best.sup_num - best.opp_num) > 0) {
+                            for(let a of alternatives){
+                                let score=a.sup_num - a.opp_num;
+                                if(score > 0){
+                                    if(score==best_score || score==best_score-unsure_gap){
+                                        unsureLinks.push({
+                                            "index": condition.index,
+                                            "dir": dirs[d],
+                                            "to": a.index
+                                        });
+                                    }
+                                }                                
+                            }
+                            // if only one best and no best-1
+                            if (unsureLinks.length == 1) {
                                 hintIndexes.push(best.index);
                             } else {
-                                hintIndexes.push(-1);
+                                // -2 means multiple choices available
+                                hintIndexes.push(-2);
                             }
                         }
                     }
-                    res.send(JSON.stringify(hintIndexes));
+                    res.send({
+                        "sure": JSON.stringify(hintIndexes),
+                        "unsure": JSON.stringify(unsureLinks)
+                    });
                 }
             }
         });
