@@ -8,6 +8,7 @@ var UserModel = require('../models/user').User;
 var NodeModel = require('../models/node').Node;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
+var images = require("images");
 
 
 
@@ -182,35 +183,32 @@ router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
         } else {
             let index = docs.length;
             let TIME = util.getNowFormatDate();
-            let shapeArray = util.getRandomShapes(req.body.tilesPerRow, 
-                req.body.tilesPerColumn, 
-                req.body.shape,
-                req.body.edge);
-            var thumbImageSrc = req.body.imageURL;
-            var imgSrc = thumbImageSrc;
-            var thumbStr = '_thumb';
-            var thumbIndex = thumbImageSrc.indexOf(thumbStr);
-            if(thumbIndex >= 0){
-                imgSrc = thumbImageSrc.substring(0, thumbIndex) + thumbImageSrc.substring(thumbIndex + thumbStr.length);
-            }
+            let imageSrc = req.body.imageURL;
+            let image = images('public/' + imageSrc);
+            let size = image.size();
+            let imageWidth = size.width;
+            let imageHeight = size.height;
+            let tileWidth = 64;
+            let tilesPerRow = Math.floor(imageWidth / tileWidth);
+            let tilesPerColumn = Math.floor(imageHeight / tileWidth);
+            let shapeArray = util.getRandomShapes(tilesPerRow, tilesPerColumn, req.body.shape, req.body.edge);
             let operation = {
                 round_id: index,
                 creator: req.session.user.username,
-                image: imgSrc,
-                thumbImage: thumbImageSrc,
+                image: imageSrc,
                 level: req.body.level,
                 shape: req.body.shape,
                 edge: req.body.edge,
                 border: req.body.border,
                 create_time: TIME,
                 players_num: req.body.players_num,
-                imageWidth: req.body.imageWidth,
-                imageHeight: req.body.imageHeight,
-                tileWidth: req.body.tileWidth,
-                tilesPerRow:  req.body.tilesPerRow,
-                tilesPerColumn: req.body.tilesPerColumn,
-                tile_num: req.body.tilesPerRow * req.body.tilesPerColumn,
-                row_num: req.body.tilesPerRow,
+                imageWidth: imageWidth,
+                imageHeight: imageHeight,
+                tileWidth: tileWidth,
+                tilesPerRow:  tilesPerRow,
+                tilesPerColumn: tilesPerColumn,
+                tile_num: tilesPerRow * tilesPerColumn,
+                row_num: tilesPerRow,
                 shapeArray: shapeArray
             };
 
