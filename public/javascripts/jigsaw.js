@@ -425,7 +425,7 @@ function JigsawPuzzle(config) {
 
     this.gameFinished = false;
 
-    this.edgeColor = ['red', 'green', 'yellow', 'blue'];
+    this.edgeColor = ['red', '#900090', '#009090', 'black'];
     this.colorBorderWidth = 7;
 
 
@@ -1293,7 +1293,7 @@ function JigsawPuzzle(config) {
     function setGradientStrockColor(path, color){
         path.strokeColor = {
             gradient: {
-                stops: [[color, 0.5], ['white', 1]],
+                stops: [[color, 0.7], ['white', 1]],
                 radial: true
             },
             origin: path.position,
@@ -1326,8 +1326,17 @@ function JigsawPuzzle(config) {
                 break;
         }
         if(pushToArray){
-            tile.differentColor.push(direction);
-            tile.colorDirection.push(colorDirection);
+            var repeated = false;
+            for(var i = 0; i < tile.differentColor.length; i++){
+                if(tile.differentColor[i] == direction){
+                    repeated = true;
+                }
+            }
+            if(!repeated){
+                tile.differentColor.push(direction);
+                tile.colorDirection.push(colorDirection);
+            }
+            
         }
     }
 
@@ -1364,7 +1373,6 @@ function JigsawPuzzle(config) {
                 console.log('getHints: ' + data);
                 if (!mousedowned) {
                     instance.hintsShowing = true;
-                    console.log(data);
                     if(data.sure){
                         var sureHintTiles = JSON.parse(data.sure);
                         var unsureHintTiles = JSON.parse(data.unsure);
@@ -1518,15 +1526,18 @@ function JigsawPuzzle(config) {
 
     this.animation = function(){
         var changeOpacity = function(path){
+            var speed = 0.005;
+            var upperBound = 0.7;
+            var lowwerBound = 0.1;
             if(path.reverse){
-                path.opacity += 0.02;
-                if(path.opacity >= 0.6){
+                path.opacity += speed;
+                if(path.opacity >= upperBound){
                     path.reverse = false;
                 }
             }
             else{
-                path.opacity -= 0.02;
-                if(path.opacity <= 0.1){
+                path.opacity -= speed;
+                if(path.opacity <= lowwerBound){
                     path.reverse = true;
                 }
             }
