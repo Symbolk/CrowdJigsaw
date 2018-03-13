@@ -324,6 +324,11 @@ function onMouseDown(event) {
     }
 }
 
+function onFrame(event) {
+    // Each frame, rotate the path by 3 degrees:
+    puzzle.animation();
+}
+
 function onMouseUp(event) {
     if (timeoutFunction) {
         clearTimeout(timeoutFunction);
@@ -421,7 +426,7 @@ function JigsawPuzzle(config) {
     this.gameFinished = false;
 
     this.edgeColor = ['red', 'green', 'yellow', 'blue'];
-    this.colorBorderWidth = 10;
+    this.colorBorderWidth = 7;
 
 
     console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
@@ -459,9 +464,7 @@ function JigsawPuzzle(config) {
             }
         }
         showHintColor(1, [2,3], 0);
-        showHintColor(1, [3,4], 1);
-        showHintColor(1, [5,6], 2);
-        showHintColor(1, [6,7], 3);
+        showHintColor(1, [5,6], 3);
 
         $('.mdl-layout__drawer-button').click();
         introJs().setOption("overlayOpacity", 0).setOptions({
@@ -634,22 +637,18 @@ function JigsawPuzzle(config) {
                 var mask = maskMap.mask;
 
                 var topEdge = maskMap.topEdge;
-                topEdge.strokeColor = instance.edgeColor[0];
                 topEdge.strokeWidth = instance.colorBorderWidth;
                 topEdge.visible = false;
 
                 var rightEdge = maskMap.rightEdge;
-                rightEdge.strokeColor = instance.edgeColor[1];
                 rightEdge.strokeWidth = instance.colorBorderWidth;
                 rightEdge.visible = false;
 
                 var bottomEdge = maskMap.bottomEdge;
-                bottomEdge.strokeColor = instance.edgeColor[2];
                 bottomEdge.strokeWidth = instance.colorBorderWidth;
                 bottomEdge.visible = false;
 
                 var leftEdge = maskMap.leftEdge;
-                leftEdge.strokeColor = instance.edgeColor[3];
                 leftEdge.strokeWidth = instance.colorBorderWidth;
                 leftEdge.visible = false;
 
@@ -669,8 +668,9 @@ function JigsawPuzzle(config) {
                 colorBorder.visible = false;
 
                 // each tile is a group of
-                var tile = new Group(mask, img, border, topEdge, rightEdge, bottomEdge, leftEdge, colorBorder);
-                
+                var tile = new Group(mask, img, border);
+                tile.clipped = true;
+                tile = new Group(topEdge, rightEdge, bottomEdge, leftEdge, colorBorder, tile);
                 tile.topEdge = topEdge;
                 tile.rightEdge = rightEdge;
                 tile.bottomEdge = bottomEdge;
@@ -681,7 +681,6 @@ function JigsawPuzzle(config) {
 
                 tile.picking = false;
                 tile.alreadyHinted = false;
-                tile.clipped = true;
                 tile.opacity = 1;
                 tile.pivot = new Point(instance.tileWidth / 2, instance.tileWidth / 2);
 
@@ -1227,8 +1226,6 @@ function JigsawPuzzle(config) {
                 
                 if(tile.differentColor.length > 0){
                     var tileIndex = getTileIndex(tile);
-                    console.log(tile.differentColor);
-                    console.log(tile.colorDirection);
                     for(var j = 0; j < tile.differentColor.length; j++){
                         showColorBorder(tileIndex, tile.differentColor[j], tile.colorDirection[j], false);
                     }
@@ -1295,28 +1292,39 @@ function JigsawPuzzle(config) {
         }
     }
 
+    function setGradientStrockColor(path, color){
+        path.strokeColor = {
+            gradient: {
+                stops: [[color, 0.5], ['white', 1]],
+                radial: true
+            },
+            origin: path.position,
+            destination: path.bounds
+        };
+    }
+
     function showColorBorder(index, direction, colorDirection, pushToArray){
         var tile = instance.tiles[index];
         switch(direction){
             case 0: 
                 tile.topEdge.visible = true; 
-                tile.topEdge.strokeColor = instance.edgeColor[colorDirection];
+                setGradientStrockColor(tile.topEdge, instance.edgeColor[colorDirection]);
                 break;
             case 1: 
                 tile.rightEdge.visible = true; 
-                tile.rightEdge.strokeColor = instance.edgeColor[colorDirection];
+                setGradientStrockColor(tile.rightEdge, instance.edgeColor[colorDirection]);
                 break;
             case 2: 
                 tile.bottomEdge.visible = true; 
-                tile.bottomEdge.strokeColor = instance.edgeColor[colorDirection];
+                setGradientStrockColor(tile.bottomEdge, instance.edgeColor[colorDirection]);
                 break;
             case 3: 
                 tile.leftEdge.visible = true; 
-                tile.leftEdge.strokeColor = instance.edgeColor[colorDirection];
+                setGradientStrockColor(tile.leftEdge, instance.edgeColor[colorDirection]);
                 break;
             default: 
                 tile.colorBorder.visible = true;
-                tile.colorBorder.strokeColor = instance.edgeColor[colorDirection];
+                setGradientStrockColor(tile.colorBorder, instance.edgeColor[colorDirection]);
                 break;
         }
         if(pushToArray){
@@ -1478,13 +1486,61 @@ function JigsawPuzzle(config) {
                 continue;
             }
             var img = hitResult.item;
-            var tile = img.parent;
+            var tile = img.parent.parent;
             // console.log(tile.name);
             if (!tile.picking) {
                 retTile = tile;
             }
         }
         return retTile;
+    }
+
+    this.animation = function(){
+        var changeOpacity = function(path){
+            if(path.reverse){
+                path.opacity += 0.02;
+                if(path.opacity >= 0.6){
+                    path.reverse = false;
+                }
+            }
+            else{
+                path.opacity -= 0.02;
+                if(path.opacity <= 0.1){
+                    path.reverse = true;
+                }
+            }
+        }
+
+        for(var i = 0; i < instance.tiles.length; i++){
+            var tile = instance.tiles[i];
+            if(tile.differentColor.length > 0){
+                for(var j = 0; j < tile.differentColor.length; j++){
+                    var edgeIndex = tile.differentColor[j];
+                    switch(edgeIndex){
+                        case 0:
+                            //tile.topEdge.strokeColor.hue += 1;
+                            changeOpacity(tile.topEdge);
+                            break;
+                        case 1:
+                            //tile.rightEdge.strokeColor.hue += 1;
+                            changeOpacity(tile.rightEdge);
+                            break;
+                        case 2:
+                            //tile.bottomEdge.strokeColor.hue += 1;
+                            changeOpacity(tile.bottomEdge);
+                            break;
+                        case 3:
+                            //tile.leftEdge.strokeColor.hue += 1;
+                            changeOpacity(tile.leftEdge);
+                            break;
+                        default:
+                            //tile.colorBorder.strokeColor.hue += 1;
+                            changeOpacity(tile.colorBorder);
+                            break;
+                    }
+                }
+            }
+        }
     }
 
     this.dragTile = function (delta) {
@@ -1535,7 +1591,7 @@ function JigsawPuzzle(config) {
             return;
         }
         var img = hitResult.item;
-        var tile = img.parent;
+        var tile = img.parent.parent;
         // console.log(tile.name);
         if (tile.picking) {
             instance.selectedTile = null;
