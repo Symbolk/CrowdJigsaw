@@ -459,6 +459,8 @@ function JigsawPuzzle(config) {
             }
         }
 
+        showHintColor(1, [2,3], 2);
+
         $('.mdl-layout__drawer-button').click();
         introJs().setOption("overlayOpacity", 0).setOptions({
             steps: [
