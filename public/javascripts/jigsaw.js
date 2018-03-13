@@ -1365,7 +1365,7 @@ function JigsawPuzzle(config) {
                         showHints(selectedTileIndex, sureHintTiles);
                     }
                     else{
-                        showHints(selectedTileIndex, dataType);
+                        showHints(selectedTileIndex, data);
                     }
                     normalizeTiles();
                     instance.hintsShowing = false;

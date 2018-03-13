@@ -345,8 +345,12 @@ function getJoinableRounds() {
 
 function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
     var img = new Image();
+    var thumbStr = '_thumb';
+    var thumbIndex = imgSrc.indexOf(thumbStr);
+    if(thumbIndex >= 0){
+        imgSrc = imgSrc.substring(0, thumbIndex) + imgSrc.substring(thumbIndex + thumbStr.length);
+    }
     img.src = imgSrc;
-    var tileWidth = 64;
 	var param = {
 		imageURL: imgSrc,
         level: level,
@@ -354,11 +358,6 @@ function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
         shape: shape,
         border: border,
 		players_num: playersNum,
-        imageWidth: img.width,
-        imageHeight: img.height,
-        tileWidth: tileWidth,
-        tilesPerRow:  Math.floor(img.width / tileWidth),
-        tilesPerColumn: Math.floor(img.height / tileWidth)
 	};
 
 	$.ajax({
