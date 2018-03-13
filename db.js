@@ -3,6 +3,9 @@ const config = require('./config/dev');
 
 const DB_URL = config.database;
 mongoose.Promise = require('bluebird');
+/** 
+ * Comment the auth/user/pass if your db requires no auth
+*/
 var options = {
     useMongoClient: true,
     //auth: { authdb: 'admin' },
