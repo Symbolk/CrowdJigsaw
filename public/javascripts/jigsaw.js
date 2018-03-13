@@ -463,8 +463,6 @@ function JigsawPuzzle(config) {
                 }
             }
         }
-        showHintColor(1, [2,3], 0);
-        showHintColor(1, [5,6], 3);
 
         $('.mdl-layout__drawer-button').click();
         introJs().setOption("overlayOpacity", 0).setOptions({
@@ -1370,6 +1368,29 @@ function JigsawPuzzle(config) {
                     if(data.sure){
                         var sureHintTiles = JSON.parse(data.sure);
                         var unsureHintTiles = JSON.parse(data.unsure);
+                        for(var j = 0; j < unsureHintTiles.length; j++){
+                            var unsureHintTile = unsureHintTiles[j];
+                            var index = parseInt(unsureHintTile.index);
+                            var to = parseInt(unsureHintTile.to);
+                            var direction = -1;
+                            switch(unsureHintTile.dir){
+                                case 'top':
+                                    direction = 0;
+                                    break;
+                                case 'right':
+                                    direction = 1;
+                                    break;
+                                case 'bottom':
+                                    direction = 2;
+                                    break;
+                                case 'left':
+                                    direction = 3;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            showHintColor(index, [to], direction);
+                        }
                         showHints(selectedTileIndex, sureHintTiles);
                     }
                     else{
