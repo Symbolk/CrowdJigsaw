@@ -433,10 +433,7 @@ function JigsawPuzzle(config) {
 
     loadGame();
 
-
-    //createAndPlaceTiles();
-
-    function createAndPlaceTiles() {
+    function createAndPlaceTiles(needIntro) {
 
         if (instance.tileShape == "voronoi") {
             instance.tiles = createVoronoiTiles(instance.tilesPerRow, instance.tilesPerColumn);
@@ -464,55 +461,56 @@ function JigsawPuzzle(config) {
             }
         }
 
-        $('.mdl-layout__drawer-button').click();
-        introJs().setOption("overlayOpacity", 0).setOptions({
-            steps: [
-                {
-                    element: '#step1',
-                    intro: "See current rank!"
-                },
-                {
-                    element: '#step2',
-                    intro: "Zoom in!"
-                },
-                {
-                    element: '#step3',
-                    intro: "Zoom out!"
-                },
-                {
-                    element: '#step4',
-                    intro: "Restart the game!"
-                },
-                {
-                    element: '#ensure_quit',
-                    intro: "Quit the game!"
-                },
-                {
-                    element: '#step6',
-                    intro: "Return to the center!"
-                },
-                {
-                    element: '#myselect',
-                    intro: "Change the drag mode here!"
-                },
-                {
-                    element: '#steps_chip',
-                    intro: "Show/Hide the step counter!"
-                },
-                {
-                    element: '#timer_chip',
-                    intro: "Show/Hide the time counter!"
-                },
-                {
-                    intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
-                },
-                {
-                    intro: "Now Let's Begin!"
-                }
-            ],
-            scrollToElement: false
-        }).start();
-        introJs().addHints();
+        if(needIntro){
+            $('.mdl-layout__drawer-button').click();
+            introJs().setOption("overlayOpacity", 0).setOptions({
+                steps: [
+                    {
+                        element: '#step1',
+                        intro: "See current rank!"
+                    },
+                    {
+                        element: '#step2',
+                        intro: "Zoom in!"
+                    },
+                    {
+                        element: '#step3',
+                        intro: "Zoom out!"
+                    },
+                    {
+                        element: '#step4',
+                        intro: "Restart the game!"
+                    },
+                    {
+                        element: '#ensure_quit',
+                        intro: "Quit the game!"
+                    },
+                    {
+                        element: '#step6',
+                        intro: "Return to the center!"
+                    },
+                    {
+                        element: '#myselect',
+                        intro: "Change the drag mode here!"
+                    },
+                    {
+                        element: '#steps_chip',
+                        intro: "Show/Hide the step counter!"
+                    },
+                    {
+                        element: '#timer_chip',
+                        intro: "Show/Hide the time counter!"
+                    },
+                    {
+                        intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
+                    },
+                    {
+                        intro: "Now Let's Begin!"
+                    }
+                ],
+                scrollToElement: false
+            }).start();
+        }
     }
 
     function refreshAroundTiles(tile) {
@@ -1370,34 +1368,17 @@ function JigsawPuzzle(config) {
             success: function (data) {
                 // var data = $.parseJSON(data);
                 // indexes = directions(0 1 2 3=T R B L)
-                console.log('getHints: ' + data);
+                console.log('getHints: ' + JSON.stringify(data));
                 if (!mousedowned) {
                     instance.hintsShowing = true;
                     if(data.sure){
                         var sureHintTiles = JSON.parse(data.sure);
                         var unsureHintTiles = JSON.parse(data.unsure);
-                        for(var j = 0; j < unsureHintTiles.length; j++){
-                            var unsureHintTile = unsureHintTiles[j];
-                            var index = parseInt(unsureHintTile.index);
-                            var to = parseInt(unsureHintTile.to);
-                            var direction = -1;
-                            switch(unsureHintTile.dir){
-                                case 'top':
-                                    direction = 0;
-                                    break;
-                                case 'right':
-                                    direction = 1;
-                                    break;
-                                case 'bottom':
-                                    direction = 2;
-                                    break;
-                                case 'left':
-                                    direction = 3;
-                                    break;
-                                default:
-                                    break;
+                        for(var d = 0; d < 4; d++){
+                            var unsureHintTile = unsureHintTiles[d];
+                            if(unsureHintTile.length > 0){
+                                showHintColor(selectedTileIndex, unsureHintTile, d);
                             }
-                            showHintColor(index, [to], direction);
                         }
                         showHints(selectedTileIndex, sureHintTiles);
                     }
@@ -1755,6 +1736,7 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
+                var needIntro = !data.round_id;
                 if (data.round_id == roundID) {
                     console.log('loadGame: ' + 'success');
                     time = data.time;
@@ -1762,11 +1744,10 @@ function JigsawPuzzle(config) {
                     document.getElementById("steps").innerHTML = instance.steps;
                     instance.saveTilePositions = JSON.parse(data.tiles);
                 }
-                createAndPlaceTiles()
+                createAndPlaceTiles(needIntro)
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
-                createAndPlaceTiles();
             }
         });
     }

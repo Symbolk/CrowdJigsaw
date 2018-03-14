@@ -24,7 +24,6 @@ var UserSchema = new mongoose.Schema({
         steps: { type: Number },
         time: { type: Number },
         tiles: { type: String}, // tile position
-        shape_array: { type: String}
     }
 },
     // When no collection argument is passed, Mongoose pluralizes the name.
