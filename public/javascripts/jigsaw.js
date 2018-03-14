@@ -1368,34 +1368,17 @@ function JigsawPuzzle(config) {
             success: function (data) {
                 // var data = $.parseJSON(data);
                 // indexes = directions(0 1 2 3=T R B L)
-                console.log('getHints: ' + data);
+                console.log('getHints: ' + JSON.stringify(data));
                 if (!mousedowned) {
                     instance.hintsShowing = true;
                     if(data.sure){
                         var sureHintTiles = JSON.parse(data.sure);
                         var unsureHintTiles = JSON.parse(data.unsure);
-                        for(var j = 0; j < unsureHintTiles.length; j++){
-                            var unsureHintTile = unsureHintTiles[j];
-                            var index = parseInt(unsureHintTile.index);
-                            var to = parseInt(unsureHintTile.to);
-                            var direction = -1;
-                            switch(unsureHintTile.dir){
-                                case 'top':
-                                    direction = 0;
-                                    break;
-                                case 'right':
-                                    direction = 1;
-                                    break;
-                                case 'bottom':
-                                    direction = 2;
-                                    break;
-                                case 'left':
-                                    direction = 3;
-                                    break;
-                                default:
-                                    break;
+                        for(var d = 0; d < 4; d++){
+                            var unsureHintTile = unsureHintTiles[d];
+                            if(unsureHintTile.length > 0){
+                                showHintColor(selectedTileIndex, unsureHintTile, d);
                             }
-                            showHintColor(index, [to], direction);
                         }
                         showHints(selectedTileIndex, sureHintTiles);
                     }
