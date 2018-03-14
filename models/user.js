@@ -23,8 +23,7 @@ var UserSchema = new mongoose.Schema({
         round_id: { type: Number },
         steps: { type: Number },
         time: { type: Number },
-        tiles: { type: String}, // tile position
-        shape_array: { type: String}
+        tiles: { type: String} // tile position
     }
 },
     // When no collection argument is passed, Mongoose pluralizes the name.

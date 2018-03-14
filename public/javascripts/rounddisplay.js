@@ -417,6 +417,14 @@ function joinRound(roundID){
             console.log('error ' + textStatus + " " + errorThrown);
         }
     });
+    // /**
+    //  * Report to the server
+    //  */
+    var socket = io.connect(requrl);
+    socket.emit('join', { player_name: username });
+    socket.on('hello', function(data){
+        console.log(data);
+    });
 }
 
 function startRound(roundID){

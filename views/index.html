@@ -1,16 +1,22 @@
 <!-- Landing Page -->
 
 <% include header.html %>
-<div class="page-splash">
+    <div class="page-splash">
         <%- message %>
-            <h3 class="mdl-color-text--white mdl-typography--text-center">Welcome to</h3>
-            <h1 class="mdl-color-text--white mdl-typography--text-center">
+            <h3 class="mdl-color-text--black mdl-typography--text-center">Welcome to</h3>
+            <h1 class="title mdl-color-text--white mdl-typography--text-center">
                 <%= title %>
             </h1>
-            <h5 class="mdl-color-text--white mdl-typography--text-center">An online game, where multiple players work together to figure out a complex jigsaw puzzle.</h5>
+            <h5 class="mdl-color-text--white mdl-typography--text-center">An online game, where multiple players trying together to jigsaw puzzle.</h5>
             &nbsp;&nbsp;&nbsp;
-            <a href="/login"><button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="margin:0 auto;">Login</button></a>            &nbsp;&nbsp;&nbsp;
-            <a href="/register"><button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="margin:0 auto;">Register</button></a>
-        </div>
 
-<% include footer.html %>
+                <a href="/login">
+                    <button class="button button-caution button-pill button-large" style="margin:0 auto;">Login</button>
+                </a>
+            &nbsp;&nbsp;&nbsp;
+                <a href="/register">
+                    <button class="button button-royal button-pill button-large" style="margin:0 auto;">Register</button>
+                </a>
+    </div>
+
+    <% include footer.html %>

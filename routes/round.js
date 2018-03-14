@@ -10,9 +10,6 @@ var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
 var images = require("images");
 
-
-
-
 function createRecord(player_name, round_id, join_time) {
     let condition = {
         username: player_name

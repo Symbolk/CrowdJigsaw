@@ -1,4 +1,3 @@
-// const requrl = 'http://localhost:3000/'; //local dev
 const requrl = window.location.protocol + '//' + window.location.host + '/';
 
 /**

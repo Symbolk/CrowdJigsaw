@@ -97,16 +97,16 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-
+var server;
 if (app.get('env') === 'development') {
   // nodemon or npm test
   config = require('./config/dev');
-  app.listen(config.port);
+  server=app.listen(config.port);
   console.log('Listening on port : '+config.port);
 } else if (app.get('env') === 'production') {
   // npm start
   config = require('./config/pro');
-  app.listen(config.port);
+  server=app.listen(config.port);
   module.exports = app;
   console.log('Listening on port : '+config.port);
 }
@@ -114,7 +114,26 @@ if (app.get('env') === 'development') {
 /* app.listen(config.port, function(){
    console.log(`${pkg.name} listening on port ${config.port}`);
 });*/
+/**
+ * socket.io to send&receive the msg
+ */
+if(server){
+  var io=require('socket.io').listen(server);
+  io.on('connection', function(socket){
+    socket.on('join', function(data){
+      // console.log(data);
+      socket.emit('hello', {hello: 'Hello '+ data.player_name});
+    });
+    socket.on('iSolved', function(data){
+      console.log('!!!Round '+data.round_id+' : '+ data.player_name+' solves!');
+      socket.broadcast.emit('someoneSolved', data);
+    });
+  });
+}
 
+/**
+ * A schedule job to clear the endless rounds
+ */
 var schedule = require('node-schedule');
 var util = require('./routes/util.js');
 var ActionModel = require('./models/action').Action;
@@ -134,8 +153,8 @@ schedule.scheduleJob('0 0 * * * *', function(){
       var createTime = Date.parse(new Date(round.create_time))/1000;
       var timeNow = Date.parse(new Date())/1000;
       if(timeNow - createTime >= 7200){
-          var TIME = util.getNowFormatDate();
-          round.end_time = TIME;
+          // var TIME = util.getNowFormatDate();
+          round.end_time = "-2"; // not ended but killed
           round.save();
           console.log("Autoclose Round"+round.round_id);
       }
