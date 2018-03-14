@@ -379,10 +379,10 @@ function JigsawPuzzle(config) {
         $('#msgModal').modal({
             keyboard: true
         });
-        document.getElementById("round_id").innerHTML='Round '+ data.round_id;
-        document.getElementById("winner").innerHTML='Winner : '+ data.player_name;
-        document.getElementById("time").innerHTML=data.time;        
-        document.getElementById("steps").innerHTML=data.steps;        
+        document.getElementById("round_id").innerHTML = 'Round ' + data.round_id;
+        document.getElementById("winner").innerHTML = 'Winner : ' + data.player_name;
+        document.getElementById("time").innerHTML = data.time;
+        document.getElementById("steps").innerHTML = data.steps;
     });
 
     var instance = this; // the current object(which calls the function)
@@ -474,7 +474,7 @@ function JigsawPuzzle(config) {
             }
         }
 
-        if(needIntro){
+        if (needIntro) {
             $('.mdl-layout__drawer-button').click();
             introJs().setOption("overlayOpacity", 0).setOptions({
                 steps: [
@@ -555,8 +555,8 @@ function JigsawPuzzle(config) {
 
     function finishGame() {
         instance.gameFinished = true;
-        var steps=Number(document.getElementById("steps").innerHTML);
-        var time=document.getElementById('timer').innerHTML;
+        var steps = Number(document.getElementById("steps").innerHTML);
+        var time = document.getElementById('timer').innerHTML;
         sendRecord(roundID, instance.gameFinished, steps, time);
 
         clearTimeout(t);
@@ -566,7 +566,7 @@ function JigsawPuzzle(config) {
          * Once one person solves the puzzle, the round is over          
          * Send a msg to the server and the server broadcast it to all players          
          **/
-        socket.emit('iSolved', { round_id: roundID, player_name: player_name, steps: steps, time: time});
+        socket.emit('iSolved', { round_id: roundID, player_name: player_name, steps: steps, time: time });
 
         // once game starts, don't pull players
         // $.ajax({
@@ -1395,28 +1395,11 @@ function JigsawPuzzle(config) {
                     if (data.sure) {
                         var sureHintTiles = JSON.parse(data.sure);
                         var unsureHintTiles = JSON.parse(data.unsure);
-                        for(var j = 0; j < unsureHintTiles.length; j++){
-                            var unsureHintTile = unsureHintTiles[j];
-                            var index = parseInt(unsureHintTile.index);
-                            var to = parseInt(unsureHintTile.to);
-                            var direction = -1;
-                            switch(unsureHintTile.dir){
-                                case 'top':
-                                    direction = 0;
-                                    break;
-                                case 'right':
-                                    direction = 1;
-                                    break;
-                                case 'bottom':
-                                    direction = 2;
-                                    break;
-                                case 'left':
-                                    direction = 3;
-                                    break;
-                                default:
-                                    break;
+                        for (var d = 0; d < 4; d++) {
+                            var unsureHintTile = unsureHintTiles[d];
+                            if (unsureHintTile.length > 0) {
+                                showHintColor(selectedTileIndex, unsureHintTile, d);
                             }
-                            showHintColor(index, [to], direction);
                         }
                         showHints(selectedTileIndex, sureHintTiles);
                     }
