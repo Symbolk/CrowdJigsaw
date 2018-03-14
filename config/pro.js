@@ -6,7 +6,7 @@ module.exports = {
       maxAge: 2592000000
     },
     database: 'mongodb://localhost:27017/CrowdJigsaw',    
-    user: 'root',
+    user: 'admin',
     pass: 'Saw@CISE@pku',
     url: 'http://39.106.112.44:3000/'
   };

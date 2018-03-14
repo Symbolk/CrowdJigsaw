@@ -381,8 +381,7 @@ function JigsawPuzzle(config) {
         });
         document.getElementById("round_id").innerHTML = 'Round ' + data.round_id;
         document.getElementById("winner").innerHTML = 'Winner : ' + data.player_name;
-        document.getElementById("time").innerHTML = data.time;
-        document.getElementById("steps").innerHTML = data.steps;
+        document.getElementById("info").innerHTML = 'time cost: '+data.time + '   steps: '+data.steps;
     });
 
     var instance = this; // the current object(which calls the function)
