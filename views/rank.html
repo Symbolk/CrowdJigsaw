@@ -17,7 +17,7 @@
                                     <th>Rank</th>
                                     <th class="mdl-data-table__cell--non-numeric">Avatar</th>
                                     <th>Username</th>
-                                    <th>ThumbsUp!</th>
+                                    <th>Total Contribution</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -53,7 +53,16 @@
                                                             <%} %>
                                                 </td>
                                                 <td>
-                                                    <i class="fa fa-thumbs-up mdl-list__item-icon"></i>
+                                                    <% if(u.username===user.username){%>
+                                                        <span style="color:#3c3;">
+                                                            <%- u.credits %>
+                                                        </span>
+                                                        <%}
+                                                            else{%>
+                                                            <span>
+                                                                <%- u.credits %>
+                                                            </span>
+                                                            <%} %>
 
                                                 </td>
                                         </tr>
