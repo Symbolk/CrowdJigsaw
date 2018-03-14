@@ -446,9 +446,6 @@ function JigsawPuzzle(config) {
 
     loadGame();
 
-
-    //createAndPlaceTiles();
-
     function createAndPlaceTiles(needIntro) {
 
         if (instance.tileShape == "voronoi") {
@@ -478,54 +475,54 @@ function JigsawPuzzle(config) {
         }
 
         if(needIntro){
-        $('.mdl-layout__drawer-button').click();
-        introJs().setOption("overlayOpacity", 0).setOptions({
-            steps: [
-                {
-                    element: '#step1',
-                    intro: "See current rank!"
-                },
-                {
-                    element: '#step2',
-                    intro: "Zoom in!"
-                },
-                {
-                    element: '#step3',
-                    intro: "Zoom out!"
-                },
-                {
-                    element: '#step4',
-                    intro: "Restart the game!"
-                },
-                {
-                    element: '#ensure_quit',
-                    intro: "Quit the game!"
-                },
-                {
-                    element: '#step6',
-                    intro: "Return to the center!"
-                },
-                {
-                    element: '#myselect',
-                    intro: "Change the drag mode here!"
-                },
-                {
-                    element: '#steps_chip',
-                    intro: "Show/Hide the step counter!"
-                },
-                {
-                    element: '#timer_chip',
-                    intro: "Show/Hide the time counter!"
-                },
-                {
-                    intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
-                },
-                {
-                    intro: "Now Let's Begin!"
-                }
-            ],
-            scrollToElement: false
-        }).start();
+            $('.mdl-layout__drawer-button').click();
+            introJs().setOption("overlayOpacity", 0).setOptions({
+                steps: [
+                    {
+                        element: '#step1',
+                        intro: "See current rank!"
+                    },
+                    {
+                        element: '#step2',
+                        intro: "Zoom in!"
+                    },
+                    {
+                        element: '#step3',
+                        intro: "Zoom out!"
+                    },
+                    {
+                        element: '#step4',
+                        intro: "Restart the game!"
+                    },
+                    {
+                        element: '#ensure_quit',
+                        intro: "Quit the game!"
+                    },
+                    {
+                        element: '#step6',
+                        intro: "Return to the center!"
+                    },
+                    {
+                        element: '#myselect',
+                        intro: "Change the drag mode here!"
+                    },
+                    {
+                        element: '#steps_chip',
+                        intro: "Show/Hide the step counter!"
+                    },
+                    {
+                        element: '#timer_chip',
+                        intro: "Show/Hide the time counter!"
+                    },
+                    {
+                        intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
+                    },
+                    {
+                        intro: "Now Let's Begin!"
+                    }
+                ],
+                scrollToElement: false
+            }).start();
         }
     }
 
@@ -1392,18 +1389,18 @@ function JigsawPuzzle(config) {
             success: function (data) {
                 // var data = $.parseJSON(data);
                 // indexes = directions(0 1 2 3=T R B L)
-                console.log('getHints: ' + data);
+                console.log('getHints: ' + JSON.stringify(data));
                 if (!mousedowned) {
                     instance.hintsShowing = true;
                     if (data.sure) {
                         var sureHintTiles = JSON.parse(data.sure);
                         var unsureHintTiles = JSON.parse(data.unsure);
-                        for (var j = 0; j < unsureHintTiles.length; j++) {
+                        for(var j = 0; j < unsureHintTiles.length; j++){
                             var unsureHintTile = unsureHintTiles[j];
                             var index = parseInt(unsureHintTile.index);
                             var to = parseInt(unsureHintTile.to);
                             var direction = -1;
-                            switch (unsureHintTile.dir) {
+                            switch(unsureHintTile.dir){
                                 case 'top':
                                     direction = 0;
                                     break;
@@ -1789,7 +1786,6 @@ function JigsawPuzzle(config) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
-                // createAndPlaceTiles();
             }
         });
     }
