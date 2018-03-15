@@ -13,6 +13,8 @@ require('./db');
 
 // 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 // Control-Allow-Origin
 app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
@@ -21,7 +23,7 @@ app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   // res.header("Content-Type", "application/json;charset=utf-8");
   next();
-  });
+});
 
 // 没有挂载路径的中间件，应用的每个请求都会执行该中间件
 // config session
@@ -71,13 +73,12 @@ app.use(cookieParser());
 // Express 唯一内置的中间件。它基于 serve-static，负责在 Express 应用中提托管静态资源。
 // set the static folder as the public
 app.use(express.static(path.join(__dirname, 'public')));
-
+var roundRouter = require('./routes/round')(io);
 // 定义应用级路由
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/user'));
 app.use('/graph', require('./routes/graph'));
-app.use('/round', require('./routes/round'));
-
+app.use('/round', roundRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -97,16 +98,15 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-var server;
 if (app.get('env') === 'development') {
   // nodemon or npm test
   config = require('./config/dev');
-  server=app.listen(config.port);
+  server.listen(config.port);
   console.log('Listening on port : '+config.port);
 } else if (app.get('env') === 'production') {
   // npm start
   config = require('./config/pro');
-  server=app.listen(config.port);
+  serve.listen(config.port);
   module.exports = app;
   console.log('Listening on port : '+config.port);
 }
@@ -118,7 +118,6 @@ if (app.get('env') === 'development') {
  * socket.io to send&receive the msg
  */
 if(server){
-  var io=require('socket.io').listen(server);
   io.on('connection', function(socket){
     socket.on('join', function(data){
       // console.log(data);
@@ -138,7 +137,6 @@ var schedule = require('node-schedule');
 var util = require('./routes/util.js');
 var ActionModel = require('./models/action').Action;
 var RoundModel = require('./models/round').Round;
-var round = require('./routes/round')
 //once an hour
 schedule.scheduleJob('0 0 * * * *', function(){
   var condition = {
