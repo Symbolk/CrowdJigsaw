@@ -220,14 +220,15 @@ function writeAction(NAME, round_id, operation, from, direction, to, contri) {
             RoundModel.findOneAndUpdate(
                 { round_id: round_id, "players.player_name": NAME },
                 { $inc: { "players.$.contribution": contri } },
-                { new: true },
-                function (err, doc) {
+                // { new: true },
+                function (err) {
                     if (err) {
                         console.log(err);
-                    } else {
-                        generateSolution(round_id, doc.row_num, doc.tile_num);
-                        // console.log(doc);
-                    }
+                    } 
+                    // else {
+                    //     generateSolution(round_id, doc.row_num, doc.tile_num);
+                    //     // console.log(doc);
+                    // }
                 });
         }
     });
