@@ -300,7 +300,7 @@ function mutualAdd(round_id, from, to, dir) {
                             temp[dir + '.$.sup_num'] = 1;
                             NodeModel.update(condition,
                                 { $inc: temp },
-                                function (err, doc) {
+                                function (err) {
                                     if (err) {
                                         console.log(err);
                                     }
@@ -339,7 +339,7 @@ function mutualRemove(round_id, from, to, dir) {
         if (err) {
             console.log(err);
         } else {
-            if (!doc) {
+            if (doc) {
                 // it's sure that it exists
                 if (doc[dir].length > 0) {
                     // --/-
@@ -350,11 +350,15 @@ function mutualRemove(round_id, from, to, dir) {
                     let temp = {};
                     temp[dir + '.$.sup_num'] = -1;
                     temp[dir + '.$.opp_num'] = 1;
-                    NodeModel.findOneAndUpdate(condition,
-                        { $inc: temp }, { new: true },
-                        function (err, doc) {
+                    NodeModel.find(condition, function (err, doc) {
                             if (err) {
                                 console.log(err);
+                            }else{
+                                NodeModel.update(condition, { $inc: temp }, function (err) {
+                                    if(err){
+                                        console.log(err);
+                                    }
+                                });
                             }
                         });
                 }
