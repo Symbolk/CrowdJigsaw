@@ -1,3 +1,7 @@
+var socket = io.connect(requrl);
+socket.on('roundChanged', function(data){
+    getJoinableRounds();
+});
 var imgReadyCount = 0;
 var roundsList = new Array();
 var roundsIDList = new Array();
@@ -46,7 +50,6 @@ function allImageReadyCallback(){
     initNewRoundDialog();
     initSelectImageDialog();
 
-    var getJoinableRoundsInterval = setInterval(getJoinableRounds, 3000);
     getJoinableRounds();
 }
 
@@ -420,7 +423,6 @@ function joinRound(roundID){
     // /**
     //  * Report to the server
     //  */
-    var socket = io.connect(requrl);
     socket.emit('join', { player_name: username });
     socket.on('hello', function(data){
         console.log(data);
