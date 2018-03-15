@@ -73,12 +73,11 @@ app.use(cookieParser());
 // Express 唯一内置的中间件。它基于 serve-static，负责在 Express 应用中提托管静态资源。
 // set the static folder as the public
 app.use(express.static(path.join(__dirname, 'public')));
-var roundRouter = require('./routes/round')(io);
 // 定义应用级路由
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/user'));
 app.use('/graph', require('./routes/graph'));
-app.use('/round', roundRouter);
+app.use('/round', require('./routes/round')(io));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
