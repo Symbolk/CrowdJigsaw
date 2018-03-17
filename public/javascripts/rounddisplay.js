@@ -39,6 +39,7 @@ function getSeletorImage(){
         $('#newround_image').attr('src', imgSrc);
         newRoundCreateButton.removeAttr('disabled');
         $('#newround_blank').css('display', 'inline');
+        
         selectImageDialog.close();
     });
 }
@@ -134,6 +135,7 @@ function initNewRoundDialog(){
     $('#newround_button').click(function(){
         newRoundCreateButton.attr('disabled','true');
         $('#newround_blank').css('display', 'none');
+        // $('#newround_image_wrap').css('display', 'none');        
         $('#newround_image').removeAttr('src')
         newRoundDialog.showModal();
     });

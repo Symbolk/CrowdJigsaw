@@ -89,9 +89,9 @@ function sendRecord(round_id, finished, steps, time) {
         type: 'post',
         dataType: 'json',
         cache: false,
-        timeout: 5000,
+        timeout: 2000,
         success: function (data) {
-            console.log('saveRecord: ' + data.msg);
+            console.log('Record: ' + data.contribution);
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('saveRecord: ' + 'error ' + textStatus + " " + errorThrown);

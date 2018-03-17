@@ -157,6 +157,7 @@ function getNowFormatDate() {
     var strHour=date.getHours();
     var strMinute=date.getMinutes();
     var strSecond=date.getSeconds();
+    var strMilSecond=date.getMilliseconds();
     if (strHour >= 0 && strHour <= 9) {
         strHour = "0" + strHour;
     }
@@ -168,7 +169,7 @@ function getNowFormatDate() {
     }
     var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
         + " " + strHour + seperator2 + strMinute
-        + seperator2 + strSecond;
+        + seperator2 + strSecond + seperator2 + strMilSecond;
     return currentdate;
 }
 

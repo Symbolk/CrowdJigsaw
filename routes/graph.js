@@ -8,7 +8,6 @@ var express = require('express');
 var router = express.Router();
 const mongoose = require('mongoose');
 var NodeModel = require('../models/node').Node;
-var UserModel = require('../models/user').User;
 var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');

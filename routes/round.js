@@ -360,6 +360,7 @@ module.exports = function(io){
             if (err) {
                 console.log(err);
             } else {
+                console.log(docs);
                 for (let d of docs) {
                     contri += d.contribution;
                 }
@@ -376,7 +377,7 @@ module.exports = function(io){
                 } else if (req.body.finished == "false") {
                     operation = {
                         $set: {
-                            // records.$.end_time: -1
+                            "records.$.end_time": "-1",
                             "records.$.steps": req.body.steps,
                             "records.$.time": req.body.time,
                             "records.$.contribution": contri
@@ -388,8 +389,8 @@ module.exports = function(io){
                     if (err) {
                         console.log(err);
                     } else {
-                        console.log(req.session.user.username + ' saves his record.');
-                        res.send({ msg: "Your record has been saved." });
+                        console.log(req.session.user.username + ' saves his record: '+contri);
+                        res.send({ contribution: contri });
                     }
                 });
             }

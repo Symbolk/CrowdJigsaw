@@ -142,6 +142,7 @@ $('.returnCenter').click(function () {
     });
 
     applyButton.addEventListener('click', function (event) {
+
         sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
 
         $.ajax({
@@ -178,6 +179,11 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
     }
     rankButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
+
+        var steps = Number(document.getElementById("steps").innerHTML);
+        var time = document.getElementById('timer').innerHTML;
+        sendRecord(roundID, true, steps, time);       
+        
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
             type: 'get',
@@ -195,6 +201,11 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
 
     returnButton.addEventListener('click', function (event) {
         gameFinishDialog.close();
+
+        var steps = Number(document.getElementById("steps").innerHTML);
+        var time = document.getElementById('timer').innerHTML;
+        sendRecord(roundID, true, steps, time);    
+
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
             type: 'get',
@@ -376,12 +387,14 @@ function getOriginImage(config) {
 function JigsawPuzzle(config) {
 
     socket.on('someoneSolved', function (data) {
-        $('#msgModal').modal({
-            keyboard: true
-        });
-        document.getElementById("round_id").innerHTML = 'Round ' + data.round_id;
-        document.getElementById("winner").innerHTML = 'Winner : ' + data.player_name;
-        document.getElementById("info").innerHTML = 'time cost: '+data.time + '   steps: '+data.steps;
+        if (data.round_id == roundID) {
+            $('#msgModal').modal({
+                keyboard: true
+            });
+            document.getElementById("round_id").innerHTML = 'Round ' + data.round_id;
+            document.getElementById("winner").innerHTML = 'Winner : ' + data.player_name;
+            document.getElementById("info").innerHTML = 'time cost: ' + data.time + '   steps: ' + data.steps;
+        }
     });
 
     var instance = this; // the current object(which calls the function)
@@ -446,7 +459,7 @@ function JigsawPuzzle(config) {
     loadGame();
 
     function createAndPlaceTiles(needIntro) {
-
+        // sendRecord(33, true, 0, 0);
         if (instance.tileShape == "voronoi") {
             instance.tiles = createVoronoiTiles(instance.tilesPerRow, instance.tilesPerColumn);
         }
@@ -554,19 +567,15 @@ function JigsawPuzzle(config) {
 
     function finishGame() {
         instance.gameFinished = true;
-        var steps = Number(document.getElementById("steps").innerHTML);
-        var time = document.getElementById('timer').innerHTML;
-        sendRecord(roundID, instance.gameFinished, steps, time);
 
         clearTimeout(t);
         gameFinishDialog.showModal();
-
+        
         /**          
          * Once one person solves the puzzle, the round is over          
          * Send a msg to the server and the server broadcast it to all players          
          **/
         socket.emit('iSolved', { round_id: roundID, player_name: player_name, steps: steps, time: time });
-
         // once game starts, don't pull players
         // $.ajax({
         //     url: requrl + 'round' + '/quitRound/' + roundID,
@@ -1122,6 +1131,14 @@ function JigsawPuzzle(config) {
         }
         tile.cellPosition = cellPosition;
         tile.relativePosition = new Point(0, 0);
+
+        // judge the hint tiles
+        if (!instance.gameFinished) {
+            var errors = checkTiles();
+            if (errors == 0) {
+                finishGame();
+            }
+        }
     }
 
     function sendLinks(tile) {

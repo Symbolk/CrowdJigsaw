@@ -60,7 +60,7 @@ router.route('/login').all(Logined).get(function (req, res) {
                 if (doc.password === user.password) {
                     //出于安全，只把包含用户名的对象存入session
                     req.session.user = condition;
-                    let time=util.getNowFormatDate();
+                    let time = util.getNowFormatDate();
                     let operation = {
                         $set: {
                             last_online_time: time
@@ -220,16 +220,16 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
             console.log(err);
         } else {
             var round = doc;
-            res.render('puzzle', 
-                { 
-                    title: 'Puzzle', 
+            res.render('puzzle',
+                {
+                    title: 'Puzzle',
                     player_name: req.session.user.username,
-                    level: round.level, 
-                    roundID: roundID, 
-                    image: round.image, 
-                    tileWidth: round.tileWidth, 
-                    shape: round.shape, 
-                    edge: round.edge, 
+                    level: round.level,
+                    roundID: roundID,
+                    image: round.image,
+                    tileWidth: round.tileWidth,
+                    shape: round.shape,
+                    edge: round.edge,
                     border: round.border,
                     tilesPerRow: round.tilesPerRow,
                     tilesPerColumn: round.tilesPerColumn,
@@ -319,7 +319,7 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
     }
 });
 
-// Jump to the round rank page
+// Get the rank of this round
 router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
     let condition = { "records.round_id": req.params.round_id };
     let fields = { _id: 0, username: 1, avatar: 1, records: 1 };
@@ -334,7 +334,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                 for (let d of docs) {
                     for (let r of d.records) {
                         if (r.round_id == req.params.round_id) {
-                            if (r.end_time != -1) {
+                            if (r.end_time != "-1") {
                                 finished.push({
                                     "playername": d.username,
                                     "avatar": d.avatar,
@@ -357,7 +357,8 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                 // sort the players
                 finished = finished.sort(util.ascending("time"));
                 unfinished = unfinished.sort(util.descending("contribution"));
-                res.render('roundrank', { title: 'Round Rank', Finished: finished, Unfinished: unfinished, username: req.session.user.username });
+                res.render('roundrank', { title: 'Round Rank', Finished: finished, Unfinished: unfinished,
+                 username: req.session.user.username, round_id:req.params.round_id});
             }
         }
     });
@@ -376,9 +377,14 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
                 let temp = docs;
                 for (let t of temp) {
                     t.credits = 0;
+                    t.total_steps = 0;
                     for (let r of t.records) {
-                        t.credits += r.contribution;
+                        if (r.end_time != "-1") {
+                            t.total_steps += Number(r.steps);
+                            t.credits += r.contribution;
+                        }
                     }
+                    t.credits=parseInt(t.credits).toFixed(3);
                 }
                 temp = temp.sort(util.descending("credits"));
                 res.render('rank', { title: 'Ranks', Allusers: temp, username: req.session.user.username });
@@ -394,16 +400,16 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
     let condition = {
         username: req.session.user.username
     };
-    
-    UserModel.findOne(condition, {_id:0, records:1 }, function (err, doc) {
+
+    UserModel.findOne(condition, { _id: 0, records: 1 }, function (err, doc) {
         if (err) {
             // res.render('records', { title: 'Personal Records' });
             console.log(err);
-        }else {
-            let results=new Array();
+        } else {
+            let results = new Array();
             // or use populate()
-            for(let r of doc.records){
-                if(r.start_time!="-1"){
+            for (let r of doc.records) {
+                if (r.start_time != "-1") {
                     results.push(r);
                 }
             }
