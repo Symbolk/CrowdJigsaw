@@ -101,6 +101,7 @@ if (app.get('env') === 'development') {
   // nodemon or npm test
   config = require('./config/dev');
   server.listen(config.port);
+  module.exports = app;
   console.log('Listening on port : '+config.port);
 } else if (app.get('env') === 'production') {
   // npm start
