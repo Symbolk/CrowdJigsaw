@@ -360,7 +360,6 @@ module.exports = function(io){
             if (err) {
                 console.log(err);
             } else {
-                console.log(docs);
                 for (let d of docs) {
                     contri += d.contribution;
                 }

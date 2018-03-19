@@ -380,7 +380,7 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
                     t.total_steps = 0;
                     for (let r of t.records) {
                         if (r.end_time != "-1") {
-                            t.total_steps += Number(r.steps);
+                            t.total_steps += parseInt(r.steps);
                             t.credits += r.contribution;
                         }
                     }

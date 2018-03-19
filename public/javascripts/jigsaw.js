@@ -392,8 +392,8 @@ function JigsawPuzzle(config) {
                 keyboard: true
             });
             document.getElementById("round_id").innerHTML = 'Round ' + data.round_id;
-            document.getElementById("winner").innerHTML = 'Winner : ' + data.player_name;
-            document.getElementById("info").innerHTML = 'time cost: ' + data.time + '   steps: ' + data.steps;
+            document.getElementById("winner").innerHTML = 'WINNER : ' + data.player_name;
+            document.getElementById("info").innerHTML = 'Time: ' + data.time + '   Steps: ' + data.steps;
         }
     });
 
@@ -459,7 +459,6 @@ function JigsawPuzzle(config) {
     loadGame();
 
     function createAndPlaceTiles(needIntro) {
-        // sendRecord(33, true, 0, 0);
         if (instance.tileShape == "voronoi") {
             instance.tiles = createVoronoiTiles(instance.tilesPerRow, instance.tilesPerColumn);
         }
@@ -575,6 +574,8 @@ function JigsawPuzzle(config) {
          * Once one person solves the puzzle, the round is over          
          * Send a msg to the server and the server broadcast it to all players          
          **/
+        steps = Number(document.getElementById("steps").innerHTML);
+        time = document.getElementById('timer').innerHTML;
         socket.emit('iSolved', { round_id: roundID, player_name: player_name, steps: steps, time: time });
         // once game starts, don't pull players
         // $.ajax({

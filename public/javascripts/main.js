@@ -89,7 +89,7 @@ function sendRecord(round_id, finished, steps, time) {
         type: 'post',
         dataType: 'json',
         cache: false,
-        timeout: 2000,
+        timeout: 5000,
         success: function (data) {
             console.log('Record: ' + data.contribution);
         },
