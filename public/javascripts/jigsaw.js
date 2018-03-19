@@ -1744,12 +1744,9 @@ function JigsawPuzzle(config) {
         }
         var params = {
             round_id: roundID,
-            tiles_num: instance.tileNum,
-            tiles_row: instance.tilesPerRow,
             steps: instance.steps,
             time: time,
             tiles: JSON.stringify(tilePositions),
-            shape_array: JSON.stringify(instance.shapeArray)
         };
         $.ajax({
             url: requrl + 'round/saveGame',
