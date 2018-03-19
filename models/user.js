@@ -14,7 +14,7 @@ var UserSchema = new mongoose.Schema({
             join_time: { type: String },
             start_time: { type: String, default: "-1" }, // formatted time, e.g. 2017-10-31 14:00:20
             end_time: { type: String, default: "-1" }, // formatted time, e.g. 2017-10-31 14:00:20
-            steps: { type: String, default: "-1" }, // -1=unfininshed
+            steps: { type: Number, default: -1 }, // -1=unfininshed
             time: { type: String, default: "-1" }, // hour:min:sec, e.g. 16:41
             contribution: { type: Number, default: -1 }// a contribution score, calculated when one round end
         }

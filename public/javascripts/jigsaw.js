@@ -181,8 +181,8 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
         gameFinishDialog.close();
 
         var steps = Number(document.getElementById("steps").innerHTML);
-        var time = document.getElementById('timer').innerHTML;
-        sendRecord(roundID, true, steps, time);       
+        var full_time = document.getElementById('timer').innerHTML;
+        sendRecord(roundID, true, steps, full_time);       
         
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -203,8 +203,8 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
         gameFinishDialog.close();
 
         var steps = Number(document.getElementById("steps").innerHTML);
-        var time = document.getElementById('timer').innerHTML;
-        sendRecord(roundID, true, steps, time);    
+        var full_time = document.getElementById('timer').innerHTML;
+        sendRecord(roundID, true, steps, full_time);    
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -575,8 +575,8 @@ function JigsawPuzzle(config) {
          * Send a msg to the server and the server broadcast it to all players          
          **/
         steps = Number(document.getElementById("steps").innerHTML);
-        time = document.getElementById('timer').innerHTML;
-        socket.emit('iSolved', { round_id: roundID, player_name: player_name, steps: steps, time: time });
+        full_time = document.getElementById('timer').innerHTML;
+        socket.emit('iSolved', { round_id: roundID, player_name: player_name, steps: steps, time: full_time });
         // once game starts, don't pull players
         // $.ajax({
         //     url: requrl + 'round' + '/quitRound/' + roundID,
@@ -1744,12 +1744,9 @@ function JigsawPuzzle(config) {
         }
         var params = {
             round_id: roundID,
-            tiles_num: instance.tileNum,
-            tiles_row: instance.tilesPerRow,
             steps: instance.steps,
             time: time,
             tiles: JSON.stringify(tilePositions),
-            shape_array: JSON.stringify(instance.shapeArray)
         };
         $.ajax({
             url: requrl + 'round/saveGame',

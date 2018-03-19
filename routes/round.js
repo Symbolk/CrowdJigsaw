@@ -58,7 +58,32 @@ function isCreator(req, res, next) {
     });
 }
 
-module.exports = function(io){
+module.exports = function (io) {
+
+    io.on('connection', function (socket) {
+        socket.on('join', function (data) {
+            // console.log(data);
+            socket.emit('hello', { hello: 'Hello ' + data.player_name });
+        });
+        socket.on('iSolved', function (data) {
+            console.log('!!!Round ' + data.round_id + ' : ' + data.player_name + ' solves!');
+            let operation = {
+                $set: {
+                    "MVP": data.player_name,
+                    "collective_time": data.time,
+                    "collective_steps": data.steps 
+                }
+            };
+            RoundModel.findOneAndUpdate({ round_id: data.round_id }, operation,
+                function (err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    socket.broadcast.emit('someoneSolved', data);
+                });
+        });
+    });
+
     /**
      * Get all rounds
      */
@@ -205,7 +230,7 @@ module.exports = function(io){
                     imageWidth: imageWidth,
                     imageHeight: imageHeight,
                     tileWidth: tileWidth,
-                    tilesPerRow:  tilesPerRow,
+                    tilesPerRow: tilesPerRow,
                     tilesPerColumn: tilesPerColumn,
                     tile_num: tilesPerRow * tilesPerColumn,
                     row_num: tilesPerRow,
@@ -281,23 +306,23 @@ module.exports = function(io){
                         mode: 'text',
                         pythonPath: 'python3',
                         pythonOptions: ['-u'], // get print results in real-time
-                        scriptPath:  path.resolve(__dirname, '../../gaps/bin'),
+                        scriptPath: path.resolve(__dirname, '../../gaps/bin'),
                         args: ['--algorithm', 'crowd',
-                               '--image', path.resolve(__dirname, '../public')+'/'+doc.image,
-                               '--size', doc.tileWidth.toString(),
-                               '--cols', doc.tilesPerRow.toString(),
-                               '--rows', doc.tilesPerColumn.toString(),
-                               '--population', '600',
-                               '--generations', '1000000000',
-                               '--roundid', doc.round_id.toString()]
+                            '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
+                            '--size', doc.tileWidth.toString(),
+                            '--cols', doc.tilesPerRow.toString(),
+                            '--rows', doc.tilesPerColumn.toString(),
+                            '--population', '600',
+                            '--generations', '1000000000',
+                            '--roundid', doc.round_id.toString()]
                     };
                     PythonShell.run('gaps', options, function (err, results) {
                         if (err)
                             console.log(err);
                         // results is an array consisting of messages collected during execution
                         // if GA founds a solution, the last element in results is "solved".
-                         console.log('results: %j', results);
-                         console.log('GA algorithm for round %d ends.', doc.round_id);
+                        console.log('results: %j', results);
+                        console.log('GA algorithm for round %d ends.', doc.round_id);
                     });
                 } else {
                     res.send({ msg: "Players are not enough!" });
@@ -372,14 +397,9 @@ module.exports = function(io){
     });
 
     /**
-     * Stop the round when all players finished
-     */
-
-    /**
      * Save a record by one user when he gets his puzzle done
      */
     router.route('/saveRecord').all(LoginFirst).post(function (req, res, next) {
-
         let operation = {};
         let contri = 0;
         ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, { _id: 0, contribution: 1 }, function (err, docs) {
@@ -396,7 +416,7 @@ module.exports = function(io){
                             "records.$.end_time": TIME,
                             "records.$.steps": req.body.steps,
                             "records.$.time": req.body.time,
-                            "records.$.contribution": contri
+                            "records.$.contribution": contri.toFixed(3)
                         }
                     };
                 } else if (req.body.finished == "false") {
@@ -405,7 +425,7 @@ module.exports = function(io){
                             "records.$.end_time": "-1",
                             "records.$.steps": req.body.steps,
                             "records.$.time": req.body.time,
-                            "records.$.contribution": contri
+                            "records.$.contribution": contri.toFixed(3)
                         }
                     };
                 }
@@ -414,7 +434,7 @@ module.exports = function(io){
                     if (err) {
                         console.log(err);
                     } else {
-                        console.log(req.session.user.username + ' saves his record: '+contri);
+                        console.log(req.session.user.username + ' saves his record: ' + contri);
                         res.send({ contribution: contri });
                     }
                 });
@@ -456,43 +476,10 @@ module.exports = function(io){
     router.route('/saveGame').all(LoginFirst).post(function (req, res, next) {
         var save_game = {
             round_id: req.body.round_id,
-            tiles_num: req.body.tiles_num,
             steps: req.body.steps,
             time: req.body.time,
             tiles: req.body.tiles,
-            shape_array: req.body.shape_array
         }
-        var tiles_row = req.body.tile_row;
-        var tiles_num = req.body.tiles_num;
-        // find all actions and calc the right nodes
-        // tileNum tilesPerRow
-        // let credits=0;
-        // ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, function(err, docs){
-        //     if(err){
-        //         console.log(err);
-        //     }else{
-        //         if(docs){
-        //             for(let d of docs){
-        //                 if(d.operation=="++" || d.operation=="+"){
-        //                 switch (d.direction) {
-        //                     case "top":
-        //                         if(d.from-tiles_row>=0&&d.from-tiles_row==d.to){
-        //                             credits++;
-        //                         }
-        //                         break;
-        //                         case "right":
-        //                         if(d.from-tiles_row>=0&&d.from-tiles_row==d.to){
-        //                             credits++;
-        //                         }
-        //                         break;
-        //                     default:
-        //                         break;
-        //                 }
-        //             }
-        //         }                
-        //         }
-        //     }
-        // });
 
         let operation = {
             $set: {

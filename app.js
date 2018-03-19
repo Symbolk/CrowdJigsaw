@@ -106,7 +106,7 @@ if (app.get('env') === 'development') {
 } else if (app.get('env') === 'production') {
   // npm start
   config = require('./config/pro');
-  serve.listen(config.port);
+  server.listen(config.port);
   module.exports = app;
   console.log('Listening on port : '+config.port);
 }
@@ -117,18 +117,18 @@ if (app.get('env') === 'development') {
 /**
  * socket.io to send&receive the msg
  */
-if(server){
-  io.on('connection', function(socket){
-    socket.on('join', function(data){
-      // console.log(data);
-      socket.emit('hello', {hello: 'Hello '+ data.player_name});
-    });
-    socket.on('iSolved', function(data){
-      console.log('!!!Round '+data.round_id+' : '+ data.player_name+' solves!');
-      socket.broadcast.emit('someoneSolved', data);
-    });
-  });
-}
+// if(server){
+//   io.on('connection', function(socket){
+//     socket.on('join', function(data){
+//       // console.log(data);
+//       socket.emit('hello', {hello: 'Hello '+ data.player_name});
+//     });
+//     socket.on('iSolved', function(data){
+//       console.log('!!!Round '+data.round_id+' : '+ data.player_name+' solves!');
+//       socket.broadcast.emit('someoneSolved', data);
+//     });
+//   });
+// }
 
 /**
  * A schedule job to clear the endless rounds
