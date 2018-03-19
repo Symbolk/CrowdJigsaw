@@ -1143,7 +1143,6 @@ function JigsawPuzzle(config) {
 
     function sendLinks(tile) {
         var tileIndex = getTileIndex(tile);
-
         if (tileIndex < 0)
             return;
 
@@ -1159,6 +1158,7 @@ function JigsawPuzzle(config) {
             getTileIndex(bottomTile), getTileIndex(leftTile));
 
         var aroundTilesChanged = false;
+
         if (tile.aroundTiles) {
             for (var i = 0; i < aroundTiles.length; i++) {
                 if (tile.aroundTiles[i] != aroundTiles[i]) {
@@ -1238,10 +1238,8 @@ function JigsawPuzzle(config) {
 
             // console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
             var hasConflict = checkConflict(instance.selectedTile, centerCellPosition);
-            if (instance.selectedTile[0].picking) {
-                for (var i = 0; i < instance.selectedTile.length; i++) {
-                    instance.selectedTile[i].picking = false;
-                }
+            for (var i = 0; i < instance.selectedTile.length; i++) {
+                instance.selectedTile[i].picking = false;
             }
 
             var tilesMoved = false;
@@ -1263,8 +1261,12 @@ function JigsawPuzzle(config) {
                         showColorBorder(tileIndex, tile.differentColor[j], tile.colorDirection[j], false);
                     }
                 }
+            }
+
+            for (var i = 0; i < instance.selectedTile.length; i++) {
                 sendLinks(tile);
             }
+
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps = instance.steps + 1;
                 saveGame();
@@ -1500,7 +1502,6 @@ function JigsawPuzzle(config) {
                     hintTile.relativePosition = new Point(0, 0);
                     hintTile.picking = false;
                     hintTile.alreadyHinted = true;
-                    // sendLinks(hintTile);
                 }
                 hintTilesCount += groupTiles.length;
             }
@@ -1534,7 +1535,6 @@ function JigsawPuzzle(config) {
             }
             var img = hitResult.item;
             var tile = img.parent.parent;
-            // console.log(tile.name);
             if (!tile.picking) {
                 retTile = tile;
             }
