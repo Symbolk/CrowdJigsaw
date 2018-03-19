@@ -456,43 +456,10 @@ module.exports = function(io){
     router.route('/saveGame').all(LoginFirst).post(function (req, res, next) {
         var save_game = {
             round_id: req.body.round_id,
-            tiles_num: req.body.tiles_num,
             steps: req.body.steps,
             time: req.body.time,
             tiles: req.body.tiles,
-            shape_array: req.body.shape_array
         }
-        var tiles_row = req.body.tile_row;
-        var tiles_num = req.body.tiles_num;
-        // find all actions and calc the right nodes
-        // tileNum tilesPerRow
-        // let credits=0;
-        // ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, function(err, docs){
-        //     if(err){
-        //         console.log(err);
-        //     }else{
-        //         if(docs){
-        //             for(let d of docs){
-        //                 if(d.operation=="++" || d.operation=="+"){
-        //                 switch (d.direction) {
-        //                     case "top":
-        //                         if(d.from-tiles_row>=0&&d.from-tiles_row==d.to){
-        //                             credits++;
-        //                         }
-        //                         break;
-        //                         case "right":
-        //                         if(d.from-tiles_row>=0&&d.from-tiles_row==d.to){
-        //                             credits++;
-        //                         }
-        //                         break;
-        //                     default:
-        //                         break;
-        //                 }
-        //             }
-        //         }                
-        //         }
-        //     }
-        // });
 
         let operation = {
             $set: {
