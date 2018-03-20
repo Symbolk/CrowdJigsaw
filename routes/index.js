@@ -384,7 +384,7 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
                             t.credits += r.contribution;
                         }
                     }
-                    t.credits=parseInt(t.credits).toFixed(3);
+                    t.credits=parseFloat(t.credits).toFixed(3);
                 }
                 temp = temp.sort(util.descending("credits"));
                 res.render('rank', { title: 'Ranks', Allusers: temp, username: req.session.user.username });

@@ -74,12 +74,23 @@ module.exports = function (io) {
                     "collective_steps": data.steps 
                 }
             };
-            RoundModel.findOneAndUpdate({ round_id: data.round_id }, operation,
-                function (err) {
+            RoundModel.findOne({ round_id: data.round_id },
+                function (err, doc) {
                     if (err) {
                         console.log(err);
+                    }else{
+                        if(doc){
+                            if(doc.collective_steps==-1){
+                                // only remember the first winner of the round
+                                RoundModel.update({ round_id: data.round_id }, operation, function(err){
+                                    if(err){
+                                        console.log(err);
+                                    }
+                                });
+                            }
+                        }
+                        socket.broadcast.emit('someoneSolved', data);
                     }
-                    socket.broadcast.emit('someoneSolved', data);
                 });
         });
     });
