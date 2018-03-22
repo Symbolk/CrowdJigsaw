@@ -537,7 +537,7 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function refreshAroundTiles(tile) {
+    function refreshAroundTiles(tile, beHinted, needToSendLinks) {
         var cellPosition = tile.cellPosition;
 
         var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
@@ -557,11 +557,42 @@ function JigsawPuzzle(config) {
         for (var i = 0; i < aroundTiles.length; i++) {
             if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
+                if(beHinted){
+                    tile.hintedTiles[i] = true;
+                }
+                else{
+                    tile.hintedTiles[i] = false;
+                }
             }
+        }
+
+        if(needToSendLinks && aroundTilesChanged){
+            checkLinks(roundID, getTileIndex(tile), tile.aroundTiles, aroundTiles);
         }
 
         tile.aroundTiles = aroundTiles;
         tile.aroundTilesChanged = aroundTilesChanged;
+    }
+
+    function calcHintedTile(){
+        var hintedTileNum = {
+            totalTile: 0,
+            normalTile: 0,
+            hintedTile: 0
+        };
+        for(var i = 0; i < instance.tiles.length; i++){
+            var tile = instance.tiles[i];
+            for(var j = 0; j < tile.hintedTiles.length; j++){
+                if(tile.hintedTiles[j]){
+                    hintedTileNum.hintedTile += 1;
+                }
+                else{
+                    hintedTileNum.normalTile += 1;
+                }
+                hintedTileNum.totalTile += 1;
+            }
+        }
+        return hintedTileNum;
     }
 
     function finishGame() {
@@ -570,6 +601,8 @@ function JigsawPuzzle(config) {
         clearTimeout(t);
         gameFinishDialog.showModal();
         
+        var hintedTileNum = calcHintedTile();
+        console.log(hintedTileNum)
         /**          
          * Once one person solves the puzzle, the round is over          
          * Send a msg to the server and the server broadcast it to all players          
@@ -607,6 +640,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
+                tile.hintedTiles = new Array(false, false, false, false);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -637,6 +671,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
+                tile.hintedTiles = new Array(false, false, false, false);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -1132,14 +1167,6 @@ function JigsawPuzzle(config) {
         }
         tile.cellPosition = cellPosition;
         tile.relativePosition = new Point(0, 0);
-
-        // judge the hint tiles
-        if (!instance.gameFinished) {
-            var errors = checkTiles();
-            if (errors == 0) {
-                finishGame();
-            }
-        }
     }
 
     function sendLinks(tile) {
@@ -1164,6 +1191,9 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < aroundTiles.length; i++) {
                 if (tile.aroundTiles[i] != aroundTiles[i]) {
                     aroundTilesChanged = true;
+
+                    tile.hintedTiles[i] = false;
+
                     if (aroundTiles[i] == -1) { // add conflict record to both tile connected before
                         tile.conflictTiles.push(tile.aroundTiles[i]);
                         var neighborTile = instance.tiles[tile.aroundTiles[i]];
@@ -1508,20 +1538,29 @@ function JigsawPuzzle(config) {
             }
             for (var i = 0; i < groupTiles.length; i++) {
                 groupTiles[i].picking = false;
-                refreshAroundTiles(groupTiles[i]);
+                refreshAroundTiles(groupTiles[i], true, true);
                 if (groupTiles[i].aroundTilesChanged) {
                     for (var t = 0; t < groupTiles[i].aroundTiles.length; t++) {
                         var neighborIndex = groupTiles[i].aroundTiles[t];
                         if (neighborIndex >= 0) {
                             var neighborTile = instance.tiles[neighborIndex];
-                            refreshAroundTiles(neighborTile);
+                            refreshAroundTiles(neighborTile, true);
                         }
                     }
                 }
+
             }
         }
         if (hintTilesCount) {
             tile.alreadyHinted = true;
+        }
+
+        // judge the hint tiles
+        if (!instance.gameFinished) {
+            var errors = checkTiles();
+            if (errors == 0) {
+                finishGame();
+            }
         }
     }
 

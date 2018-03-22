@@ -310,6 +310,7 @@ module.exports = function (io) {
                             console.log(req.session.user.username + ' starts Round' + req.params.round_id);
                         }
                     });
+                    /*
                     // run genetic algorithm
                     console.log('start running python script of GA algorithm for round %d.', doc.round_id);
                     var path = require('path');
@@ -335,6 +336,7 @@ module.exports = function (io) {
                         console.log('results: %j', results);
                         console.log('GA algorithm for round %d ends.', doc.round_id);
                     });
+                    */
                 } else {
                     res.send({ msg: "Players are not enough!" });
                 }
