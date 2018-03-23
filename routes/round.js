@@ -310,6 +310,7 @@ module.exports = function (io) {
                             console.log(req.session.user.username + ' starts Round' + req.params.round_id);
                         }
                     });
+                    
                     // run genetic algorithm
                     console.log('start running python script of GA algorithm for round %d.', doc.round_id);
                     var path = require('path');
@@ -413,6 +414,10 @@ module.exports = function (io) {
     router.route('/saveRecord').all(LoginFirst).post(function (req, res, next) {
         let operation = {};
         let contri = 0;
+
+        let totalLinks = req.body.totalLinks;
+        let hintedLinks = req.body.hintedLinks;
+
         ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, { _id: 0, contribution: 1 }, function (err, docs) {
             if (err) {
                 console.log(err);

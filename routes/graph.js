@@ -240,6 +240,8 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
 
     let selected = req.body.selectedTile;
     let around = JSON.parse(req.body.aroundTiles);
+    let isHinted = req.body.isHinted;
+    
     let msgs = new Array();
     // For every posted nodes, add them to the nodes(graph), and decide which way 
     var dirs = ['top', 'right', 'bottom', 'left'];
