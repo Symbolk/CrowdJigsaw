@@ -119,51 +119,8 @@ $('.returnCenter').click(function () {
     });
 }());
 
-/**
- * Ensure quit
- */
-(function () {
-    var showButton = document.querySelector('#ensure_quit');
-    var dialog = document.querySelector('#ensure_quit_dialog');
-    var cancelButton = document.querySelector('#cancel-button');
-    var applyButton = document.querySelector('#apply-button');
 
-    if (!dialog.showModal) {
-        dialogPolyfill.registerDialog(dialog);
-    }
-
-    cancelButton.addEventListener('click', function (event) {
-        dialog.close();
-    });
-
-    showButton.addEventListener('click', function (event) {
-        $('.quit-dialog-text').text('Are You Sure?');
-        dialog.showModal();
-    });
-
-    applyButton.addEventListener('click', function (event) {
-
-        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML);
-
-        $.ajax({
-            url: requrl + 'round' + '/quitRound/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                dialog.close();
-                window.location = '/home';
-                console.log(data);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                $('.quit-dialog-text').text('Connection error, please try again.');
-                console.log('error ' + textStatus + " " + errorThrown);
-            }
-        });
-    });
-}());
-
+var hintedLinksNum = undefined;
 
 /**
  * Game Finish
@@ -182,7 +139,8 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
 
         var steps = Number(document.getElementById("steps").innerHTML);
         var full_time = document.getElementById('timer').innerHTML;
-        sendRecord(roundID, true, steps, full_time);       
+
+        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);       
         
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -204,7 +162,7 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
 
         var steps = Number(document.getElementById("steps").innerHTML);
         var full_time = document.getElementById('timer').innerHTML;
-        sendRecord(roundID, true, steps, full_time);    
+        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);    
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -558,58 +516,67 @@ function JigsawPuzzle(config) {
             if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
                 if(beHinted){
-                    tile.hintedTiles[i] = true;
+                    tile.hintedLinks[i] = true;
                 }
                 else{
-                    tile.hintedTiles[i] = false;
+                    tile.hintedLinks[i] = false;
                 }
             }
         }
 
         if(needToSendLinks && aroundTilesChanged){
-            checkLinks(roundID, getTileIndex(tile), tile.aroundTiles, aroundTiles);
+            checkLinks(roundID, getTileIndex(tile), tile.aroundTiles, aroundTiles, true);
         }
 
         tile.aroundTiles = aroundTiles;
         tile.aroundTilesChanged = aroundTilesChanged;
     }
 
-    function calcHintedTile(){
-        var hintedTileNum = {
-            totalTile: 0,
-            normalTile: 0,
-            hintedTile: 0
+    this.calcHintedTile = function(){
+        hintedLinksNum = {
+            totalLinks: 0,
+            normalLinks: 0,
+            hintedLinks: 0
         };
         for(var i = 0; i < instance.tiles.length; i++){
             var tile = instance.tiles[i];
-            for(var j = 0; j < tile.hintedTiles.length; j++){
-                if(tile.hintedTiles[j]){
-                    hintedTileNum.hintedTile += 1;
+            for(var j = 0; j < tile.hintedLinks.length; j++){
+                if(tile.aroundTiles[j] >= 0)
+                {
+                    if(tile.hintedLinks[j]){
+                        hintedLinksNum.hintedLinks += 1;
+                    }
+                    else{
+                        hintedLinksNum.normalLinks += 1;
+                    }
+                    hintedLinksNum.totalLinks += 1;
                 }
-                else{
-                    hintedTileNum.normalTile += 1;
-                }
-                hintedTileNum.totalTile += 1;
             }
         }
-        return hintedTileNum;
     }
 
     function finishGame() {
         instance.gameFinished = true;
 
         clearTimeout(t);
-        gameFinishDialog.showModal();
         
-        var hintedTileNum = calcHintedTile();
-        console.log(hintedTileNum)
+        instance.calcHintedTile();
+
+        gameFinishDialog.showModal();
         /**          
          * Once one person solves the puzzle, the round is over          
          * Send a msg to the server and the server broadcast it to all players          
          **/
         steps = Number(document.getElementById("steps").innerHTML);
         full_time = document.getElementById('timer').innerHTML;
-        socket.emit('iSolved', { round_id: roundID, player_name: player_name, steps: steps, time: full_time });
+        socket.emit('iSolved', { 
+            round_id: roundID, 
+            player_name: player_name, 
+            steps: steps, 
+            time: full_time, 
+            totalLinks: hintedLinksNum.totalLinks,
+            hintedLinks: hintedLinksNum.hintedLinks 
+        });
         // once game starts, don't pull players
         // $.ajax({
         //     url: requrl + 'round' + '/quitRound/' + roundID,
@@ -640,7 +607,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
-                tile.hintedTiles = new Array(false, false, false, false);
+                tile.hintedLinks = new Array(false, false, false, false);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -671,7 +638,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
-                tile.hintedTiles = new Array(false, false, false, false);
+                tile.hintedLinks = new Array(false, false, false, false);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -1192,7 +1159,7 @@ function JigsawPuzzle(config) {
                 if (tile.aroundTiles[i] != aroundTiles[i]) {
                     aroundTilesChanged = true;
 
-                    tile.hintedTiles[i] = false;
+                    tile.hintedLinks[i] = false;
 
                     if (aroundTiles[i] == -1) { // add conflict record to both tile connected before
                         tile.conflictTiles.push(tile.aroundTiles[i]);
@@ -1240,7 +1207,7 @@ function JigsawPuzzle(config) {
             if (!tile.aroundTiles) {
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
             }
-            checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles);
+            checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles, false);
         }
 
         var sum = 0;
@@ -1835,3 +1802,50 @@ function resizeCanvas() {
 }
 $('#canvas').resize();
 resizeCanvas();
+
+/**
+ * Ensure quit
+ */
+(function () {
+    var showButton = document.querySelector('#ensure_quit');
+    var dialog = document.querySelector('#ensure_quit_dialog');
+    var cancelButton = document.querySelector('#cancel-button');
+    var applyButton = document.querySelector('#apply-button');
+
+    if (!dialog.showModal) {
+        dialogPolyfill.registerDialog(dialog);
+    }
+
+    cancelButton.addEventListener('click', function (event) {
+        dialog.close();
+    });
+
+    showButton.addEventListener('click', function (event) {
+        $('.quit-dialog-text').text('Are You Sure?');
+        dialog.showModal();
+    });
+
+    applyButton.addEventListener('click', function (event) {
+
+        puzzle.calcHintedTile();
+
+        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);
+
+        $.ajax({
+            url: requrl + 'round' + '/quitRound/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                dialog.close();
+                window.location = '/home';
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                $('.quit-dialog-text').text('Connection error, please try again.');
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
+    });
+}());

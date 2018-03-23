@@ -35,7 +35,7 @@ const requrl = window.location.protocol + '//' + window.location.host + '/';
 })
 * @return ifSucceed Boolean
 */
-function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
+function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesAfter, isHinted) {
     selectedTileIndex = Number(selectedTileIndex);
 
     // format the params into a json object
@@ -50,7 +50,8 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
     var params = {
         round_id: round_id,// get from newRound()
         selectedTile: selectedTileIndex,
-        aroundTiles: JSON.stringify(aroundTiles)
+        aroundTiles: JSON.stringify(aroundTiles),
+        isHinted: isHinted
     };
     // send a request to post this step to the server
     $.ajax({
@@ -76,12 +77,14 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, finished, steps, time) {
+function sendRecord(round_id, finished, steps, time, totalLinks, hintedLinks) {
     var params = {
         round_id: round_id,
         finished: finished,
         steps: steps,
-        time: time
+        time: time,
+        totalLinks: totalLinks,
+        hintedLinks: hintedLinks
     };
     $.ajax({
         data: params,
