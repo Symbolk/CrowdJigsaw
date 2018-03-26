@@ -289,7 +289,6 @@ var mousedowned = false;
 var timeoutFunction;
 function onMouseDown(event) {
     mousedowned = true;
-    $('html,body').css('cursor','move');    
     var tilesCount = puzzle.pickTile(event.point);
     if (tilesCount > 0) {
         timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
@@ -306,12 +305,13 @@ function onMouseUp(event) {
         clearTimeout(timeoutFunction);
     }
     puzzle.releaseTile();
-    $('html,body').css('cursor','default');
     mousedowned = false;
 }
 
 
 function onMouseDrag(event) {
+    var ca=document.getElementById("canvas");
+    ca.getContext("2d").clearRect(0, 0, ca.width, ca.height);
     mousedowned = true;
     if (timeoutFunction) {
         clearTimeout(timeoutFunction);
@@ -1065,6 +1065,7 @@ function JigsawPuzzle(config) {
         }
         findSelectTile(point);
         if (instance.selectedTile) {
+            $('html,body').css('cursor','move');          
             if (!instance.selectedTile[0].picking) {
                 for (var i = 0; i < instance.selectedTile.length; i++) {
                     instance.selectedTile[i].picking = true;
@@ -1080,7 +1081,7 @@ function JigsawPuzzle(config) {
             var pos = new Point(instance.selectedTile[0].position.x, instance.selectedTile[0].position.y);
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
-                tile.opacity = .5;
+                // tile.opacity = .5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
                 tile.originPosition = tile.cellPosition;
             }
@@ -1296,7 +1297,7 @@ function JigsawPuzzle(config) {
                     finishGame();
                 }
             }
-
+            $('html,body').css('cursor','default');            
             normalizeTiles();
         }
     }
