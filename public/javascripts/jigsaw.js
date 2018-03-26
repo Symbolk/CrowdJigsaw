@@ -289,6 +289,7 @@ var mousedowned = false;
 var timeoutFunction;
 function onMouseDown(event) {
     mousedowned = true;
+    $('html,body').css('cursor','move');    
     var tilesCount = puzzle.pickTile(event.point);
     if (tilesCount > 0) {
         timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
@@ -305,6 +306,7 @@ function onMouseUp(event) {
         clearTimeout(timeoutFunction);
     }
     puzzle.releaseTile();
+    $('html,body').css('cursor','default');
     mousedowned = false;
 }
 

@@ -71,7 +71,9 @@ module.exports = function (io) {
                 $set: {
                     "MVP": data.player_name,
                     "collective_time": data.time,
-                    "collective_steps": data.steps 
+                    "collective_steps": data.steps,
+                    "total_links": data.totalLinks,
+                    "hinted_links": data.hintedLinks
                 }
             };
             RoundModel.findOne({ round_id: data.round_id },
@@ -432,7 +434,9 @@ module.exports = function (io) {
                             "records.$.end_time": TIME,
                             "records.$.steps": req.body.steps,
                             "records.$.time": req.body.time,
-                            "records.$.contribution": contri.toFixed(3)
+                            "records.$.contribution": contri.toFixed(3),
+                            "records.$.total_links": req.body.totalLinks,
+                            "records.$.hinted_links": req.body.hintedLinks                            
                         }
                     };
                 } else if (req.body.finished == "false") {
@@ -441,7 +445,9 @@ module.exports = function (io) {
                             "records.$.end_time": "-1",
                             "records.$.steps": req.body.steps,
                             "records.$.time": req.body.time,
-                            "records.$.contribution": contri.toFixed(3)
+                            "records.$.contribution": contri.toFixed(3),
+                            "records.$.total_links": req.body.totalLinks,
+                            "records.$.hinted_links": req.body.hintedLinks
                         }
                     };
                 }
