@@ -12,7 +12,7 @@ var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
 var constants = require('../config/constants');
-
+var hint_weight = constants.hint_weight;
 /**
  * Get the best link with different strategies
  * @param {*} links
@@ -51,7 +51,7 @@ function calcContri(operation, num_before) {
         default:
             contribution = 0;
     }
-    return contribution;
+    return contribution.toFixed(3);
 }
 
 /**
@@ -97,7 +97,7 @@ function writeAction(NAME, round_id, operation, from, direction, to, contri) {
 }
 
 // Bidirectionally add one link to the other side
-function mutualAdd(round_id, from, to, dir) {
+function mutualAdd(round_id, from, to, dir, isHinted) {
 
     NodeModel.findOne({ round_id: round_id, index: from }, function (err, doc) {
         if (err) {
@@ -115,9 +115,10 @@ function mutualAdd(round_id, from, to, dir) {
                     } else {
                         // and push a new one
                         let temp = {};
+                        let support = isHinted ? hint_weight : 1;
                         temp[dir] = {
                             index: to,
-                            sup_num: 1
+                            sup_num: support
                         };
                         NodeModel.update(
                             { round_id: round_id, index: from },
@@ -136,9 +137,10 @@ function mutualAdd(round_id, from, to, dir) {
                     // not exists
                     // push a new one
                     let temp = {};
+                    let support = isHinted ? hint_weight : 1;
                     temp[dir] = {
                         index: to,
-                        sup_num: 1
+                        sup_num: support
                     };
                     NodeModel.update(
                         { round_id: round_id, index: from },
@@ -160,7 +162,7 @@ function mutualAdd(round_id, from, to, dir) {
                             };
                             condition[dir + '.index'] = to;
                             let temp = {};
-                            temp[dir + '.$.sup_num'] = 1;
+                            temp[dir + '.$.sup_num'] = isHinted ? hint_weight : 1;
                             NodeModel.update(condition,
                                 { $inc: temp },
                                 function (err) {
@@ -174,9 +176,10 @@ function mutualAdd(round_id, from, to, dir) {
                     if (!existed) {
                         // ++
                         let temp = {};
+                        let support = isHinted ? hint_weight : 1;
                         temp[dir] = {
                             index: to,
-                            sup_num: 1
+                            sup_num: support
                         };
                         NodeModel.update(
                             { round_id: round_id, index: from },
@@ -214,63 +217,100 @@ function mutualRemove(round_id, from, to, dir) {
                     temp[dir + '.$.sup_num'] = -1;
                     temp[dir + '.$.opp_num'] = 1;
                     NodeModel.find(condition, function (err, doc) {
-                            if (err) {
-                                console.log(err);
-                            }else{
-                                NodeModel.update(condition, { $inc: temp }, function (err) {
-                                    if(err){
-                                        console.log(err);
-                                    }
-                                });
-                            }
-                        });
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            NodeModel.update(condition, { $inc: temp }, function (err) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            });
+                        }
+                    });
                 }
             }
         }
     });
 }
 
-/**
- * Check the links and format the action object
- * Bidirectionally
- */
-router.route('/check').all(LoginFirst).post(function (req, res, next) {
-    let round_id = req.body.round_id;
-    var NAME = req.session.user.username;
 
-    let selected = req.body.selectedTile;
-    let around = JSON.parse(req.body.aroundTiles);
-    let isHinted = req.body.isHinted;
-    
-    let msgs = new Array();
-    // For every posted nodes, add them to the nodes(graph), and decide which way 
-    var dirs = ['top', 'right', 'bottom', 'left'];
-    var reverseDirs = ['bottom', 'left', 'top', 'right'];
-    NodeModel.findOne({ round_id: round_id, index: selected }, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (!doc) { // Case1: Add(node not existed)
-                // new a node and new the links
-                // all ++
-                let new_node = {
-                    round_id: round_id,
-                    index: selected
-                };
-                NodeModel.create(new_node, function (err) {
-                    if (err) {
-                        console.log(err);
-                        res.send({ msg: err });
-                    } else {
-                        for (let d = 0; d < around.length; d++) { // d=0,1,2,3
-                            let to = around[d];
-                            if (to.before != to.after) {
-                                // In practice, to.before is bound to be -1
-                                if (to.before == -1) {
+module.exports = function (io) {
+    io.on('connection', function (socket) {
+        socket.on('upload', function (data) {
+            check(data);
+        });
+    });
+
+    function check(params) {
+        let round_id = params.round_id;
+        let selected = params.selectedTile;
+        let around = JSON.parse(params.aroundTiles);
+        let isHinted = params.isHinted;
+        var NAME = isHinted ? "" : params.player_name;
+
+        let msgs = new Array();
+        // For every posted nodes, add them to the nodes(graph), and decide which way 
+        var dirs = ['top', 'right', 'bottom', 'left'];
+        var reverseDirs = ['bottom', 'left', 'top', 'right'];
+        NodeModel.findOne({ round_id: round_id, index: selected }, function (err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                if (!doc) { // Case1: Add(node not existed)
+                    // new a node and new the links
+                    // all ++
+                    let new_node = {
+                        round_id: round_id,
+                        index: selected
+                    };
+                    NodeModel.create(new_node, function (err) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            for (let d = 0; d < around.length; d++) { // d=0,1,2,3
+                                let to = around[d];
+                                if (to.before != to.after) {
+                                    // In practice, to.before is bound to be -1
+                                    if (to.before == -1) {
+                                        let temp = {};
+                                        let support = isHinted ? hint_weight : 1;
+                                        temp[dirs[d]] = {
+                                            index: to.after,
+                                            sup_num: support
+                                        };
+                                        NodeModel.update(
+                                            { round_id: round_id, index: selected },
+                                            { $push: temp },
+                                            function (err) {
+                                                if (err) {
+                                                    console.log(err);
+                                                } else {
+                                                    writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
+                                                    mutualAdd(round_id, to.after, selected, reverseDirs[d], isHinted);
+                                                }
+                                            });
+                                    } else if (to.after == -1) {
+                                        console.log("Unreachable case1.");
+                                    } else { // to.before!=to.after!=-1
+                                        console.log("Unreachable case2.");
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    // this node in this round already exists
+                    for (let d = 0; d < around.length; d++) { // d=0,1,2,3
+                        let to = around[d];
+                        if (to.before != to.after) {
+                            if (to.before == -1) {  // Case2: Add(node existed, -1 to !-1)
+                                if (doc[dirs[d]].length == 0) {
+                                    // ++ in global view
                                     let temp = {};
+                                    let support = isHinted ? hint_weight : 1;
                                     temp[dirs[d]] = {
                                         index: to.after,
-                                        sup_num: 1
+                                        sup_num: support
                                     };
                                     NodeModel.update(
                                         { round_id: round_id, index: selected },
@@ -280,98 +320,98 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                                 console.log(err);
                                             } else {
                                                 writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                                // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
-                                                mutualAdd(round_id, to.after, selected, reverseDirs[d]);
+                                                mutualAdd(round_id, to.after, selected, reverseDirs[d], isHinted);
                                             }
                                         });
-                                } else if (to.after == -1) {
-                                    console.log("Unreachable case1.");
-                                } else { // to.before!=to.after!=-1
-                                    console.log("Unreachable case2.");
-                                }
-                            }
-                        }
-                        res.send({ msg: 'success' });
-                        // res.send({ msg: JSON.stringify(msgs) });
-                    }
-                });
-            } else {
-                // this node in this round already exists
-                for (let d = 0; d < around.length; d++) { // d=0,1,2,3
-                    let to = around[d];
-                    if (to.before != to.after) {
-                        if (to.before == -1) {  // Case2: Add(node existed, -1 to !-1)
-                            if (doc[dirs[d]].length == 0) {
-                                // ++ in global view
-                                let temp = {};
-                                temp[dirs[d]] = {
-                                    index: to.after,
-                                    sup_num: 1
-                                };
-                                NodeModel.update(
-                                    { round_id: round_id, index: selected },
-                                    { $push: temp },
-                                    function (err) {
-                                        if (err) {
-                                            console.log(err);
-                                        } else {
-                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                            // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
-                                            mutualAdd(round_id, to.after, selected, reverseDirs[d]);
-                                        }
-                                    });
-                            } else {
-                                let existed = false;
-                                for (let i of doc[dirs[d]]) {
-                                    if (i.index == to.after) {
-                                        // + 
-                                        existed = true;
-                                        let condition = {
-                                            round_id: round_id, index: selected
-                                        };
-                                        condition[dirs[d] + '.index'] = to.after;
-                                        let temp = {};
-                                        temp[dirs[d] + '.$.sup_num'] = 1;
-                                        let sup_before = i.sup_num;
+                                } else {
+                                    let existed = false;
+                                    for (let i of doc[dirs[d]]) {
+                                        if (i.index == to.after) {
+                                            // + 
+                                            existed = true;
+                                            let condition = {
+                                                round_id: round_id, index: selected
+                                            };
+                                            condition[dirs[d] + '.index'] = to.after;
+                                            let temp = {};
+                                            temp[dirs[d] + '.$.sup_num'] = isHinted ? hint_weight : 1;
+                                            let sup_before = i.sup_num;
 
-                                        NodeModel.update(condition,
-                                            { $inc: temp },
-                                            function (err, doc) {
+                                            NodeModel.update(condition,
+                                                { $inc: temp },
+                                                function (err, doc) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    } else {
+                                                        writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
+                                                        mutualAdd(round_id, to.after, selected, reverseDirs[d], isHinted);
+                                                    }
+                                                });
+                                        }
+                                    }
+                                    if (!existed) {
+                                        // ++
+                                        let temp = {};
+                                        let support = isHinted ? hint_weight : 1;
+                                        temp[dirs[d]] = {
+                                            index: to.after,
+                                            sup_num: support
+                                        };
+                                        NodeModel.update(
+                                            { round_id: round_id, index: selected },
+                                            { $push: temp },
+                                            function (err) {
                                                 if (err) {
                                                     console.log(err);
                                                 } else {
-                                                    writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
-                                                    // res.send({msg:'+ ' + selected + '-' + dirs[d] + '->' + to.after});
-                                                    mutualAdd(round_id, to.after, selected, reverseDirs[d]);
+                                                    writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
+                                                    // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
+                                                    mutualAdd(round_id, to.after, selected, reverseDirs[d], isHinted);
                                                 }
                                             });
                                     }
                                 }
-                                if (!existed) {
-                                    // ++
-                                    let temp = {};
-                                    temp[dirs[d]] = {
-                                        index: to.after,
-                                        sup_num: 1
+                            } else if (to.after == -1) { // Case3: Remove(edge existed, !-1 to -1)
+                                // assert: existed&&sup_num>=1
+                                if (doc[dirs[d]].length > 0) {
+                                    // --/-
+                                    let condition = {
+                                        round_id: round_id, index: selected
                                     };
-                                    NodeModel.update(
-                                        { round_id: round_id, index: selected },
-                                        { $push: temp },
-                                        function (err) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                                // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
-                                                mutualAdd(round_id, to.after, selected, reverseDirs[d]);
+                                    condition[dirs[d] + '.index'] = to.before;
+                                    let temp = {};
+                                    temp[dirs[d] + '.$.sup_num'] = -1;
+                                    temp[dirs[d] + '.$.opp_num'] = 1;
+                                    NodeModel.findOne(condition, function (err, doc) {
+                                        if (err) {
+                                            console.log(err);
+                                        } else {
+                                            if (doc) {
+                                                let op = "";
+                                                let opp_before = 0;
+                                                for (let i of doc[dirs[d]]) {
+                                                    if (i.index == to.before) {
+                                                        op = i.sup_num <= 1 ? "--" : "-"; // 0/1-1=-1/0;
+                                                        opp_before = i.opp_num;
+                                                    }
+                                                }
+                                                NodeModel.update(condition, { $inc: temp }, function (err) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    } else {
+                                                        writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
+                                                        // res.send(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
+                                                        mutualRemove(round_id, to.before, selected, reverseDirs[d]);
+                                                    }
+                                                });
                                             }
-                                        });
+                                        }
+                                    });
+
                                 }
-                            }
-                        } else if (to.after == -1) { // Case3: Remove(edge existed, !-1 to -1)
-                            // assert: existed&&sup_num>=1
-                            if (doc[dirs[d]].length > 0) {
-                                // --/-
+                            } else { // Case4: Update(to.before!=to.after!=-1)
+                                // - 
+                                var to_send = {};
                                 let condition = {
                                     round_id: round_id, index: selected
                                 };
@@ -404,317 +444,243 @@ router.route('/check').all(LoginFirst).post(function (req, res, next) {
                                         }
                                     }
                                 });
-                                // NodeModel.findOneAndUpdate(condition,
-                                //     { $inc: temp }, { new: true }, // return the modified doc
-                                //     function (err, doc) {
-                                //         if (err) {
-                                //             console.log(err);
-                                //         } else {
-                                //             let op = "";
-                                //             let opp_before = 0;
-                                //             for (let i of doc[dirs[d]]) {
-                                //                 if (i.index == to.before) {
-                                //                     op = i.sup_num <= 0 ? "--" : "-";
-                                //                     opp_before = i.opp_num - 1;
-                                //                 }
-                                //             }
-                                //             writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
-                                //             // res.send({msg:op + ' ' + selected + '-' + dirs[d] + '->' + to.before});
-                                //             mutualRemove(round_id, to.before, selected, reverseDirs[d]);
-                                //         }
-                                //     });
-                            }
-                        } else { // Case4: Update(to.before!=to.after!=-1)
-                            // - 
-                            var to_send = {};
-                            let condition = {
-                                round_id: round_id, index: selected
-                            };
-                            condition[dirs[d] + '.index'] = to.before;
-                            let temp = {};
-                            temp[dirs[d] + '.$.sup_num'] = -1;
-                            temp[dirs[d] + '.$.opp_num'] = 1;
-                            NodeModel.findOne(condition, function (err, doc) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    if (doc) {
-                                        let op = "";
-                                        let opp_before = 0;
-                                        for (let i of doc[dirs[d]]) {
-                                            if (i.index == to.before) {
-                                                op = i.sup_num <= 1 ? "--" : "-"; // 0/1-1=-1/0;
-                                                opp_before = i.opp_num;
-                                            }
-                                        }
-                                        NodeModel.update(condition, { $inc: temp }, function (err) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
-                                                // res.send(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
-                                                mutualRemove(round_id, to.before, selected, reverseDirs[d]);
-                                            }
-                                        });
+
+                                // +
+                                let existed = false;
+                                for (let i of doc[dirs[d]]) {
+                                    if (i.index == to.after) {
+                                        existed = true;
+                                        let condition = {
+                                            round_id: round_id, index: selected
+                                        };
+                                        condition[dirs[d] + '.index'] = to.after;
+                                        let temp = {};
+                                        temp[dirs[d] + '.$.sup_num'] = isHinted ? hint_weight : 1;
+                                        let sup_before = i.sup_num;
+                                        NodeModel.update(condition,
+                                            { $inc: temp },
+                                            function (err, doc) {
+                                                if (err) {
+                                                    console.log(err);
+                                                } else {
+                                                    writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
+                                                    // res.send({msg:'+ ' + selected + '-' + dirs[d] + '->' + to.after});
+                                                    mutualAdd(round_id, to.after, selected, reverseDirs[d], isHinted);
+                                                }
+                                            });
                                     }
                                 }
-                            });
-                            // NodeModel.findOneAndUpdate(condition,
-                            // { $inc: temp }, { new: true },
-                            // function (err, doc) {
-                            //     if (err) {
-                            //         console.log(err);
-                            //     } else {
-                            //         if (!doc){
-                            //             let op = "";
-                            //             let opp_before = 0;
-                            //             for (let i of doc[dirs[d]]) {
-                            //                 if (i.index == to.before) {
-                            //                     op = i.sup_num <= 0 ? "--" : "-";
-                            //                     opp_before = i.opp_num - 1;
-                            //                 }
-                            //             }
-                            //             writeAction(NAME, round_id, op, selected, dirs[d], to.before, calcContri(op, opp_before));
-                            //             // res.send(op + ' ' + selected + '-' + dirs[d] + '->' + to.before);
-                            //             mutualRemove(round_id, to.before, selected, reverseDirs[d]);
-                            //         }
-                            //     }
-                            // });
-                            // +
-                            let existed = false;
-                            for (let i of doc[dirs[d]]) {
-                                if (i.index == to.after) {
-                                    existed = true;
-                                    let condition = {
-                                        round_id: round_id, index: selected
-                                    };
-                                    condition[dirs[d] + '.index'] = to.after;
+                                if (!existed) {
+                                    // ++
                                     let temp = {};
-                                    temp[dirs[d] + '.$.sup_num'] = 1;
-                                    let sup_before = i.sup_num;
-                                    NodeModel.update(condition,
-                                        { $inc: temp },
-                                        function (err, doc) {
+                                    let support = isHinted ? hint_weight : 1;
+                                    temp[dirs[d]] = {
+                                        index: to.after,
+                                        sup_num: support
+                                    };
+                                    NodeModel.update(
+                                        { round_id: round_id, index: selected },
+                                        { $push: temp },
+                                        function (err) {
                                             if (err) {
                                                 console.log(err);
                                             } else {
-                                                writeAction(NAME, round_id, "+", selected, dirs[d], to.after, calcContri("+", sup_before));
-                                                // res.send({msg:'+ ' + selected + '-' + dirs[d] + '->' + to.after});
-                                                mutualAdd(round_id, to.after, selected, reverseDirs[d]);
+                                                writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
+                                                // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
+                                                mutualAdd(round_id, to.after, selected, reverseDirs[d], isHinted);
                                             }
                                         });
                                 }
-                            }
-                            if (!existed) {
-                                // ++
-                                let temp = {};
-                                temp[dirs[d]] = {
-                                    index: to.after,
-                                    sup_num: 1
-                                };
-                                NodeModel.update(
-                                    { round_id: round_id, index: selected },
-                                    { $push: temp },
-                                    function (err) {
-                                        if (err) {
-                                            console.log(err);
-                                        } else {
-                                            writeAction(NAME, round_id, "++", selected, dirs[d], to.after, calcContri("++", 0));
-                                            // res.send({msg:'++ ' + selected + '-' + dirs[d] + '->' + to.after});
-                                            mutualAdd(round_id, to.after, selected, reverseDirs[d]);
-                                        }
-                                    });
                             }
                         }
                     }
                 }
-                res.send({ msg: 'success' });
             }
+        });
+    }
+
+
+
+    /**
+     * Get hints from the current graph data
+     * @return If sure: an array of recommended index, in 4 directions of the tile
+     * @return If unsure: the latest tile that requires more information(highlight in the client to collect votes)
+     */
+    var strategy = constants.strategy;
+    var unsure_gap = constants.unsure_gap;
+    router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req, res) {
+        // router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
+        // query the 4 dirs of the selected tile
+        let condition = {
+            round_id: req.params.round_id,
+            index: req.params.selected
+        };
+        // find the most-supported one of every dir
+        var hintIndexes = new Array();
+        var dirs = ['top', 'right', 'bottom', 'left'];
+
+        if (strategy == "conservative") {
+            // Stratey1: conservative
+            // get the players_num of the round
+            RoundModel.findOne(condition, { _id: 0, players_num: 1 }, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    let players_num = doc.players_num;
+                    NodeModel.findOne(condition, function (err, doc) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            if (!doc) {
+                                res.send({ msg: "No hints." });
+                            } else {
+                                for (let d = 0; d < 4; d++) {
+                                    let alternatives = doc[dirs[d]];
+                                    if (alternatives.length == 0) {
+                                        hintIndexes.push(-1);
+                                    } else {
+                                        let most_sup = alternatives[0];
+                                        for (let a of alternatives) {
+                                            if (a.sup_num > most_sup.sup_num) {
+                                                most_sup = a;
+                                            }
+                                        }
+                                        // to guarantee zero sup nodes won't be hinted
+                                        // 1/5 of the crowd have supported
+                                        if (most_sup.sup_num > (players_num / 5)) {
+                                            hintIndexes.push(most_sup.index);
+                                        } else {
+                                            hintIndexes.push(-1);
+                                        }
+                                    }
+                                }
+                                res.send(JSON.stringify(hintIndexes));
+                            }
+                        }
+                    });
+                }
+            });
+        } else if (strategy == "aggressive") {
+            // Strategy 2: aggressive
+            NodeModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (!doc) {
+                        res.send({ msg: "No hints." });
+                    } else {
+                        for (let d = 0; d < 4; d++) {
+                            let alternatives = doc[dirs[d]];
+                            if (alternatives.length == 0) {
+                                hintIndexes.push(-1);
+                            } else {
+                                let most_sup = alternatives[0];
+                                for (let a of alternatives) {
+                                    if (a.sup_num > most_sup.sup_num) {
+                                        most_sup = a;
+                                    }
+                                }
+                                if (most_sup.sup_num > 0) {
+                                    hintIndexes.push(most_sup.index);
+                                } else {
+                                    hintIndexes.push(-1);
+                                }
+                            }
+                        }
+                        res.send(JSON.stringify(hintIndexes));
+                    }
+                }
+            });
+        } else if (strategy == "considerate") {
+            // Strategy 3: considerate
+            var unsureLinks = new Array([], [], [], []);
+            NodeModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (!doc) {
+                        res.send({ msg: "No hints." });
+                    } else {
+                        for (let d = 0; d < 4; d++) {
+                            let alternatives = doc[dirs[d]];
+                            if (alternatives.length == 0) {
+                                hintIndexes.push(-1);
+                            } else {
+                                let best = alternatives[0];
+                                let best_score = best.sup_num - best.opp_num;
+                                for (let a of alternatives) {
+                                    let score = a.sup_num - a.opp_num;
+                                    if (score > 0 && score > best_score) {
+                                        best = a;
+                                        best_score = score;
+                                    }
+                                }
+                                for (let a of alternatives) {
+                                    let score = a.sup_num - a.opp_num;
+                                    if (score > 0) {
+                                        if (score == best_score || score == best_score - unsure_gap) {
+                                            unsureLinks[d].push(a.index);
+                                        }
+                                    }
+                                }
+                                // if only one best and no best-1
+                                if (unsureLinks[d].length == 1) {
+                                    hintIndexes.push(unsureLinks[d][0]);
+                                    unsureLinks[d] = new Array();
+                                } else {
+                                    // -2 means multiple choices available
+                                    hintIndexes.push(-2);
+                                }
+                            }
+                        }
+                        res.send({
+                            "sure": JSON.stringify(hintIndexes),
+                            "unsure": JSON.stringify(unsureLinks)
+                        });
+                    }
+                }
+            });
         }
     });
-});
 
 
-/**
- * Get hints from the current graph data
- * @return If sure: an array of recommended index, in 4 directions of the tile
- * @return If unsure: the latest tile that requires more information(highlight in the client to collect votes)
- */
-var strategy = constants.strategy;
-var unsure_gap=constants.unsure_gap;
-router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req, res) {
-    // router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
-    // query the 4 dirs of the selected tile
-    let condition = {
-        round_id: req.params.round_id,
-        index: req.params.selected
-    };
-    // find the most-supported one of every dir
-    var hintIndexes = new Array();
-    var dirs = ['top', 'right', 'bottom', 'left'];
+    function LoginFirst(req, res, next) {
+        if (!req.session.user) {
+            req.session.error = 'Please Login First!';
+            return res.redirect('/login');
+            //return res.redirect('back');//返回之前的页面
+        }
+        next();
+    }
 
-    if (strategy == "conservative") {
-        // Stratey1: conservative
-        // get the players_num of the round
-        RoundModel.findOne(condition, { _id: 0, players_num: 1 }, function (err, doc) {
+    /**
+     * Access Control
+     * @param {*} req 
+     * @param {*} res 
+     * @param {*} next 
+     */
+    function JoinRoundFirst(req, res, next) {
+
+        RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, players: 1 }, function (err, doc) {
             if (err) {
                 console.log(err);
             } else {
-                let players_num = doc.players_num;
-                NodeModel.findOne(condition, function (err, doc) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        if (!doc) {
-                            res.send({ msg: "No hints." });
-                        } else {
-                            for (let d = 0; d < 4; d++) {
-                                let alternatives = doc[dirs[d]];
-                                if (alternatives.length == 0) {
-                                    hintIndexes.push(-1);
-                                } else {
-                                    let most_sup = alternatives[0];
-                                    for (let a of alternatives) {
-                                        if (a.sup_num > most_sup.sup_num) {
-                                            most_sup = a;
-                                        }
-                                    }
-                                    // to guarantee zero sup nodes won't be hinted
-                                    // 1/5 of the crowd have supported
-                                    if (most_sup.sup_num > (players_num / 5)) {
-                                        hintIndexes.push(most_sup.index);
-                                    } else {
-                                        hintIndexes.push(-1);
-                                    }
-                                }
-                            }
-                            res.send(JSON.stringify(hintIndexes));
-                        }
+                if (doc) {
+                    let hasJoined = doc.players.some(function (p) {
+                        return (p.player_name == req.session.user.username);
+                    });
+                    if (!hasJoined) {
+                        req.session.error = "You haven't joined this Round!";
+                        return res.redirect('/home');
                     }
-                });
-            }
-        });
-    } else if(strategy == "aggressive"){
-        // Strategy 2: aggressive
-        NodeModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                if (!doc) {
-                    res.send({ msg: "No hints." });
+                    next();
                 } else {
-                    for (let d = 0; d < 4; d++) {
-                        let alternatives = doc[dirs[d]];
-                        if (alternatives.length == 0) {
-                            hintIndexes.push(-1);
-                        } else {
-                            let most_sup = alternatives[0];
-                            for (let a of alternatives) {
-                                if (a.sup_num > most_sup.sup_num) {
-                                    most_sup = a;
-                                }
-                            }
-                            if (most_sup.sup_num > 0) {
-                                hintIndexes.push(most_sup.index);
-                            } else {
-                                hintIndexes.push(-1);
-                            }
-                        }
-                    }
-                    res.send(JSON.stringify(hintIndexes));
-                }
-            }
-        });
-    }else if (strategy == "considerate") {
-       // Strategy 3: considerate
-       var unsureLinks=new Array([],[],[],[]);
-       NodeModel.findOne(condition, function (err, doc) {
-           if (err) {
-               console.log(err);
-           } else {
-               if (!doc) {
-                   res.send({ msg: "No hints." });
-               } else {
-                   for (let d = 0; d < 4; d++) {
-                       let alternatives = doc[dirs[d]];
-                       if (alternatives.length == 0) {
-                           hintIndexes.push(-1);
-                       } else {
-                           let best = alternatives[0];
-                           let best_score=best.sup_num - best.opp_num;
-                           for (let a of alternatives) {
-                               let score=a.sup_num - a.opp_num;
-                               if (score > 0 && score > best_score) {
-                                   best = a;
-                                   best_score=score;
-                               }
-                           }
-                           for(let a of alternatives){
-                               let score=a.sup_num - a.opp_num;
-                               if(score > 0){
-                                   if(score==best_score || score==best_score-unsure_gap){
-                                       unsureLinks[d].push(a.index);
-                                   }
-                               }                                
-                           }
-                           // if only one best and no best-1
-                           if (unsureLinks[d].length == 1) {
-                               hintIndexes.push(unsureLinks[d][0]);
-                               unsureLinks[d] = new Array();
-                           } else {
-                               // -2 means multiple choices available
-                               hintIndexes.push(-2);
-                           }
-                       }
-                   }
-                   res.send({
-                       "sure": JSON.stringify(hintIndexes),
-                       "unsure": JSON.stringify(unsureLinks)
-                   });
-                }
-            }
-        });
-    }
-});
-
-
-function LoginFirst(req, res, next) {
-    if (!req.session.user) {
-        req.session.error = 'Please Login First!';
-        return res.redirect('/login');
-        //return res.redirect('back');//返回之前的页面
-    }
-    next();
-}
-
-/**
- * Access Control
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
- */
-function JoinRoundFirst(req, res, next) {
-
-    RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, players: 1 }, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (doc) {
-                let hasJoined = doc.players.some(function (p) {
-                    return (p.player_name == req.session.user.username);
-                });
-                if (!hasJoined) {
-                    req.session.error = "You haven't joined this Round!";
                     return res.redirect('/home');
                 }
-                next();
-            } else {
-                return res.redirect('/home');
             }
-        }
-    });
+        });
+    }
+    return router;
 }
 
-
-
-module.exports = router;
+// module.exports = router;

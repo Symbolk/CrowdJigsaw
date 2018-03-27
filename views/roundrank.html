@@ -14,13 +14,14 @@
                         <table id="round_rank_table" data-toggle="table" data-search="true" data-show-refresh="true" data-show-toggle="true" data-show-columns="true">
                             <thead>
                                 <tr>
-                                    <th data-field="ifSolved" data-halign="center" data-align="center">Over?</th>                                    
+                                    <th data-field="ifSolved" data-halign="center" data-align="center">Done?</th>                                    
                                     <th data-field="rank" data-halign="center" data-align="center" data-sortable="true">Rank</th>
                                     <th data-field="avatar" data-halign="center" data-align="center">Avatar</th>
                                     <th data-field="username" data-halign="center" data-align="center">Player Name</th>
                                     <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time Cost</th>
                                     <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
                                     <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
+                                    <th data-field="hint_percent" data-halign="center" data-align="center" data-sortable="true">Hint Percentage</th>                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -29,7 +30,7 @@
                                         <tr>
                                             <% locals.r++  %>
                                                  <td>
-                                                    <i class="fa fa-thumbs-up"></i>
+                                                    <i class="fa fa-check"></i>
                                                 </td>
                                                 <td>
                                                     <% if(u.playername===user.username){%>
@@ -94,13 +95,25 @@
                                                             </span>
                                                             <%} %>
                                                 </td>
+                                                <td>
+                                                    <% if(u.playername===user.username){%>
+                                                        <span style="color:#3c3;">
+                                                            <%- u.percent %>%
+                                                        </span>
+                                                        <%}
+                                        else{%>
+                                                            <span>
+                                                                <%- u.percent %>%
+                                                            </span>
+                                                            <%} %>
+                                                </td>
                                         </tr>
                                         <% }) %>
                                             <% Unfinished.forEach(function(u){ %>
                                                 <tr>
                                                     <% locals.r++  %>
                                                         <td>
-                                                            <i class="fa fa-thumbs-down"></i>
+                                                            <i class="fa fa-remove"></i>
                                                         </td>
                                                         <td>
                                                             <% if(u.playername===user.username){%>
@@ -162,6 +175,18 @@
                                                 else{%>
                                                                     <span>
                                                                         <%- u.contribution %>
+                                                                    </span>
+                                                                    <%} %>
+                                                        </td>
+                                                        <td>
+                                                            <% if(u.playername===user.username){%>
+                                                                <span style="color:#3c3;">
+                                                                    <%- u.percent %>%
+                                                                </span>
+                                                                <%}
+                                                else{%>
+                                                                    <span>
+                                                                        <%- u.percent %>%
                                                                     </span>
                                                                     <%} %>
                                                         </td>

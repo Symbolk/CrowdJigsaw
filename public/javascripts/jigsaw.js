@@ -527,7 +527,7 @@ function JigsawPuzzle(config) {
         }
 
         if(needToSendLinks && aroundTilesChanged){
-            checkLinks(roundID, getTileIndex(tile), tile.aroundTiles, aroundTiles, true);
+            checkLinks(player_name, roundID, getTileIndex(tile), tile.aroundTiles, aroundTiles, true);            
         }
 
         tile.aroundTiles = aroundTiles;
@@ -1210,7 +1210,7 @@ function JigsawPuzzle(config) {
             if (!tile.aroundTiles) {
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
             }
-            checkLinks(roundID, tileIndex, tile.aroundTiles, aroundTiles, false);
+            checkLinks(player_name, roundID, tileIndex, tile.aroundTiles, aroundTiles, false);
         }
 
         var sum = 0;
@@ -1468,7 +1468,6 @@ function JigsawPuzzle(config) {
             if (isConflictTile) {
                 continue;
             }
-            console.log(correctTileIndex);
             var correctTile = instance.tiles[correctTileIndex];
 
             if (correctTile.picking) {

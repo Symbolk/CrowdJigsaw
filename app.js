@@ -76,7 +76,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // 定义应用级路由
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/user'));
-app.use('/graph', require('./routes/graph'));
+app.use('/graph', require('./routes/graph')(io));
 app.use('/round', require('./routes/round')(io));
 
 // catch 404 and forward to error handler

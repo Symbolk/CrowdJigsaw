@@ -1,4 +1,5 @@
 const requrl = window.location.protocol + '//' + window.location.host + '/';
+var socket = io.connect(requrl);
 
 /**
  *  Update links in the background graph
@@ -35,7 +36,7 @@ const requrl = window.location.protocol + '//' + window.location.host + '/';
 })
 * @return ifSucceed Boolean
 */
-function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesAfter, isHinted) {
+function checkLinks(player_name, round_id, selectedTileIndex, aroundTilesBefore, aroundTilesAfter, isHinted) {
     selectedTileIndex = Number(selectedTileIndex);
 
     // format the params into a json object
@@ -48,28 +49,31 @@ function checkLinks(round_id, selectedTileIndex, aroundTilesBefore, aroundTilesA
         aroundTiles.push(aroundTile);
     }
     var params = {
+        player_name: player_name, 
         round_id: round_id,// get from newRound()
         selectedTile: selectedTileIndex,
         aroundTiles: JSON.stringify(aroundTiles),
         isHinted: isHinted
     };
     // send a request to post this step to the server
-    $.ajax({
-        data: params,
-        url: requrl + 'graph/check',
-        type: 'post',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            console.log(data);
-            return true;
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('checkLinks: ' + 'error ' + textStatus + " " + errorThrown);
-            return false;
-        }
-    });
+
+    socket.emit("upload", params);
+    // $.ajax({
+    //     data: params,
+    //     url: requrl + 'graph/check',
+    //     type: 'post',
+    //     dataType: 'json',
+    //     cache: false,
+    //     timeout: 5000,
+    //     success: function (data) {
+    //         console.log(data);
+    //         return true;
+    //     },
+    //     error: function (jqXHR, textStatus, errorThrown) {
+    //         console.log('checkLinks: ' + 'error ' + textStatus + " " + errorThrown);
+    //         return false;
+    //     }
+    // });
     return true;
 }
 
