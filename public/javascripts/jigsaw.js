@@ -1176,6 +1176,7 @@ function JigsawPuzzle(config) {
             }
 
             for (var i = 0; i < instance.selectedTile.length; i++) {
+                var tile = instance.selectedTile[i];
                 sendLinks(tile);
             }
 
