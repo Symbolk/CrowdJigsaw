@@ -35,8 +35,6 @@ canvas[resize]{
 
 .zoomIn,
 .zoomOut,
-/* .help, */
-.roundRank,
 .restart,
 .quit,
 .returnCenter
@@ -48,8 +46,6 @@ canvas[resize]{
 }
 
 
-/* .help:hover, */
-.roundRank:hover,
 .quit.hover,
 .zoomIn:hover,
 .zoomOut:hover,
@@ -59,15 +55,6 @@ canvas[resize]{
     opacity: 1.0;
 }
 
-
-/* .help
-{
-    margin:0px 0 0 50px;
-} */
-.roundRank
-{
-    margin: 0px 0 0 50px;
-}
 
 .zoomIn
 {

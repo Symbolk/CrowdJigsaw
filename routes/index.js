@@ -333,11 +333,11 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                 for (let d of docs) {
                     for (let r of d.records) {
                         if (r.round_id == req.params.round_id) {
-                            let percent=0;
-                            if(r.hinted_links!=-1&&r.total_links!=-1&&r.total_links!=0){
-                                 percent = (r.hinted_links/r.total_links).toFixed(4)*100;
-                            }
+                            let percent = 0;
                             if (r.end_time != "-1") {
+                                if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
+                                    percent = (r.hinted_links / r.total_links).toFixed(4) * 100;
+                                }
                                 finished.push({
                                     "playername": d.username,
                                     "avatar": d.avatar,
@@ -347,13 +347,16 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                     "percent": percent
                                 });
                             } else {
+                                if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
+                                    percent = (r.hinted_links / r.total_links).toFixed(4) * 100;
+                                }
                                 unfinished.push({
                                     "playername": d.username,
                                     "avatar": d.avatar,
                                     "time": r.time,
                                     "steps": r.steps,
                                     "contribution": r.contribution.toFixed(3),
-                                    "percent": percent                                    
+                                    "percent": percent
                                 });
                             }
                         }
@@ -362,8 +365,10 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                 // sort the players
                 finished = finished.sort(util.ascending("time"));
                 unfinished = unfinished.sort(util.descending("contribution"));
-                res.render('roundrank', { title: 'Round Rank', Finished: finished, Unfinished: unfinished,
-                 username: req.session.user.username, round_id:req.params.round_id});
+                res.render('roundrank', {
+                    title: 'Round Rank', Finished: finished, Unfinished: unfinished,
+                    username: req.session.user.username, round_id: req.params.round_id
+                });
             }
         }
     });
@@ -389,7 +394,7 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
                             t.credits += r.contribution;
                         }
                     }
-                    t.credits=parseFloat(t.credits).toFixed(3);
+                    t.credits = parseFloat(t.credits).toFixed(3);
                 }
                 temp = temp.sort(util.descending("credits"));
                 res.render('rank', { title: 'Ranks', Allusers: temp, username: req.session.user.username });

@@ -1,20 +1,11 @@
 <link rel='stylesheet' href='/stylesheets/jigsaw.css' />
 <script type="text/javascript" src="/javascripts/paper-full.js"></script>
-<script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.0.4/socket.io.js"></script>
+<script type="text/javascript" src="/javascripts/socket.io.slim.js"></script>
+<!-- <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.0.4/socket.io.js"></script> -->
 
 <% include header.html %>
     <div class="demo-layout-transparent mdl-layout mdl-js-layout">
         <% include drawer.html %>
-            <dialog class="mdl-dialog" id="roundRank_dialog">
-                <div class="mdl-dialog__content">
-                    <div id="ranklist">
-                    </div>
-                    <div class="mdl-dialog__actions mdl-card--border">
-                        <button type="button" class="cancel_button mdl-button mdl-js-button mdl-button--raised" id="close-button">Close</button>
-                    </div>
-                </div>
-            </dialog>
-
             <dialog class="mdl-dialog" id="ensure_quit_dialog">
                 <div class="mdl-dialog__content">
                     <p class="quit-dialog-text">
@@ -39,7 +30,7 @@
 
                     <div class="mdl-dialog__actions mdl-card--border">
                         <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="rank-button">Rank</button>
-                        <button type="button" class="cancel_button mdl-button mdl-js-button mdl-button--raised" id="return-button">Home</button>
+                        <!-- <button type="button" class="cancel_button mdl-button mdl-js-button mdl-button--raised" id="return-button">Home</button> -->
                     </div>
                 </div>
             </dialog>
@@ -65,9 +56,9 @@
                                 <button type="button" class="btn btn-default" 
                                         data-dismiss="modal">Go on
                                 </button>
-                                <!-- <button type="button" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" id="give_up">
                                     Give up
-                                </button> -->
+                                </button>
                             </div>
                         </div><!-- /.modal-content -->
                     </div><!-- /.modal-dialog -->

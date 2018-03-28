@@ -35,90 +35,6 @@ $('.returnCenter').click(function () {
     view.scrollBy(new Point(560, 360) - view.center);
 });
 
-// $('.roundRank').click(function () {
-
-// $.ajax({
-//     url: requrl + 'round' + '/getRoundRank/' + roundID,
-//     type: 'get',
-//     dataType: 'json',
-//     cache: false,
-//     timeout: 5000,
-//     success: function (data) {
-//         // window.location = '/roundrank';
-//         console.log(data);
-//     },
-//     error: function (jqXHR, textStatus, errorThrown) {
-//         console.log('error ' + textStatus + " " + errorThrown);
-//     }
-// });
-// }); 
-
-// round rank as dialog
-(function () {
-    var showButton = document.querySelector('.roundRank');
-    var dialog = document.querySelector('#roundRank_dialog');
-    var closeButton = document.querySelector('#close-button');
-
-    if (!dialog.showModal) {
-        dialogPolyfill.registerDialog(dialog);
-    }
-
-    closeButton.addEventListener('click', function (event) {
-        var ranklist = document.getElementById("ranklist");
-        var table = document.getElementById("ranktable");
-        ranklist.removeChild(table);
-        dialog.close();
-    });
-
-    showButton.addEventListener('click', function (event) {
-        $.ajax({
-            url: requrl + 'round' + '/getRoundRank/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                // $("#round-rank").css("display", "block");
-                // $("#round-rank").toggle();
-                // $("#rank-table").bootstrapTable({
-                //     data: data.AllPlayers
-                // });
-                // $('.roundRank-dialog-text').text(data.AllPlayers); 
-                var ranklist = document.getElementById("ranklist");
-                var table = document.createElement("table");//创建table 
-                table.id = "ranktable";
-                var row = table.insertRow();
-                var rank = row.insertCell();
-                rank.width = "150";
-                rank.innerHTML = "Rank";
-                var name = row.insertCell();
-                name.width = "150";
-                name.innerHTML = "Name";
-                var contri = row.insertCell();
-                rank.width = "150";
-                contri.innerHTML = "Contribution";
-
-
-                for (var i = 0; i < data.AllPlayers.length; i++) {
-                    var row = table.insertRow();//创建一行 
-                    var rank = row.insertCell();//创建一个单元 
-                    rank.width = "150";//更改cell的各种属性 
-                    rank.innerHTML = i;
-                    var name = row.insertCell();//创建一个单元                     
-                    name.innerHTML = data.AllPlayers[i].player_name;
-                    var contri = row.insertCell();//创建一个单元                     
-                    contri.innerHTML = data.AllPlayers[i].contribution;
-                }
-                ranklist.appendChild(table);
-                dialog.showModal();
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('error ' + textStatus + " " + errorThrown);
-            }
-        });
-    });
-}());
-
 
 var hintedLinksNum = undefined;
 
@@ -129,7 +45,7 @@ var hintedLinksNum = undefined;
 var gameFinishDialog = document.querySelector('#game_finish_dialog');
 (function () {
     var rankButton = document.querySelector('#rank-button');
-    var returnButton = document.querySelector('#return-button');
+    // var returnButton = document.querySelector('#return-button');
 
     if (!gameFinishDialog.showModal) {
         dialogPolyfill.registerDialog(gameFinishDialog);
@@ -140,8 +56,8 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
         var steps = Number(document.getElementById("steps").innerHTML);
         var full_time = document.getElementById('timer').innerHTML;
 
-        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);       
-        
+        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);
+
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
             type: 'get',
@@ -157,27 +73,27 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
         });
     });
 
-    returnButton.addEventListener('click', function (event) {
-        gameFinishDialog.close();
+    // returnButton.addEventListener('click', function (event) {
+    //     gameFinishDialog.close();
 
-        var steps = Number(document.getElementById("steps").innerHTML);
-        var full_time = document.getElementById('timer').innerHTML;
-        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);    
+    //     var steps = Number(document.getElementById("steps").innerHTML);
+    //     var full_time = document.getElementById('timer').innerHTML;
+    //     sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);    
 
-        $.ajax({
-            url: requrl + 'round' + '/quitRound/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                window.location = '/home';
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('error ' + textStatus + " " + errorThrown);
-            }
-        });
-    });
+    //     $.ajax({
+    //         url: requrl + 'round' + '/quitRound/' + roundID,
+    //         type: 'get',
+    //         dataType: 'json',
+    //         cache: false,
+    //         timeout: 5000,
+    //         success: function (data) {
+    //             window.location = '/home';
+    //         },
+    //         error: function (jqXHR, textStatus, errorThrown) {
+    //             console.log('error ' + textStatus + " " + errorThrown);
+    //         }
+    //     });
+    // });
 }());
 
 document.querySelector('#show_steps').addEventListener('click', function () {
@@ -310,7 +226,7 @@ function onMouseUp(event) {
 
 
 function onMouseDrag(event) {
-    var ca=document.getElementById("canvas");
+    var ca = document.getElementById("canvas");
     ca.getContext("2d").clearRect(0, 0, ca.width, ca.height);
     mousedowned = true;
     if (timeoutFunction) {
@@ -450,10 +366,6 @@ function JigsawPuzzle(config) {
             introJs().setOption("overlayOpacity", 0).setOptions({
                 steps: [
                     {
-                        element: '#step1',
-                        intro: "See current rank!"
-                    },
-                    {
                         element: '#step2',
                         intro: "Zoom in!"
                     },
@@ -517,38 +429,37 @@ function JigsawPuzzle(config) {
         for (var i = 0; i < aroundTiles.length; i++) {
             if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
-                if(beHinted){
+                if (beHinted) {
                     tile.hintedLinks[i] = true;
                 }
-                else{
+                else {
                     tile.hintedLinks[i] = false;
                 }
             }
         }
 
-        if(needToSendLinks && aroundTilesChanged){
-            checkLinks(player_name, roundID, getTileIndex(tile), tile.aroundTiles, aroundTiles, true);            
+        if (needToSendLinks && aroundTilesChanged) {
+            checkLinks(player_name, roundID, getTileIndex(tile), tile.aroundTiles, aroundTiles, true);
         }
 
         tile.aroundTiles = aroundTiles;
         tile.aroundTilesChanged = aroundTilesChanged;
     }
 
-    this.calcHintedTile = function(){
+    this.calcHintedTile = function () {
         hintedLinksNum = {
             totalLinks: 0,
             normalLinks: 0,
             hintedLinks: 0
         };
-        for(var i = 0; i < instance.tiles.length; i++){
+        for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
-            for(var j = 0; j < tile.hintedLinks.length; j++){
-                if(tile.aroundTiles[j] >= 0)
-                {
-                    if(tile.hintedLinks[j]){
+            for (var j = 0; j < tile.hintedLinks.length; j++) {
+                if (tile.aroundTiles[j] >= 0) {
+                    if (tile.hintedLinks[j]) {
                         hintedLinksNum.hintedLinks += 1;
                     }
-                    else{
+                    else {
                         hintedLinksNum.normalLinks += 1;
                     }
                     hintedLinksNum.totalLinks += 1;
@@ -561,7 +472,7 @@ function JigsawPuzzle(config) {
         instance.gameFinished = true;
 
         clearTimeout(t);
-        
+
         instance.calcHintedTile();
 
         gameFinishDialog.showModal();
@@ -571,13 +482,13 @@ function JigsawPuzzle(config) {
          **/
         steps = Number(document.getElementById("steps").innerHTML);
         full_time = document.getElementById('timer').innerHTML;
-        socket.emit('iSolved', { 
-            round_id: roundID, 
-            player_name: player_name, 
-            steps: steps, 
-            time: full_time, 
+        socket.emit('iSolved', {
+            round_id: roundID,
+            player_name: player_name,
+            steps: steps,
+            time: full_time,
             totalLinks: hintedLinksNum.totalLinks,
-            hintedLinks: hintedLinksNum.hintedLinks 
+            hintedLinks: hintedLinksNum.hintedLinks
         });
         // once game starts, don't pull players
         // $.ajax({
@@ -1065,7 +976,7 @@ function JigsawPuzzle(config) {
         }
         findSelectTile(point);
         if (instance.selectedTile) {
-            $('html,body').css('cursor','move');          
+            $('html,body').css('cursor', 'move');
             if (!instance.selectedTile[0].picking) {
                 for (var i = 0; i < instance.selectedTile.length; i++) {
                     instance.selectedTile[i].picking = true;
@@ -1297,7 +1208,7 @@ function JigsawPuzzle(config) {
                     finishGame();
                 }
             }
-            $('html,body').css('cursor','default');            
+            $('html,body').css('cursor', 'default');
             normalizeTiles();
         }
     }
@@ -1841,7 +1752,7 @@ resizeCanvas();
             timeout: 5000,
             success: function (data) {
                 dialog.close();
-                window.location = '/home';
+                window.location = '/roundrank/' + roundID;
                 console.log(data);
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -1851,3 +1762,26 @@ resizeCanvas();
         });
     });
 }());
+
+$('#give_up').on('click', function (event) {
+
+    puzzle.calcHintedTile();
+
+    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);
+
+    $.ajax({
+        url: requrl + 'round' + '/quitRound/' + roundID,
+        type: 'get',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+            window.location = '/roundrank/' + roundID;
+            console.log(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            $('.quit-dialog-text').text('Connection error, please try again.');
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });
+});
