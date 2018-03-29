@@ -12,6 +12,11 @@ a {
   color: #00B7FF;
 }
 
+.fireworks {
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+}
 .username{
   text-align: center;   
 }
