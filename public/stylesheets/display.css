@@ -9,6 +9,11 @@
   display: none;
 }
 
+.fireworks {
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+}
 
 .mdl-card {
   height: 475px;

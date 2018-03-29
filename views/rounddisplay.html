@@ -30,14 +30,17 @@
 </head>
 
 <body>
+        <div>
+                <canvas class="fireworks"></canvas>
+        </div>
     <script>
         var username = "<%=username%>";
         var admin = "<%=admin%>";
     </script>
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
-
         <% include navigation.html %>
+
             <main class="mdl-layout__content">
                 <div class="mdl-grid portfolio-max-width" id="round_list">
                     <% if(admin==true){%>
@@ -68,12 +71,15 @@
     <!-- <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.0.4/socket.io.js"></script> -->
     <script type="text/javascript" src="/javascripts/socket.io.slim.js"></script>
     <script type="text/javascript" src="/javascripts/main.js"></script>
-    <script src="/javascripts/dialog-polyfill.js"></script>
+    <script src="/javascripts/dialog-polyfill.js"></script>  
+    
     <!-- <script src="/javascripts/bootstrap-table.min.js" defer></script> -->
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script type="text/javascript" src="/javascripts/rounddisplay.js"></script>
-    <script type="text/javascript" color="0,0,255" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com/canvas-nest.js/1.0.1/canvas-nest.min.js"></script>
-
+    <!-- Fancy Stuffs -->
+    <!-- <script type="text/javascript" color="0,0,255" opacity='0.7' zIndex="-2" count="200" src="//cdn.bootcss.com/canvas-nest.js/1.0.1/canvas-nest.min.js"></script> -->
+    <script type="text/javascript" src="/javascripts/anime.min.js"></script>        
+    <script type="text/javascript" src="/javascripts/fireworks.js"></script>   
     <% include toast.html %>
 
 </body>
