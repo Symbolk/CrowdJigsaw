@@ -37,6 +37,8 @@ $('.returnCenter').click(function () {
 
 
 var hintedLinksNum = undefined;
+var totalHintsNum = 0;
+var correctHintsNum = 0;
 
 /**
  * Game Finish
@@ -56,7 +58,7 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
         var steps = Number(document.getElementById("steps").innerHTML);
         var full_time = document.getElementById('timer').innerHTML;
 
-        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);
+        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum);
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -72,28 +74,6 @@ var gameFinishDialog = document.querySelector('#game_finish_dialog');
             }
         });
     });
-
-    // returnButton.addEventListener('click', function (event) {
-    //     gameFinishDialog.close();
-
-    //     var steps = Number(document.getElementById("steps").innerHTML);
-    //     var full_time = document.getElementById('timer').innerHTML;
-    //     sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);    
-
-    //     $.ajax({
-    //         url: requrl + 'round' + '/quitRound/' + roundID,
-    //         type: 'get',
-    //         dataType: 'json',
-    //         cache: false,
-    //         timeout: 5000,
-    //         success: function (data) {
-    //             window.location = '/home';
-    //         },
-    //         error: function (jqXHR, textStatus, errorThrown) {
-    //             console.log('error ' + textStatus + " " + errorThrown);
-    //         }
-    //     });
-    // });
 }());
 
 document.querySelector('#show_steps').addEventListener('click', function () {
@@ -476,6 +456,7 @@ function JigsawPuzzle(config) {
         instance.calcHintedTile();
 
         gameFinishDialog.showModal();
+
         /**          
          * Once one person solves the puzzle, the round is over          
          * Send a msg to the server and the server broadcast it to all players          
@@ -488,7 +469,9 @@ function JigsawPuzzle(config) {
             steps: steps,
             time: full_time,
             totalLinks: hintedLinksNum.totalLinks,
-            hintedLinks: hintedLinksNum.hintedLinks
+            hintedLinks: hintedLinksNum.hintedLinks,
+            totalHintsNum: totalHintsNum,
+            correctHintsNum: correctHintsNum
         });
         // once game starts, don't pull players
         // $.ajax({
@@ -1309,6 +1292,22 @@ function JigsawPuzzle(config) {
         }
     }
 
+    function checkHints(selectedTileIndex, hintTiles){
+        for(var i = 0; i < hintTiles.length; i++){
+            var hintIndex = hintTiles[i];
+            if(hintIndex >= 0){
+                totalHintsNum += 1;
+            }
+            else{
+                continue;
+            }
+            var correctIndex = selectedTileIndex + directions[i].x + directions[i].y * instance.tilesPerRow;
+            if(hintIndex == correctIndex){
+                correctHintsNum += 1;
+            }
+        }
+    }
+
     function getHints(round_id, selectedTileIndex) {
         // var hintTileIndexes=new Array(-1,-1,-1,-1);
         $.ajax({
@@ -1325,6 +1324,7 @@ function JigsawPuzzle(config) {
                     instance.hintsShowing = true;
                     if (data.sure) {
                         var sureHintTiles = JSON.parse(data.sure);
+                        checkHints(selectedTileIndex, sureHintTiles);
                         var unsureHintTiles = JSON.parse(data.unsure);
                         for (var d = 0; d < 4; d++) {
                             var unsureHintTile = unsureHintTiles[d];
@@ -1335,6 +1335,7 @@ function JigsawPuzzle(config) {
                         showHints(selectedTileIndex, sureHintTiles);
                     }
                     else {
+                        checkHints(selectedTileIndex, data);
                         showHints(selectedTileIndex, data);
                     }
                     normalizeTiles();
@@ -1743,7 +1744,7 @@ resizeCanvas();
 
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);
+        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum);
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -1768,7 +1769,7 @@ $('#give_up').on('click', function (event) {
 
     puzzle.calcHintedTile();
 
-    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks);
+    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum);
 
     $.ajax({
         url: requrl + 'round' + '/quitRound/' + roundID,

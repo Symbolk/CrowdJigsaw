@@ -333,30 +333,33 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                 for (let d of docs) {
                     for (let r of d.records) {
                         if (r.round_id == req.params.round_id) {
-                            let percent = 0;
+                            let hintPercent = 0;
+                            let correctPercent = 0;
+                            if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
+                                hintPercent = (r.hinted_links / r.total_links).toFixed(4) * 100;
+                            }
+                            if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0){
+                                correctPercent = (r.correct_hints / r.total_hints).toFixed(4) * 100;
+                            }
                             if (r.end_time != "-1") {
-                                if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
-                                    percent = (r.hinted_links / r.total_links).toFixed(4) * 100;
-                                }
                                 finished.push({
                                     "playername": d.username,
                                     "avatar": d.avatar,
                                     "time": r.time,
                                     "steps": r.steps,
                                     "contribution": r.contribution.toFixed(3),
-                                    "percent": percent
+                                    "hintPercent": hintPercent,
+                                    "correctPercent": correctPercent
                                 });
                             } else {
-                                if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
-                                    percent = (r.hinted_links / r.total_links).toFixed(4) * 100;
-                                }
                                 unfinished.push({
                                     "playername": d.username,
                                     "avatar": d.avatar,
                                     "time": r.time,
                                     "steps": r.steps,
                                     "contribution": r.contribution.toFixed(3),
-                                    "percent": percent
+                                    "hintPercent": hintPercent,
+                                    "correctPercent": correctPercent
                                 });
                             }
                         }

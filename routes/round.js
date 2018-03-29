@@ -73,7 +73,9 @@ module.exports = function (io) {
                     "collective_time": data.time,
                     "collective_steps": data.steps,
                     "total_links": data.totalLinks,
-                    "hinted_links": data.hintedLinks
+                    "hinted_links": data.hintedLinks,
+                    "total_hints": data.totalHintsNum,
+                    "correct_hints": data.correctHintsNum 
                 }
             };
             RoundModel.findOne({ round_id: data.round_id },
@@ -420,6 +422,9 @@ module.exports = function (io) {
         let totalLinks = req.body.totalLinks;
         let hintedLinks = req.body.hintedLinks;
 
+        let totalHintsNum = req.body.totalHintsNum;
+        let correctHintsNum = req.body.correctHintsNum;
+
         ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, { _id: 0, contribution: 1 }, function (err, docs) {
             if (err) {
                 console.log(err);
@@ -436,7 +441,9 @@ module.exports = function (io) {
                             "records.$.time": req.body.time,
                             "records.$.contribution": contri.toFixed(3),
                             "records.$.total_links": req.body.totalLinks,
-                            "records.$.hinted_links": req.body.hintedLinks                            
+                            "records.$.hinted_links": req.body.hintedLinks,
+                            "records.$.total_hints": req.body.totalHintsNum,
+                            "records.$.correct_hints": req.body.correctHintsNum                              
                         }
                     };
                 } else if (req.body.finished == "false") {
@@ -447,7 +454,9 @@ module.exports = function (io) {
                             "records.$.time": req.body.time,
                             "records.$.contribution": contri.toFixed(3),
                             "records.$.total_links": req.body.totalLinks,
-                            "records.$.hinted_links": req.body.hintedLinks
+                            "records.$.hinted_links": req.body.hintedLinks,
+                            "records.$.total_hints": req.body.totalHintsNum,
+                            "records.$.correct_hints": req.body.correctHintsNum 
                         }
                     };
                 }
