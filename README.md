@@ -38,27 +38,27 @@ _P.S. See npm dependencies in package.json_
 ---
 ## Usage
 
-![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/home2.jpg)
-![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone2.jpg)
-![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/phone_drawer2.jpg)
+![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/home2.jpg)
+![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/phone2.jpg)
+![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/phone_drawer2.jpg)
 
 ### Step1 : New a Game Round
 
-![round_wait](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/round_new.jpg)
+![round_wait](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/round_new.jpg)
 
 ### Step2 : Wait for Players to Join
 
-![round_new](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/round_wait.jpg)
+![round_new](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/round_wait.jpg)
 
 ### Step3 : Puzzle Started Automatically(when players are enough)
 
-![puzzle](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/puzzle.jpg)
+![puzzle](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/puzzle.jpg)
 
 **In one round, a crowd of players are playing together to figure out the same jigsaw puzzle(which can be overwhelming for any individual). In this process, explicit communication is not necessary, people just focus on their work but assistance comes to him continually from the crowd.**
 
 ### Step4 : Check the Contribution Rank
 
-![round_rank](https://github.com/Symbolk/CrowdJigsaw/blob/master/public/screenshots/round_rank.jpg)
+![round_rank](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/round_rank.jpg)
 
 ## Development(Windows)
 
