@@ -38,7 +38,7 @@ _P.S. See npm dependencies in package.json_
 ---
 ## Usage
 
-![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/home2.jpg)
+![Home](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/index.jpg)
 ![Phone](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/phone2.jpg)
 ![PhoneDrawer](https://github.com/Symbolk/CrowdJigsaw/blob/master/screenshots/phone_drawer2.jpg)
 
