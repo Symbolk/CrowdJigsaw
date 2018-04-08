@@ -314,7 +314,7 @@ module.exports = function (io) {
                             console.log(req.session.user.username + ' starts Round' + req.params.round_id);
                         }
                     });
-                    
+                    /*
                     // run genetic algorithm
                     console.log('start running python script of GA algorithm for round %d.', doc.round_id);
                     var path = require('path');
@@ -339,7 +339,7 @@ module.exports = function (io) {
                         // if GA founds a solution, the last element in results is "solved".
                         console.log('results: %j', results);
                         console.log('GA algorithm for round %d ends.', doc.round_id);
-                    });
+                    });*/
                 } else {
                     res.send({ msg: "Players are not enough!" });
                 }
