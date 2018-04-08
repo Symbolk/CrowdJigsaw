@@ -10,7 +10,10 @@ var roundDetailJoinButton = $('#rounddetail_joinbutton');
 var roundDetailCancelButton = $('#rounddetail_cancelbutton');
 var roundDetailEdgeRow = $('#rounddetail_info_row');
 var newRoundDialog = $('#newround_dialog').get(0);
-var newRoundCheckBoxRow = $('#egde_checkbox_row');
+
+var borderCheckbox = $('#border_checkbox_column');
+var edgeCheckbox = $('#egde_checkbox_column');
+
 var newRoundCreateButton = $('#newround_createbutton');
 var newRoundCancelButton = $('#newround_cancelbutton');
 var selectImageDialog = $('#selectimage_dialog').get(0);
@@ -89,10 +92,10 @@ function initNewRoundDialog(){
 
     $('#shape_radio input').change(function() {
         if($('.newround-shape-square').prop( "checked" )){
-            newRoundCheckBoxRow.remove();
+            edgeCheckbox.remove();
         }
         else{
-            newRoundCheckBoxRow.appendTo('#newround_table');
+            edgeCheckbox.appendTo('#egde_checkbox_row');
         }
     });
 
@@ -117,9 +120,9 @@ function initNewRoundDialog(){
                 // shape = 'jagged_without_edge';
                 edge = true;
             }
-            if($('#border_checkbox').prop("checked")){
+        }
+        if($('#border_checkbox').prop("checked")){
                 border = true;
-            }
         }
         postNewRound(imgSrc, level, playersNum, shape, edge, border);
         getJoinableRounds();

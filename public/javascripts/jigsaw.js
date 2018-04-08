@@ -585,7 +585,7 @@ function JigsawPuzzle(config) {
                 );
                 var border = mask.clone();
                 border.strokeColor = 'grey'; //grey
-                border.strokeWidth = (hasBorder == "true") ? 5 : 0;
+                border.strokeWidth = (hasBorder == "true") ? 2 : 0;
 
                 var colorBorder = mask.clone();
                 colorBorder.strokeWidth = instance.colorBorderWidth;

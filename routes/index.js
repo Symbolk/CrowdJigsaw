@@ -336,10 +336,10 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                             let hintPercent = 0;
                             let correctPercent = 0;
                             if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
-                                hintPercent = (r.hinted_links / r.total_links).toFixed(4) * 100;
+                                hintPercent = r.hinted_links / r.total_links * 100;
                             }
                             if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0){
-                                correctPercent = (r.correct_hints / r.total_hints).toFixed(4) * 100;
+                                correctPercent = r.correct_hints / r.total_hints * 100;
                             }
                             if (r.end_time != "-1") {
                                 finished.push({
@@ -348,8 +348,8 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                     "time": r.time,
                                     "steps": r.steps,
                                     "contribution": r.contribution.toFixed(3),
-                                    "hintPercent": hintPercent,
-                                    "correctPercent": correctPercent
+                                    "hintPercent": hintPercent.toFixed(3),
+                                    "correctPercent": correctPercent.toFixed(3)
                                 });
                             } else {
                                 unfinished.push({
@@ -358,8 +358,8 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                     "time": r.time,
                                     "steps": r.steps,
                                     "contribution": r.contribution.toFixed(3),
-                                    "hintPercent": hintPercent,
-                                    "correctPercent": correctPercent
+                                    "hintPercent": hintPercent.toFixed(3),
+                                    "correctPercent": correctPercent.toFixed(3)
                                 });
                             }
                         }
