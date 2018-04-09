@@ -510,6 +510,9 @@ module.exports = function (io) {
             steps: req.body.steps,
             time: req.body.time,
             tiles: req.body.tiles,
+            tileHintedLinks: req.body.tileHintedLinks,
+            totalHintsNum: req.body.totalHintsNum,
+            correctHintsNum: req.body.correctHintsNum
         }
 
         let operation = {

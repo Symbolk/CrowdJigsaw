@@ -293,6 +293,7 @@ function JigsawPuzzle(config) {
 
     this.saveShapeArray = shapeArray;
     this.saveTilePositions = undefined;
+    this.saveHintedLinks = undefined;
     this.shapeArray = undefined;
     this.tiles = undefined;
 
@@ -327,6 +328,13 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             refreshAroundTiles(tile);
             tile.aroundTilesChanged = false;
+        }
+
+        if(instance.saveHintedLinks){
+            for(var i = 0; i < instance.saveHintedLinks.length; i++){
+                var tile = instance.tiles[i];
+                tile.hintedLinks = instance.saveHintedLinks[i];
+            }
         }
 
         if (!instance.saveTilePositions) {
@@ -410,10 +418,10 @@ function JigsawPuzzle(config) {
             if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
                 if (beHinted) {
-                    tile.hintedLinks[i] = true;
+                    tile.hintedLinks[i] = 1;
                 }
                 else {
-                    tile.hintedLinks[i] = false;
+                    tile.hintedLinks[i] = 0;
                 }
             }
         }
@@ -436,7 +444,7 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             for (var j = 0; j < tile.hintedLinks.length; j++) {
                 if (tile.aroundTiles[j] >= 0) {
-                    if (tile.hintedLinks[j]) {
+                    if (tile.hintedLinks[j] > 0) {
                         hintedLinksNum.hintedLinks += 1;
                     }
                     else {
@@ -503,7 +511,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
-                tile.hintedLinks = new Array(false, false, false, false);
+                tile.hintedLinks = new Array(0, 0, 0, 0);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -534,7 +542,7 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
-                tile.hintedLinks = new Array(false, false, false, false);
+                tile.hintedLinks = new Array(0, 0, 0, 0);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -1056,7 +1064,7 @@ function JigsawPuzzle(config) {
                 if (tile.aroundTiles[i] != aroundTiles[i]) {
                     aroundTilesChanged = true;
 
-                    tile.hintedLinks[i] = false;
+                    tile.hintedLinks[i] = 0;
 
                     if (aroundTiles[i] == -1) { // add conflict record to both tile connected before
                         tile.conflictTiles.push(tile.aroundTiles[i]);
@@ -1352,6 +1360,8 @@ function JigsawPuzzle(config) {
     function showHints(selectedTileIndex, hintTiles) {
         var tile = instance.tiles[selectedTileIndex];
 
+        var shouldSave = false;
+
         var cellPosition = tile.cellPosition;
 
         console.log('hintTiles: ' + JSON.stringify(hintTiles));
@@ -1422,6 +1432,7 @@ function JigsawPuzzle(config) {
                 groupTiles[i].picking = false;
                 refreshAroundTiles(groupTiles[i], true, true);
                 if (groupTiles[i].aroundTilesChanged) {
+                    shouldSave = true;
                     for (var t = 0; t < groupTiles[i].aroundTiles.length; t++) {
                         var neighborIndex = groupTiles[i].aroundTiles[t];
                         if (neighborIndex >= 0) {
@@ -1435,6 +1446,10 @@ function JigsawPuzzle(config) {
         }
         if (hintTilesCount) {
             tile.alreadyHinted = true;
+        }
+
+        if(shouldSave){
+            saveGame();
         }
 
         // judge the hint tiles
@@ -1654,6 +1669,7 @@ function JigsawPuzzle(config) {
 
     function saveGame() {
         var tilePositions = new Array();
+        var tileHintedLinks = new Array();
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var tilePos = {
@@ -1662,12 +1678,16 @@ function JigsawPuzzle(config) {
                 y: tile.cellPosition.y,
             };
             tilePositions.push(tilePos);
+            tileHintedLinks.push(tile.hintedLinks);
         }
         var params = {
             round_id: roundID,
             steps: instance.steps,
             time: time,
             tiles: JSON.stringify(tilePositions),
+            tileHintedLinks: JSON.stringify(tileHintedLinks),
+            totalHintsNum: totalHintsNum,
+            correctHintsNum: correctHintsNum
         };
         $.ajax({
             url: requrl + 'round/saveGame',
@@ -1699,6 +1719,9 @@ function JigsawPuzzle(config) {
                     instance.steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
                     instance.saveTilePositions = JSON.parse(data.tiles);
+                    instance.saveHintedLinks = JSON.parse(data.tileHintedLinks);
+                    totalHintsNum = data.totalHintsNum;
+                    correctHintsNum = data.correctHintsNum;
                 }
                 createAndPlaceTiles(needIntro)
             },
