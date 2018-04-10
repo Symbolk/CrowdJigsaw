@@ -289,10 +289,10 @@ module.exports = function (io) {
                                                     mutualAdd(round_id, to.after, selected, reverseDirs[d], isHinted);
                                                 }
                                             });
-                                    } else if (to.after == -1) {
-                                        console.log("Unreachable case1.");
+                                    } else if (to.after == -1) { // to.before!=-1 to.after=-1
+                                        console.log("Case1 "+round_id + ":" + to.before + '->' + to.after);
                                     } else { // to.before!=to.after!=-1
-                                        console.log("Unreachable case2.");
+                                        console.log("Case2."+round_id + ":" + to.before + '->' + to.after);
                                     }
                                 }
                             }

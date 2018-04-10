@@ -10,6 +10,7 @@ var fs = require('fs');
 var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
+var FileStreamRotator = require('file-stream-rotator');
 
 // 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
@@ -56,15 +57,30 @@ app.use(favicon(path.join(__dirname, 'public', 'favicon.png')));
 
 
 console.log("Environment : "+process.env.NODE_ENV);
-var accessLog = fs.createWriteStream('logs/access.log', {flags : 'a'}); 
-if (app.get('env') == 'production') {
-  app.use(logger('common', { stream: accessLog }));
-} else {
-  // app.use(logger('common', { stream: accessLog }));
-  app.use(logger('dev',  { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302  || res.statusCode == 200) }}));
-  // app.use(logger('dev',  { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302 ) }}));
+var logDir = __dirname + '/logs';
+console.log('Access logs :'+logDir);
+// ensure log directory exists 
+fs.existsSync(logDir) || fs.mkdirSync(logDir);
+// create a rotating write stream 
+var accessLogStream = FileStreamRotator.getStream({
+  date_format: 'YYYYMMDD',
+  filename: logDir + '/%DATE%.log',
+  frequency: 'daily',
+  verbose: false
+});
+// setup the logger 
+app.use(logger('short', { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302  || res.statusCode == 200)}}, {stream: accessLogStream}));
 
-}
+
+// var accessLog = fs.createWriteStream('logs/access.log', {flags : 'a'}); 
+// if (app.get('env') == 'production') {
+//   app.use(logger('common', { stream: accessLog }));
+// } else {
+  // app.use(logger('common', { stream: accessLog }));
+//   app.use(logger('dev',  { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302  || res.statusCode == 200) }}));
+//   // app.use(logger('dev',  { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302 ) }}));
+// }
+
 //Node.js body parsing middleware. req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));

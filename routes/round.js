@@ -97,8 +97,33 @@ module.exports = function (io) {
                     }
                 });
         });
+        socket.on('saveGame', function(data){
+            var save_game = {
+                round_id: data.round_id,
+                steps: data.steps,
+                time: data.time,
+                tiles: data.tiles,
+                tileHintedLinks: data.tileHintedLinks,
+                totalHintsNum: data.totalHintsNum,
+                correctHintsNum: data.correctHintsNum
+            };
+    
+            let operation = {
+                $set: {
+                    save_game: save_game
+                }
+            };
+            UserModel.findOneAndUpdate({ username: data.player_name }, operation, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                    socket.emit('gameSaved', { err: err });
+                } else {
+                    socket.emit('gameSaved', { success: true, round_id: data.round_id, player_name: data.player_name });
+                }
+            });
+        });
     });
-
+    
     /**
      * Get all rounds
      */

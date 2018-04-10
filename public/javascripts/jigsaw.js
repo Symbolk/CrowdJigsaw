@@ -253,6 +253,14 @@ function JigsawPuzzle(config) {
         }
     });
 
+    socket.on('gameSaved', function (data) {
+        if(data.success==true && data.round_id == roundID && data.player_name==player_name){
+            console.log("Saved.");
+        }else{
+            console.log(data.err);
+        }
+    });
+
     var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
     this.level = config.level;
@@ -1680,6 +1688,7 @@ function JigsawPuzzle(config) {
             tilePositions.push(tilePos);
             tileHintedLinks.push(tile.hintedLinks);
         }
+
         var params = {
             round_id: roundID,
             steps: instance.steps,
@@ -1689,19 +1698,32 @@ function JigsawPuzzle(config) {
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         };
-        $.ajax({
-            url: requrl + 'round/saveGame',
-            data: params,
-            type: 'post',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('saveGame: ' + 'error ' + textStatus + " " + errorThrown);
-            }
+
+        socket.emit('saveGame', {
+            round_id: roundID,
+            player_name: player_name,            
+            steps: instance.steps,  
+            time: time,                      
+            tiles: JSON.stringify(tilePositions),
+            tileHintedLinks: JSON.stringify(tileHintedLinks),
+            totalHintsNum: totalHintsNum,
+            correctHintsNum: correctHintsNum
         });
+        
+        // $.ajax({
+        //     url: requrl + 'round/saveGame',
+        //     data: params,
+        //     type: 'post',
+        //     dataType: 'json',
+        //     cache: false,
+        //     timeout: 5000,
+        //     success: function (data) {
+        //         console.log("Saved.");
+        //     },
+        //     error: function (jqXHR, textStatus, errorThrown) {
+        //         console.log('saveGame: ' + 'error ' + textStatus + " " + errorThrown);
+        //     }
+        // });
     }
 
     function loadGame() {
