@@ -465,7 +465,7 @@ module.exports = function (io) {
                     if (err) {
                         console.log(err);
                     } else {
-                        console.log(req.session.user.username + ' saves his record: ' + contri);
+                        console.log(req.session.user.username + ' saves his record: ' + contri.toFixed(3));
                         res.send({ contribution: contri });
                     }
                 });
