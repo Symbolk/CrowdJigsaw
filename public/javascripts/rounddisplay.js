@@ -51,9 +51,14 @@ function allImageReadyCallback(){
     console.log('Images Loaded.');
 
     initRoundDetailDialog();
-    initNewRoundDialog();
-    initSelectImageDialog();
-
+    if(admin=="true"){
+        initNewRoundDialog();
+        initSelectImageDialog();
+    }
+    else{
+        initRandomRoundDialog();
+    }
+    
     getJoinableRounds();
 }
 
@@ -84,6 +89,79 @@ function initRoundDetailDialog(){
 
     $('.rounddetail-progress').click(function () {
         $('#players_list').toggle();
+    });
+}
+
+function initRandomRoundDialog(){
+    $('#shape_radio input').change(function() {
+        if($('.newround-shape-square').prop( "checked" )){
+            edgeCheckbox.remove();
+        }
+        else{
+            edgeCheckbox.appendTo('#egde_checkbox_row');
+        }
+    });
+
+    if (!newRoundDialog.showModal) {
+        dialogPolyfill.registerDialog(newRoundDialog);
+    }
+    newRoundCreateButton.click(function() {
+        var imgSrc = puzzleImageSrcList[Math.floor((Math.random() * (puzzleImageSrcList.length - 1)))];
+        var playersNum = 1;
+        var shape = 'jagged';
+        var level = 1;
+        var edge = false;
+        var border = false;
+        if($('.newround-shape-square').prop( "checked" )){
+            shape = 'square';
+            level = 2;
+        }
+        else{
+            shape = 'jagged';
+            level = 1;
+            if ($('#egde_checkbox').prop( "checked" )) {
+                // shape = 'jagged_without_edge';
+                edge = true;
+            }
+        }
+        if($('#border_checkbox').prop("checked")){
+                border = true;
+        }
+        postNewRound(imgSrc, level, playersNum, shape, edge, border);
+        getJoinableRounds();
+        newRoundDialog.close();
+    });
+    newRoundCancelButton.click(function() {
+        newRoundDialog.close();
+    });
+
+    $('#newround_number_slider').css('display', 'none');
+
+    $('#newround_number_slider').change(function() {
+        $('#newround_num').text(1);
+    });
+
+    $('#randomround_button').click(function(){
+        newRoundCreateButton.removeAttr('disabled');
+        $('#newround_blank').css('display', 'inline');       
+        $('#newround_image').attr('src', '/images/logo.png')
+        newRoundDialog.showModal();
+    });
+
+    $('#randomround_button').mousedown(function(){
+        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+    });
+
+    $('#randomround_button').mouseup(function(){
+        $('#randomround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
+    });
+
+    $('#randomround_button').mouseover(function(){
+        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+    });
+
+    $('#randomround_button').mouseout(function(){
+        $('#randomround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
     });
 }
 
@@ -131,6 +209,9 @@ function initNewRoundDialog(){
     newRoundCancelButton.click(function() {
         newRoundDialog.close();
     });
+
+    $('#newround_number_slider').css('display', 'inline');
+
     $('#newround_number_slider').change(function() {
         $('#newround_num').text($('#newround_number_slider').val());
     });
@@ -139,7 +220,7 @@ function initNewRoundDialog(){
         newRoundCreateButton.attr('disabled','true');
         $('#newround_blank').css('display', 'none');
         // $('#newround_image_wrap').css('display', 'none');        
-        $('#newround_image').removeAttr('src')
+        $('#newround_image').removeAttr('src');
         newRoundDialog.showModal();
     });
 
@@ -167,12 +248,13 @@ function initSelectImageDialog(){
     }
 
     $('#newround_image').click(function() {
-        selectImageDialog.showModal();
+         selectImageDialog.showModal();
     });
 
     $('#newround_image_button').click(function() {
         selectImageDialog.showModal();
     });
+
 }
 
 

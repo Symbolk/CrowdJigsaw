@@ -55,7 +55,22 @@
                                 New Round
                             </span>
                         </div>
-                        <%}%>
+                    <%}
+                    else{%>
+                        <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card newround-card" id="randomround_button">
+                            <div class="mdl-card__title">
+                                <h2 class="mdl-card__title-text roundcard-title">
+                                    You are not administrator, you can just start game with a random picture.
+                                </h2>
+                            </div>
+                            <span class="button-wrap" style="position: absolute;top: 70%;left:20%;transform: translateY(-50%);">
+                                <button class="button button-circle button-raised button-primary">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                                Random Game
+                            </span>
+                        </div>
+                    <%} %>
                 </div>
             </main>
             <% include rounddetail.html %>
