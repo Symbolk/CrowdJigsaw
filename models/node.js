@@ -6,22 +6,26 @@ var NodeSchema = new mongoose.Schema({
     top:[{
         index: { type: Number },
         sup_num:  { type: Number, default:0 },
-        opp_num:  { type: Number, default:0 }
+        opp_num:  { type: Number, default:0 },
+        confidence:  { type: Number, default:0 }
     }],
     right:[{
         index: { type: Number },
         sup_num:  { type: Number, default:0 },
-        opp_num:  { type: Number, default:0 }
+        opp_num:  { type: Number, default:0 },
+        confidence:  { type: Number, default:0 }        
     }],
     bottom:[{
         index: { type: Number },
         sup_num:  { type: Number, default:0 },
         opp_num:  { type: Number, default:0 },
+        confidence:  { type: Number, default:0 }        
     }],
     left:[{
         index: { type: Number },
         sup_num:  { type: Number, default:0 },
         opp_num:  { type: Number, default:0 },
+        confidence:  { type: Number, default:0 }        
     }]
 });
 
