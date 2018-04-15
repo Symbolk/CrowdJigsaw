@@ -165,7 +165,7 @@ function mutualAdd(round_id, from, to, dir, isHinted, confidence) {
                             condition[dir + '.index'] = to;
                             let temp = {};
                             temp[dir + '.$.sup_num'] = isHinted ? hint_weight : 1;
-                            temp[dir + '.$.confidence'] = confidence;                            
+                            temp[dir + '.$.confidence'] = confidence;
                             NodeModel.update(condition,
                                 { $inc: temp },
                                 function (err) {
@@ -220,8 +220,8 @@ function mutualRemove(round_id, from, to, dir, confidence) {
                     let temp = {};
                     temp[dir + '.$.sup_num'] = -1;
                     temp[dir + '.$.opp_num'] = 1;
-                    temp[dir + '.$.confidence'] = 0-confidence;
-                    
+                    temp[dir + '.$.confidence'] = 0 - confidence;
+
                     NodeModel.find(condition, function (err, doc) {
                         if (err) {
                             console.log(err);
@@ -272,7 +272,7 @@ module.exports = function (io) {
                                 confidence = player.contribution.toFixed(3);
                             }
                         }
-                     
+
                         // For every posted nodes, add them to the nodes(graph), and decide which way 
                         NodeModel.findOne({ round_id: round_id, index: selected }, function (err, doc) {
                             if (err) {
@@ -359,7 +359,7 @@ module.exports = function (io) {
                                                             condition[dirs[d] + '.index'] = to.after;
                                                             let temp = {};
                                                             temp[dirs[d] + '.$.sup_num'] = isHinted ? hint_weight : 1;
-                                                            temp[dirs[d] + '.$.confidence'] = confidence;                                                            
+                                                            temp[dirs[d] + '.$.confidence'] = confidence;
                                                             let sup_before = i.sup_num;
 
                                                             NodeModel.update(condition,
@@ -408,7 +408,7 @@ module.exports = function (io) {
                                                     let temp = {};
                                                     temp[dirs[d] + '.$.sup_num'] = -1;
                                                     temp[dirs[d] + '.$.opp_num'] = 1;
-                                                    temp[dirs[d] + '.$.confidence'] = 0-confidence;
+                                                    temp[dirs[d] + '.$.confidence'] = 0 - confidence;
                                                     NodeModel.findOne(condition, function (err, doc) {
                                                         if (err) {
                                                             console.log(err);
@@ -446,7 +446,7 @@ module.exports = function (io) {
                                                 let temp = {};
                                                 temp[dirs[d] + '.$.sup_num'] = -1;
                                                 temp[dirs[d] + '.$.opp_num'] = 1;
-                                                temp[dirs[d] + '.$.confidence'] = 0-confidence;                                                
+                                                temp[dirs[d] + '.$.confidence'] = 0 - confidence;
                                                 NodeModel.findOne(condition, function (err, doc) {
                                                     if (err) {
                                                         console.log(err);
@@ -484,7 +484,7 @@ module.exports = function (io) {
                                                         condition[dirs[d] + '.index'] = to.after;
                                                         let temp = {};
                                                         temp[dirs[d] + '.$.sup_num'] = isHinted ? hint_weight : 1;
-                                                        temp[dirs[d] + '.$.confidence'] = confidence;                                                        
+                                                        temp[dirs[d] + '.$.confidence'] = confidence;
                                                         let sup_before = i.sup_num;
                                                         NodeModel.update(condition,
                                                             { $inc: temp },
@@ -557,42 +557,44 @@ module.exports = function (io) {
         if (strategy == "conservative") {
             // Stratey1: conservative
             // get the players_num of the round
-            RoundModel.findOne(condition, { _id: 0, players_num: 1 }, function (err, doc) {
+            RoundModel.findOne({round_id: req.params.round_id}, { _id: 0, players_num: 1 }, function (err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
-                    let players_num = doc.players_num;
-                    NodeModel.findOne(condition, function (err, doc) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            if (!doc) {
-                                res.send({ msg: "No hints." });
+                    if (doc) {
+                        let players_num = doc.players_num;
+                        NodeModel.findOne(condition, function (err, doc) {
+                            if (err) {
+                                console.log(err);
                             } else {
-                                for (let d = 0; d < 4; d++) {
-                                    let alternatives = doc[dirs[d]];
-                                    if (alternatives.length == 0) {
-                                        hintIndexes.push(-1);
-                                    } else {
-                                        let most_sup = alternatives[0];
-                                        for (let a of alternatives) {
-                                            if (a.sup_num > most_sup.sup_num) {
-                                                most_sup = a;
+                                if (!doc) {
+                                    res.send({ msg: "No hints." });
+                                } else {
+                                    for (let d = 0; d < 4; d++) {
+                                        let alternatives = doc[dirs[d]];
+                                        if (alternatives.length == 0) {
+                                            hintIndexes.push(-1);
+                                        } else {
+                                            let most_sup = alternatives[0];
+                                            for (let a of alternatives) {
+                                                if (a.sup_num > most_sup.sup_num) {
+                                                    most_sup = a;
+                                                }
+                                            }
+                                            // to guarantee zero sup nodes won't be hinted
+                                            // 1/5 of the crowd have supported
+                                            if (most_sup.sup_num > (players_num / 5)) {
+                                                hintIndexes.push(most_sup.index);
+                                            } else {
+                                                hintIndexes.push(-1);
                                             }
                                         }
-                                        // to guarantee zero sup nodes won't be hinted
-                                        // 1/5 of the crowd have supported
-                                        if (most_sup.sup_num > (players_num / 5)) {
-                                            hintIndexes.push(most_sup.index);
-                                        } else {
-                                            hintIndexes.push(-1);
-                                        }
                                     }
+                                    res.send(JSON.stringify(hintIndexes));
                                 }
-                                res.send(JSON.stringify(hintIndexes));
                             }
-                        }
-                    });
+                        });
+                    }
                 }
             });
         } else if (strategy == "aggressive") {
@@ -620,10 +622,10 @@ module.exports = function (io) {
                                 // } else {
                                 //     hintIndexes.push(-1);
                                 // }
-                                let best=alternatives[0];
-                                for(let a of alternatives){
-                                    if(a.confidence > best.confidence){
-                                        best=a;
+                                let best = alternatives[0];
+                                for (let a of alternatives) {
+                                    if (a.confidence > best.confidence) {
+                                        best = a;
                                     }
                                 }
                                 hintIndexes.push(best.index);
