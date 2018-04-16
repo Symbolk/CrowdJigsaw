@@ -1621,7 +1621,7 @@ function JigsawPuzzle(config) {
     this.dragOnlyTile = function () {
         if (instance.selectedTile) {
             for (var i = 1; i < instance.selectedTile.length; i++) {
-                //instance.selectedTile[i].opacity = 1;
+                instance.selectedTile[i].opacity = 0.5;
                 instance.selectedTile[i].picking = false;
             }
             var tile = instance.selectedTile[0];
@@ -1636,7 +1636,7 @@ function JigsawPuzzle(config) {
             instance.selectedTile = new Array();
             DFSTiles(tile, instance.selectedTile, new Point(0, 0));
             for (var i = 0; i < instance.selectedTile.length; i++) {
-                //instance.selectedTile[i].opacity = 0.5;
+                instance.selectedTile[i].opacity = 0.5;
                 instance.selectedTile[i].picking = instance.selectedTile[0].picking;
             }
         }
