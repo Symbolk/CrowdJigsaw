@@ -10,6 +10,7 @@ while (!(loadReady)) {
     continue;
 }
 $("#loading").fadeOut();
+
 /*
 * Drawer functions
 */
@@ -991,7 +992,7 @@ function JigsawPuzzle(config) {
             var pos = new Point(instance.selectedTile[0].position.x, instance.selectedTile[0].position.y);
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
-                // tile.opacity = .5;
+                tile.opacity = 0.5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
                 tile.originPosition = tile.cellPosition;
             }
@@ -1620,7 +1621,7 @@ function JigsawPuzzle(config) {
     this.dragOnlyTile = function () {
         if (instance.selectedTile) {
             for (var i = 1; i < instance.selectedTile.length; i++) {
-                instance.selectedTile[i].opacity = 1;
+                //instance.selectedTile[i].opacity = 1;
                 instance.selectedTile[i].picking = false;
             }
             var tile = instance.selectedTile[0];
@@ -1635,7 +1636,7 @@ function JigsawPuzzle(config) {
             instance.selectedTile = new Array();
             DFSTiles(tile, instance.selectedTile, new Point(0, 0));
             for (var i = 0; i < instance.selectedTile.length; i++) {
-                instance.selectedTile[i].opacity = .5;
+                //instance.selectedTile[i].opacity = 0.5;
                 instance.selectedTile[i].picking = instance.selectedTile[0].picking;
             }
         }
@@ -1754,14 +1755,6 @@ function JigsawPuzzle(config) {
     }
 }
 
-$(window).resize();
-function resizeCanvas() {
-    var canvas = document.getElementById('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight
-}
-$('#canvas').resize();
-resizeCanvas();
 
 /**
  * Ensure quit

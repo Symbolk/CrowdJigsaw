@@ -75,7 +75,6 @@
             </div>
 
             <main class="puzzle">
-                <canvas id="canvas" class="canvas" resize></canvas>
             </main>
 
             <script type="text/javascript">
@@ -104,6 +103,16 @@
                 document.querySelector('.puzzle-image').width = imageWidth;
                 document.querySelector('.puzzle-image').height = imageHeight;
                 document.querySelector('.puzzle-image').src = imgSrc;
+
+                console.log(window.innerHeight, window.innerWidth);
+                console.log(screen.availHeight, screen.availWidth);
+
+                var myCanvas = document.createElement("canvas");
+                myCanvas.setAttribute("width", screen.availWidth);
+                myCanvas.setAttribute("height", screen.availHeight);
+                myCanvas.setAttribute("id", "canvas");
+                myCanvas.setAttribute("class", "canvas");
+                document.querySelector('.puzzle').appendChild(myCanvas);
             </script>
 
             <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
