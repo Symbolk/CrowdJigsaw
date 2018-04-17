@@ -390,7 +390,7 @@ module.exports = function (io) {
                 if (isIn) {
                     if (doc.players.length == 1) { // the last player
                         let operation = {
-                            $pull: { //if exists, give up add
+                            $pull: { 
                                 players:
                                     {
                                         player_name: req.session.user.username

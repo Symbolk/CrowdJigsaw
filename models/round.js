@@ -23,7 +23,13 @@ var RoundSchema = new mongoose.Schema({
     start_time: { type: String, default: "-1" },  // when the round starts, formatted time, e.g. 2017-10-31 14:00:20
     end_time: { type: String, default: "-1" },  // when the round dies, formatted time, e.g. 2017-10-31 14:00:20
     players_num: { type: Number, required: true, default: 1 }, // set by creator
-    players: [ // online playing users
+    online_players: [ // online playing users in this round
+        {
+            player_name: { type: String },
+            join_time: { type: String } // formatted time, e.g. 2017-10-31 14:00:20                        
+        }
+    ], 
+    players: [ 
         {
             player_name: { type: String },
             join_time: { type: String }, // formatted time, e.g. 2017-10-31 14:00:20
