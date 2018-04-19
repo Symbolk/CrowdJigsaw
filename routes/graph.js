@@ -43,10 +43,10 @@ function calcContri(operation, num_before) {
             contribution = Math.pow(alpha, num_before);
             break;
         case "--":
-            contribution = 1;
+            contribution = 0.5;
             break;
         case "-":
-            contribution = Math.pow(alpha, num_before);
+            contribution = Math.pow(alpha, num_before*2);
             break;
         default:
             contribution = 0;
@@ -165,6 +165,7 @@ function mutualAdd(round_id, from, to, dir, isHinted, NAME) {
                             condition[dir + '.index'] = to;
                             let temp = {};
                             temp[dir + '.$.sup_num'] = isHinted ? hint_weight : 1;
+                            temp[dir + '.$.opp_num'] = -1;
                             let temp2 = {};
                             temp2[dir + '.$.supporters'] = { player_name: NAME };
                             let temp3 = {};
@@ -362,6 +363,7 @@ module.exports = function (io) {
 
                                             let temp = {};
                                             temp[dirs[d] + '.$.sup_num'] = isHinted ? hint_weight : 1;
+                                            temp[dirs[d] + '.$.opp_num'] = -1;
                                             let temp2 = {};
                                             temp2[dirs[d] + '.$.supporters'] = { player_name: NAME };
                                             let temp3 = {};
@@ -512,6 +514,7 @@ module.exports = function (io) {
                                         condition[dirs[d] + '.index'] = to.after;
                                         let temp = {};
                                         temp[dirs[d] + '.$.sup_num'] = isHinted ? hint_weight : 1;
+                                        temp[dirs[d] + '.$.opp_num'] =  -1;
                                         let temp2 = {};
                                         temp2[dirs[d] + '.$.supporters'] = { player_name: NAME };
                                         let temp3 = {};
