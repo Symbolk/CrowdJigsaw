@@ -31,9 +31,10 @@
                                 Congratulations!
                             </h4>
                         </div>
-                        <div class="modal-body">
+                        <div class="modal-body" style="text-align:center;">
                             <h4 class="text-center text-nowrap text-danger">What do you think about the feedback?</h4>
-                            <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts">
+                            <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
+                            <input id="rating" required class="rb-rating" type="text" value="" title="">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" id="submit-button">
@@ -127,6 +128,7 @@
                 myCanvas.setAttribute("id", "canvas");
                 myCanvas.setAttribute("class", "canvas");
                 document.querySelector('.puzzle').appendChild(myCanvas);
+            
             </script>
 
             <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
