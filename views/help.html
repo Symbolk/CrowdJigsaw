@@ -1,24 +1,37 @@
 <!-- Help Page -->
-<% include header.html %>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
-        <% include navigation.html %>
+<% include header2.html %>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <h1>
+                <%= username %>'s Records
+                    <small>Here you can see your game records.</small>
+            </h1>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="#">
+                        <i class="fa fa-dashboard"></i> Level</a>
+                </li>
+                <li class="active">Here</li>
+            </ol>
+        </section>
 
-            <main class="mdl-layout__content mdl-color--grey-100">
-                <div class="mdl-card__title">
-                    <h3 class="mdl-card__title-text mdl-typography--text-center mdl-typography--display-2">Crowd Jigsaw Puzzle</h3>
+        <!-- Main content -->
+        <section class="content container-fluid">
+            <div class="mdl-card__supporting-text mdl-color-text--grey-600">
+                Crowd Jigsaw is an online game, where multiple players work together to figure out a complex jigsaw puzzle. Designed to be
+                an Application of Crowd Wisdom/Collective Intelligence.
+                <hr style="height:5px;border:none;border-top:5px groove skyblue;" />
+                <div class="mdl-typography--headline">
+                    Just play it as a regular jigsaw game! Drag and Drop, easy one~
                 </div>
-                <div class="mdl-card__supporting-text mdl-color-text--grey-600">
-                    Crowd Jigsaw is an online game, where multiple players work together to figure out a complex jigsaw puzzle. Designed to be
-                    an Application of Crowd Wisdom/Collective Intelligence.
-                    <hr style="height:5px;border:none;border-top:5px groove skyblue;" />
-                    <div class="mdl-typography--headline">
-                        Just play it as a regular jigsaw game! Drag and Drop, easy one~
-                    </div>
-                </div>
-                <h3 class="mdl-typography--text-center mdl-typography--display-1">Click Here: 
-                        <a class="mdl-typography--font-light" href="https://github.com/Symbolk/CrowdJigsaw">
-                            <i class="fa fa-github fa-lg fa-spin fa-fw"></i>
-                        </a> for more details.</h3>
-            </main>
+            </div>
+            <h3 class="mdl-typography--text-center mdl-typography--display-1">Click Here:
+                <a class="mdl-typography--font-light" href="https://github.com/Symbolk/CrowdJigsaw">
+                    <i class="fa fa-github fa-lg fa-spin fa-fw"></i>
+                </a> for more details.</h3>
+        </section>
+        <!-- /.content -->
     </div>
-    <% include footer.html %>
+    <% include footer2.html %>

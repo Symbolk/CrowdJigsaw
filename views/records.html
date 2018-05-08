@@ -1,102 +1,110 @@
 <!-- Personal Records Page -->
-<% include header.html %>
-        <div>
-                <canvas class="fireworks"></canvas>
-        </div>
-        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
-                <% include navigation.html %>
-                        <main class="mdl-layout__content">
-                                <div class="mdl-grid">
-                                        <div class="mdl-cell mdl-cell--12-col-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone">
-                                                <br/>
-                                                <h2 class="mdl-color-text-black">
-                                                        <%= username %>'s Records</h2>
-                                                <br/>
-                                                <br/>
-                                                <table id="records" data-toggle="table" data-detail-view="true" data-search="true" data-show-refresh="true" data-show-toggle="true"
-                                                        data-show-columns="true">
-                                                        <thead>
-                                                                <tr>
-                                                                        <th data-field="round_id" data-halign="center" data-align="center">Round ID</th>
-                                                                        <th data-field="when" data-halign="center" data-align="center" data-sortable="true">When</th>
-                                                                        <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
-                                                                        <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time</th>
-                                                                        <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
-                                                                </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                                <% Allrecords.forEach(function(r){ %>
-                                                                        <tr>
-                                                                                <td>
-                                                                                        <%- r.round_id %>
-                                                                                </td>
-                                                                                <td>
-                                                                                        <%- r.start_time %>
-                                                                                </td>
-                                                                                <td>
-                                                                                        <%- r.steps %>
-                                                                                </td>
-                                                                                <td>
-                                                                                        <%- r.time %>
-                                                                                </td>
-                                                                                <td>
-                                                                                        <%- r.contribution %>
-                                                                                </td>
-                                                                        </tr>
-                                                                        <% }) %>
+<% include header2.html %>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                        <h1>
+                                <%= username %>'s Records
+                                        <small>Here you can see your game records.</small>
+                        </h1>
+                        <ol class="breadcrumb">
+                                <li>
+                                        <a href="#">
+                                                <i class="fa fa-dashboard"></i> Level</a>
+                                </li>
+                                <li class="active">Here</li>
+                        </ol>
+                </section>
 
-                                                        </tbody>
-                                                </table>
-                                                <br />
-                                                <br />
-                                                <!-- <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
+                <!-- Main content -->
+                <section class="content container-fluid">
+                        <div class="mdl-cell mdl-cell--12-col-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone">
+                                <table id="records" data-toggle="table" data-detail-view="true" data-search="true" data-show-refresh="true" data-show-toggle="true"
+                                        data-show-columns="true">
+                                        <thead>
+                                                <tr>
+                                                        <th data-field="round_id" data-halign="center" data-align="center">Round ID</th>
+                                                        <th data-field="when" data-halign="center" data-align="center" data-sortable="true">When</th>
+                                                        <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
+                                                        <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time</th>
+                                                        <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
+                                                </tr>
+                                        </thead>
+                                        <tbody>
+                                                <% Allrecords.forEach(function(r){ %>
+                                                        <tr>
+                                                                <td>
+                                                                        <%- r.round_id %>
+                                                                </td>
+                                                                <td>
+                                                                        <%- r.start_time %>
+                                                                </td>
+                                                                <td>
+                                                                        <%- r.steps %>
+                                                                </td>
+                                                                <td>
+                                                                        <%- r.time %>
+                                                                </td>
+                                                                <td>
+                                                                        <%- r.contribution %>
+                                                                </td>
+                                                        </tr>
+                                                        <% }) %>
+
+                                        </tbody>
+                                </table>
+                                <br />
+                                <br />
+                                <!-- <button class="mdl-button mdl-js-button mdl-typography--button-center mdl-button--raised mdl-button--colored mdl-js-ripple-effect"
                                                 style="align-self:center;" id="share" name="share">Share</button> -->
-                                        </div>
-                                </div>
-                        </main>
+                        </div>
 
-        </div>
-        <% include footer.html %>
-                <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
-                <script src="/javascripts/bootstrap-table.min.js"></script>
-                <script type="text/javascript">
-                        /**
-                         * Show detailed records
-                         */
-                        var $table = $("#records");
-                        $table.bootstrapTable({
-                                onExpandRow: function (index, row, $detail) {
-                                        showDetails($detail, row.round_id);
-                                }
-                        });
-
-
-                        function showDetails($detail, round_id) {
-                                var $el = $detail.html('<table></table>').find('table');
-                                // get the data from ajax
-                                $.ajax({
-                                        url: requrl + 'round' + '/getRoundDetails/' + round_id,
-                                        type: 'get',
-                                        dataType: 'json',
-                                        cache: false,
-                                        timeout: 5000,
-                                        success: function (data) {
-                                                var columns = [], rowdata = [];
-                                                for (var key in data) {
-                                                        columns.push({
-                                                                field: key,
-                                                                title: key
-                                                        });
-
-                                                }
-                                                rowdata.push(data);
-                                                $el.bootstrapTable({
-                                                        columns: columns,
-                                                        data: rowdata
-                                                });
-                                        },
-                                        error: function (jqXHR, textStatus, errorThrown) {
+                        <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+                        <script src="/javascripts/bootstrap-table.min.js"></script>
+                        <script type="text/javascript">
+                                /**
+                                 * Show detailed records
+                                 */
+                                var $table = $("#records");
+                                $table.bootstrapTable({
+                                        onExpandRow: function (index, row, $detail) {
+                                                showDetails($detail, row.round_id);
                                         }
                                 });
-                        }    
-                </script>
+
+
+                                function showDetails($detail, round_id) {
+                                        var $el = $detail.html('<table></table>').find('table');
+                                        // get the data from ajax
+                                        $.ajax({
+                                                url: requrl + 'round' + '/getRoundDetails/' + round_id,
+                                                type: 'get',
+                                                dataType: 'json',
+                                                cache: false,
+                                                timeout: 5000,
+                                                success: function (data) {
+                                                        var columns = [], rowdata = [];
+                                                        for (var key in data) {
+                                                                columns.push({
+                                                                        field: key,
+                                                                        title: key
+                                                                });
+
+                                                        }
+                                                        rowdata.push(data);
+                                                        $el.bootstrapTable({
+                                                                columns: columns,
+                                                                data: rowdata
+                                                        });
+                                                },
+                                                error: function (jqXHR, textStatus, errorThrown) {
+                                                }
+                                        });
+                                }    
+                        </script>
+                </section>
+                <!-- /.content -->
+        </div>
+        <!-- /.content-wrapper -->
+        <% include footer2.html %>

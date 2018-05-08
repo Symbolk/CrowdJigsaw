@@ -1186,7 +1186,7 @@ function JigsawPuzzle(config) {
     }
 
     this.releaseTile = function () {
-        instance.wtimer=setTimeout(askHelp, 30*1000);
+        instance.wtimer=setTimeout(askHelp, 5*1000);
 
         if (instance.draging) {
             var centerCellPosition = new Point(

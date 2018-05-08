@@ -1,228 +1,235 @@
-<% include header.html %>
-    <div>
-        <canvas class="fireworks"></canvas>
-    </div>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
-        <% include navigation.html %>
-            <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+<% include header2.html %>
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+            <h1>
+                Rank of Round <%= round_id %>
+                <small>Here you can see the rank of the round you just played in.</small>
+            </h1>
+            <ol class="breadcrumb">
+                <li>
+                    <a href="#">
+                        <i class="fa fa-dashboard"></i> Crowd Jigsaw </a>
+                </li>
+                <li class="active">Round Rank</li>
+            </ol>
+        </section>
+
+        <!-- Main content -->
+        <section class="content container-fluid">
+            <script src="/javascripts/jquery.min.js"></script>
             <script src="/javascripts/bootstrap-table.min.js"></script>
-            <main class="mdl-layout__content">
-                <div class="mdl-grid">
-                    <div class="mdl-cell mdl-cell--12-col-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone">
-                        <br/>
-                        <h2 class="mdl-color-text-black">Rank of Round
-                            <%= round_id %>
-                        </h2>
-                        <br/>
-                        <br/>
-                        <table id="round_rank_table" data-toggle="table" data-search="true" data-show-refresh="true" data-show-toggle="true" data-show-columns="true">
-                            <thead>
-                                <tr>
-                                    <th data-field="ifSolved" data-halign="center" data-align="center">Done?</th>
-                                    <th data-field="rank" data-halign="center" data-align="center" data-sortable="true">Rank</th>
-                                    <th data-field="avatar" data-halign="center" data-align="center">Avatar</th>
-                                    <th data-field="username" data-halign="center" data-align="center">Player Name</th>
-                                    <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time Cost</th>
-                                    <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
-                                    <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
-                                    <th data-field="hint_percent" data-halign="center" data-align="center" data-sortable="true">Hint Percentage</th>
-                                    <th data-field="correct_hint_percent" data-halign="center" data-align="center" data-sortable="true">Correct Hint Percentage</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <% locals.r = 0; %>
-                                    <% Finished.forEach(function(u){ %>
-                                        <tr>
-                                            <% locals.r++  %>
-                                                <td>
-                                                    <i class="fa fa-check"></i>
-                                                </td>
-                                                <td>
-                                                    <% if(u.playername===user.username){%>
-                                                        <span style="color:#3c3;">
-                                                            <%= locals.r  %>
-                                                        </span>
-                                                        <%}
+
+            <table id="round_rank_table" data-toggle="table" data-search="true" data-show-refresh="true" data-show-toggle="true" data-show-columns="true">
+                <thead>
+                    <tr>
+                        <th data-field="ifSolved" data-halign="center" data-align="center">Done?</th>
+                        <th data-field="rank" data-halign="center" data-align="center" data-sortable="true">Rank</th>
+                        <th data-field="avatar" data-halign="center" data-align="center">Avatar</th>
+                        <th data-field="username" data-halign="center" data-align="center">Player Name</th>
+                        <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time Cost</th>
+                        <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
+                        <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
+                        <th data-field="hint_percent" data-halign="center" data-align="center" data-sortable="true">Hint Percentage</th>
+                        <th data-field="correct_hint_percent" data-halign="center" data-align="center" data-sortable="true">Correct Hint Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% locals.r = 0; %>
+                        <% Finished.forEach(function(u){ %>
+                            <tr>
+                                <% locals.r++  %>
+                                    <td>
+                                        <i class="fa fa-check"></i>
+                                    </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%= locals.r  %>
+                                            </span>
+                                            <%}
                                                 else{%>
-                                                            <span>
-                                                                <%= locals.r %>
-                                                            </span>
-                                                            <%} %>
-                                                </td>
-                                                <td>
-                                                    <img class="mdl-list__item-avatar" src="../images/placeholder.jpg">
-                                                </td>
-                                                <td>
-                                                    <% if(u.playername===user.username){%>
-                                                        <span style="color:#3c3;">
+                                                <span>
+                                                    <%= locals.r %>
+                                                </span>
+                                                <%} %>
+                                    </td>
+                                    <td>
+                                        <img class="mdl-list__item-avatar" src="../images/placeholder.jpg">
+                                    </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.playername %>
+                                            </span>
+                                            <%}
+                                                            else{%>
+                                                <span>
+                                                    <%- u.playername %>
+                                                </span>
+                                                <%} %>
+                                    </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.time %>
+                                            </span>
+                                            <%}
+                                                            else{%>
+                                                <span>
+                                                    <%- u.time %>
+                                                </span>
+                                                <%} %>
+                                    </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.steps %>
+                                            </span>
+                                            <%}
+                                                            else{%>
+                                                <span>
+                                                    <%- u.steps %>
+                                                </span>
+                                                <%} %>
+                                    </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.contribution %>
+                                            </span>
+                                            <%}
+                                                    else{%>
+                                                <span>
+                                                    <%- u.contribution %>
+                                                </span>
+                                                <%} %>
+                                    </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.hintPercent %>%
+                                            </span>
+                                            <%}
+                                                    else{%>
+                                                <span>
+                                                    <%- u.hintPercent %>%
+                                                </span>
+                                                <%} %>
+                                    </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.correctPercent %>%
+                                            </span>
+                                            <%}
+                                                    else{%>
+                                                <span>
+                                                    <%- u.correctPercent %>%
+                                                </span>
+                                                <%} %>
+                                    </td>
+                            </tr>
+                            <% }) %>
+                                <% Unfinished.forEach(function(u){ %>
+                                    <tr>
+                                        <% locals.r++  %>
+                                            <td>
+                                                <i class="fa fa-remove"></i>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%= locals.r  %>
+                                                    </span>
+                                                    <%}
+                        else{%>
+                                                        <span>
+                                                            <%= locals.r %>
+                                                        </span>
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <img class="mdl-list__item-avatar" src="../images/placeholder.jpg">
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.playername %>
+                                                    </span>
+                                                    <%}
+                                    else{%>
+                                                        <span>
                                                             <%- u.playername %>
                                                         </span>
-                                                        <%}
-                                                            else{%>
-                                                            <span>
-                                                                <%- u.playername %>
-                                                            </span>
-                                                            <%} %>
-                                                </td>
-                                                <td>
-                                                    <% if(u.playername===user.username){%>
-                                                        <span style="color:#3c3;">
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.time %>
+                                                    </span>
+                                                    <%}
+                                        else{%>
+                                                        <span>
                                                             <%- u.time %>
                                                         </span>
-                                                        <%}
-                                                            else{%>
-                                                            <span>
-                                                                <%- u.time %>
-                                                            </span>
-                                                            <%} %>
-                                                </td>
-                                                <td>
-                                                    <% if(u.playername===user.username){%>
-                                                        <span style="color:#3c3;">
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.steps %>
+                                                    </span>
+                                                    <%}
+                                            else{%>
+                                                        <span>
                                                             <%- u.steps %>
                                                         </span>
-                                                        <%}
-                                                            else{%>
-                                                            <span>
-                                                                <%- u.steps %>
-                                                            </span>
-                                                            <%} %>
-                                                </td>
-                                                <td>
-                                                    <% if(u.playername===user.username){%>
-                                                        <span style="color:#3c3;">
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.contribution %>
+                                                    </span>
+                                                    <%}
+                                                else{%>
+                                                        <span>
                                                             <%- u.contribution %>
                                                         </span>
-                                                        <%}
-                                                    else{%>
-                                                            <span>
-                                                                <%- u.contribution %>
-                                                            </span>
-                                                            <%} %>
-                                                </td>
-                                                <td>
-                                                    <% if(u.playername===user.username){%>
-                                                        <span style="color:#3c3;">
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.hintPercent %>%
+                                                    </span>
+                                                    <%}
+                                                            else{%>
+                                                        <span>
                                                             <%- u.hintPercent %>%
                                                         </span>
-                                                        <%}
-                                                    else{%>
-                                                            <span>
-                                                                <%- u.hintPercent %>%
-                                                            </span>
-                                                            <%} %>
-                                                </td>
-                                                <td>
-                                                    <% if(u.playername===user.username){%>
-                                                        <span style="color:#3c3;">
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.correctPercent %>%
+                                                    </span>
+                                                    <%}
+                                                            else{%>
+                                                        <span>
                                                             <%- u.correctPercent %>%
                                                         </span>
-                                                        <%}
-                                                    else{%>
-                                                            <span>
-                                                                <%- u.correctPercent %>%
-                                                            </span>
-                                                            <%} %>
-                                                </td>
-                                        </tr>
-                                        <% }) %>
-                                            <% Unfinished.forEach(function(u){ %>
-                                                <tr>
-                                                    <% locals.r++  %>
-                                                        <td>
-                                                            <i class="fa fa-remove"></i>
-                                                        </td>
-                                                        <td>
-                                                            <% if(u.playername===user.username){%>
-                                                                <span style="color:#3c3;">
-                                                                    <%= locals.r  %>
-                                                                </span>
-                                                                <%}
-                        else{%>
-                                                                    <span>
-                                                                        <%= locals.r %>
-                                                                    </span>
-                                                                    <%} %>
-                                                        </td>
-                                                        <td>
-                                                            <img class="mdl-list__item-avatar" src="../images/placeholder.jpg">
-                                                        </td>
-                                                        <td>
-                                                            <% if(u.playername===user.username){%>
-                                                                <span style="color:#3c3;">
-                                                                    <%- u.playername %>
-                                                                </span>
-                                                                <%}
-                                    else{%>
-                                                                    <span>
-                                                                        <%- u.playername %>
-                                                                    </span>
-                                                                    <%} %>
-                                                        </td>
-                                                        <td>
-                                                            <% if(u.playername===user.username){%>
-                                                                <span style="color:#3c3;">
-                                                                    <%- u.time %>
-                                                                </span>
-                                                                <%}
-                                        else{%>
-                                                                    <span>
-                                                                        <%- u.time %>
-                                                                    </span>
-                                                                    <%} %>
-                                                        </td>
-                                                        <td>
-                                                            <% if(u.playername===user.username){%>
-                                                                <span style="color:#3c3;">
-                                                                    <%- u.steps %>
-                                                                </span>
-                                                                <%}
-                                            else{%>
-                                                                    <span>
-                                                                        <%- u.steps %>
-                                                                    </span>
-                                                                    <%} %>
-                                                        </td>
-                                                        <td>
-                                                            <% if(u.playername===user.username){%>
-                                                                <span style="color:#3c3;">
-                                                                    <%- u.contribution %>
-                                                                </span>
-                                                                <%}
-                                                else{%>
-                                                                    <span>
-                                                                        <%- u.contribution %>
-                                                                    </span>
-                                                                    <%} %>
-                                                        </td>
-                                                        <td>
-                                                            <% if(u.playername===user.username){%>
-                                                                <span style="color:#3c3;">
-                                                                    <%- u.hintPercent %>%
-                                                                </span>
-                                                                <%}
-                                                            else{%>
-                                                                    <span>
-                                                                        <%- u.hintPercent %>%
-                                                                    </span>
-                                                                    <%} %>
-                                                        </td>
-                                                        <td>
-                                                            <% if(u.playername===user.username){%>
-                                                                <span style="color:#3c3;">
-                                                                    <%- u.correctPercent %>%
-                                                                </span>
-                                                                <%}
-                                                            else{%>
-                                                                    <span>
-                                                                        <%- u.correctPercent %>%
-                                                                    </span>
-                                                                    <%} %>
-                                                        </td>
-                                                </tr>
-                                                <% }) %>
-                            </tbody>
-                        </table>
-
-                    </div>
-                    <% include footer.html %>
+                                                        <%} %>
+                                            </td>
+                                    </tr>
+                                    <% }) %>
+                </tbody>
+            </table>
+        </section>
+        <!-- /.content -->
+    </div>
+    <% include footer2.html %>

@@ -1,44 +1,55 @@
 <!-- Account Settings Page -->
-<% include header.html %>
-        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
-                <% include navigation.html %>
-                        <div>
-                                <canvas class="fireworks"></canvas>
-                        </div>
-                        <main class="mdl-layout__content">
-                                <div class="mdl-grid">
-                                        <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--2-col-tablet"></div>
-                                        <div class="mdl-cell mdl-cell--6-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
-                                                <br/>
-                                                <h2 class="mdl-color-text-black">
-                                                        <%= username %>'s Settings</h2>
-                                                <br/>
-                                                <br/>
-                                                <form action="#" method="post">
-                                                        <!-- <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+<% include header2.html %>
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+                <!-- Content Header (Page header) -->
+                <section class="content-header">
+                        <h1>
+                                User Settings
+                                <small>Here you can change your account.</small>
+                        </h1>
+                        <ol class="breadcrumb">
+                                <li>
+                                        <a href="#">
+                                                <i class="fa fa-dashboard"></i> Level</a>
+                                </li>
+                                <li class="active">Here</li>
+                        </ol>
+                </section>
+
+                <!-- Main content -->
+                <section class="content container-fluid">
+                        <div class="mdl-cell mdl-cell--3-col-desktop mdl-cell--2-col-tablet"></div>
+                        <div class="mdl-cell mdl-cell--6-col-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
+                                <br/>
+                                <h2 class="mdl-color-text-black">
+                                        <%= username %>'s Settings</h2>
+                                <br/>
+                                <br/>
+                                <form action="#" method="post">
+                                        <!-- <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                                                         <input class="mdl-textfield__input mdl-cell--middle" type="text" id="new_username" name="new_username">
                                                                         <label class="mdl-textfield__label" for="username">New Username</label>
                                                                 </div> -->
-                                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                                                <input class="mdl-textfield__input mdl-cell--middle" type="password" id="old_password" name="old_password">
-                                                                <label class="mdl-textfield__label" for="password">Old Password</label>
-                                                        </div>
-                                                        <br/>
-                                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                                                <input class="mdl-textfield__input mdl-cell--middle" type="password" id="new_password" name="new_password">
-                                                                <label class="mdl-textfield__label" for="password">New Password</label>
-                                                        </div>
-                                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                                                <input class="mdl-textfield__input mdl-cell--middle" type="password" id="new_passwordSec" name="new_passwordSec">
-                                                                <label class="mdl-textfield__label" for="passwordSec">New Password Again</label>
-                                                        </div>
-                                                        <br />
-                                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="apply_change" name="apply_change">Apply</button>
-                                                </form>
-
+                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                                <input class="mdl-textfield__input mdl-cell--middle" type="password" id="old_password" name="old_password">
+                                                <label class="mdl-textfield__label" for="password">Old Password</label>
                                         </div>
-                                </div>
-                        </main>
-        </div>
+                                        <br/>
+                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                                <input class="mdl-textfield__input mdl-cell--middle" type="password" id="new_password" name="new_password">
+                                                <label class="mdl-textfield__label" for="password">New Password</label>
+                                        </div>
+                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                                <input class="mdl-textfield__input mdl-cell--middle" type="password" id="new_passwordSec" name="new_passwordSec">
+                                                <label class="mdl-textfield__label" for="passwordSec">New Password Again</label>
+                                        </div>
+                                        <br />
+                                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="apply_change" name="apply_change">Apply</button>
+                                </form>
 
-        <% include footer.html %>
+                        </div>
+                </section>
+                <!-- /.content -->
+        </div>
+        <% include footer2.html %>
