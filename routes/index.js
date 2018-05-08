@@ -181,7 +181,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
         } else {
             if (doc) {
                 req.session.error = 'Welcome! ' + req.session.user.username;
-                res.render('rounddisplay', { title: 'Home', username: doc.username, admin: doc.admin });
+                res.render('rounddisplay2', { title: 'Home', username: doc.username, admin: doc.admin });
             }
         }
     });

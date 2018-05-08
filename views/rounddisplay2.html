@@ -1,0 +1,74 @@
+<% include header2.html %>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+            Playground
+            <small>Here you can find all joinable rounds, or create your own one.</small>
+          </h1>
+          <ol class="breadcrumb">
+            <li><a href="#"><i class="fa fa-dashboard"></i> Level</a></li>
+            <li class="active">Here</li>
+          </ol>
+        </section>
+    
+        <!-- Main content -->
+        <section class="content container-fluid">
+                <div>
+                        <canvas class="fireworks"></canvas>
+                    </div>
+                    <script>
+                        var username = "<%=username%>";
+                        var admin = "<%=admin%>";
+                    </script>
+                
+                    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-layout--fixed-drawer">
+                
+                            <main class="mdl-layout__content">
+                                <div class="mdl-grid portfolio-max-width" id="round_list">
+                                    <% if(admin==true){%>
+                                        <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card newround-card" id="newround_button">
+                                            <!-- <div class="mdl-card__title">
+                                                <h2 class="mdl-card__title-text roundcard-title"></h2>
+                                            </div> -->
+                                            <span class="button-wrap" style="position: absolute;top: 50%;left:20%;transform: translateY(-50%);">
+                                                <button class="button button-circle button-raised button-primary">
+                                                    <i class="fa fa-plus"></i>
+                                                </button>
+                                                New Round
+                                            </span>
+                                        </div>
+                                    <%}
+                                    else{%>
+                                        <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card newround-card" id="randomround_button">
+                                            <div class="mdl-card__title">
+                                                <h2 class="mdl-card__title-text roundcard-title">        
+                                                    You are not admin. Start with a random puzzle.
+                                                </h2>
+                                            </div>
+                                            <span class="button-wrap" style="position: absolute;top: 70%;left:20%;transform: translateY(-50%);">
+                                                <button class="button button-circle button-raised button-primary">
+                                                    <i class="fa fa-plus"></i>
+                                                </button>
+                                                Random Game
+                                            </span>
+                                        </div>
+                                    <%} %>
+                                </div>
+                            </main>
+                            <% include rounddetail.html %>
+                                <% include newround.html %>
+                                    <% include roundimageselector.html %>
+                                        <% include roundimageshower.html %>
+                                            <% include roundcard.html %>
+                    </div>
+                
+    
+        </section>
+        <!-- /.content -->
+      </div>
+      <!-- /.content-wrapper -->
+
+<% include footer2.html %>
