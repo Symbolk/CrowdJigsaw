@@ -1162,11 +1162,21 @@ function JigsawPuzzle(config) {
     }
 
     function askHelp(){
-        console.log("SOS");
-        // socket.emit("reactive")
+        console.log("Asking for help...");
+        socket.emit("requestHints", {
+            round_id: roundID,
+            player_name: player_name
+        });
+        clearTimeout(instance.wtimer);
+        socket.on("receiveHints", function(data){
+            for(var i=0;i<data.length;i++){
+                showHints(data[i].index, data[i].hints);
+            }
+        });
     }
+
     this.releaseTile = function () {
-        instance.wtimer=setTimeout(askHelp, 60*1000);
+        instance.wtimer=setTimeout(askHelp, 30*1000);
 
         if (instance.draging) {
             var centerCellPosition = new Point(
@@ -1400,8 +1410,6 @@ function JigsawPuzzle(config) {
         var shouldSave = false;
 
         var cellPosition = tile.cellPosition;
-
-        console.log('hintTiles: ' + JSON.stringify(hintTiles));
 
         if (!hintTiles) {
             return;

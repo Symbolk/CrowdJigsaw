@@ -9,6 +9,9 @@ var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
 var constants = require('../config/constants');
 var hint_weight = constants.hint_weight;
+var dirs = ['top', 'right', 'bottom', 'left'];
+var reverseDirs = ['bottom', 'left', 'top', 'right'];
+
 /**
  * Get the best link with different strategies
  * @param {*} links
@@ -42,7 +45,7 @@ function calcContri(operation, num_before) {
             contribution = 0.5;
             break;
         case "-":
-            contribution = Math.pow(alpha, num_before*2);
+            contribution = Math.pow(alpha, num_before * 2);
             break;
         default:
             contribution = 0;
@@ -258,11 +261,47 @@ module.exports = function (io) {
         socket.on('upload', function (data) {
             check(data);
         });
+        socket.on('requestHints', function (data) {
+            // console.log(data.player_name + " is asking for help...");
+            var results = new Array();
+            NodeModel.find({ round_id: data.round_id }, function (err, docs) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (docs) {
+                        for (let node of docs) {
+                            var h = {
+                                index: -1,
+                                hints: new Array()
+                            };
+                            for (let d = 0; d < 4; d++) {
+                                let edges = node[dirs[d]];
+                                if (edges.length > 0) {
+                                    let most_sup = edges[0];
+                                    for (let edge of edges) {
+                                        if (edge.sup_num > most_sup.sup_num) {
+                                            most_sup = edge;
+                                        }
+                                    }
+                                    if (most_sup.sup_num > 0) {
+                                        h.index = node.index;
+                                        h.hints.push(most_sup.index);
+                                    }
+                                } else {
+                                    h.index = node.index;
+                                    h.hints.push(-1);
+                                }
+                            }
+                            results.push(h);
+                        }
+                        socket.emit("receiveHints", results);
+                    }
+                }
+            });
+        });
     });
 
     function check(params) {
-        var dirs = ['top', 'right', 'bottom', 'left'];
-        var reverseDirs = ['bottom', 'left', 'top', 'right'];
         let round_id = params.round_id;
         let selected = params.selectedTile;
         let around = JSON.parse(params.aroundTiles);
@@ -510,7 +549,7 @@ module.exports = function (io) {
                                         condition[dirs[d] + '.index'] = to.after;
                                         let temp = {};
                                         temp[dirs[d] + '.$.sup_num'] = isHinted ? hint_weight : 1;
-                                        temp[dirs[d] + '.$.opp_num'] =  -1;
+                                        temp[dirs[d] + '.$.opp_num'] = -1;
                                         let temp2 = {};
                                         temp2[dirs[d] + '.$.supporters'] = { player_name: NAME };
                                         let temp3 = {};
@@ -580,7 +619,6 @@ module.exports = function (io) {
         };
         // find the most-supported one of every dir
         var hintIndexes = new Array();
-        var dirs = ['top', 'right', 'bottom', 'left'];
 
         if (strategy == "conservative") {
             // Stratey1: conservative
@@ -714,7 +752,7 @@ module.exports = function (io) {
                 } else {
                     if (doc && doc.players.length > 0) {
                         // doc.players.$.contribution
-                        let players=doc.players;
+                        let players = doc.players;
                         NodeModel.findOne(condition, function (err, doc) {
                             if (err) {
                                 console.log(err);
