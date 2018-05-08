@@ -1,8 +1,4 @@
 'use strict'
-/**
- * API operations related with the sequence&links
- * 
- */
 
 var express = require('express');
 var router = express.Router();
@@ -567,9 +563,6 @@ module.exports = function (io) {
             }
         });
     }
-
-
-
 
     /**
      * Get hints from the current graph data

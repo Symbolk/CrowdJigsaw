@@ -9,12 +9,11 @@ var router = express.Router();
 const mongoose = require('mongoose');
 var UserModel = require('../models/user').User;
 var RoundModel = require('../models/round').Round;
-var LinkModel = require('../models/link').Link;
+var EdgeModel = require('../models/edge').Edge;
 var crypto = require('crypto');
 var util = require('./util.js');
 
 const SECRET = "CrowdIntel";
-
 
 /**
  *  MD5 encryption

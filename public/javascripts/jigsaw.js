@@ -46,22 +46,17 @@ var correctHintsNum = 0;
 /**
  * Game Finish
  */
-
-var gameFinishDialog = document.querySelector('#game_finish_dialog');
 (function () {
-    var rankButton = document.querySelector('#rank-button');
-    // var returnButton = document.querySelector('#return-button');
-
-    if (!gameFinishDialog.showModal) {
-        dialogPolyfill.registerDialog(gameFinishDialog);
-    }
-    rankButton.addEventListener('click', function (event) {
-        gameFinishDialog.close();
+    var submitButton = document.querySelector('#submit-button');
+    submitButton.addEventListener('click', function (event) {
+        // player's rating for the hint(what he thinks about the function)
+        var rating = $("#rating").val();
 
         var steps = Number(document.getElementById("steps").innerHTML);
         var full_time = document.getElementById('timer').innerHTML;
 
-        sendRecord(roundID, true, steps, full_time, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum);
+        sendRecord(roundID, true, steps, full_time, 
+            hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -257,9 +252,9 @@ function JigsawPuzzle(config) {
     });
 
     socket.on('gameSaved', function (data) {
-        if(data.success==true && data.round_id == roundID && data.player_name==player_name){
+        if (data.success == true && data.round_id == roundID && data.player_name == player_name) {
             console.log("Saved.");
-        }else{
+        } else {
             console.log(data.err);
         }
     });
@@ -291,7 +286,7 @@ function JigsawPuzzle(config) {
 
     this.showHints = config.showHints;
 
-    this.tileNum = this.tilesPerRow * this.tilesPerColumn;
+    this.tilesNum = this.tilesPerRow * this.tilesPerColumn;
 
     if (this.tileShape == "voronoi") {
         this.tileMarginWidth = this.tileWidth * 0.5;
@@ -307,6 +302,11 @@ function JigsawPuzzle(config) {
     this.saveHintedLinks = undefined;
     this.shapeArray = undefined;
     this.tiles = undefined;
+    this.edgesKept = undefined;
+    this.edgesDropped = undefined;
+    this.groups = undefined; // a connected subgraph as a group
+    this.sizes = undefined; // number of edges as the size
+    this.wtimer = undefined; // time past since last action
 
     this.hintsShowing = false;
     this.undoing = false;
@@ -323,7 +323,7 @@ function JigsawPuzzle(config) {
     this.colorBorderWidth = 7;
 
 
-    console.log('Round ' + roundID + ' starts : ' + this.tileNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
+    console.log('Round ' + roundID + ' starts : ' + this.tilesNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
 
     loadGame();
 
@@ -335,6 +335,10 @@ function JigsawPuzzle(config) {
             instance.tiles = createTiles(instance.tilesPerRow, instance.tilesPerColumn);
         }
         randomPlaceTiles(instance.tilesPerRow, instance.tilesPerColumn);
+        instance.edgesKept = new Array();
+        instance.edgesDropped = new Array();
+        instance.groups = new Array();
+        instance.sizes = new Array();
 
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
@@ -342,10 +346,12 @@ function JigsawPuzzle(config) {
             tile.aroundTilesChanged = false;
             tile.preStep = instance.step - 2;
             tile.preCellPosition = tile.cellPosition;
+            instance.groups[i] = i;
+            instance.sizes[i] = 0;
         }
 
-        if(instance.saveHintedLinks){
-            for(var i = 0; i < instance.saveHintedLinks.length; i++){
+        if (instance.saveHintedLinks) {
+            for (var i = 0; i < instance.saveHintedLinks.length; i++) {
                 var tile = instance.tiles[i];
                 tile.hintedLinks = instance.saveHintedLinks[i];
             }
@@ -506,7 +512,11 @@ function JigsawPuzzle(config) {
 
         instance.calcHintedTile();
 
-        gameFinishDialog.showModal();
+        $('#finish_dialog').modal({
+            keyboard: true
+        });
+
+        // gameFinishDialog.showModal();
 
         /**          
          * Once one person solves the puzzle, the round is over          
@@ -524,22 +534,6 @@ function JigsawPuzzle(config) {
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
-        // once game starts, don't pull players
-        // $.ajax({
-        //     url: requrl + 'round' + '/quitRound/' + roundID,
-        //     type: 'get',
-        //     dataType: 'json',
-        //     cache: false,
-        //     timeout: 5000,
-        //     success: function (data) {
-        //         gameFinishDialog.showModal();
-        //         console.log(data);
-        //     },
-        //     error: function (jqXHR, textStatus, errorThrown) {
-        //         finishGame();
-        //         console.log('error ' + textStatus + " " + errorThrown);
-        //     }
-        // });
     }
 
     function randomPlaceTiles(xTileCount, yTileCount) {
@@ -1005,6 +999,7 @@ function JigsawPuzzle(config) {
     }
 
     this.pickTile = function (point) {
+        clearTimeout(instance.timer);
         if (instance.hintsShowing) {
             return;
         }
@@ -1068,10 +1063,10 @@ function JigsawPuzzle(config) {
 
     function placeTile(tile, cellPosition) {
         var roundPosition = cellPosition * instance.tileWidth;
-        if(instance.hintsShowing){
+        if (instance.hintsShowing) {
             tile.preStep = instance.steps - 1;
         }
-        else{
+        else {
             tile.preStep = instance.steps;
         }
         tile.preCellPosition = tile.cellPosition;
@@ -1091,33 +1086,33 @@ function JigsawPuzzle(config) {
         tile.relativePosition = new Point(0, 0);
     }
 
-    this.undoNextStep =  function(){
+    this.undoNextStep = function () {
         instance.undoing = true;
 
         var tilesMoved = false;
 
-        for(var i = 0; i < instance.tiles.length; i++){
+        for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             tile.beenUndo = false;
-            if(tile.preStep == instance.steps - 1){
+            if (tile.preStep == instance.steps - 1) {
                 tile.beenUndo = true;
                 placeTile(tile, tile.preCellPosition);
                 tilesMoved = true;
             }
         }
 
-        for(var i = 0; i < instance.tiles.length; i++){
+        for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
-            if(tile.beenUndo){
+            if (tile.beenUndo) {
                 refreshAroundTiles(tile, false, true);
                 tile.beenUndo = false;
             }
-            else{
+            else {
                 refreshAroundTiles(tile, false, false);
             }
         }
 
-        if(tilesMoved){
+        if (tilesMoved) {
             instance.steps += 1;
             document.getElementById("steps").innerHTML = instance.steps;
             undoStep = instance.steps;
@@ -1166,9 +1161,14 @@ function JigsawPuzzle(config) {
         }
     }
 
+    function askHelp(){
+        console.log("SOS");
+        // socket.emit("reactive")
+    }
     this.releaseTile = function () {
-        if (instance.draging) {
+        instance.wtimer=setTimeout(askHelp, 60*1000);
 
+        if (instance.draging) {
             var centerCellPosition = new Point(
                 Math.round(instance.selectedTile[0].position.x / instance.tileWidth),
                 Math.round(instance.selectedTile[0].position.y / instance.tileWidth));
@@ -1336,17 +1336,17 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function checkHints(selectedTileIndex, hintTiles){
-        for(var i = 0; i < hintTiles.length; i++){
+    function checkHints(selectedTileIndex, hintTiles) {
+        for (var i = 0; i < hintTiles.length; i++) {
             var hintIndex = hintTiles[i];
-            if(hintIndex >= 0){
+            if (hintIndex >= 0) {
                 totalHintsNum += 1;
             }
-            else{
+            else {
                 continue;
             }
             var correctIndex = selectedTileIndex + directions[i].x + directions[i].y * instance.tilesPerRow;
-            if(hintIndex == correctIndex){
+            if (hintIndex == correctIndex) {
                 correctHintsNum += 1;
             }
         }
@@ -1485,7 +1485,7 @@ function JigsawPuzzle(config) {
             tile.alreadyHinted = true;
         }
 
-        if(shouldSave){
+        if (shouldSave) {
             saveGame();
         }
 
@@ -1635,8 +1635,6 @@ function JigsawPuzzle(config) {
         }
     }
 
-
-
     this.dragTileOrTiles = function () {
         if (instance.dragMode == "tile-First") {
             instance.dragDFSTile();
@@ -1730,29 +1728,14 @@ function JigsawPuzzle(config) {
 
         socket.emit('saveGame', {
             round_id: roundID,
-            player_name: player_name,            
-            steps: instance.steps,  
-            time: time,                      
+            player_name: player_name,
+            steps: instance.steps,
+            time: time,
             tiles: JSON.stringify(tilePositions),
             tileHintedLinks: JSON.stringify(tileHintedLinks),
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
-        
-        // $.ajax({
-        //     url: requrl + 'round/saveGame',
-        //     data: params,
-        //     type: 'post',
-        //     dataType: 'json',
-        //     cache: false,
-        //     timeout: 5000,
-        //     success: function (data) {
-        //         console.log("Saved.");
-        //     },
-        //     error: function (jqXHR, textStatus, errorThrown) {
-        //         console.log('saveGame: ' + 'error ' + textStatus + " " + errorThrown);
-        //     }
-        // });
     }
 
     function loadGame() {
@@ -1783,7 +1766,6 @@ function JigsawPuzzle(config) {
     }
 }
 
-
 /**
  * Ensure quit
  */
@@ -1810,7 +1792,9 @@ function JigsawPuzzle(config) {
 
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum);
+        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), 
+                    document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, 
+                    hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, -1);
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -1835,7 +1819,9 @@ $('#give_up').on('click', function (event) {
 
     puzzle.calcHintedTile();
 
-    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum);
+    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), 
+            document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, 
+            totalHintsNum, correctHintsNum, -1);
 
     $.ajax({
         url: requrl + 'round' + '/quitRound/' + roundID,
@@ -1855,23 +1841,23 @@ $('#give_up').on('click', function (event) {
 });
 
 $('#undo_button').on('click', function (event) {
-    if(puzzle.steps != undoStep){
+    if (puzzle.steps != undoStep) {
         puzzle.undoNextStep();
     }
 });
 
-$('#undo_button').mousedown(function(){
+$('#undo_button').mousedown(function () {
     $('#undo_button').css("background-color", "rgba(200, 200, 200, 0.9)")
 });
 
-$('#undo_button').mouseup(function(){
+$('#undo_button').mouseup(function () {
     $('#undo_button').css("background-color", "rgba(200, 200, 200, 0)")
 });
 
-$('#undo_button').mouseover(function(){
+$('#undo_button').mouseover(function () {
     $('#undo_button').css("background-color", "rgba(200, 200, 200, 0.9)")
 });
 
-$('#undo_button').mouseout(function(){
+$('#undo_button').mouseout(function () {
     $('#undo_button').css("background-color", "rgba(200, 200, 200, 0)")
 });

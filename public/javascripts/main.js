@@ -4,7 +4,7 @@ var socket = io.connect(requrl);
 /**
  *  Update links in the background graph
  *  Check which case it is in the 4 cases, and call the corrosponding method:
- *  *  When one link is made:
+ *  *  When one link is created:
  *  1, If the link does not exist, create a link;
  *  2, If the link already exists, update: append the user to the supporter list of the selected tile;
  *  *  When one link is destroyed:
@@ -21,7 +21,7 @@ var socket = io.connect(requrl);
 	"round_id":0,
 	"selectedTile": 1,
 	"aroundTiles":[{
-				"before": -1,
+		"before": -1,
 		"after": 3
 	},{
 		"before": -1,
@@ -34,7 +34,6 @@ var socket = io.connect(requrl);
 		"after": -1
 	}]
 })
-* @return ifSucceed Boolean
 */
 function checkLinks(player_name, round_id, selectedTileIndex, aroundTilesBefore, aroundTilesAfter, isHinted) {
     selectedTileIndex = Number(selectedTileIndex);
@@ -55,25 +54,7 @@ function checkLinks(player_name, round_id, selectedTileIndex, aroundTilesBefore,
         aroundTiles: JSON.stringify(aroundTiles),
         isHinted: isHinted
     };
-    // send a request to post this step to the server
-
     socket.emit("upload", params);
-    // $.ajax({
-    //     data: params,
-    //     url: requrl + 'graph/check',
-    //     type: 'post',
-    //     dataType: 'json',
-    //     cache: false,
-    //     timeout: 5000,
-    //     success: function (data) {
-    //         console.log(data);
-    //         return true;
-    //     },
-    //     error: function (jqXHR, textStatus, errorThrown) {
-    //         console.log('checkLinks: ' + 'error ' + textStatus + " " + errorThrown);
-    //         return false;
-    //     }
-    // });
     return true;
 }
 
@@ -81,7 +62,7 @@ function checkLinks(player_name, round_id, selectedTileIndex, aroundTilesBefore,
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, finished, steps, time, totalLinks, hintedLinks, totalHintsNum, correctHintsNum) {
+function sendRecord(round_id, finished, steps, time, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
     var params = {
         round_id: round_id,
         finished: finished,
@@ -90,7 +71,8 @@ function sendRecord(round_id, finished, steps, time, totalLinks, hintedLinks, to
         totalLinks: totalLinks,
         hintedLinks: hintedLinks,
         totalHintsNum: totalHintsNum,
-        correctHintsNum: correctHintsNum
+        correctHintsNum: correctHintsNum,
+        rating: rating
     };
     $.ajax({
         data: params,

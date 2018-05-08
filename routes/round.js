@@ -450,6 +450,8 @@ module.exports = function (io) {
         let totalHintsNum = req.body.totalHintsNum;
         let correctHintsNum = req.body.correctHintsNum;
 
+        let rating = req.body.rating;
+
         ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, { _id: 0, contribution: 1 }, function (err, docs) {
             if (err) {
                 console.log(err);
@@ -468,7 +470,8 @@ module.exports = function (io) {
                             "records.$.total_links": req.body.totalLinks,
                             "records.$.hinted_links": req.body.hintedLinks,
                             "records.$.total_hints": req.body.totalHintsNum,
-                            "records.$.correct_hints": req.body.correctHintsNum                              
+                            "records.$.correct_hints":req.body.correctHintsNum,
+                            "records.$.rating": rating                           
                         }
                     };
                 } else if (req.body.finished == "false") {
@@ -481,7 +484,8 @@ module.exports = function (io) {
                             "records.$.total_links": req.body.totalLinks,
                             "records.$.hinted_links": req.body.hintedLinks,
                             "records.$.total_hints": req.body.totalHintsNum,
-                            "records.$.correct_hints": req.body.correctHintsNum 
+                            "records.$.correct_hints": req.body.correctHintsNum,
+                            "records.$.rating": rating                                                       
                         }
                     };
                 }
