@@ -181,7 +181,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
         } else {
             if (doc) {
                 req.session.error = 'Welcome! ' + req.session.user.username;
-                res.render('rounddisplay2', { title: 'Home', username: doc.username, admin: doc.admin });
+                res.render('playground', { title: 'Home', username: doc.username, admin: doc.admin });
             }
         }
     });
@@ -195,7 +195,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 // });
 
 // Round
-router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
+router.route('/playground').all(LoginFirst).get(function (req, res) {
     let selectStr = { username: req.session.user.username };
     let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
     UserModel.findOne(selectStr, fields, function (err, doc) {
@@ -203,7 +203,7 @@ router.route('/rounddisplay').all(LoginFirst).get(function (req, res) {
             console.log(err);
         } else {
             if (doc) {
-                res.render('rounddisplay', { title: 'Playground', username: doc.username, admin: doc.admin });
+                res.render('playground', { title: 'Playground', username: doc.username, admin: doc.admin });
             }
         }
     });
