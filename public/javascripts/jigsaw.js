@@ -316,7 +316,11 @@ function JigsawPuzzle(config) {
     this.edgesDropped = undefined;
     this.groups = undefined; // a connected subgraph as a group
     this.sizes = undefined; // number of edges as the size
-    this.wtimer = undefined; // time past since last action
+    this.askHelpTimeout = undefined; // time past since last action
+
+    this.dfsGraphLinksMap = new Array();
+    this.checkLinksData = new Array();
+    this.removeLinksData = new Array();
 
     this.hintsShowing = false;
     this.undoing = false;
@@ -352,7 +356,8 @@ function JigsawPuzzle(config) {
 
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
-            refreshAroundTiles(tile, false, false);
+            refreshAroundTiles(tile, false);
+            tile.hasBeenRefresh = false;
             tile.aroundTilesChanged = false;
             tile.preStep = instance.step - 2;
             tile.preCellPosition = tile.cellPosition;
@@ -427,7 +432,13 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function refreshAroundTiles(tile, beHinted, needToSendLinks) {
+    function refreshAroundTiles(tile, beHinted) {
+        if(tile.hasBeenRefresh){
+            return;
+        }
+
+        tile.hasBeenRefresh = true;
+
         var tileIndex = getTileIndex(tile);
 
         var cellPosition = tile.cellPosition;
@@ -448,49 +459,42 @@ function JigsawPuzzle(config) {
 
         for (var i = 0; i < aroundTiles.length; i++) {
             if (aroundTiles[i] == -1 && tile.aroundTiles[i] != -1) { // add conflict record to both tile connected before
-                tile.conflictTiles.push(tile.aroundTiles[i]);
+                tile.conflictTiles[tile.aroundTiles[i]] = true;
                 var neighborTile = instance.tiles[tile.aroundTiles[i]];
-                neighborTile.conflictTiles.push(tileIndex);
+                neighborTile.conflictTiles[tileIndex] = true;
             }
 
             if (tile.aroundTiles[i] == -1 && aroundTiles[i] != -1) { // remove conflict record to both tile
-                var tmpConflictTiles = new Array();
-                for (var j = 0; j < tile.conflictTiles.length; j++) {
-                    if (tile.conflictTiles[j] != aroundTiles[i]) {
-                        tmpConflictTiles.push(tile.conflictTiles[j]);
-                    }
-                }
-                tile.conflictTiles = tmpConflictTiles;
-
+                tile.conflictTiles[aroundTiles[i]] = false;
                 var neighborTile = instance.tiles[aroundTiles[i]];
-                tmpConflictTiles = new Array();
-                for (var j = 0; j < neighborTile.conflictTiles.length; j++) {
-                    if (neighborTile.conflictTiles[j] != tileIndex) {
-                        tmpConflictTiles.push(neighborTile.conflictTiles[j]);
-                    }
-                }
-                neighborTile.conflictTiles = tmpConflictTiles;
+                neighborTile.conflictTiles[tileIndex] = false;
             }
 
             if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
+
                 if (beHinted) {
                     tile.hintedLinks[i] = 1;
                 }
                 else {
                     tile.hintedLinks[i] = 0;
                 }
+
+                if (aroundTiles[i] >= 0) {
+                    var neighborTile = instance.tiles[aroundTiles[i]];
+                    refreshAroundTiles(neighborTile, beHinted);
+                }
+                if (tile.aroundTiles[i] >= 0) {
+                    var neighborTile = instance.tiles[tile.aroundTiles[i]];
+                    refreshAroundTiles(neighborTile, beHinted);
+                }                 
             }
         }
-
-        if (needToSendLinks && aroundTilesChanged) {
-            checkLinks(player_name, roundID, tileIndex, tile.aroundTiles, aroundTiles, beHinted);
+        if(aroundTilesChanged){
+            tile.oldAroundTiles = tile.aroundTiles;
+            tile.aroundTiles = aroundTiles;
+            tile.aroundTilesChanged = aroundTilesChanged;
         }
-
-        var oldAroundTiles = tile.aroundTiles;
-        tile.aroundTiles = aroundTiles;
-        tile.aroundTilesChanged = aroundTilesChanged;
-        return oldAroundTiles;
     }
 
     this.calcHintedTile = function () {
@@ -1113,50 +1117,88 @@ function JigsawPuzzle(config) {
 
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
-            if (tile.beenUndo) {
-                refreshAroundTiles(tile, false, true);
-                tile.beenUndo = false;
+            if(tile.beenUndo){
+                refreshAroundTiles(tile, false);
             }
-            else {
-                refreshAroundTiles(tile, false, false);
+        }
+
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            if (tile.beenUndo) {
+                computeDFSGraphLinks(tile, false);
+                tile.beenUndo = false;
             }
         }
 
         if (tilesMoved) {
             instance.steps += 1;
+
+            instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
+            uploadGraphData(false);
+            instance.dfsGraphLinksMap = new Array();
+            instance.checkLinksData = new Array();
+            instance.removeLinksData = new Array();
+
             document.getElementById("steps").innerHTML = instance.steps;
             undoStep = instance.steps;
             $('#undo_button').css('display', 'none');
             saveGame();
+            normalizeTiles();
         }
 
         instance.undoing = false;
     }
 
-    function sendLinks(tile) {
+    function generateLinksTags(x, y, direction){
+        switch(direction){
+            case 0: return {x:Number(y), y:Number(x), tag:"T-B"};
+            case 1: return {x:Number(x), y:Number(y), tag:"L-R"};
+            case 2: return {x:Number(x), y:Number(y), tag:"T-B"};
+            case 3: return {x:Number(y), y:Number(x), tag:"L-R"};
+        }
+    }
+
+    function dfsGraph(tileIndex){
+        if(instance.dfsGraphLinksMap[tileIndex]){
+            return;
+        }
+        instance.dfsGraphLinksMap[tileIndex] = new Array();
+        var tile = instance.tiles[tileIndex];
+        for(var i = 0; i < tile.aroundTiles.length; i++){
+            var aroundTileIndex = tile.aroundTiles[i];
+            if(aroundTileIndex < 0 || (instance.dfsGraphLinksMap[aroundTileIndex] && 
+                instance.dfsGraphLinksMap[aroundTileIndex][tileIndex])){
+                continue;
+            }
+            instance.dfsGraphLinksMap[tileIndex][aroundTileIndex] = true;
+            instance.checkLinksData.push(generateLinksTags(tileIndex, aroundTileIndex, i));
+            dfsGraph(aroundTileIndex);
+        }
+    }
+
+    function updateGraphSize(preSize){
+        var size = instance.checkLinksData.length - preSize;
+        for(var i = preSize; i < instance.checkLinksData.length; i++){
+            instance.checkLinksData[i].size = size;
+        }
+    }
+
+    function computeDFSGraphLinks(tile, beHinted) {
         var tileIndex = getTileIndex(tile);
         if (tileIndex < 0)
             return;
 
-        var oldAroundTiles = refreshAroundTiles(tile, false, false);
-
+        var oldAroundTiles = tile.oldAroundTiles;
         if (tile.aroundTilesChanged) {
+
             for (var i = 0; i < oldAroundTiles.length; i++) {
                 if (tile.aroundTiles[i] != oldAroundTiles[i]) {
                     tile.hintedLinks[i] = 0;
                 }
-                if (oldAroundTiles[i] >= 0) {
-                    var neighborTile = instance.tiles[oldAroundTiles[i]];
-                    refreshAroundTiles(neighborTile, false, false);
-                }
-                if (tile.aroundTiles[i] >= 0) {
-                    var neighborTile = instance.tiles[tile.aroundTiles[i]];
-                    refreshAroundTiles(neighborTile, false, false);
-                }
             }
             //console.log('Before:' + oldAroundTiles);
             //console.log('After:' + tile.aroundTiles);
-            checkLinks(player_name, roundID, tileIndex, oldAroundTiles, tile.aroundTiles, false);
+            checkLinks(tileIndex, oldAroundTiles, tile.aroundTiles);
         }
 
         var sum = 0;
@@ -1177,8 +1219,9 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             player_name: player_name
         });
-        clearTimeout(instance.wtimer);
+        clearTimeout(instance.askHelpTimeout);
         socket.on("receiveHints", function(data){
+            console.log(data);
             for(var i=0;i<data.length;i++){
                 showHints(data[i].index, data[i].hints);
             }
@@ -1186,7 +1229,8 @@ function JigsawPuzzle(config) {
     }
 
     this.releaseTile = function () {
-        instance.wtimer=setTimeout(askHelp, 30*1000);
+        clearTimeout(instance.askHelpTimeout);
+        instance.askHelpTimeout=setTimeout(askHelp, 30*1000);
 
         if (instance.draging) {
             var centerCellPosition = new Point(
@@ -1223,12 +1267,23 @@ function JigsawPuzzle(config) {
             }
 
             for (var i = 0; i < instance.selectedTile.length; i++) {
+                refreshAroundTiles(instance.selectedTile[i], false);
+            }
+
+            for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
-                sendLinks(tile);
+                computeDFSGraphLinks(tile, false);
             }
 
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps += 1;
+
+                instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
+                uploadGraphData(false);
+                instance.dfsGraphLinksMap = new Array();
+                instance.checkLinksData = new Array();
+                instance.removeLinksData = new Array();
+
                 document.getElementById("steps").innerHTML = instance.steps;
                 $('#undo_button').css('display', 'inline');
                 saveGame();
@@ -1259,6 +1314,86 @@ function JigsawPuzzle(config) {
             $('html,body').css('cursor', 'default');
             normalizeTiles();
         }
+    }
+
+    /**
+     *  Update links in the background graph
+     *  Check which case it is in the 4 cases, and call the corrosponding method:
+     *  *  When one link is created:
+     *  1, If the link does not exist, create a link;
+     *  2, If the link already exists, update: append the user to the supporter list of the selected tile;
+     *  *  When one link is destroyed:
+     *  1, If the user is the only one supporter, remove;
+     *  2, Else update: remove the user from the supporter list of the 2 tiles
+     */
+
+    /**
+    * Check links change of the selected tile(s), and update the database
+    * @param selectedTileIndex  Number the selected tile index
+    * @param aroundTilesBefore  Tiles indexes around the selected before one step
+    * @param aroundTilesAfter  Tiles indexes around the selected after one step
+    * e.g. ({
+        "round_id":0,
+        "selectedTile": 1,
+        "aroundTiles":[{
+            "before": -1,
+            "after": 3
+        },{
+            "before": -1,
+            "after": -1
+        },{
+                "before": 2,
+            "after": 3
+        },{
+                "before": -1,
+            "after": -1
+        }]
+    })
+    */
+    function checkLinks(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
+        var preSize = instance.checkLinksData.length;
+        dfsGraph(selectedTileIndex);
+        if(preSize < instance.checkLinksData.length){
+            updateGraphSize(preSize);
+        }
+
+        for(var i = 0; i < 4; i++){
+            if(aroundTilesBefore[i] >= 0){
+                preSize = instance.checkLinksData.length;
+                dfsGraph(aroundTilesBefore[i]);
+                if(preSize < instance.checkLinksData.length){
+                    updateGraphSize(preSize);
+                }
+
+                if(aroundTilesBefore[i] != aroundTilesAfter[i]){
+                    removeLink = generateLinksTags(selectedTileIndex, aroundTilesBefore[i], i);
+                    removeLink.size = 0;
+                    instance.removeLinksData.push(removeLink);
+                }
+            }
+            if(aroundTilesAfter[i] >= 0){
+                preSize = instance.checkLinksData.length;
+                dfsGraph(aroundTilesAfter[i]);
+                if(preSize < instance.checkLinksData.length){
+                    updateGraphSize(preSize);
+                }
+            }
+        }
+        return true;
+    }
+
+    function uploadGraphData(isHinted){
+        if(instance.checkLinksData.length == 0){
+            return;
+        }
+        var param = {
+            player_name: player_name,
+            round_id: roundID,
+            isHinted: isHinted,
+            weight: instance.checkLinksData
+        };
+        console.log(param);
+        //socket.emit("upload", param);
     }
 
     function hideAllColorBorder() {
@@ -1353,6 +1488,7 @@ function JigsawPuzzle(config) {
             tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
             tile.aroundTilesChanged = false;
             tile.positionMoved = false;
+            tile.hasBeenRefresh = false;
         }
     }
 
@@ -1403,6 +1539,13 @@ function JigsawPuzzle(config) {
                         checkHints(selectedTileIndex, data);
                         showHints(selectedTileIndex, data);
                     }
+
+                    instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
+                    uploadGraphData(true);
+                    instance.dfsGraphLinksMap = new Array();
+                    instance.checkLinksData = new Array();
+                    instance.removeLinksData = new Array();
+
                     normalizeTiles();
                     instance.hintsShowing = false;
                 }
@@ -1436,16 +1579,11 @@ function JigsawPuzzle(config) {
                 continue;
             }
 
-            var isConflictTile = false;
-            for (var i = 0; i < tile.conflictTiles.length; i++) {
-                if (tile.conflictTiles[i] == correctTileIndex) {
-                    isConflictTile = true;
-                    break;
-                }
-            }
-            if (isConflictTile) {
+
+            if (tile.conflictTiles[correctTileIndex]) {
                 continue;
             }
+
             var correctTile = instance.tiles[correctTileIndex];
 
             if (correctTile.picking) {
@@ -1483,20 +1621,14 @@ function JigsawPuzzle(config) {
                 }
                 hintTilesCount += groupTiles.length;
             }
+
+            for (var i = 0; i < groupTiles.length; i++) {
+                refreshAroundTiles(groupTiles[i], true);
+            }
+
             for (var i = 0; i < groupTiles.length; i++) {
                 groupTiles[i].picking = false;
-                refreshAroundTiles(groupTiles[i], true, true);
-                if (groupTiles[i].aroundTilesChanged) {
-                    shouldSave = true;
-                    for (var t = 0; t < groupTiles[i].aroundTiles.length; t++) {
-                        var neighborIndex = groupTiles[i].aroundTiles[t];
-                        if (neighborIndex >= 0) {
-                            var neighborTile = instance.tiles[neighborIndex];
-                            refreshAroundTiles(neighborTile, true, false);
-                        }
-                    }
-                }
-
+                computeDFSGraphLinks(groupTiles[i], true);
             }
         }
         if (hintTilesCount) {
@@ -1613,11 +1745,12 @@ function JigsawPuzzle(config) {
                 return;
         }
         tile.relativePosition = relativePosition;
+        tile.originPosition = tile.cellPosition;
         array.push(tile);
         for (var i = 0; i < 4; i++) {
-            var newPos = tile.cellPosition + directions[i];
-            newTile = getTileAtCellPosition(newPos);
-            if (newTile) {
+            var newTileIndex = tile.aroundTiles[i];
+            if (newTileIndex >= 0) {
+                var newTile = instance.tiles[newTileIndex];
                 DFSTiles(newTile, array, relativePosition + directions[i]);
             }
         }
@@ -1784,6 +1917,9 @@ function JigsawPuzzle(config) {
     }
 }
 
+
+
+
 /**
  * Ensure quit
  */
@@ -1879,3 +2015,5 @@ $('#undo_button').mouseover(function () {
 $('#undo_button').mouseout(function () {
     $('#undo_button').css("background-color", "rgba(200, 200, 200, 0)")
 });
+
+
