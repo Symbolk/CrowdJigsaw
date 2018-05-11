@@ -357,6 +357,7 @@ function JigsawPuzzle(config) {
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             refreshAroundTiles(tile, false);
+            tile.hasBeenRefresh = false;
             tile.aroundTilesChanged = false;
             tile.preStep = instance.step - 2;
             tile.preCellPosition = tile.cellPosition;
@@ -432,6 +433,12 @@ function JigsawPuzzle(config) {
     }
 
     function refreshAroundTiles(tile, beHinted) {
+        if(tile.hasBeenRefresh){
+            return;
+        }
+
+        tile.hasBeenRefresh = true;
+
         var tileIndex = getTileIndex(tile);
 
         var cellPosition = tile.cellPosition;
@@ -465,12 +472,22 @@ function JigsawPuzzle(config) {
 
             if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
+
                 if (beHinted) {
                     tile.hintedLinks[i] = 1;
                 }
                 else {
                     tile.hintedLinks[i] = 0;
                 }
+
+                if (aroundTiles[i] >= 0) {
+                    var neighborTile = instance.tiles[aroundTiles[i]];
+                    refreshAroundTiles(neighborTile, beHinted);
+                }
+                if (tile.aroundTiles[i] >= 0) {
+                    var neighborTile = instance.tiles[tile.aroundTiles[i]];
+                    refreshAroundTiles(neighborTile, beHinted);
+                }                 
             }
         }
         if(aroundTilesChanged){
@@ -1147,7 +1164,6 @@ function JigsawPuzzle(config) {
         }
         instance.dfsGraphLinksMap[tileIndex] = new Array();
         var tile = instance.tiles[tileIndex];
-        console.log(tileIndex, tile.aroundTiles);
         for(var i = 0; i < tile.aroundTiles.length; i++){
             var aroundTileIndex = tile.aroundTiles[i];
             if(aroundTileIndex < 0 || (instance.dfsGraphLinksMap[aroundTileIndex] && 
@@ -1178,14 +1194,6 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < oldAroundTiles.length; i++) {
                 if (tile.aroundTiles[i] != oldAroundTiles[i]) {
                     tile.hintedLinks[i] = 0;
-                }
-                if (oldAroundTiles[i] >= 0) {
-                    var neighborTile = instance.tiles[oldAroundTiles[i]];
-                    refreshAroundTiles(neighborTile, beHinted);
-                }
-                if (tile.aroundTiles[i] >= 0) {
-                    var neighborTile = instance.tiles[tile.aroundTiles[i]];
-                    refreshAroundTiles(neighborTile, beHinted);
                 }
             }
             //console.log('Before:' + oldAroundTiles);
@@ -1384,7 +1392,8 @@ function JigsawPuzzle(config) {
             isHinted: isHinted,
             weight: instance.checkLinksData
         };
-        socket.emit("upload", param);
+        console.log(param);
+        //socket.emit("upload", param);
     }
 
     function hideAllColorBorder() {
@@ -1479,6 +1488,7 @@ function JigsawPuzzle(config) {
             tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
             tile.aroundTilesChanged = false;
             tile.positionMoved = false;
+            tile.hasBeenRefresh = false;
         }
     }
 
