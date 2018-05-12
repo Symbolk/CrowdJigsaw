@@ -1,38 +1,52 @@
 <link rel='stylesheet' href='/stylesheets/jigsaw.css' />
 <script type="text/javascript" src="/javascripts/paper-full.js"></script>
 <script type="text/javascript" src="/javascripts/socket.io.js"></script>
-<!-- <script type="text/javascript" src="https://cdn.bootcss.com/socket.io/2.0.4/socket.io.js"></script> -->
 
 <% include header.html %>
     <div class="demo-layout-transparent mdl-layout mdl-js-layout">
         <% include drawer.html %>
-            <dialog class="mdl-dialog" id="ensure_quit_dialog">
-                <div class="mdl-dialog__content">
-                    <p class="quit-dialog-text">
-                        Are You Sure?
-                        <i class="fa fa-sign-out fa-lg"></i>
-                    </p>
-
-                    <div class="mdl-dialog__actions mdl-card--border">
-                        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" id="apply-button">Yes</button>
-                        <button type="button" class="cancel_button mdl-button mdl-js-button mdl-button--raised" id="cancel-button">No</button>
+            <div class="modal fade" id="ensure_quit_dialog" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
+                            </button>
+                            <h4 class="modal-title" id="quitLabel">
+                                Are You Sure to Quit?
+                            </h4>
+                        </div>
+                        <div class="modal-body" style="text-align:center;">
+                            <h4 class="text-center text-nowrap text-danger">What do you think about the feedback?</h4>
+                            <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
+                            <input id="rating" required class="rb-rating" type="text" value="" title="">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="apply-button">
+                                Submit&Quit
+                            </button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">
+                                Cancel
+                            </button>
+                        </div>
                     </div>
+                    <!-- /.modal-content -->
                 </div>
-            </dialog>
-
+                <!-- /.modal-dialog -->
+            </div>
 
             <div class="modal fade" id="finish_dialog" tabindex="-1" role="dialog" aria-labelledby="msgLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
                             </button>
                             <h4 class="modal-title" id="msgLabel">
                                 Congratulations!
                             </h4>
                         </div>
                         <div class="modal-body" style="text-align:center;">
-                            <h4 class="text-center text-nowrap text-danger">What do you think about the feedback?</h4>
+                            <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
+                            <h4 class="text-center text-nowrap text-danger">你觉得拼图过程中的推荐怎么样？</h4>
                             <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
                             <input id="rating" required class="rb-rating" type="text" value="" title="">
                         </div>
@@ -51,7 +65,7 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
                             </button>
                             <h4 class="modal-title" id="msgLabel">
                                 Someone has solved the puzzle!
@@ -128,9 +142,7 @@
                 myCanvas.setAttribute("id", "canvas");
                 myCanvas.setAttribute("class", "canvas");
                 document.querySelector('.puzzle').appendChild(myCanvas);
-            
             </script>
-
             <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
             <script type="text/javascript" src="/javascripts/intro.js"></script>
             </body>

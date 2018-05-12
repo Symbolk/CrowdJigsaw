@@ -530,8 +530,6 @@ function JigsawPuzzle(config) {
             keyboard: true
         });
 
-        // gameFinishDialog.showModal();
-
         /**          
          * Once one person solves the puzzle, the round is over          
          * Send a msg to the server and the server broadcast it to all players          
@@ -1924,31 +1922,35 @@ function JigsawPuzzle(config) {
  * Ensure quit
  */
 (function () {
-    var showButton = document.querySelector('#ensure_quit');
+    var showDialog = document.querySelector('#quit');
     var dialog = document.querySelector('#ensure_quit_dialog');
-    var cancelButton = document.querySelector('#cancel-button');
     var applyButton = document.querySelector('#apply-button');
 
-    if (!dialog.showModal) {
-        dialogPolyfill.registerDialog(dialog);
-    }
-
-    cancelButton.addEventListener('click', function (event) {
-        dialog.close();
+    showDialog.addEventListener('click', function (event) {
+        $('#quitLabel').text('Are You Sure?');
+        $('#ensure_quit_dialog').modal({
+            keyboard: true
+        });
     });
 
-    showButton.addEventListener('click', function (event) {
-        $('.quit-dialog-text').text('Are You Sure?');
-        dialog.showModal();
+    $('.rb-rating').rating({
+        'showCaption': true,
+        'showClear': false,
+        'stars': '5',
+        'min': '0',
+        'max': '5',
+        'step': '1',
+        'size': 'xs',
+        'starCaptions': {0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So',  4: 'Great Help',  5: 'Excellent!'}
     });
 
     applyButton.addEventListener('click', function (event) {
-
+        var rating = $("#rating").val();
         puzzle.calcHintedTile();
 
         sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), 
                     document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, 
-                    hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, -1);
+                    hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -1957,12 +1959,11 @@ function JigsawPuzzle(config) {
             cache: false,
             timeout: 5000,
             success: function (data) {
-                dialog.close();
                 window.location = '/roundrank/' + roundID;
                 console.log(data);
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                $('.quit-dialog-text').text('Connection error, please try again.');
+                $('.quitLabel').text('Connection error, please try again.');
                 console.log('error ' + textStatus + " " + errorThrown);
             }
         });

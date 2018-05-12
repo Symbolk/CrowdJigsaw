@@ -36,6 +36,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
   <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css">  
   <link rel="stylesheet" type="text/css" href="/stylesheets/dialog-polyfill.css" />
   <link rel="stylesheet" href="/stylesheets/buttons.css">
+  <link rel="stylesheet" href="/stylesheets/amaran.min.css">
   
   <!-- Google Font -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -85,141 +86,31 @@ desired effect
       <!-- Navbar Right Menu -->
       <div class="navbar-custom-menu">
         <ul class="nav navbar-nav">
-          <!-- Messages: style can be found in dropdown.less-->
-          <li class="dropdown messages-menu">
-            <!-- Menu toggle button -->
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <i class="fa fa-envelope-o"></i>
-              <span class="label label-success">4</span>
-            </a>
-            <ul class="dropdown-menu">
-              <li class="header">You have 4 messages</li>
-              <li>
-                <!-- inner menu: contains the messages -->
-                <ul class="menu">
-                  <li><!-- start message -->
-                    <a href="#">
-                      <div class="pull-left">
-                        <!-- User Image -->
-                        <img src="/images/placeholder.jpg" class="img-circle" alt="User Image">
-                      </div>
-                      <!-- Message title and timestamp -->
-                      <h4>
-                        Support Team
-                        <small><i class="fa fa-clock-o"></i> 5 mins</small>
-                      </h4>
-                      <!-- The message -->
-                      <p>Why not buy a new awesome theme?</p>
-                    </a>
-                  </li>
-                  <!-- end message -->
-                </ul>
-                <!-- /.menu -->
-              </li>
-              <li class="footer"><a href="#">See All Messages</a></li>
-            </ul>
-          </li>
-          <!-- /.messages-menu -->
-
-          <!-- Notifications Menu -->
-          <li class="dropdown notifications-menu">
-            <!-- Menu toggle button -->
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <i class="fa fa-bell-o"></i>
-              <span class="label label-warning">10</span>
-            </a>
-            <ul class="dropdown-menu">
-              <li class="header">You have 10 notifications</li>
-              <li>
-                <!-- Inner Menu: contains the notifications -->
-                <ul class="menu">
-                  <li><!-- start notification -->
-                    <a href="#">
-                      <i class="fa fa-users text-aqua"></i> 5 new members joined today
-                    </a>
-                  </li>
-                  <!-- end notification -->
-                </ul>
-              </li>
-              <li class="footer"><a href="#">View all</a></li>
-            </ul>
-          </li>
-          <!-- Tasks Menu -->
-          <li class="dropdown tasks-menu">
-            <!-- Menu Toggle Button -->
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <i class="fa fa-flag-o"></i>
-              <span class="label label-danger">9</span>
-            </a>
-            <ul class="dropdown-menu">
-              <li class="header">You have 9 tasks</li>
-              <li>
-                <!-- Inner menu: contains the tasks -->
-                <ul class="menu">
-                  <li><!-- Task item -->
-                    <a href="#">
-                      <!-- Task title and progress text -->
-                      <h3>
-                        Design some buttons
-                        <small class="pull-right">20%</small>
-                      </h3>
-                      <!-- The progress bar -->
-                      <div class="progress xs">
-                        <!-- Change the css width attribute to simulate progress -->
-                        <div class="progress-bar progress-bar-aqua" style="width: 20%" role="progressbar"
-                             aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
-                          <span class="sr-only">20% Complete</span>
-                        </div>
-                      </div>
-                    </a>
-                  </li>
-                  <!-- end task item -->
-                </ul>
-              </li>
-              <li class="footer">
-                <a href="#">View all tasks</a>
-              </li>
-            </ul>
-          </li>
           <!-- User Account Menu -->
           <li class="dropdown user user-menu">
             <!-- Menu Toggle Button -->
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
               <!-- The user image in the navbar-->
-              <img src="/images/placeholder.jpg" class="user-image" alt="User Image">
+              <img src="" class="user-image headImg" alt="User Image">
+              <canvas id="headImg" style="display:none"></canvas>
               <!-- hidden-xs hides the username on small devices so only the image appears. -->
               <span class="hidden-xs"><%= username %></span>
             </a>
             <ul class="dropdown-menu">
               <!-- The user image in the menu -->
               <li class="user-header">
-                <img src="/images/placeholder.jpg" class="img-circle" alt="User Image">
-
-                <!-- <p>
-                  Alexander Pierce - Web Developer
-                  <small>Member since Nov. 2012</small>
-                </p> -->
-              </li>
-              <!-- Menu Body -->
-              <li class="user-body">
-                <div class="row">
-                  <div class="col-xs-4 text-center">
-                    <a href="#">Followers</a>
-                  </div>
-                  <div class="col-xs-4 text-center">
-                    <a href="#">Sales</a>
-                  </div>
-                  <div class="col-xs-4 text-center">
-                    <a href="#">Friends</a>
-                  </div>
-                </div>
-                <!-- /.row -->
+                <img src="" class="img-circle headImg" alt="User Image">
+                <canvas id="headImg" style="display:none"></canvas>
+                <p>
+                    <%= username %>
+                  <small>Member since 2018</small>
+                </p>
               </li>
               <!-- Menu Footer-->
               <li class="user-footer">
-                <div class="pull-left">
+                <!-- <div class="pull-left">
                   <a href="#" class="btn btn-default btn-flat">Profile</a>
-                </div>
+                </div> -->
                 <div class="pull-right">
                   <a href="/logout" class="btn btn-default btn-flat">Sign out</a>
                 </div>
@@ -243,7 +134,8 @@ desired effect
       <!-- Sidebar user panel (optional) -->
       <div class="user-panel">
         <div class="pull-left image">
-          <img src="/images/placeholder.jpg" class="img-circle" alt="User Image">
+          <img src="" class="img-circle head-sidebar" alt="User Image">
+          <canvas id="head-sidebar" style="display:none"></canvas>
         </div>
         <div class="pull-left info">
           <p><%= username %></p>
@@ -273,6 +165,7 @@ desired effect
         <li><a href="/settings"><i class="fa fa-gears fa-lg"></i> <span>Settings</span></a></li>
         <li><a href="/rank"><i class="fa fa-bar-chart fa-lg"></i> <span>Ranks</span></a></li>
         <li><a href="/help"><i class="fa fa-question-circle fa-lg"></i> <span>Help</span></a></li>        
+        <li><a href="/logout"><i class="fa fa-sign-out fa-lg"></i> <span>Sign Out</span></a></li>        
         <li class="treeview">
           <a href="#"><i class="fa fa-link fa-lg"></i> <span>Links</span>
             <span class="pull-right-container">
@@ -289,3 +182,41 @@ desired effect
     </section>
     <!-- /.sidebar -->
   </aside>
+  <script src="/javascripts/jquery.min.js"></script>
+
+  <script>
+      $(function () {
+          var uname = '<%= username %>';
+          var name = uname.charAt(0);
+          var fontSize = 60;
+          var fontWeight = 'bold';
+
+          var canvas = document.getElementById('headImg');
+          var img1 = document.getElementById('headImg');
+          canvas.width = 120;
+          canvas.height = 120;
+          var context = canvas.getContext('2d');
+          context.fillStyle = '#FFFFFF';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.fillStyle = '#66CD00';
+          context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+          context.textAlign = 'center';
+          context.textBaseline = "middle";
+          context.fillText(name, fontSize, fontSize);
+          $('.headImg').attr('src', canvas.toDataURL("image/png"));
+
+          var canvas = document.getElementById('head-sidebar');
+          var img1 = document.getElementById('head-sidebar');
+          canvas.width = 120;
+          canvas.height = 120;
+          var context = canvas.getContext('2d');
+          context.fillStyle = '#00CD66';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.fillStyle = '#FFFFFF';
+          context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+          context.textAlign = 'center';
+          context.textBaseline = "middle";
+          context.fillText(name, fontSize, fontSize);
+          $('.head-sidebar').attr('src', canvas.toDataURL("image/png"));
+      });
+  </script>

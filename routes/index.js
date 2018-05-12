@@ -69,7 +69,7 @@ router.route('/login').all(Logined).get(function (req, res) {
                         if (err) {
                             console.log(err);
                         } else {
-                            req.session.error = 'Welcome! ' + time;
+                            req.session.error = user.username + ', Welcome to Crowd Jigsaw!';
                             return res.redirect('/home');
                         }
                     });
@@ -448,7 +448,7 @@ router.get('/logout', function (req, res) {
 
 function Logined(req, res, next) {
     if (req.session.user) {
-        req.session.error = 'You already Logged In!';
+        req.session.error = 'Welcome back!';
         return res.redirect('/home');
     }
     //如果当前中间件没有终结请求-响应循环，则必须调用 next() 方法将控制权交给下一个中间件，否则请求就会挂起。

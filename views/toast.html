@@ -1,30 +1,26 @@
-<div class="mdl-grid">
-    <div class="mdl-cell mdl-cell--4-col"></div>
-    <div class="mdl-cell mdl-cell--4-col">
-        <div id="toast" class="mdl-js-snackbar mdl-snackbar">
-            <div class="mdl-snackbar__text"></div>
-            <button class="mdl-snackbar__action" type="button"></button>
-        </div>
-    </div>
-    <div class="mdl-cell mdl-cell--4-col"></div>
-</div>
-    <script>
-        r(function () {
-            var notification = document.querySelector('#toast');
-            var msg='<%- message %>';
-            if (msg == null || msg == undefined || msg == '') {
-                notification.MaterialSnackbar.showSnackbar(
-                    {
-                        message: 'You are now on <%- title %>'
-                    }
-                );
-            }else{
-                notification.MaterialSnackbar.showSnackbar(
-                    {
-                        message: msg
-                    }
-                );
+<script>
+    $(function () {
+        var msg = '<%- message %>';
+        if (msg == null || msg == undefined || msg == '') {
+            $.amaran({
+            content: {
+                title: 'Welcome',
+                message: 'Welcome to '+' <%- title %>!',
+                position: 'top right',
+                inEffect: 'slideRight',
+                outEffect: "fadeOut",
             }
         });
-        function r(f) { /in/.test(document.readyState) ? setTimeout('r(' + f + ')', 9) : f() }
-    </script>
+        }else{
+        $.amaran({
+            content: {
+                title: 'Message',
+                message: msg,
+                position: 'top right',
+                inEffect: 'slideRight',
+                outEffect: "fadeOut",
+            }
+        });
+    }        
+    });
+</script>
