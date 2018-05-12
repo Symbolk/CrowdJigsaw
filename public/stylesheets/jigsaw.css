@@ -33,54 +33,54 @@ canvas[resize]{
 }
 
 
-.zoomIn,
-.zoomOut,
-.restart,
-.quit,
-.returnCenter
-{
-    z-index: 100;
-    position: absolute;
-    opacity: 1.0 ;
-    cursor: pointer;
-}
+/*.zoomIn,*/
+/*.zoomOut,*/
+/*.restart,*/
+/*.quit,*/
+/*.returnCenter*/
+/*{*/
+    /*z-index: 100;*/
+    /*position: absolute;*/
+    /*opacity: 1.0 ;*/
+    /*cursor: pointer;*/
+/*}*/
 
 
-.quit.hover,
-.zoomIn:hover,
-.zoomOut:hover,
-.returnCenter:hover,
-.restart.hover
-{
-    opacity: 1.0;
-}
+/*.quit.hover,*/
+/*.zoomIn:hover,*/
+/*.zoomOut:hover,*/
+/*.returnCenter:hover,*/
+/*.restart.hover*/
+/*{*/
+    /*opacity: 1.0;*/
+/*}*/
 
 
-.zoomIn
-{
-    margin: 60px 0 0 50px;
-}
+/*.zoomIn*/
+/*{*/
+    /*margin: 60px 0 0 50px;*/
+/*}*/
 
 
-.zoomOut
-{
-    margin: 120px 0 0 50px;
-}
+/*.zoomOut*/
+/*{*/
+    /*margin: 120px 0 0 50px;*/
+/*}*/
 
-.restart
-{
-    margin: 180px 0 0 50px;
-}
+/*.restart*/
+/*{*/
+    /*margin: 180px 0 0 50px;*/
+/*}*/
 
-.quit
-{
-    margin: 240px 0 0 50px;
-}
+/*.quit*/
+/*{*/
+    /*margin: 240px 0 0 50px;*/
+/*}*/
 
-.returnCenter
-{
-    margin: 300px 0 0 50px;
-}
+/*.returnCenter*/
+/*{*/
+    /*margin: 300px 0 0 50px;*/
+/*}*/
 
 
 
@@ -101,23 +101,23 @@ canvas[resize]{
 
 
 #steps_chip{
-    margin:20px 0 0 0px;  
+    width:130px;
 }
 
 #timer_chip{
-    margin:10px 0 0 0px; 
+    width:130px;
 }
 
 #undo_button{
-    background-color: rgba(200, 200, 200, 0);
-    height: 10%;
+    /*background-color: rgba(200, 200, 200, 0);*/
+    height: 20%;
     width: height;
     position: absolute;
     top: 20px;
     right: 20px;
-    border-style: dashed;
-    border-width: thick;
-    border-color: rgba(200, 200, 200, 0.5);
+    /*border-style: dashed;*/
+    /*border-width: thick;*/
+    /*border-color: rgba(200, 200, 200, 0.5);*/
 }
 
 .demo-layout-transparent .mdl-layout__drawer-button {
@@ -128,16 +128,16 @@ canvas[resize]{
     width:135px;
 }
 
-#drag-mode-button{
-    width:15px;
-    margin: 20px 0 0 0px;
-}
+/*#drag-mode-button{*/
+    /*width:15px;*/
+    /*margin: 20px 0 0 0px;*/
+/*}*/
 
-#myselect{
-    width:125px;
-    margin: 345px 0 0 0px;
-    font-size: 10px;
-}
+/*#myselect{*/
+    /*width:125px;*/
+    /*margin: 345px 0 0 0px;*/
+    /*font-size: 10px;*/
+/*}*/
 
 /* .progress{
     position: fixed;
@@ -154,3 +154,10 @@ canvas[resize]{
     margin: auto;  
 }
 
+#button_group{
+    height: 20%;
+    width: 100px;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}

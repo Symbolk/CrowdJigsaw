@@ -4,7 +4,6 @@
 
 <% include header.html %>
     <div class="demo-layout-transparent mdl-layout mdl-js-layout">
-        <% include drawer.html %>
             <div class="modal fade" id="ensure_quit_dialog" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -16,7 +15,7 @@
                             </h4>
                         </div>
                         <div class="modal-body" style="text-align:center;">
-                            <h4 class="text-center text-nowrap text-danger">What do you think about the feedback?</h4>
+                            <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
                             <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
                             <input id="rating" required class="rb-rating" type="text" value="" title="">
                         </div>
@@ -46,7 +45,6 @@
                         </div>
                         <div class="modal-body" style="text-align:center;">
                             <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
-                            <h4 class="text-center text-nowrap text-danger">你觉得拼图过程中的推荐怎么样？</h4>
                             <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
                             <input id="rating" required class="rb-rating" type="text" value="" title="">
                         </div>
@@ -95,7 +93,6 @@
                 <div class="mdl-spinner mdl-js-spinner is-active"></div>
             </div>
 
-
             <div class="solution">
                 <img id="puzzle-image" class="puzzle-image" style="display: none;" />
                 <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
@@ -104,7 +101,36 @@
             <main class="puzzle">
             </main>
 
-            <img src="images/undo.png" id="undo_button" />
+            <div class="htmleaf-container">
+                <div class="htmleaf-content">
+                    <div class="center menu">
+                        <div id="myMenu"></div>
+                    </div>
+                </div>
+            </div>
+
+        <div id = button_group>
+            <span id="steps_chip" class="mdl-chip mdl-chip--contact">
+                <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">S</span>
+                <span id="steps" class="mdl-chip__text">0</span>
+                <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_steps" style="left: 85px; position: absolute; margin: 5">
+                    <input type="checkbox" id="show_steps" class="mdl-switch__input" checked>
+                    <!-- <span class="mdl-switch__label"></span> -->
+                </label>
+                <!-- <button type="button" class="mdl-chip__action" id="stepButton"><i class="fa fa-close"></i></button> -->
+            </span>
+            <span id="timer_chip" class="mdl-chip mdl-chip--contact">
+                <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white">T</span>
+                <span id="timer" class="mdl-chip__text">00:00:00</span>
+                <!-- <button type="button" class="mdl-chip__action"><i class="fa fa-close"></i></button> -->
+                <label id="timer_switch" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_timer" style="left: 85px; position: absolute; margin: 5">
+                    <input type="checkbox" id="show_timer" class="mdl-switch__input" checked>
+                    <!-- <span class="mdl-switch__label"></span> -->
+                </label>
+            </span>
+        </div>
+
+            <div class = "fa fa-backward fa-2x" id="undo_button" />
 
             <script type="text/javascript">
                 var player_name = '<%-player_name-%>';
@@ -133,9 +159,6 @@
                 document.querySelector('.puzzle-image').height = imageHeight;
                 document.querySelector('.puzzle-image').src = imgSrc;
 
-                console.log(window.innerHeight, window.innerWidth);
-                console.log(screen.availHeight, screen.availWidth);
-
                 var myCanvas = document.createElement("canvas");
                 myCanvas.setAttribute("width", screen.availWidth);
                 myCanvas.setAttribute("height", screen.availHeight);
@@ -143,8 +166,13 @@
                 myCanvas.setAttribute("class", "canvas");
                 document.querySelector('.puzzle').appendChild(myCanvas);
             </script>
+            </script>
             <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
             <script type="text/javascript" src="/javascripts/intro.js"></script>
             </body>
     </div>
+    <script src="/javascripts/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/jqueryui/1.11.0/jquery-ui.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/animejs/1.0.0/anime.js'></script>
+    <script src="/javascripts/menu.js"></script>
     <% include footer.html %>
