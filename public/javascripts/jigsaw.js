@@ -171,16 +171,16 @@ function timedCount() {
 if (puzzle)
     timedCount();
 
-$('#myselect').change(function () {
-    if (puzzle) {
-        if (this.value == "DragTileFirst") {
-            puzzle.dragMode = "tile-First";
-        }
-        else {
-            puzzle.dragMode = "group-First";
-        }
-    }
-});
+// $('#myselect').change(function () {
+//     if (puzzle) {
+//         if (this.value == "DragTileFirst") {
+//             puzzle.dragMode = "tile-First";
+//         }
+//         else {
+//             puzzle.dragMode = "group-First";
+//         }
+//     }
+// });
 
 
 var path;
@@ -384,52 +384,52 @@ function JigsawPuzzle(config) {
             }
         }
 
-        if (needIntro) {
-            $('.mdl-layout__drawer-button').click();
-            introJs().setOption("overlayOpacity", 0).setOptions({
-                steps: [
-                    {
-                        element: '#step2',
-                        intro: "Zoom in!"
-                    },
-                    {
-                        element: '#step3',
-                        intro: "Zoom out!"
-                    },
-                    {
-                        element: '#step4',
-                        intro: "Restart the game!"
-                    },
-                    {
-                        element: '#ensure_quit',
-                        intro: "Quit the game!"
-                    },
-                    {
-                        element: '#step6',
-                        intro: "Return to the center!"
-                    },
-                    {
-                        element: '#myselect',
-                        intro: "Change the drag mode here!"
-                    },
-                    {
-                        element: '#steps_chip',
-                        intro: "Show/Hide the step counter!"
-                    },
-                    {
-                        element: '#timer_chip',
-                        intro: "Show/Hide the time counter!"
-                    },
-                    {
-                        intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
-                    },
-                    {
-                        intro: "Now Let's Begin!"
-                    }
-                ],
-                scrollToElement: false
-            }).start();
-        }
+        // if (needIntro) {
+        //     $('.mdl-layout__drawer-button').click();
+        //     introJs().setOption("overlayOpacity", 0).setOptions({
+        //         steps: [
+        //             {
+        //                 element: '#step2',
+        //                 intro: "Zoom in!"
+        //             },
+        //             {
+        //                 element: '#step3',
+        //                 intro: "Zoom out!"
+        //             },
+        //             {
+        //                 element: '#step4',
+        //                 intro: "Restart the game!"
+        //             },
+        //             {
+        //                 element: '#ensure_quit',
+        //                 intro: "Quit the game!"
+        //             },
+        //             {
+        //                 element: '#step6',
+        //                 intro: "Return to the center!"
+        //             },
+        //             {
+        //                 element: '#myselect',
+        //                 intro: "Change the drag mode here!"
+        //             },
+        //             {
+        //                 element: '#steps_chip',
+        //                 intro: "Show/Hide the step counter!"
+        //             },
+        //             {
+        //                 element: '#timer_chip',
+        //                 intro: "Show/Hide the time counter!"
+        //             },
+        //             {
+        //                 intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
+        //             },
+        //             {
+        //                 intro: "Now Let's Begin!"
+        //             }
+        //         ],
+        //         scrollToElement: false
+        //     }).start();
+        // }
     }
 
     function refreshAroundTiles(tile, beHinted) {
