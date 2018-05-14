@@ -43,9 +43,11 @@ var RoundSchema = new mongoose.Schema({
     total_links: { type: String, default: "-1" }, // # of total links in the jigsaw puzzle
     hinted_links: { type: String, default: "-1" }, // # of hinted links for the MVP
     // solver results
-    solver_time: { type: String, default: "-1" }, // when the round is solved by the crowd-based solver(-1:unsolved)
-    solver_gen: { type: Number, default: -1}, // in which generation the round is solved(-1:unsolved)
-    solver_best_fitness: { type: Number, default: -1} // the fitness of the correct individual in the solver(-1:unsolved)
+    // solver_time: { type: String, default: "-1" }, // when the round is solved by the crowd-based solver(-1:unsolved)
+    // solver_gen: { type: Number, default: -1}, // in which generation the round is solved(-1:unsolved)
+    // solver_best_fitness: { type: Number, default: -1}, // the fitness of the correct individual in the solver(-1:unsolved)
+    // persistent edges data
+    edges_saved: { type: Object }
 }, { collection: 'rounds' });
 
 

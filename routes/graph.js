@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 var NodeModel = require('../models/node').Node;
 var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
+// var EdgeModel = require('../models/edge').Edge;
 var util = require('./util.js');
 var constants = require('../config/constants');
 var hint_weight = constants.hint_weight;
@@ -255,15 +256,95 @@ function mutualRemove(round_id, from, to, dir, NAME) {
     });
 }
 
+function update(data) {
+    let isHinted = data.isHinted;
+    // fetch the saved edges data of this round
+    RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            if (doc) {
+                if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
+                    // create the edges object & update db directly
+                    let obj = {};
+                    for (let e of data.edges) {
+                        let key = e.x + e.tag + e.y;
+                        let supporters = {};
+                        supporters[data.player_name] = e.size;
+                        obj[key] = {
+                            "x": e.x,
+                            "y": e.y,
+                            "tag": e.tag,
+                            "supporters": supporters,
+                            "confidence": e.size
+                        };
+                    }
+                    RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: obj } }, function (err) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log("First blood!");
+                        }
+                    });
+                } else {
+                    // get and update the object, then update db once
+                    let edges_saved = doc.edges_saved;
+                    for (let e of data.edges) {
+                        let temp = e.x + e.tag + e.y;
+                        // if the edge exists, update the size
+                        if (edges_saved.hasOwnProperty(temp)) {
+                            let supporters = edges_saved[temp].supporters;
+                            if (supporters.hasOwnProperty(data.player_name)) {
+                                supporters[data.player_name] = e.size;
+                            } else {
+                                supporters[data.player_name] = e.size;
+                            }
+                        } else {
+                            // if the edge not exists, create the edge
+                            let key = e.x + e.tag + e.y;
+                            let supporters = {};
+                            supporters[data.player_name] = e.size;
+                            edges_saved[key] = {
+                                "x": e.x,
+                                "y": e.y,
+                                "tag": e.tag,
+                                "supporters": supporters,
+                                "confidence": e.size
+                            };
+                        }
+                    }
+                    // update the confidence of every saved edge
+                    for (let key in edges_saved) {
+                        let supporters = edges_saved[key].supporters;
+                        let temp = 0;
+                        for (let key in supporters) {
+                            temp += supporters[key];
+                        }
+                        edges_saved[key].confidence = temp;
+                    }
+                    RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved } }, function (err) {
+                        if (err) {
+                            console.log(err);
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+
 
 module.exports = function (io) {
     io.on('connection', function (socket) {
         socket.on('upload', function (data) {
-            check(data);
+            // check(data);
+            update(data);
         });
+        // request global hints
         socket.on('requestHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
             var results = new Array();
+            // TODO
             NodeModel.find({ round_id: data.round_id }, function (err, docs) {
                 if (err) {
                     console.log(err);
@@ -295,6 +376,55 @@ module.exports = function (io) {
                             results.push(h);
                         }
                         socket.emit("receiveHints", results);
+                    }
+                }
+            });
+        });
+        // request localhints(around the selected tile)
+        socket.on('getHintsAround', function (data) {
+            // directions(0 1 2 3=T R B L)
+            let hints = new Array(4).fill(-1);
+            let confidences = new Array(4).fill(-1);
+            let index = data.index;
+            // fetch the saved edges data of this round
+            RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (doc) {
+                        // empty data
+                        if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
+                            socket.emit('receiveHintsAround', hints);
+                        } else {
+                            // generate hints in the 4 directions
+                            for (let key in doc.edges_saved) {
+                                let e = doc.edges_saved[key];
+                                if (e.x == index) {
+                                    if (e.tag == "T-B") {
+                                        if (e.confidence > confidences[2]) {
+                                            hints[2] = e.y;
+                                        }
+                                    }
+                                    if (e.tag == "L-R") {
+                                        if (e.confidence > confidences[1]) {
+                                            hints[1] = e.y;
+                                        }
+                                    }
+                                } else if (e.y == index) {
+                                    if (e.tag == "T-B") {
+                                        if (e.confidence > confidences[0]) {
+                                            hints[0] = e.x;
+                                        }
+                                    }
+                                    if (e.tag == "L-R") {
+                                        if (e.confidence > confidences[3]) {
+                                            hints[3] = e.x;
+                                        }
+                                    }
+                                }
+                            }
+                            socket.emit('receiveHintsAround', hints);
+                        }
                     }
                 }
             });

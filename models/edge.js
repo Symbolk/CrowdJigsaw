@@ -4,12 +4,11 @@
 const mongoose = require("mongoose");
 
 var EdgeSchema = new mongoose.Schema({
-    index: { type: Number,required: true, index:true }, // index of the edge
     round_id:{ type: Number,required: true, index:true  }, // round_id in which the edge exists
     // nodes the edge connects
     x: { type: Number }, 
     y: { type: Number },
-    tag: { type: String }, // label/tag of the edge, can be L-R or T-B
+    tag: { type: String }, // label/tag of the edge, L-R or T-B
     supporters: [
         {
             player_id: { type: Number }, // unique id of the player

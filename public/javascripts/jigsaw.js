@@ -56,7 +56,7 @@ var correctHintsNum = 0;
         'max': '5',
         'step': '1',
         'size': 'xs',
-        'starCaptions': {0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So',  4: 'Great Help',  5: 'Excellent!'}
+        'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
     });
     submitButton.addEventListener('click', function (event) {
         // player's rating for the hint(what he thinks about the function)
@@ -65,7 +65,7 @@ var correctHintsNum = 0;
         var steps = Number(document.getElementById("steps").innerHTML);
         var full_time = document.getElementById('timer').innerHTML;
 
-        sendRecord(roundID, true, steps, full_time, 
+        sendRecord(roundID, true, steps, full_time,
             hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
         $.ajax({
@@ -384,56 +384,56 @@ function JigsawPuzzle(config) {
             }
         }
 
-        // if (needIntro) {
-        //     $('.mdl-layout__drawer-button').click();
-        //     introJs().setOption("overlayOpacity", 0).setOptions({
-        //         steps: [
-        //             {
-        //                 element: '#step2',
-        //                 intro: "Zoom in!"
-        //             },
-        //             {
-        //                 element: '#step3',
-        //                 intro: "Zoom out!"
-        //             },
-        //             {
-        //                 element: '#step4',
-        //                 intro: "Restart the game!"
-        //             },
-        //             {
-        //                 element: '#ensure_quit',
-        //                 intro: "Quit the game!"
-        //             },
-        //             {
-        //                 element: '#step6',
-        //                 intro: "Return to the center!"
-        //             },
-        //             {
-        //                 element: '#myselect',
-        //                 intro: "Change the drag mode here!"
-        //             },
-        //             {
-        //                 element: '#steps_chip',
-        //                 intro: "Show/Hide the step counter!"
-        //             },
-        //             {
-        //                 element: '#timer_chip',
-        //                 intro: "Show/Hide the time counter!"
-        //             },
-        //             {
-        //                 intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
-        //             },
-        //             {
-        //                 intro: "Now Let's Begin!"
-        //             }
-        //         ],
-        //         scrollToElement: false
-        //     }).start();
-        // }
+        if (needIntro) {
+            // $("#step1").click();
+            introJs().setOption("overlayOpacity", 0).setOptions({
+                steps: [
+                    {
+                        element: '#step2',
+                        intro: "Zoom in!"
+                    },
+                    {
+                        element: '#step3',
+                        intro: "Zoom out!"
+                    },
+                    {
+                        element: '#step4',
+                        intro: "Restart the game!"
+                    },
+                    {
+                        element: '#step5',
+                        intro: "Return to the center!"
+                    },
+                    {
+                        element: '#quit',
+                        intro: "Quit the game!"
+                    },
+                    // {
+                    //     element: '#myselect',
+                    //     intro: "Change the drag mode here!"
+                    // },
+                    {
+                        element: '#steps_chip',
+                        intro: "Show/Hide the step counter!"
+                    },
+                    {
+                        element: '#timer_chip',
+                        intro: "Show/Hide the time counter!"
+                    },
+                    // {
+                    //     intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
+                    // },
+                    {
+                        intro: "Now Let's Begin!"
+                    }
+                ],
+                scrollToElement: false
+            }).start();
+        }
     }
 
     function refreshAroundTiles(tile, beHinted) {
-        if(tile.hasBeenRefresh){
+        if (tile.hasBeenRefresh) {
             return;
         }
 
@@ -487,10 +487,10 @@ function JigsawPuzzle(config) {
                 if (tile.aroundTiles[i] >= 0) {
                     var neighborTile = instance.tiles[tile.aroundTiles[i]];
                     refreshAroundTiles(neighborTile, beHinted);
-                }                 
+                }
             }
         }
-        if(aroundTilesChanged){
+        if (aroundTilesChanged) {
             tile.oldAroundTiles = tile.aroundTiles;
             tile.aroundTiles = aroundTiles;
             tile.aroundTilesChanged = aroundTilesChanged;
@@ -527,7 +527,8 @@ function JigsawPuzzle(config) {
         instance.calcHintedTile();
 
         $('#finish_dialog').modal({
-            keyboard: true
+            keyboard: false,
+            backdrop: false
         });
 
         /**          
@@ -1115,7 +1116,7 @@ function JigsawPuzzle(config) {
 
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
-            if(tile.beenUndo){
+            if (tile.beenUndo) {
                 refreshAroundTiles(tile, false);
             }
         }
@@ -1147,25 +1148,25 @@ function JigsawPuzzle(config) {
         instance.undoing = false;
     }
 
-    function generateLinksTags(x, y, direction){
-        switch(direction){
-            case 0: return {x:Number(y), y:Number(x), tag:"T-B"};
-            case 1: return {x:Number(x), y:Number(y), tag:"L-R"};
-            case 2: return {x:Number(x), y:Number(y), tag:"T-B"};
-            case 3: return {x:Number(y), y:Number(x), tag:"L-R"};
+    function generateLinksTags(x, y, direction) {
+        switch (direction) {
+            case 0: return { x: Number(y), y: Number(x), tag: "T-B" };
+            case 1: return { x: Number(x), y: Number(y), tag: "L-R" };
+            case 2: return { x: Number(x), y: Number(y), tag: "T-B" };
+            case 3: return { x: Number(y), y: Number(x), tag: "L-R" };
         }
     }
 
-    function dfsGraph(tileIndex){
-        if(instance.dfsGraphLinksMap[tileIndex]){
+    function dfsGraph(tileIndex) {
+        if (instance.dfsGraphLinksMap[tileIndex]) {
             return;
         }
         instance.dfsGraphLinksMap[tileIndex] = new Array();
         var tile = instance.tiles[tileIndex];
-        for(var i = 0; i < tile.aroundTiles.length; i++){
+        for (var i = 0; i < tile.aroundTiles.length; i++) {
             var aroundTileIndex = tile.aroundTiles[i];
-            if(aroundTileIndex < 0 || (instance.dfsGraphLinksMap[aroundTileIndex] && 
-                instance.dfsGraphLinksMap[aroundTileIndex][tileIndex])){
+            if (aroundTileIndex < 0 || (instance.dfsGraphLinksMap[aroundTileIndex] &&
+                instance.dfsGraphLinksMap[aroundTileIndex][tileIndex])) {
                 continue;
             }
             instance.dfsGraphLinksMap[tileIndex][aroundTileIndex] = true;
@@ -1174,9 +1175,9 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function updateGraphSize(preSize){
+    function updateGraphSize(preSize) {
         var size = instance.checkLinksData.length - preSize;
-        for(var i = preSize; i < instance.checkLinksData.length; i++){
+        for (var i = preSize; i < instance.checkLinksData.length; i++) {
             instance.checkLinksData[i].size = size;
         }
     }
@@ -1211,16 +1212,16 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function askHelp(){
+    function askHelp() {
         console.log("Asking for help...");
         socket.emit("requestHints", {
             round_id: roundID,
             player_name: player_name
         });
         clearTimeout(instance.askHelpTimeout);
-        socket.on("receiveHints", function(data){
-            console.log(data);
-            for(var i=0;i<data.length;i++){
+        socket.on("receiveHints", function (data) {
+            // console.log(data);
+            for (var i = 0; i < data.length; i++) {
                 showHints(data[i].index, data[i].hints);
             }
         });
@@ -1228,7 +1229,7 @@ function JigsawPuzzle(config) {
 
     this.releaseTile = function () {
         clearTimeout(instance.askHelpTimeout);
-        instance.askHelpTimeout=setTimeout(askHelp, 30*1000);
+        instance.askHelpTimeout = setTimeout(askHelp, 180 * 1000);
 
         if (instance.draging) {
             var centerCellPosition = new Point(
@@ -1351,28 +1352,28 @@ function JigsawPuzzle(config) {
     function checkLinks(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
         var preSize = instance.checkLinksData.length;
         dfsGraph(selectedTileIndex);
-        if(preSize < instance.checkLinksData.length){
+        if (preSize < instance.checkLinksData.length) {
             updateGraphSize(preSize);
         }
 
-        for(var i = 0; i < 4; i++){
-            if(aroundTilesBefore[i] >= 0){
+        for (var i = 0; i < 4; i++) {
+            if (aroundTilesBefore[i] >= 0) {
                 preSize = instance.checkLinksData.length;
                 dfsGraph(aroundTilesBefore[i]);
-                if(preSize < instance.checkLinksData.length){
+                if (preSize < instance.checkLinksData.length) {
                     updateGraphSize(preSize);
                 }
 
-                if(aroundTilesBefore[i] != aroundTilesAfter[i]){
+                if (aroundTilesBefore[i] != aroundTilesAfter[i]) {
                     removeLink = generateLinksTags(selectedTileIndex, aroundTilesBefore[i], i);
                     removeLink.size = 0;
                     instance.removeLinksData.push(removeLink);
                 }
             }
-            if(aroundTilesAfter[i] >= 0){
+            if (aroundTilesAfter[i] >= 0) {
                 preSize = instance.checkLinksData.length;
                 dfsGraph(aroundTilesAfter[i]);
-                if(preSize < instance.checkLinksData.length){
+                if (preSize < instance.checkLinksData.length) {
                     updateGraphSize(preSize);
                 }
             }
@@ -1380,18 +1381,18 @@ function JigsawPuzzle(config) {
         return true;
     }
 
-    function uploadGraphData(isHinted){
-        if(instance.checkLinksData.length == 0){
+    function uploadGraphData(isHinted) {
+        if (instance.checkLinksData.length == 0) {
             return;
         }
         var param = {
             player_name: player_name,
             round_id: roundID,
             isHinted: isHinted,
-            weight: instance.checkLinksData
+            edges: instance.checkLinksData
         };
         console.log(param);
-        //socket.emit("upload", param);
+        socket.emit("upload", param);
     }
 
     function hideAllColorBorder() {
@@ -1509,48 +1510,39 @@ function JigsawPuzzle(config) {
     function getHints(round_id, selectedTileIndex) {
         // var hintTileIndexes=new Array(-1,-1,-1,-1);
         var currentStep = instance.steps;
-        $.ajax({
-            url: requrl + 'graph/getHints/' + round_id + '/' + selectedTileIndex,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                // var data = $.parseJSON(data);
-                // indexes = directions(0 1 2 3=T R B L)
-                console.log('getHints: ' + JSON.stringify(data));
-                if (!mousedowned && currentStep == instance.steps) {
-                    instance.hintsShowing = true;
-                    if (data.sure) {
-                        var sureHintTiles = JSON.parse(data.sure);
-                        checkHints(selectedTileIndex, sureHintTiles);
-                        var unsureHintTiles = JSON.parse(data.unsure);
-                        for (var d = 0; d < 4; d++) {
-                            var unsureHintTile = unsureHintTiles[d];
-                            if (unsureHintTile.length > 0) {
-                                showHintColor(selectedTileIndex, unsureHintTile, d);
-                            }
+        socket.emit("getHintsAround", {
+            "round_id": round_id,
+            "index": selectedTileIndex
+        });
+        socket.on("receiveHintsAround", function (data) {
+            console.log("hints:"+data);
+            if (!mousedowned && currentStep == instance.steps) {
+                instance.hintsShowing = true;
+                if (data.sure) {
+                    var sureHintTiles = JSON.parse(data.sure);
+                    checkHints(selectedTileIndex, sureHintTiles);
+                    var unsureHintTiles = JSON.parse(data.unsure);
+                    for (var d = 0; d < 4; d++) {
+                        var unsureHintTile = unsureHintTiles[d];
+                        if (unsureHintTile.length > 0) {
+                            showHintColor(selectedTileIndex, unsureHintTile, d);
                         }
-                        showHints(selectedTileIndex, sureHintTiles);
                     }
-                    else {
-                        checkHints(selectedTileIndex, data);
-                        showHints(selectedTileIndex, data);
-                    }
-
-                    instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
-                    uploadGraphData(true);
-                    instance.dfsGraphLinksMap = new Array();
-                    instance.checkLinksData = new Array();
-                    instance.removeLinksData = new Array();
-
-                    normalizeTiles();
-                    instance.hintsShowing = false;
+                    showHints(selectedTileIndex, sureHintTiles);
                 }
-                return data;
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('getHints: ' + 'error ' + textStatus + " " + errorThrown);
+                else {
+                    checkHints(selectedTileIndex, data);
+                    showHints(selectedTileIndex, data);
+                }
+
+                instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
+                uploadGraphData(true);
+                instance.dfsGraphLinksMap = new Array();
+                instance.checkLinksData = new Array();
+                instance.removeLinksData = new Array();
+
+                normalizeTiles();
+                instance.hintsShowing = false;
             }
         });
     }
@@ -1941,16 +1933,16 @@ function JigsawPuzzle(config) {
         'max': '5',
         'step': '1',
         'size': 'xs',
-        'starCaptions': {0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So',  4: 'Great Help',  5: 'Excellent!'}
+        'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
     });
 
     applyButton.addEventListener('click', function (event) {
         var rating = $("#rating").val();
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), 
-                    document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, 
-                    hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
+        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML),
+            document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks,
+            hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
         $.ajax({
             url: requrl + 'round' + '/quitRound/' + roundID,
@@ -1974,9 +1966,9 @@ $('#give_up').on('click', function (event) {
 
     puzzle.calcHintedTile();
 
-    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML), 
-            document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, 
-            totalHintsNum, correctHintsNum, -1);
+    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML),
+        document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks,
+        totalHintsNum, correctHintsNum, -1);
 
     $.ajax({
         url: requrl + 'round' + '/quitRound/' + roundID,

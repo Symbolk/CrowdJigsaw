@@ -153,11 +153,11 @@ class Menu {
 }
 
 var menu = new Menu("#myMenu");
-var item1 = new Item("bars", "green");
-var item2 = new Item("search-minus","#ff86eb","zoomOut","step3");
-var item3 = new Item("search-plus", "#64F592","zoomIn","step2");
+var item1 = new Item("bars", "green", "menu", "step1");
+var item2 = new Item("search-plus", "#64F592","zoomIn","step2");
+var item3 = new Item("search-minus","#ff86eb","zoomOut","step3");
 var item4 = new Item("refresh", "#5CD1FF","restart","step4");
-var item5 = new Item("map-marker", "#FF5C5C","returnCenter","step6");
+var item5 = new Item("map-marker", "#FF5C5C","returnCenter","step5");
 var item6 = new Item("sign-out", "red","quit","quit");
 
 menu.add(item1);
@@ -166,6 +166,7 @@ menu.add(item3);
 menu.add(item4);
 menu.add(item5);
 menu.add(item6);
+
 $(document).delay(100).queue(function(next) {
     menu.open();
     next();
