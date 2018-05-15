@@ -101,23 +101,23 @@ canvas[resize]{
 
 
 #steps_chip{
-    width:130px;
+    width:100px;
 }
 
 #timer_chip{
-    width:130px;
+    width:100px;
 }
 
 #undo_button{
-    /*background-color: rgba(200, 200, 200, 0);*/
+    background-color: rgba(200, 200, 200, 0);
     height: 20%;
     width: height;
     position: absolute;
     top: 20px;
     right: 20px;
-    /*border-style: dashed;*/
-    /*border-width: thick;*/
-    /*border-color: rgba(200, 200, 200, 0.5);*/
+    border-style: dashed;
+    border-width: thick;
+    border-color: rgba(200, 200, 200, 0.5);
 }
 
 .demo-layout-transparent .mdl-layout__drawer-button {
@@ -155,8 +155,8 @@ canvas[resize]{
 }
 
 #button_group{
-    height: 20%;
-    width: 100px;
+    height: 5%;
+    width: 80px;
     position: absolute;
     top: 20px;
     left: 20px;
