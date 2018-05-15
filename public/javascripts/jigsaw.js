@@ -84,12 +84,12 @@ var correctHintsNum = 0;
     });
 }());
 
-document.querySelector('#show_steps').addEventListener('click', function () {
-    $('#steps').fadeToggle('slow');
-});
-document.querySelector('#show_timer').addEventListener('click', function () {
-    $('#timer').fadeToggle('slow');
-});
+// document.querySelector('#show_steps').addEventListener('click', function () {
+//     $('#steps').fadeToggle('slow');
+// });
+// document.querySelector('#show_timer').addEventListener('click', function () {
+//     $('#timer').fadeToggle('slow');
+// });
 
 /*
 * Jigsaw functions
