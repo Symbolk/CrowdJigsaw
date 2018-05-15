@@ -16,14 +16,14 @@ var reverseDirs = ['bottom', 'left', 'top', 'right'];
 /**
  * Get the best link with different strategies
  * @param {*} links
+ * @param {*} comparator
  */
-function getBest(links) {
+function getBest(links, comparator) {
     if (links) {
-        let sortedLinks = links.sort(util.descending("sup_num"));
+        let sortedLinks = links.sort(util.descending(comparator));
         return sortedLinks[0].index;
-    } else {
-        console.log("Unreachable.");
     }
+    return null;
 }
 
 
@@ -341,44 +341,82 @@ module.exports = function (io) {
             update(data);
         });
         // request global hints
-        socket.on('requestHints', function (data) {
+        socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
             var results = new Array();
-            // TODO
-            NodeModel.find({ round_id: data.round_id }, function (err, docs) {
+            for (let i = 0; i < data.tilesNum; ++i) {
+                results.push(new Array(4).fill(-1));
+            }
+            // fetch the saved edges data of this round            
+            RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (docs) {
-                        for (let node of docs) {
-                            var h = {
-                                index: -1,
-                                hints: new Array()
-                            };
-                            for (let d = 0; d < 4; d++) {
-                                let edges = node[dirs[d]];
-                                if (edges.length > 0) {
-                                    let most_sup = edges[0];
-                                    for (let edge of edges) {
-                                        if (edge.sup_num > most_sup.sup_num) {
-                                            most_sup = edge;
-                                        }
+                    if (doc) {
+                        if (doc.edges_saved != undefined && JSON.stringify(doc.edges_saved) != "{}") {
+                            // get the most confident edges
+                            let edges_array = new Array();
+                            for (let key in doc.edges_saved) {
+                                edges_array.push(doc.edges_saved[key]);
+                            }
+                            let sortedEdges = edges_array.sort(util.descending("confidence"));
+                            // format the edges as hints
+                            for (let se of sortedEdges) {
+                                if (se.tag == "L-R" && se.confidence > 0) {
+                                    if (results[se.x][1] == -1) {
+                                        results[se.x][1] = se.y;
                                     }
-                                    if (most_sup.sup_num > 0) {
-                                        h.index = node.index;
-                                        h.hints.push(most_sup.index);
+                                    if (results[se.y][3] == -1) {
+                                        results[se.y][3] = se.x;
                                     }
-                                } else {
-                                    h.index = node.index;
-                                    h.hints.push(-1);
+                                } else if (se.tag == "T-B" && se.confidence > 0) {
+                                    if (results[se.x][2] == -1) {
+                                        results[se.x][2] = se.y;
+                                    }
+                                    if (results[se.y][0] == -1) {
+                                        results[se.y][0] = se.x;
+                                    }
                                 }
                             }
-                            results.push(h);
+                            socket.emit('proactiveHints', results);
                         }
-                        socket.emit("receiveHints", results);
                     }
                 }
             });
+            // NodeModel.find({ round_id: data.round_id }, function (err, docs) {
+            //     if (err) {
+            //         console.log(err);
+            //     } else {
+            //         if (docs) {
+            //             for (let node of docs) {
+            //                 var h = {
+            //                     index: -1,
+            //                     hints: new Array()
+            //                 };
+            //                 for (let d = 0; d < 4; d++) {
+            //                     let edges = node[dirs[d]];
+            //                     if (edges.length > 0) {
+            //                         let most_sup = edges[0];
+            //                         for (let edge of edges) {
+            //                             if (edge.sup_num > most_sup.sup_num) {
+            //                                 most_sup = edge;
+            //                             }
+            //                         }
+            //                         if (most_sup.sup_num > 0) {
+            //                             h.index = node.index;
+            //                             h.hints.push(most_sup.index);
+            //                         }
+            //                     } else {
+            //                         h.index = node.index;
+            //                         h.hints.push(-1);
+            //                     }
+            //                 }
+            //                 results.push(h);
+            //             }
+            //             socket.emit("receiveHints", results);
+            //         }
+            //     }
+            // });
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
@@ -394,7 +432,7 @@ module.exports = function (io) {
                     if (doc) {
                         // empty data
                         if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
-                            socket.emit('receiveHintsAround', hints);
+                            socket.emit('reactiveHints', hints);
                         } else {
                             // generate hints in the 4 directions
                             for (let key in doc.edges_saved) {
@@ -423,7 +461,7 @@ module.exports = function (io) {
                                     }
                                 }
                             }
-                            socket.emit('receiveHintsAround', hints);
+                            socket.emit('reactiveHints', hints);
                         }
                     }
                 }

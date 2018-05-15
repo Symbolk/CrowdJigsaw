@@ -1012,7 +1012,7 @@ function JigsawPuzzle(config) {
     }
 
     this.pickTile = function (point) {
-        clearTimeout(instance.timer);
+        // clearTimeout(instance.timer);
         if (instance.hintsShowing) {
             return;
         }
@@ -1214,22 +1214,27 @@ function JigsawPuzzle(config) {
 
     function askHelp() {
         console.log("Asking for help...");
-        socket.emit("requestHints", {
+        socket.emit("fetchHints", {
             round_id: roundID,
-            player_name: player_name
+            player_name: player_name,
+            tilesNum: instance.tilesNum
         });
         clearTimeout(instance.askHelpTimeout);
-        socket.on("receiveHints", function (data) {
-            // console.log(data);
-            for (var i = 0; i < data.length; i++) {
-                showHints(data[i].index, data[i].hints);
+        socket.on("proactiveHints", function (data) {
+            for (var i in data) {
+                for(var j=0;j<4;++j){
+                    if(data[i][j]>-1){
+                        showHints(i, data[i]);
+                        break;
+                    }
+                }
             }
         });
     }
 
     this.releaseTile = function () {
         clearTimeout(instance.askHelpTimeout);
-        instance.askHelpTimeout = setTimeout(askHelp, 180 * 1000);
+        instance.askHelpTimeout = setTimeout(askHelp, 3 * 1000);
 
         if (instance.draging) {
             var centerCellPosition = new Point(
@@ -1308,6 +1313,7 @@ function JigsawPuzzle(config) {
                 var errors = checkTiles();
                 if (errors == 0) {
                     finishGame();
+                    clearTimeout(instance.askHelpTimeout);                    
                 }
             }
             $('html,body').css('cursor', 'default');
@@ -1514,7 +1520,7 @@ function JigsawPuzzle(config) {
             "round_id": round_id,
             "index": selectedTileIndex
         });
-        socket.on("receiveHintsAround", function (data) {
+        socket.on("reactiveHints", function (data) {
             console.log("hints:"+data);
             if (!mousedowned && currentStep == instance.steps) {
                 instance.hintsShowing = true;
