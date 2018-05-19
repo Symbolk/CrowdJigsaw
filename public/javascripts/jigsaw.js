@@ -321,7 +321,7 @@ function JigsawPuzzle(config) {
     this.thisStepTime = 0;
 
     this.dfsGraphLinksMap = new Array();
-    this.checkLinksData = new Array();
+    this.subGraphData = new Array();
     this.removeLinksData = new Array();
 
     this.hintsShowing = false;
@@ -496,6 +496,17 @@ function JigsawPuzzle(config) {
             tile.oldAroundTiles = tile.aroundTiles;
             tile.aroundTiles = aroundTiles;
             tile.aroundTilesChanged = aroundTilesChanged;
+
+            var sum = 0;
+            for (var i = 0; i < tile.aroundTiles.length; i++) {
+                sum += tile.aroundTiles[i];
+            }
+            if (sum == -4) {
+                tile.noAroundTiles = true;
+            }
+            else {
+                tile.noAroundTiles = false;
+            }
         }
     }
 
@@ -1128,7 +1139,9 @@ function JigsawPuzzle(config) {
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             if (tile.beenUndo) {
-                computeDFSGraphLinks(tile, false);
+                if (tile.aroundTilesChanged) {
+                    computeSubGraph(getTileIndex(tile), tile.oldAroundTiles, tile.aroundTiles);
+                }
                 tile.beenUndo = false;
             }
         }
@@ -1136,10 +1149,10 @@ function JigsawPuzzle(config) {
         if (tilesMoved) {
             instance.steps += 1;
 
-            instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
+            instance.subGraphData = instance.subGraphData.concat(instance.removeLinksData);
             uploadGraphData(false);
             instance.dfsGraphLinksMap = new Array();
-            instance.checkLinksData = new Array();
+            instance.subGraphData = new Array();
             instance.removeLinksData = new Array();
 
             document.getElementById("steps").innerHTML = instance.steps;
@@ -1174,45 +1187,15 @@ function JigsawPuzzle(config) {
                 continue;
             }
             instance.dfsGraphLinksMap[tileIndex][aroundTileIndex] = true;
-            instance.checkLinksData.push(generateLinksTags(tileIndex, aroundTileIndex, i));
+            instance.subGraphData.push(generateLinksTags(tileIndex, aroundTileIndex, i));
             dfsGraph(aroundTileIndex);
         }
     }
 
     function updateGraphSize(preSize) {
-        var size = instance.checkLinksData.length - preSize;
-        for (var i = preSize; i < instance.checkLinksData.length; i++) {
-            instance.checkLinksData[i].size = size;
-        }
-    }
-
-    function computeDFSGraphLinks(tile, beHinted) {
-        var tileIndex = getTileIndex(tile);
-        if (tileIndex < 0)
-            return;
-
-        var oldAroundTiles = tile.oldAroundTiles;
-        if (tile.aroundTilesChanged) {
-
-            for (var i = 0; i < oldAroundTiles.length; i++) {
-                if (tile.aroundTiles[i] != oldAroundTiles[i]) {
-                    tile.hintedLinks[i] = 0;
-                }
-            }
-            //console.log('Before:' + oldAroundTiles);
-            //console.log('After:' + tile.aroundTiles);
-            checkLinks(tileIndex, oldAroundTiles, tile.aroundTiles);
-        }
-
-        var sum = 0;
-        for (var i = 0; i < tile.aroundTiles.length; i++) {
-            sum += tile.aroundTiles[i];
-        }
-        if (sum == -4) {
-            tile.noAroundTiles = true;
-        }
-        else {
-            tile.noAroundTiles = false;
+        var size = instance.subGraphData.length - preSize;
+        for (var i = preSize; i < instance.subGraphData.length; i++) {
+            instance.subGraphData[i].size = size;
         }
     }
 
@@ -1225,6 +1208,9 @@ function JigsawPuzzle(config) {
         });
         clearTimeout(instance.askHelpTimeout);
         socket.on("proactiveHints", function (data) {
+            instance.hintsShowing = true;
+            $("#loading").text("asking for help");
+            $("#loading").fadeIn();
             for (var i in data) {
                 for(var j=0;j<4;++j){
                     if(data[i][j]>-1){
@@ -1233,6 +1219,8 @@ function JigsawPuzzle(config) {
                     }
                 }
             }
+            $("#loading").fadeOut();
+            instance.hintsShowing = false;
         });
     }
 
@@ -1285,16 +1273,18 @@ function JigsawPuzzle(config) {
 
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
-                computeDFSGraphLinks(tile, false);
+                if (tile.aroundTilesChanged) {
+                    computeSubGraph(getTileIndex(tile), tile.oldAroundTiles, tile.aroundTiles);
+                }
             }
 
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps += 1;
 
-                instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
+                instance.subGraphData = instance.subGraphData.concat(instance.removeLinksData);
                 uploadGraphData(false);
                 instance.dfsGraphLinksMap = new Array();
-                instance.checkLinksData = new Array();
+                instance.subGraphData = new Array();
                 instance.removeLinksData = new Array();
 
                 document.getElementById("steps").innerHTML = instance.steps;
@@ -1364,18 +1354,18 @@ function JigsawPuzzle(config) {
         }]
     })
     */
-    function checkLinks(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
-        var preSize = instance.checkLinksData.length;
+    function computeSubGraph(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
+        var preSize = instance.subGraphData.length;
         dfsGraph(selectedTileIndex);
-        if (preSize < instance.checkLinksData.length) {
+        if (preSize < instance.subGraphData.length) {
             updateGraphSize(preSize);
         }
 
         for (var i = 0; i < 4; i++) {
             if (aroundTilesBefore[i] >= 0) {
-                preSize = instance.checkLinksData.length;
+                preSize = instance.subGraphData.length;
                 dfsGraph(aroundTilesBefore[i]);
-                if (preSize < instance.checkLinksData.length) {
+                if (preSize < instance.subGraphData.length) {
                     updateGraphSize(preSize);
                 }
 
@@ -1386,9 +1376,9 @@ function JigsawPuzzle(config) {
                 }
             }
             if (aroundTilesAfter[i] >= 0) {
-                preSize = instance.checkLinksData.length;
+                preSize = instance.subGraphData.length;
                 dfsGraph(aroundTilesAfter[i]);
-                if (preSize < instance.checkLinksData.length) {
+                if (preSize < instance.subGraphData.length) {
                     updateGraphSize(preSize);
                 }
             }
@@ -1397,14 +1387,14 @@ function JigsawPuzzle(config) {
     }
 
     function uploadGraphData(isHinted) {
-        if (instance.checkLinksData.length == 0) {
+        if (instance.subGraphData.length == 0) {
             return;
         }
         var param = {
             player_name: player_name,
             round_id: roundID,
             isHinted: isHinted,
-            edges: instance.checkLinksData
+            edges: instance.subGraphData
         };
         console.log(param);
         socket.emit("upload", param);
@@ -1550,10 +1540,10 @@ function JigsawPuzzle(config) {
                     showHints(selectedTileIndex, data);
                 }
 
-                instance.checkLinksData = instance.checkLinksData.concat(instance.removeLinksData);
+                instance.subGraphData = instance.subGraphData.concat(instance.removeLinksData);
                 uploadGraphData(true);
                 instance.dfsGraphLinksMap = new Array();
-                instance.checkLinksData = new Array();
+                instance.subGraphData = new Array();
                 instance.removeLinksData = new Array();
 
                 normalizeTiles();
@@ -1632,8 +1622,11 @@ function JigsawPuzzle(config) {
             }
 
             for (var i = 0; i < groupTiles.length; i++) {
-                groupTiles[i].picking = false;
-                computeDFSGraphLinks(groupTiles[i], true);
+                var tile = groupTiles[i];
+                tile.picking = false;
+                if (tile.aroundTilesChanged) {
+                    computeSubGraph(getTileIndex(tile), tile.oldAroundTiles, tile.aroundTiles);
+                }
             }
         }
         if (hintTilesCount) {
