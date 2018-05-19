@@ -317,6 +317,8 @@ function JigsawPuzzle(config) {
     this.groups = undefined; // a connected subgraph as a group
     this.sizes = undefined; // number of edges as the size
     this.askHelpTimeout = undefined; // time past since last action
+    this.lastStepTime = 0;
+    this.thisStepTime = 0;
 
     this.dfsGraphLinksMap = new Array();
     this.checkLinksData = new Array();
@@ -384,52 +386,52 @@ function JigsawPuzzle(config) {
             }
         }
 
-        if (needIntro) {
-            // $("#step1").click();
-            introJs().setOption("overlayOpacity", 0).setOptions({
-                steps: [
-                    {
-                        element: '#step2',
-                        intro: "Zoom in!"
-                    },
-                    {
-                        element: '#step3',
-                        intro: "Zoom out!"
-                    },
-                    {
-                        element: '#step4',
-                        intro: "Restart the game!"
-                    },
-                    {
-                        element: '#step5',
-                        intro: "Return to the center!"
-                    },
-                    {
-                        element: '#quit',
-                        intro: "Quit the game!"
-                    },
-                    // {
-                    //     element: '#myselect',
-                    //     intro: "Change the drag mode here!"
-                    // },
-                    {
-                        element: '#steps_chip',
-                        intro: "Show/Hide the step counter!"
-                    },
-                    {
-                        element: '#timer_chip',
-                        intro: "Show/Hide the time counter!"
-                    },
-                    // {
-                    //     intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
-                    // },
-                    {
-                        intro: "Now Let's Begin!"
-                    }
-                ],
-                scrollToElement: false
-            }).start();
-        }
+        // if (needIntro) {
+        //     // $("#step1").click();
+        //     introJs().setOption("overlayOpacity", 0).setOptions({
+        //         steps: [
+        //             {
+        //                 element: '#step2',
+        //                 intro: "Zoom in!"
+        //             },
+        //             {
+        //                 element: '#step3',
+        //                 intro: "Zoom out!"
+        //             },
+        //             {
+        //                 element: '#step4',
+        //                 intro: "Restart the game!"
+        //             },
+        //             {
+        //                 element: '#step5',
+        //                 intro: "Return to the center!"
+        //             },
+        //             {
+        //                 element: '#quit',
+        //                 intro: "Quit the game!"
+        //             },
+        //             // {
+        //             //     element: '#myselect',
+        //             //     intro: "Change the drag mode here!"
+        //             // },
+        //             {
+        //                 element: '#steps_chip',
+        //                 intro: "Show/Hide the step counter!"
+        //             },
+        //             {
+        //                 element: '#timer_chip',
+        //                 intro: "Show/Hide the time counter!"
+        //             },
+        //             // {
+        //             //     intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
+        //             // },
+        //             {
+        //                 intro: "Now Let's Begin!"
+        //             }
+        //         ],
+        //         scrollToElement: false
+        //     }).start();
+        // }
     }
 
     function refreshAroundTiles(tile, beHinted) {
@@ -1013,6 +1015,8 @@ function JigsawPuzzle(config) {
 
     this.pickTile = function (point) {
         // clearTimeout(instance.timer);
+        instance.lastStepTime = instance.thisStepTime;
+        
         if (instance.hintsShowing) {
             return;
         }
@@ -1233,8 +1237,13 @@ function JigsawPuzzle(config) {
     }
 
     this.releaseTile = function () {
+        instance.thisStepTime = Number(document.getElementById('timer').innerHTML.split(':')[1] 
+        * 60)+Number(document.getElementById('timer').innerHTML.split(':')[2]);
         clearTimeout(instance.askHelpTimeout);
-        instance.askHelpTimeout = setTimeout(askHelp, 15 * 1000);
+        var delta=Number(instance.thisStepTime-instance.lastStepTime);
+        if(delta >= 1){
+            instance.askHelpTimeout = setTimeout(askHelp, 5000*delta);            
+        }
 
         if (instance.draging) {
             var centerCellPosition = new Point(
