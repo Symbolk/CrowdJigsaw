@@ -110,7 +110,7 @@ canvas[resize]{
 
 #undo_button{
     background-color: rgba(200, 200, 200, 0);
-    height: 7%;
+    height: 10%;
     width: height;
     position: absolute;
     top: 20px;

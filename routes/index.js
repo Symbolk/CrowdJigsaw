@@ -262,12 +262,12 @@ router.route('/reset').get(function (req, res) {
                         if (err) {
                             console.log(err);
                         } else {
-                            req.session.error = whereStr.username + '\'s password has been reset to YOUR NAME!';
+                            req.session.error = 'Username: ' + whereStr.username + '; Password: ' + whereStr.username;
                             return res.redirect('/login');
                         }
                     });
                 } else {
-                    req.session.error = 'Player not exists!';
+                    req.session.error = 'Player does not exist!';
                     return res.redirect('/reset');
                 }
             }
@@ -303,7 +303,7 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
                         if (err) {
                             console.log(err);
                         } else {
-                            req.session.error = 'Successfully reset your password!';
+                            req.session.error = 'Password successfully updated!';
                             return res.redirect('/home');
                         }
                     });
@@ -336,7 +336,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                             if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
                                 hintPercent = r.hinted_links / r.total_links * 100;
                             }
-                            if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0){
+                            if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0) {
                                 correctPercent = r.correct_hints / r.total_hints * 100;
                             }
                             if (r.end_time != "-1") {

@@ -33,7 +33,7 @@ a {
   background-attachment: fixed;
   /* background-color: #0288D1; */
   /* background: radial-gradient(circle, #039BE5, #01579b); */
-  z-index: 10000;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
