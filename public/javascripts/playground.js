@@ -147,22 +147,6 @@ function initRandomRoundDialog(){
         $('#newround_image').attr('src', '/images/logo.png')
         newRoundDialog.showModal();
     });
-
-    $('#randomround_button').mousedown(function(){
-        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
-    });
-
-    $('#randomround_button').mouseup(function(){
-        $('#randomround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
-    });
-
-    $('#randomround_button').mouseover(function(){
-        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
-    });
-
-    $('#randomround_button').mouseout(function(){
-        $('#randomround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
-    });
 }
 
 
@@ -223,23 +207,6 @@ function initNewRoundDialog(){
         $('#newround_image').removeAttr('src');
         newRoundDialog.showModal();
     });
-
-    $('#newround_button').mousedown(function(){
-        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
-    });
-
-    $('#newround_button').mouseup(function(){
-        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
-    });
-
-    $('#newround_button').mouseover(function(){
-        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.9)")
-    });
-
-    $('#newround_button').mouseout(function(){
-        $('#newround_button').css("background-color", "rgba(200, 200, 200, 0.5)")
-    });
-
 }
 
 function initSelectImageDialog(){
@@ -366,7 +333,8 @@ function renderRoundList(data){
             var template = $('#roundcard_template');
             roundCard = $(template.html());
             roundCard.attr('id', roundCardID);
-            roundCard.appendTo('#round_list');
+            // the latest round first
+            roundCard.prependTo('#round_list');
         }
         roundsList[roundID] = round;
 
@@ -376,12 +344,17 @@ function renderRoundList(data){
         var roundCardJoin = roundCard.find('.roundcard-join');
 
         if(admin=="true"){
-            roundCardImage.attr('src', round.image);
+            // roundCardImage.attr('src', round.image);
+            var bg='url(\'/'+round.image+'\') center center';
+            // roundCardImage.css("background", "url('/images/logo.png') center center");
+            roundCardImage.css("background", bg);
         }else{
-            roundCardImage.attr('src', '/images/logo.png');            
+            roundCardImage.css("background", "url('/images/hide.jpg') center center");
+            // roundCardImage.attr('src', '/images/logo.png');            
         }
-        roundCardTitle.text('Round' + roundID);
-        roundCardNum.text('level' + round.level + '    players: ' + round.players.length + '/' + round.players_num);
+        roundCardTitle.text('Round ' + roundID);
+        roundCard.find('.roundcard-level').text(round.level);
+        roundCardNum.text(round.players.length + '/' + round.players_num);
         roundCardJoin.click(function(){
             getRound(roundID);
         });
