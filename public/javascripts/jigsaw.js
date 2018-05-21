@@ -1237,8 +1237,7 @@ function JigsawPuzzle(config) {
     }
 
     this.releaseTile = function () {
-        instance.thisStepTime = Number(document.getElementById('timer').innerHTML.split(':')[1] 
-        * 60)+Number(document.getElementById('timer').innerHTML.split(':')[2]);
+        instance.thisStepTime = time;
         clearTimeout(instance.askHelpTimeout);
         var delta=Number(instance.thisStepTime-instance.lastStepTime);
         if(delta >= 1){

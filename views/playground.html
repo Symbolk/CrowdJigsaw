@@ -17,46 +17,119 @@
         </section>
 
         <!-- Main content -->
-        <section class="content container-fluid">
+        <section class="content">
             <script>
                 var username = "<%=username%>";
                 var admin = "<%=admin%>";
             </script>
-            <div class="mdl-grid portfolio-max-width" id="round_list">
+
+            <div class="row col-lg-4" id="round_list"></div>
+            <div class="row">
                 <% if(admin==true){%>
-                    <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card newround-card" id="newround_button">
-                        <!-- <div class="mdl-card__title">
-                                                <h2 class="mdl-card__title-text roundcard-title"></h2>
-                                            </div> -->
-                        <span class="button-wrap" style="position: absolute;top: 50%;left:20%;transform: translateY(-50%);">
-                            <button class="button button-circle button-raised button-primary">
-                                <i class="fa fa-plus"></i>
-                            </button>
-                            New Round
-                        </span>
+                    <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                        <!-- Widget: user widget style 1 -->
+                        <div class="box box-widget widget-user">
+                            <!-- Add the bg color to the header using any of the bg-* classes -->
+                            <div class="widget-user-header bg-aqua-active">
+                                <h3 class="widget-user-username">New Round</h3>
+                                <h5 class="widget-user-desc">Create One!</h5>
+                            </div>
+                            <div class="widget-user-image" id="newround_button">
+                                <span class="button-wrap">
+                                    <button class="button button-3d button-action button-circle button-jumbo">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </span>
+                                <!-- <img class="img-circle" src="/images/new.png" style="background-color: white" alt="User Avatar"> -->
+                            </div>
+                            <div class="box-footer">
+                                <div class="row">
+                                    <div class="col-sm-4 border-right">
+                                        <div class="description-block">
+                                            <h5 class="description-header">1/2</h5>
+                                            <span class="description-text">Level</span>
+                                        </div>
+                                        <!-- /.description-block -->
+                                    </div>
+                                    <!-- /.col -->
+                                    <div class="col-sm-4 border-right">
+                                        <div class="description-block">
+                                            <h5 class="description-header">1-20</h5>
+                                            <span class="description-text">Players</span>
+                                        </div>
+                                        <!-- /.description-block -->
+                                    </div>
+                                    <!-- /.col -->
+                                    <div class="col-sm-4">
+                                        <div class="description-block">
+                                            <h5 class="description-header">Jagged</h5>
+                                            <span class="description-text">Shape</span>
+                                        </div>
+                                        <!-- /.description-block -->
+                                    </div>
+                                    <!-- /.col -->
+                                </div>
+                                <!-- /.row -->
+                            </div>
+                        </div>
                     </div>
                     <%}
-                                    else{%>
-                        <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card newround-card" id="randomround_button">
-                            <div class="mdl-card__title">
-                                <h2 class="mdl-card__title-text roundcard-title">
-                                    You are not admin. Start with a random puzzle.
-                                </h2>
+      else{%>
+                        <div class="col-md-4 col-sm-6 col-xs-12">
+                            <!-- Widget: user widget style 1 -->
+                            <div class="box box-widget widget-user">
+                                <!-- Add the bg color to the header using any of the bg-* classes -->
+                                <div class="widget-user-header bg-aqua-active">
+                                    <h3 class="widget-user-username">Random Game</h3>
+                                    <h5 class="widget-user-desc">Just Try!</h5>
+                                </div>
+                                <div class="widget-user-image" id="randomround_button">
+                                    <span class="button-wrap">
+                                        <button class="button button-3d button-action button-circle button-jumbo">
+                                            <i class="fa fa-random"></i>
+                                        </button>
+                                    </span>
+                                    <!-- <img class="img-circle" src="/images/random.png" style="background-color: white" alt="User Avatar"> -->
+                                </div>
+                                <div class="box-footer">
+                                    <div class="row">
+                                        <div class="col-sm-4 border-right">
+                                            <div class="description-block">
+                                                <h5 class="description-header">1/2</h5>
+                                                <span class="description-text">Level</span>
+                                            </div>
+                                            <!-- /.description-block -->
+                                        </div>
+                                        <!-- /.col -->
+                                        <div class="col-sm-4 border-right">
+                                            <div class="description-block">
+                                                <h5 class="description-header">1</h5>
+                                                <span class="description-text">Players</span>
+                                            </div>
+                                            <!-- /.description-block -->
+                                        </div>
+                                        <!-- /.col -->
+                                        <div class="col-sm-4">
+                                            <div class="description-block">
+                                                <h5 class="description-header">S/J</h5>
+                                                <span class="description-text">Shape</span>
+                                            </div>
+                                            <!-- /.description-block -->
+                                        </div>
+                                        <!-- /.col -->
+                                    </div>
+                                    <!-- /.row -->
+                                </div>
                             </div>
-                            <span class="button-wrap" style="position: absolute;top: 70%;left:20%;transform: translateY(-50%);">
-                                <button class="button button-circle button-raised button-primary">
-                                    <i class="fa fa-plus"></i>
-                                </button>
-                                Random Game
-                            </span>
+                            <!-- /.widget-user -->
                         </div>
                         <%} %>
             </div>
-            <% include rounddetail.html %>
-                <% include newround.html %>
-                    <% include roundimageselector.html %>
-                        <% include roundimageshower.html %>
-                            <% include roundcard.html %>
+            <% include roundcard.html %>
+                <% include rounddetail.html %>
+                    <% include newround.html %>
+                        <% include roundimageselector.html %>
+                            <% include roundimageshower.html %>
 
         </section>
         <!-- /.content -->
