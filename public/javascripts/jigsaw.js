@@ -8,9 +8,6 @@ $('#undo_button').css('display', 'none');
 $(document).ready(function () {
     loadReady = true;
 });
-while (!(loadReady)) {
-    continue;
-}
 $("#loading").fadeOut();
 
 /*
@@ -337,6 +334,8 @@ function JigsawPuzzle(config) {
 
     this.edgeColor = ['red', '#900090', '#009090', 'black'];
     this.colorBorderWidth = 7;
+
+    this.hintedTilesMap = new Array();
 
 
     console.log('Round ' + roundID + ' starts : ' + this.tilesNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
@@ -1238,6 +1237,8 @@ function JigsawPuzzle(config) {
                         }
                     }
 
+                    uploadHintedSubGraph();
+
                     for(var i = 0; i < instance.tiles.length; i++){
                         var tile = instance.tiles[i];
                         refreshAroundTiles(tile, true);
@@ -1554,6 +1555,27 @@ function JigsawPuzzle(config) {
         }
     }
 
+    function uploadHintedSubGraph(){
+        for (var i in instance.hintedTilesMap) {
+            var tile = instance.tiles[i];
+            refreshAroundTiles(tile, true);
+        }
+
+        for (var i in instance.hintedTilesMap) {
+            var tile = instance.tiles[i];
+            if (tile.aroundTilesChanged) {
+                computeSubGraph(getTileIndex(tile), tile.oldAroundTiles, tile.aroundTiles);
+            }
+        }
+
+        instance.subGraphData = instance.subGraphData.concat(instance.removeLinksData);
+        uploadGraphData(true);
+        instance.dfsGraphLinksMap = new Array();
+        instance.subGraphData = new Array();
+        instance.removeLinksData = new Array();
+        instance.hintedTilesMap = new Array();
+    }
+
     function getHints(round_id, selectedTileIndex) {
         // var hintTileIndexes=new Array(-1,-1,-1,-1);
         var currentStep = instance.steps;
@@ -1583,15 +1605,11 @@ function JigsawPuzzle(config) {
                     shouldSave = shouldSave || shouldSaveThis;
                 }
 
-                instance.subGraphData = instance.subGraphData.concat(instance.removeLinksData);
-                uploadGraphData(true);
-                instance.dfsGraphLinksMap = new Array();
-                instance.subGraphData = new Array();
-                instance.removeLinksData = new Array();
-
                 if (shouldSave) {
                     saveGame();
                 }
+
+                uploadHintedSubGraph();
 
                 // judge the hint tiles
                 if (!instance.gameFinished) {
@@ -1697,6 +1715,9 @@ function JigsawPuzzle(config) {
                 for (var i = 0; i < groupTiles.length; i++) {
                     var hintTile = groupTiles[i];
                     placeTile(hintTile, correctCellposition + hintTile.relativePosition);
+                    if(hintTile.positionMoved){
+                        instance.hintedTilesMap[getTileIndex(hintTile)] = true;
+                    }
                     shouldSave = shouldSave || hintTile.positionMoved;
                     hintTile.relativePosition = new Point(0, 0);
                     hintTile.alreadyHinted = true;
@@ -1704,17 +1725,6 @@ function JigsawPuzzle(config) {
                     //console.log("put", hintTile.name, "in position", hintTile.cellPosition, hintTile.positionMoved);
                 }
                 hintTilesCount += groupTiles.length;
-
-                for (var i = 0; i < groupTiles.length; i++) {
-                    refreshAroundTiles(groupTiles[i], true);
-                }
-
-                for (var i = 0; i < groupTiles.length; i++) {
-                    var hintTile = groupTiles[i];
-                    if (hintTile.aroundTilesChanged) {
-                        computeSubGraph(getTileIndex(hintTile), hintTile.oldAroundTiles, hintTile.aroundTiles);
-                    }
-                }
             }
         }
         if (hintTilesCount) {
