@@ -54,6 +54,7 @@ function allImageReadyCallback(){
     if(admin=="true"){
         initNewRoundDialog();
         initSelectImageDialog();
+        initRandomRoundDialog();        
     }
     else{
         initRandomRoundDialog();
@@ -141,7 +142,7 @@ function initRandomRoundDialog(){
         $('#newround_num').text(1);
     });
 
-    $('#randomround_button').click(function(){
+    $('.randomround_button').click(function(){
         newRoundCreateButton.removeAttr('disabled');
         $('#newround_blank').css('display', 'inline');       
         $('#newround_image').attr('src', '/images/logo.png')
