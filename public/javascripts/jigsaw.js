@@ -1224,9 +1224,7 @@ function JigsawPuzzle(config) {
             for(var j = 0; j < 4; j++){
                 if(data[index][j] > -1){
                     var shouldSaveThis = showHints(index, data[index]);
-                    if(shouldSaveThis){
-                        normalizeTiles(true);
-                    }
+                    normalizeTiles(true);
                     changeForIteration = changeForIteration || shouldSaveThis;
                     break;
                 }
@@ -1242,6 +1240,10 @@ function JigsawPuzzle(config) {
     function askHelp() {
         console.log("Asking for help...");
         clearTimeout(instance.askHelpTimeout);
+
+        if(mousedowned || instance.hintsShowing){
+            return;
+        }
 
         $('#show_hints_dialog').modal({
             keyboard: false,
@@ -1264,41 +1266,42 @@ function JigsawPuzzle(config) {
                 else{
                     return;
                 }
-                $("#loading").text("asking for help");
-                $("#loading").fadeIn("normal", function(){
-                    var shouldSave = false;
+
+                var shouldSave = false;
                     
-                    for(var t = 0; t < 1; t++){
-                        var changeForIteration = false;
+                for(var t = 0; t < 1; t++){
+                    var changeForIteration = false;
 
-                        var changeForThis = showAskHelpHints(data, false);
-                        changeForIteration = changeForIteration || changeForThis;
+                    var changeForThis = showAskHelpHints(data, false);
+                    changeForIteration = changeForIteration || changeForThis;
 
-                        changeForThis = showAskHelpHints(data, true);
-                        changeForIteration = changeForIteration || changeForThis;
+                    changeForThis = showAskHelpHints(data, true);
+                    changeForIteration = changeForIteration || changeForThis;
 
-                        shouldSave = shouldSave || changeForIteration;
+                    shouldSave = shouldSave || changeForIteration;
 
-                        if(!changeForIteration){
-                            break;
-                        }
+                    if(!changeForIteration){
+                        break;
                     }
+                }
 
-                    if (shouldSave) {
-                        saveGame();
+                if (shouldSave) {
+                    saveGame();
+                }
+
+                $("#show_hints_dialog").modal().hide();
+                instance.hintsShowing = false;
+
+                // judge the hint tiles
+                if (!instance.gameFinished) {
+                    var errors = checkTiles();
+                    if (errors == 0) {
+                        finishGame();
                     }
-
-                    instance.hintsShowing = false;
-
-                    // judge the hint tiles
-                    if (!instance.gameFinished) {
-                        var errors = checkTiles();
-                        if (errors == 0) {
-                            finishGame();
-                        }
-                    }
-                    $("#loading").fadeOut();
-                });
+                }
+            }
+            else{
+                $("#show_hints_dialog").modal().hide();
             }
         });
     }
@@ -2036,6 +2039,7 @@ function JigsawPuzzle(config) {
                         'closeButton': true
                     });
                     time = data.time;
+                    startTime -= time * 1000;
                     instance.steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
                     instance.saveTilePositions = JSON.parse(data.tiles);
