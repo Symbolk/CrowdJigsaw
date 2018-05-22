@@ -1210,11 +1210,12 @@ function JigsawPuzzle(config) {
         });
         clearTimeout(instance.askHelpTimeout);
         socket.on("proactiveHints", function (data) {
+            console.log(data);
             if(!mousedowned)
             {
                 instance.hintsShowing = true;
                 var shouldSave = false;
-                $("#loading").text("asking for help");
+                $("#loading").text("Asking for Help...");
                 $("#loading").fadeIn();
                 var len = data.length;
                 for(var t = 0; t < 10; t++){
@@ -1319,7 +1320,7 @@ function JigsawPuzzle(config) {
                 clearTimeout(instance.askHelpTimeout);
                 var delta = Number(instance.thisStepTime-instance.lastStepTime);
                 if(delta >= 1){
-                    console.log("setTimeout", 5*delta);
+                    console.log("Delta", delta);
                     instance.askHelpTimeout = setTimeout(askHelp, 5000*delta);            
                 }
 
