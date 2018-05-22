@@ -1219,11 +1219,13 @@ function JigsawPuzzle(config) {
                 $("#loading").fadeIn();
                 var len = data.length;
                 for(var t = 0; t < 10; t++){
+                    var changeForIteration = false;
                     for (var i = 0; i < len; i++) {
                         for(var j = 0; j < 4; j++){
                             if(data[i][j] > -1){
                                 var shouldSaveThis = showHints(i, data[i]);
                                 shouldSave = shouldSave || shouldSaveThis;
+                                changeForIteration = changeForIteration || shouldSaveThis;
                                 break;
                             }
                         }
@@ -1233,6 +1235,7 @@ function JigsawPuzzle(config) {
                             if(data[i][j] > -1){
                                 var shouldSaveThis = showHints(i, data[i]);
                                 shouldSave = shouldSave || shouldSaveThis;
+                                changeForIteration = changeForIteration || shouldSaveThis;
                                 break;
                             }
                         }
@@ -1246,6 +1249,10 @@ function JigsawPuzzle(config) {
                     }
 
                     normalizeTiles();
+
+                    if(!changeForIteration){
+                        break;
+                    }
                 }
 
                 if (shouldSave) {
