@@ -362,7 +362,6 @@ module.exports = function (io) {
                             let sortedEdges = edges_array.sort(util.descending("confidence"));
                             // format the edges as hints
                             for (let se of sortedEdges) {
-                                console.log(se.supporters);
                                 let sl=Object.getOwnPropertyNames(se.supporters).length;
                                 if (se.tag == "L-R" && se.confidence > sl) {
                                     if (results[se.x][1] == -1) {

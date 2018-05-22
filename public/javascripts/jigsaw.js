@@ -250,12 +250,16 @@ function JigsawPuzzle(config) {
 
     socket.on('someoneSolved', function (data) {
         if (data.round_id == roundID) {
-            $('#msgModal').modal({
-                keyboard: true
+            $.amaran({
+                'title': 'someoneSolved',
+                'message': data.player_name + ' has solved the puzzle!',
+                'inEffect': 'slideRight',
+                'cssanimationOut': 'zoomOutUp',
+                'position': "top right",
+                'delay': 3000,
+                'closeOnClick': true,
+                'closeButton': true
             });
-            document.getElementById("round_id").innerHTML = 'Round ' + data.round_id;
-            document.getElementById("winner").innerHTML = 'WINNER : ' + data.player_name;
-            document.getElementById("info").innerHTML = 'Time: ' + data.time + '   Steps: ' + data.steps;
         }
     });
 
@@ -338,8 +342,16 @@ function JigsawPuzzle(config) {
 
     this.hintedTilesMap = new Array();
 
-
-    console.log('Round ' + roundID + ' starts : ' + this.tilesNum + ' tiles(' + this.tilesPerRow + ' * ' + this.tilesPerColumn + ')');
+    $.amaran({
+        'title': 'startRound',
+        'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
+        'inEffect': 'slideRight',
+        'cssanimationOut': 'zoomOutUp',
+        'position': "top right",
+        'delay': 2000,
+        'closeOnClick': true,
+        'closeButton': true
+    });
 
     loadGame();
 
@@ -453,7 +465,7 @@ function JigsawPuzzle(config) {
         }
 
         for (var i = 0; i < aroundTiles.length; i++) {
-            if(!beHinted){
+            if (!beHinted) {
                 if (aroundTiles[i] == -1 && tile.aroundTiles[i] != -1) { // add conflict record to both tile connected before
                     tile.conflictTiles[tile.aroundTiles[i]] = true;
                     var neighborTile = instance.tiles[tile.aroundTiles[i]];
@@ -594,7 +606,7 @@ function JigsawPuzzle(config) {
 
                 var position = view.center -
                     new Point(instance.tileWidth, instance.tileWidth / 2) +
-                    new Point(instance.tileWidth * (x * 2 + ((y % 2))), instance.tileWidth * ( y * 1)) -
+                    new Point(instance.tileWidth * (x * 2 + ((y % 2))), instance.tileWidth * (y * 1)) -
                     new Point(instance.puzzleImage.size.width, instance.puzzleImage.size.height / 2);
 
                 var cellPosition = new Point(
@@ -1079,13 +1091,13 @@ function JigsawPuzzle(config) {
                 var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
                 var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
-                var topTileConflict = (topTile != undefined) && (!(topTile.shape.bottomTab + tile.shape.topTab == 0) || 
+                var topTileConflict = (topTile != undefined) && (!(topTile.shape.bottomTab + tile.shape.topTab == 0) ||
                     (instance.tileShape == 'curved' && topTile.shape.bottomTab == 0 && tile.shape.topTab == 0));
-                var bottomTileConflict = (bottomTile != undefined) && (!(bottomTile.shape.topTab + tile.shape.bottomTab == 0) || 
+                var bottomTileConflict = (bottomTile != undefined) && (!(bottomTile.shape.topTab + tile.shape.bottomTab == 0) ||
                     (instance.tileShape == 'curved' && bottomTile.shape.topTab == 0 && tile.shape.bottomTab == 0));
-                var rightTileConflict = (rightTile != undefined) && (!(rightTile.shape.leftTab + tile.shape.rightTab == 0) || 
+                var rightTileConflict = (rightTile != undefined) && (!(rightTile.shape.leftTab + tile.shape.rightTab == 0) ||
                     (instance.tileShape == 'curved' && rightTile.shape.leftTab == 0 && tile.shape.rightTab == 0));
-                var leftTileConflict = (leftTile != undefined) && (!(leftTile.shape.rightTab + tile.shape.leftTab == 0) || 
+                var leftTileConflict = (leftTile != undefined) && (!(leftTile.shape.rightTab + tile.shape.leftTab == 0) ||
                     (instance.tileShape == 'curved' && leftTile.shape.rightTab == 0 && tile.shape.leftTab == 0));
                 hasConflict = hasConflict || topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
             }
@@ -1229,12 +1241,19 @@ function JigsawPuzzle(config) {
 
     function askHelp() {
         console.log("Asking for help...");
+        clearTimeout(instance.askHelpTimeout);
+
+        $('#show_hints_dialog').modal({
+            keyboard: false,
+            backdrop: false
+        });
+        
         socket.emit("fetchHints", {
             round_id: roundID,
             player_name: player_name,
             tilesNum: instance.tilesNum
         });
-        clearTimeout(instance.askHelpTimeout);
+
         socket.on("proactiveHints", function (data) {
             console.log(data);
             if(!mousedowned && !instance.hintsShowing && data.length > 0)
@@ -1339,7 +1358,7 @@ function JigsawPuzzle(config) {
                 var delta = Number(instance.thisStepTime-instance.lastStepTime);
                 if(delta >= 2){
                     console.log("Delta", delta);
-                    instance.askHelpTimeout = setTimeout(askHelp, 5000*delta);            
+                    instance.askHelpTimeout = setTimeout(askHelp, 2000 * delta);
                 }
 
                 instance.subGraphData = instance.subGraphData.concat(instance.removeLinksData);
@@ -1373,7 +1392,7 @@ function JigsawPuzzle(config) {
                 var errors = checkTiles();
                 if (errors == 0) {
                     finishGame();
-                    clearTimeout(instance.askHelpTimeout);                    
+                    clearTimeout(instance.askHelpTimeout);
                 }
             }
             $('html,body').css('cursor', 'default');
@@ -1457,7 +1476,7 @@ function JigsawPuzzle(config) {
             isHinted: isHinted,
             edges: instance.subGraphData
         };
-        console.log(param);
+        // console.log(param);
         socket.emit("upload", param);
     }
 
@@ -1575,7 +1594,7 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function uploadHintedSubGraph(){
+    function uploadHintedSubGraph() {
         for (var i in instance.hintedTilesMap) {
             var tile = instance.tiles[i];
             refreshAroundTiles(tile, true);
@@ -1604,7 +1623,7 @@ function JigsawPuzzle(config) {
             "index": selectedTileIndex
         });
         socket.on("reactiveHints", function (data) {
-            console.log("hints:"+data);
+            console.log("hints:" + data);
             if (!mousedowned && currentStep == instance.steps) {
                 instance.hintsShowing = true;
                 var shouldSave = false;
@@ -1701,12 +1720,12 @@ function JigsawPuzzle(config) {
                     groupTiles = new Array();
                     groupTiles.push(correctTile);
                 }
-                else{
+                else {
                     continue;
                 }
             }
 
-            for(var i = 0; i < groupTiles.length; i++){
+            for (var i = 0; i < groupTiles.length; i++) {
                 groupTiles[i].picking = true;
             }
 
@@ -1729,7 +1748,7 @@ function JigsawPuzzle(config) {
                 for (var i = 0; i < groupTiles.length; i++) {
                     var hintTile = groupTiles[i];
                     placeTile(hintTile, correctCellposition + hintTile.relativePosition);
-                    if(hintTile.positionMoved){
+                    if (hintTile.positionMoved) {
                         instance.hintedTilesMap[getTileIndex(hintTile)] = true;
                     }
                     shouldSave = shouldSave || hintTile.positionMoved;
@@ -2006,7 +2025,16 @@ function JigsawPuzzle(config) {
             success: function (data) {
                 var needIntro = !data.round_id;
                 if (data.round_id == roundID) {
-                    console.log('loadGame: ' + 'success');
+                    $.amaran({
+                        'title': 'loadGame',
+                        'message': 'Progress loaded.',
+                        'inEffect': 'slideRight',
+                        'cssanimationOut': 'zoomOutUp',
+                        'position': "top right",
+                        'delay': 2000,
+                        'closeOnClick': true,
+                        'closeButton': true
+                    });
                     time = data.time;
                     instance.steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
