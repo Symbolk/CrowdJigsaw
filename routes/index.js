@@ -267,8 +267,8 @@ router.route('/reset').get(function (req, res) {
                         }
                     });
                 } else {
-                    req.session.error = 'Player does not exist!';
-                    return res.redirect('/reset');
+                    req.session.error = 'Playername does not exist!';
+                    return res.redirect('/register');
                 }
             }
         });
