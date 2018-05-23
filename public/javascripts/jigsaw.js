@@ -376,7 +376,9 @@ function JigsawPuzzle(config) {
             tile.aroundTilesChanged = false;
             tile.preStep = instance.step - 2;
             tile.preCellPosition = tile.cellPosition;
-            tile.subGraphSize = 0;
+            if(!tile.subGraphSize){
+                tile.subGraphSize = 0;
+            }
             instance.groups[i] = i;
             instance.sizes[i] = 0;
         }
@@ -588,6 +590,7 @@ function JigsawPuzzle(config) {
                 var tilePos = instance.saveTilePositions[i];
                 var tile = instance.tiles[tilePos.index];
                 placeTile(tile, new Point(tilePos.x, tilePos.y));
+                tile.subGraphSize = tilePos.subGraphSize;
                 tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
@@ -1222,9 +1225,12 @@ function JigsawPuzzle(config) {
             var index = reverse ? (len - 1 - i) : i;
             for(var j = 0; j < 4; j++){
                 if(data[index][j] > -1){
-                    var shouldSaveThis = showHints(index, data[index]);
-                    normalizeTiles(true);
-                    changeForIteration = changeForIteration || shouldSaveThis;
+                    var tile = instance.tiles[index];
+                    if(tile.subGraphSize == instance.maxSubGraphSize){
+                        var shouldSaveThis = showHints(index, data[index]);
+                        normalizeTiles(true);
+                        changeForIteration = changeForIteration || shouldSaveThis;
+                    }
                     break;
                 }
             }
@@ -1484,12 +1490,13 @@ function JigsawPuzzle(config) {
                 instance.maxSubGraphSize = tile.subGraphSize;
             }
         }
+        /*
         for(var i = 0; i < instance.tiles.length; i++){
             var tile = instance.tiles[i];
             if(tile.subGraphSize == instance.maxSubGraphSize){
                 console.log(tile.name);
             }
-        }
+        }*/
         return true;
     }
 
@@ -2019,6 +2026,7 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             var tilePos = {
                 index: i,
+                subGraphSize: tile.subGraphSize,
                 x: tile.cellPosition.x,
                 y: tile.cellPosition.y,
             };
@@ -2026,21 +2034,12 @@ function JigsawPuzzle(config) {
             tileHintedLinks.push(tile.hintedLinks);
         }
 
-        var params = {
-            round_id: roundID,
-            steps: instance.steps,
-            time: time,
-            tiles: JSON.stringify(tilePositions),
-            tileHintedLinks: JSON.stringify(tileHintedLinks),
-            totalHintsNum: totalHintsNum,
-            correctHintsNum: correctHintsNum
-        };
-
         socket.emit('saveGame', {
             round_id: roundID,
             player_name: player_name,
             steps: instance.steps,
             time: time,
+            maxSubGraphSize: instance.maxSubGraphSize,
             tiles: JSON.stringify(tilePositions),
             tileHintedLinks: JSON.stringify(tileHintedLinks),
             totalHintsNum: totalHintsNum,
@@ -2070,6 +2069,7 @@ function JigsawPuzzle(config) {
                     });
                     time = data.time;
                     startTime -= time * 1000;
+                    instance.maxSubGraphSize = data.maxSubGraphSize;
                     instance.steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
                     instance.saveTilePositions = JSON.parse(data.tiles);
