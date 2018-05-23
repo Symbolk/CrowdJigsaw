@@ -28,6 +28,7 @@ var UserSchema = new mongoose.Schema({
         round_id: { type: Number },
         steps: { type: Number },
         time: { type: Number },
+        maxSubGraphSize: { type: Number },
         tiles: { type: String}, // tile position
         tileHintedLinks: { type: String },
         totalHintsNum: { type: Number },

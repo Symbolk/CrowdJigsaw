@@ -433,7 +433,11 @@ module.exports = function (io) {
                     if (doc) {
                         // empty data
                         if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
-                            socket.emit('reactiveHints', hints);
+                            socket.emit('reactiveHints', {
+                                index: index,
+                                currentStep: data.currentStep,
+                                hints: hints,
+                            });
                         } else {
                             // generate hints in the 4 directions
                             for (let key in doc.edges_saved) {
@@ -462,7 +466,11 @@ module.exports = function (io) {
                                     }
                                 }
                             }
-                            socket.emit('reactiveHints', hints);
+                            socket.emit('reactiveHints', {
+                                index: index,
+                                currentStep: data.currentStep,
+                                hints: hints,
+                            });
                         }
                     }
                 }

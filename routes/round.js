@@ -102,6 +102,7 @@ module.exports = function (io) {
                 round_id: data.round_id,
                 steps: data.steps,
                 time: data.time,
+                maxSubGraphSize: data.maxSubGraphSize,
                 tiles: data.tiles,
                 tileHintedLinks: data.tileHintedLinks,
                 totalHintsNum: data.totalHintsNum,
