@@ -151,7 +151,7 @@ canvas[resize]{
     height:100%; */
     float: none;  
     display: block;  
-    margin: auto;  
+    margin: auto; 
 }
 
 #button_group{
