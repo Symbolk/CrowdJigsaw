@@ -1,0 +1,79 @@
+<div class="modal fade" id="newroundModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">create a round</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <!-- Flat button with ripple -->
+                    <div id="select_img_div">
+                    <div>
+                        <button type="button" class="btn btn-default" id="newround_image_button">
+                            <b>Select Picture</b>
+                        </button>
+                    </div>
+                    <div class="newround_image_wrap">
+                        <img class="article-image" id="newround_image" border="0" alt="">
+                    </div>
+
+                    <!--<div id="newround_blank">-->
+                        <!--<br><br>-->
+                    <!--</div>-->
+                    </div>
+
+                    <table class="table" id="newround_table">
+                        <tbody>
+                        <tr id="shape_radio">
+                            <td>
+                                <label class = "radio" for = "option2">
+                                    <input type = "radio" id = "option2" name = "shape" class = "newround-shape-jagged" checked>
+                                    <span>
+                                         <img height="50px" width="height" src="/images/jagged.jpg">
+                                    </span>
+                                </label>
+                            </td>
+                            <td >
+                                <label class = "radio" for = "option1">
+                                    <input type = "radio" id = "option1" name = "shape" class = "newround-shape-square">
+                                    <span>
+                                        <img height="50px" width="height" src="/images/square.jpg">
+                                    </span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr id="egde_checkbox_row">
+                            <td  id="border_checkbox_column">
+                                <label class="checkbox">
+                                    <input type = "checkbox" id = "border_checkbox" checked>
+                                    <span>Border</span>
+                                </label>
+                            </td>
+                            <td id="egde_checkbox_column">
+                                <label class="checkbox">
+                                    <input type = "checkbox" id = "egde_checkbox" checked>
+                                    <span>Edge</span>
+                                </label>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <br>
+                    <div id = "player_num_div">
+                    <div id="newround_num_area">
+                        <b id="newround_num_text">Players Number: </b>
+                    </div>
+                    <input  id="newround_number_slider" data-slider-id="ex1Slider" type="text"
+                            data-slider-min="1" data-slider-max="20" data-slider-step="1"
+                            data-slider-value="1"/>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="newround_createbutton" data-dismiss="modal">Create</button>
+                    <button type="button" class="btn btn-default" id="newround_cancelbutton" data-dismiss="modal">Cancel</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
