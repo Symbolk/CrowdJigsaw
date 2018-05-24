@@ -280,4 +280,9 @@ footer {
 
 .modal-dialog {
   width: 256px;
+    top: 10%;
+}
+
+.rounddetail_modal{
+  top:30%;
 }
