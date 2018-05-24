@@ -19,22 +19,17 @@
 
         <!-- Main content -->
         <section class="content container-fluid">
-            <div class="mdl-typography--headline">
-                Crowd Jigsaw is an online game, where multiple players work together to figure out a complex jigsaw puzzle. Designed to be
-                an Application of Crowd Wisdom/Collective Intelligence.
-            </div>
             <hr style="height:5px;border:none;border-top:5px groove skyblue;" />
             <h3 class="mdl-typography--text-center mdl-typography--display-1">Click Here:
                 <a class="mdl-typography--font-light" href="https://github.com/Symbolk/CrowdJigsaw">
                     <i class="fa fa-github fa-lg fa-spin fa-fw"></i>
                 </a> for more details.</h3>
-
+                <div class="col-lg-8 col-md-8 col-sm-10" id="content"></div>
         </section>
         <!-- /.content -->
-        <div id="content"></div>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script>
-            $.get("https://github.com/Symbolk/CrowdJigsaw/blob/master/README.md", function (response, status, xhr) {
+            $.get("/README.md", function (response, status, xhr) {
                 $("#content").html(marked(response));
             });
                 // document.getElementById('content').innerHTML = marked("");

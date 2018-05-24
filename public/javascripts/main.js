@@ -26,7 +26,16 @@ function sendRecord(round_id, finished, steps, time, totalLinks, hintedLinks, to
         cache: false,
         timeout: 5000,
         success: function (data) {
-            console.log('Record: ' + data.contribution);
+            $.amaran({
+                'title': 'saveRecord',
+                'message': 'Record saved.',
+                'inEffect': 'slideRight',
+                'cssanimationOut': 'zoomOutUp',
+                'position': "top right",
+                'delay': 2000,
+                'closeOnClick': true,
+                'closeButton': true
+            });
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('saveRecord: ' + 'error ' + textStatus + " " + errorThrown);

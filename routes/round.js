@@ -102,6 +102,7 @@ module.exports = function (io) {
                 round_id: data.round_id,
                 steps: data.steps,
                 time: data.time,
+                maxSubGraphSize: data.maxSubGraphSize,
                 tiles: data.tiles,
                 tileHintedLinks: data.tileHintedLinks,
                 totalHintsNum: data.totalHintsNum,
@@ -283,7 +284,7 @@ module.exports = function (io) {
                     } else {
                         console.log(req.session.user.username + ' creates Round' + index);
                         io.sockets.emit('roundChanged', '');
-                        res.send({ msg: "Created round successfully.", round_id: index });
+                        res.send({ msg: 'Round '+index+' created successfully.', round_id: index });
                         // createRecord(req.session.user.username, operation.round_id, TIME);
                     }
                 });
