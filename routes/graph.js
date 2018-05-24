@@ -381,6 +381,9 @@ module.exports = function (io) {
                             }
                             socket.emit('proactiveHints', results);
                         }
+                        else{
+                            socket.emit('proactiveHints', {});
+                        }
                     }
                 }
             });
