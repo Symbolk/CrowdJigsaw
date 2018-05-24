@@ -1,0 +1,59 @@
+<div class="modal fade" id="rounddetail_dialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">Detail</h4>
+            </div>
+            <div class="modal-body">
+                <div id="rounddetail_id" style="display: none;"></div>
+                <!--<div class="newround_image_wrap">-->
+                    <!--<img class="article-image" id="rounddetail_image">-->
+                <!--</div>-->
+                <!--<br>-->
+                <!--<br>-->
+                <!--<table class="table" id="rounddetail_table">-->
+                    <!--<tbody>-->
+                    <!--<tr>-->
+                        <!--<td colspan="2" id="rounddetail_createtime"></td>-->
+                    <!--</tr>-->
+                    <!--<tr>-->
+                        <!--<td >Creator</td>-->
+                        <!--<td id="rounddetail_author"></td>-->
+                    <!--</tr>-->
+                    <!--<tr>-->
+                        <!--<td>Shape</td>-->
+                        <!--<td id="rounddetail_shape">-->
+                            <!--<img id="rounddetail_shape_image" height="100%" width="height" src="/images/jagged.jpg">-->
+                        <!--</td>-->
+                    <!--</tr>-->
+                    <!--<tr id="rounddetail_info_row">-->
+                        <!--<td colspan="2" id="rounddetail_info"></td>-->
+                    <!--</tr>-->
+                    <!--</tbody>-->
+                <!--</table>-->
+                <!--<br>-->
+
+                <div class="progress  progress-striped active rounddetail-progress">
+                    <div id="rounddetail_progress" class="progress-bar progress-bar-success" role="progressbar"></div>
+                </div>
+
+                <div id = "players_list">
+                    <b>Players List</b>
+                    <ul class="mdl-list" id="rounddetail_playerlist"></ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" id="rounddetail_joinbutton">Join</button>
+                <button type="button" class="btn btn-default cancel_button" id="rounddetail_cancelbutton" data-dismiss="modal">Cancel</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div>
+</div>
+
+<div id="rounddetail_li_template">
+    <li>
+        <span class="player-name">
+        </span>
+    </li>
+</div>

@@ -212,7 +212,7 @@ footer {
 }
 
 #players_list {
-  display: none;
+  /*display: none;*/
 }
 
 
@@ -268,4 +268,16 @@ footer {
     inset 0 -2px 6px rgba(0,0,0,0.4);
   position: relative;
   overflow: hidden;
+}
+
+#ex1Slider .slider-selection {
+  background: #BABABA;
+}
+
+#select_img_div {
+  width:225px;
+}
+
+.modal-dialog {
+  width: 256px;
 }
