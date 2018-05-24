@@ -9,7 +9,7 @@ var roundDetailDialog = $('#rounddetail_dialog').get(0);
 var roundDetailJoinButton = $('#rounddetail_joinbutton');
 var roundDetailCancelButton = $('#rounddetail_cancelbutton');
 var roundDetailEdgeRow = $('#rounddetail_info_row');
-var newRoundDialog = $('#newround_dialog').get(0);
+var newRoundModal = $('#newroundModal');
 
 var borderCheckbox = $('#border_checkbox_column');
 var edgeCheckbox = $('#egde_checkbox_column');
@@ -17,6 +17,7 @@ var edgeCheckbox = $('#egde_checkbox_column');
 var newRoundCreateButton = $('#newround_createbutton');
 var newRoundCancelButton = $('#newround_cancelbutton');
 var selectImageDialog = $('#selectimage_dialog').get(0);
+var mySlider = $("#newround_number_slider").slider();
 
 getSeletorImage();
 
@@ -41,7 +42,7 @@ function getSeletorImage(){
         var imgSrc = $(this).attr('src');
         $('#newround_image').attr('src', imgSrc);
         newRoundCreateButton.removeAttr('disabled');
-        $('#newround_blank').css('display', 'inline');
+        //$('#newround_blank').css('display', 'inline');
         
         selectImageDialog.close();
     });
@@ -102,9 +103,9 @@ function initRandomRoundDialog(){
         }
     });
 
-    if (!newRoundDialog.showModal) {
-        dialogPolyfill.registerDialog(newRoundDialog);
-    }
+    // if (!newRoundDialog.showModal) {
+    //     dialogPolyfill.registerDialog(newRoundDialog);
+    // }
     newRoundCreateButton.click(function() {
         var imgSrc = puzzleImageSrcList[Math.floor((Math.random() * (puzzleImageSrcList.length - 1)))];
         var playersNum = 1;
@@ -129,23 +130,26 @@ function initRandomRoundDialog(){
         }
         postNewRound(imgSrc, level, playersNum, shape, edge, border);
         getJoinableRounds();
-        newRoundDialog.close();
+        //newRoundModal.modal("hide");
     });
-    newRoundCancelButton.click(function() {
-        newRoundDialog.close();
-    });
+    // newRoundCancelButton.click(function() {
+    //     newRoundModal.modal("hide");
+    // });
 
-    $('#newround_number_slider').css('display', 'none');
+    $('#player_num_div').css('display', 'none');
+    $('#select_img_div').css('display', 'none');
+    //$('#newround_num_area').css('display','none');
+    // $('#newround_number_slider').change(function() {
+    //     $('#newround_num').text(1);
+    // });
 
-    $('#newround_number_slider').change(function() {
-        $('#newround_num').text(1);
-    });
-
+    mySlider.slider('setValue', 1);
     $('#randomround_button').click(function(){
         newRoundCreateButton.removeAttr('disabled');
-        $('#newround_blank').css('display', 'inline');       
+        //$('#newround_blank').css('display', 'inline');
         $('#newround_image').attr('src', '/images/logo.png')
-        newRoundDialog.showModal();
+
+        //newRoundModal.modal("show");
     });
 }
 
@@ -161,12 +165,12 @@ function initNewRoundDialog(){
         }
     });
 
-    if (!newRoundDialog.showModal) {
-        dialogPolyfill.registerDialog(newRoundDialog);
-    }
+    // if (!newRoundDialog.showModal) {
+    //     dialogPolyfill.registerDialog(newRoundDialog);
+    // }
     newRoundCreateButton.click(function() {
         var imgSrc = $('#newround_image').attr('src');
-        var playersNum = $('#newround_number_slider').val();
+        var playersNum = mySlider.slider('getValue');
         var shape = 'jagged';
         var level = 1;
         var edge = false;
@@ -188,24 +192,32 @@ function initNewRoundDialog(){
         }
         postNewRound(imgSrc, level, playersNum, shape, edge, border);
         getJoinableRounds();
-        newRoundDialog.close();
+        //newRoundModal.modal("hide");
     });
-    newRoundCancelButton.click(function() {
-        newRoundDialog.close();
-    });
+    // newRoundCancelButton.click(function() {
+    //     console.log(newRoundModal);
+    //     newRoundModal.modal("hide");
+    // });
 
-    $('#newround_number_slider').css('display', 'inline');
+    //$('#newround_number_slider').css('display', 'inline');
 
-    $('#newround_number_slider').change(function() {
-        $('#newround_num').text($('#newround_number_slider').val());
+    // $('#newround_number_slider').change(function() {
+    //     $('#newround_num').text($('#newround_number_slider').val());
+    // });
+
+    mySlider.slider({
+        formatter: function(value) {
+            return 'Current value: ' + value;
+        }
     });
 
     $('#newround_button').click(function(){
         newRoundCreateButton.attr('disabled','true');
-        $('#newround_blank').css('display', 'none');
-        // $('#newround_image_wrap').css('display', 'none');        
+        //$('#newround_blank').css('display', 'none');
+        $('#newround_image_wrap').css('display', 'none');
         $('#newround_image').removeAttr('src');
-        newRoundDialog.showModal();
+
+        //newRoundDialog.showModal();
     });
 }
 
