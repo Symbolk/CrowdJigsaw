@@ -1365,7 +1365,7 @@ function JigsawPuzzle(config) {
                 var delta = Number(instance.thisStepTime-instance.lastStepTime);
                 if(delta >= 2){
                     console.log("Delta", delta);
-                    instance.askHelpTimeout = setTimeout(askHelp, 2000 * delta);
+                    instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
                 }
 
                 uploadGraphData(false);

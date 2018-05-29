@@ -6,7 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const session = require('express-session');
 const ejs = require('ejs');
-var fs = require('fs');  
+var fs = require('fs');
+const glob = require('glob');
 var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
@@ -17,10 +18,10 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 // Control-Allow-Origin
-app.all('*', function(req, res, next) {
+app.all('*', function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   // res.header("Content-Type", "application/json;charset=utf-8");
   next();
@@ -56,9 +57,9 @@ app.set('view engine', 'html');
 app.use(favicon(path.join(__dirname, 'public', 'favicon.png')));
 
 
-console.log("Environment : "+process.env.NODE_ENV);
+console.log("Environment : " + process.env.NODE_ENV);
 var logDir = __dirname + '/logs';
-console.log('Access logs :'+logDir);
+console.log('Access logs :' + logDir);
 // ensure log directory exists 
 fs.existsSync(logDir) || fs.mkdirSync(logDir);
 // create a rotating write stream 
@@ -69,14 +70,14 @@ var accessLogStream = FileStreamRotator.getStream({
   verbose: false
 });
 // setup the logger 
-app.use(logger('short', { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302  || res.statusCode == 200)}}, {stream: accessLogStream}));
+app.use(logger('short', { skip: function (req, res) { return (res.statusCode == 304 || res.statusCode == 302 || res.statusCode == 200) } }, { stream: accessLogStream }));
 
 
 // var accessLog = fs.createWriteStream('logs/access.log', {flags : 'a'}); 
 // if (app.get('env') == 'production') {
 //   app.use(logger('common', { stream: accessLog }));
 // } else {
-  // app.use(logger('common', { stream: accessLog }));
+// app.use(logger('common', { stream: accessLog }));
 //   app.use(logger('dev',  { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302  || res.statusCode == 200) }}));
 //   // app.use(logger('dev',  { skip: function(req, res) { return (res.statusCode == 304 || res.statusCode == 302 ) }}));
 // }
@@ -118,13 +119,13 @@ if (app.get('env') === 'development') {
   config = require('./config/dev');
   server.listen(config.port);
   module.exports = app;
-  console.log('Listening on port : '+config.port);
+  console.log('Listening on port : ' + config.port);
 } else if (app.get('env') === 'production') {
   // npm start
   config = require('./config/pro');
   server.listen(config.port);
   module.exports = app;
-  console.log('Listening on port : '+config.port);
+  console.log('Listening on port : ' + config.port);
 }
 
 /* app.listen(config.port, function(){
@@ -133,18 +134,18 @@ if (app.get('env') === 'development') {
 /**
  * socket.io to send&receive the msg
  */
-// if(server){
-//   io.on('connection', function(socket){
-//     socket.on('join', function(data){
-//       // console.log(data);
-//       socket.emit('hello', {hello: 'Hello '+ data.player_name});
-//     });
-//     socket.on('iSolved', function(data){
-//       console.log('!!!Round '+data.round_id+' : '+ data.player_name+' solves!');
-//       socket.broadcast.emit('someoneSolved', data);
-//     });
-//   });
-// }
+if (server) {
+  io.on('connection', function (socket) {
+    glob('./public/images/*_thumb.jpg', function (err, files) {
+      if (err) {
+        console.log(err);
+      } else {
+        var thumbnails = files.map(f => f.substring(9));
+        socket.emit('thumbnails', { thumblist: thumbnails });
+      }
+    });
+  });
+}
 
 /**
  * A schedule job to clear the endless rounds
@@ -154,26 +155,26 @@ var util = require('./routes/util.js');
 var ActionModel = require('./models/action').Action;
 var RoundModel = require('./models/round').Round;
 //once an hour
-schedule.scheduleJob('0 0 * * * *', function(){
+schedule.scheduleJob('0 0 * * * *', function () {
   var condition = {
-        end_time: "-1"
+    end_time: "-1"
   };
   RoundModel.find(condition, function (err, docs) {
-  if (err) {
-    console.log(err);
-  }
-  else {
-    for(var round of docs){
-      var createTime = Date.parse(new Date(round.create_time))/1000;
-      var timeNow = Date.parse(new Date())/1000;
-      if(timeNow - createTime >= 7200){
+    if (err) {
+      console.log(err);
+    }
+    else {
+      for (var round of docs) {
+        var createTime = Date.parse(new Date(round.create_time)) / 1000;
+        var timeNow = Date.parse(new Date()) / 1000;
+        if (timeNow - createTime >= 7200) {
           // var TIME = util.getNowFormatDate();
           round.end_time = "-2"; // not ended but killed
           round.save();
-          console.log("Autoclose Round"+round.round_id);
-      }
+          console.log("Autoclose Round" + round.round_id);
+        }
       }
     }
   }
-);
+  );
 });
