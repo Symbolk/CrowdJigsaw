@@ -344,6 +344,8 @@ function JigsawPuzzle(config) {
 
     this.hintedTilesMap = new Array();
 
+    this.hintAroundTilesMap = new Array();
+
     $.amaran({
         'title': 'startRound',
         'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
@@ -1085,6 +1087,7 @@ function JigsawPuzzle(config) {
             return hasConflict;
         for (var i = 0; i < tiles.length; i++) {
             var tile = tiles[i];
+            var tileIndex = getTileIndex(tile);
 
             var cellPosition = centerCellPosition + tile.relativePosition;
             var roundPosition = cellPosition * instance.tileWidth;
@@ -1106,6 +1109,22 @@ function JigsawPuzzle(config) {
                 var leftTileConflict = (leftTile != undefined) && (!(leftTile.shape.rightTab + tile.shape.leftTab == 0) ||
                     (instance.tileShape == 'curved' && leftTile.shape.rightTab == 0 && tile.shape.leftTab == 0));
                 hasConflict = hasConflict || topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
+
+                if(instance.hintsShowing && !hasConflict){
+                    var hintAroundTiles = instance.hintAroundTilesMap[tileIndex];
+                    if(hintAroundTiles){
+                        var topTileHintConflict = (topTile != undefined) && (hintAroundTiles[0] >= 0) 
+                            && (getTileIndex(topTile) == hintAroundTiles[0]);
+                        var rightTileHintConflict = (rightTile != undefined) && (hintAroundTiles[1] >= 0)
+                            && (getTileIndex(rightTile) == hintAroundTiles[1]);
+                        var bottomTileHintConflict = (bottomTile != undefined) && (hintAroundTiles[2] >= 0) 
+                            && (getTileIndex(bottomTile) == hintAroundTiles[2]);
+                        var leftTileHintConflict = (leftTile != undefined) && (hintAroundTiles[3] >= 0) 
+                            && (getTileIndex(leftTile) == hintAroundTiles[3]);
+                        hasConflict = hasConflict || topTileHintConflict || rightTileHintConflict 
+                            || bottomTileHintConflict || leftTileHintConflict;
+                    }
+                }
             }
         }
         return hasConflict;
@@ -1162,7 +1181,7 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             if (tile.beenUndo) {
                 if (tile.aroundTilesChanged) {
-                    computeSubGraph(getTileIndex(tile), tile.oldAroundTiles, tile.aroundTiles);
+                    computeSubGraph(tile);
                 }
                 tile.beenUndo = false;
             }
@@ -1273,7 +1292,9 @@ function JigsawPuzzle(config) {
             }
 
             var shouldSave = false;
-                    
+            
+            instance.hintAroundTilesMap = data;
+
             for(var t = 0; t < 1; t++){
                 var changeForIteration = false;
 
@@ -1293,6 +1314,8 @@ function JigsawPuzzle(config) {
             if (shouldSave) {
                 saveGame();
             }
+
+            //instance.hintAroundTilesMap = new Array();
 
             $("#show_hints_dialog").modal().hide();
             instance.hintsShowing = false;
@@ -1352,7 +1375,7 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
                 if (tile.aroundTilesChanged) {
-                    computeSubGraph(getTileIndex(tile), tile.oldAroundTiles, tile.aroundTiles);
+                    computeSubGraph(tile);
                 }
             }
 
@@ -1437,7 +1460,11 @@ function JigsawPuzzle(config) {
         }]
     })
     */
-    function computeSubGraph(selectedTileIndex, aroundTilesBefore, aroundTilesAfter) {
+    function computeSubGraph(tile) {
+        var selectedTileIndex = getTileIndex(tile);
+        var aroundTilesBefore = tile.oldAroundTiles;
+        var aroundTilesAfter = tile.aroundTiles;
+
         var preSize = instance.subGraphData.length;
         dfsGraph(selectedTileIndex);
         if (preSize < instance.subGraphData.length) {
@@ -1454,7 +1481,7 @@ function JigsawPuzzle(config) {
 
                 if (aroundTilesBefore[i] != aroundTilesAfter[i]) {
                     removeLink = generateLinksTags(selectedTileIndex, aroundTilesBefore[i], i);
-                    removeLink.size = 0;
+                    removeLink.size = -tile.subGraphSize;
                     instance.removeLinksData.push(removeLink);
                 }
             }
@@ -1643,7 +1670,7 @@ function JigsawPuzzle(config) {
         for (var i in instance.hintedTilesMap) {
             var tile = instance.tiles[i];
             if (tile.aroundTilesChanged) {
-                computeSubGraph(getTileIndex(tile), tile.oldAroundTiles, tile.aroundTiles);
+                computeSubGraph(tile);
             }
         }
 
