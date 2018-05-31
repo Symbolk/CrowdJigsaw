@@ -257,7 +257,6 @@ function mutualRemove(round_id, from, to, dir, NAME) {
 }
 
 function update(data) {
-    let isHinted = data.isHinted;
     // fetch the saved edges data of this round
     RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
         if (err) {
