@@ -321,6 +321,7 @@ function JigsawPuzzle(config) {
     this.askHelpTimeout = undefined; // time past since last action
     this.lastStepTime = 0;
     this.thisStepTime = 0;
+    this.linksChangedCount = 0;
 
     this.dfsGraphLinksMap = new Array();
     this.subGraphData = new Array();
@@ -491,6 +492,9 @@ function JigsawPuzzle(config) {
 
                 if (beHinted) {
                     tile.hintedLinks[i] = aroundTiles[i];
+                }
+                else{
+                    instance.linksChangedCount += 1;
                 }
             }
         }
@@ -1110,16 +1114,11 @@ function JigsawPuzzle(config) {
                 if(instance.hintsShowing && !hasConflict){
                     var hintAroundTiles = instance.hintAroundTilesMap[tileIndex];
                     if(hintAroundTiles){
-                        var topTileHintConflict = (topTile != undefined) && (hintAroundTiles[0] >= 0) 
-                            && (getTileIndex(topTile) == hintAroundTiles[0]);
-                        var rightTileHintConflict = (rightTile != undefined) && (hintAroundTiles[1] >= 0)
-                            && (getTileIndex(rightTile) == hintAroundTiles[1]);
-                        var bottomTileHintConflict = (bottomTile != undefined) && (hintAroundTiles[2] >= 0) 
-                            && (getTileIndex(bottomTile) == hintAroundTiles[2]);
-                        var leftTileHintConflict = (leftTile != undefined) && (hintAroundTiles[3] >= 0) 
-                            && (getTileIndex(leftTile) == hintAroundTiles[3]);
-                        hasConflict = hasConflict || topTileHintConflict || rightTileHintConflict 
-                            || bottomTileHintConflict || leftTileHintConflict;
+                        var topTileHintConflict = (topTile != undefined) && (getTileIndex(topTile) != hintAroundTiles[0]);
+                        var rightTileHintConflict = (rightTile != undefined) && (getTileIndex(rightTile) != hintAroundTiles[1]);
+                        var bottomTileHintConflict = (bottomTile != undefined) && (getTileIndex(bottomTile) != hintAroundTiles[2]);
+                        var leftTileHintConflict = (leftTile != undefined) && (getTileIndex(leftTile) != hintAroundTiles[3]);
+                        hasConflict = hasConflict || topTileHintConflict || rightTileHintConflict || bottomTileHintConflict || leftTileHintConflict;
                     }
                 }
             }
@@ -1384,8 +1383,9 @@ function JigsawPuzzle(config) {
                 instance.thisStepTime = time;
                 clearTimeout(instance.askHelpTimeout);
                 var delta = Number(instance.thisStepTime-instance.lastStepTime);
-                if(delta >= 2){
+                if(delta >= 2 && instance.linksChangedCount > 10){
                     console.log("Delta", delta);
+                    instance.linksChangedCount = 0;
                     instance.askHelpTimeout = setTimeout(askHelp, 2000 * delta);
                 }
 
