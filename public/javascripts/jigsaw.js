@@ -1386,7 +1386,7 @@ function JigsawPuzzle(config) {
                 if(delta >= 2 && instance.linksChangedCount > 10){
                     console.log("Delta", delta);
                     instance.linksChangedCount = 0;
-                    instance.askHelpTimeout = setTimeout(askHelp, 2000 * delta);
+                    instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
                 }
 
                 uploadGraphData();

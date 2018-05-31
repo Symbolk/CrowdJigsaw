@@ -1,5 +1,5 @@
 <% include header2.html %>
-    <!-- Content Wrapper. Contains page content -->
+    <!-- Content W  rapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <section class="content-header">
@@ -36,7 +36,7 @@
                             </div>
                             <div class="widget-user-image" id="newround_button">
                                 <span class="button-wrap">
-                                    <button class="button button-3d button-action button-circle button-jumbo">
+                                    <button class="button button-3d button-action button-circle button-jumbo" data-toggle="modal" data-target="#newroundModal">
                                         <i class="fa fa-plus"></i>
                                     </button>
                                 </span>
@@ -85,7 +85,7 @@
                                 </div>
                                 <div class="widget-user-image randomround_button">
                                     <span class="button-wrap">
-                                        <button class="button button-3d button-action button-circle button-jumbo">
+                                        <button class="button button-3d button-action button-circle button-jumbo" data-toggle="modal" data-target="#newroundModal">
                                             <i class="fa fa-random"></i>
                                         </button>
                                     </span>
@@ -126,8 +126,8 @@
                         <%} %>
             </div>
             <% include roundcard.html %>
-                <% include rounddetail.html %>
-                    <% include newround.html %>
+                <% include rounddetail1.html %>
+                    <% include newround1.html %>
                         <% include roundimageselector.html %>
                             <% include roundimageshower.html %>
 
@@ -136,9 +136,13 @@
     </div>
     <!-- /.content-wrapper -->
     <script src="/javascripts/jquery.min.js"></script>
+    <script src="/javascripts/bootstrap.min.js"></script>
+    <script src="/javascripts/bootstrap-slider.min.js"></script>
+
     <script type="text/javascript" src="/javascripts/socket.io.js"></script>
     <script type="text/javascript" src="/javascripts/main.js"></script>
     <script type="text/javascript" src="/javascripts/playground.js"></script>
+
 
     <% include toast.html %>
         <% include footer2.html %>
