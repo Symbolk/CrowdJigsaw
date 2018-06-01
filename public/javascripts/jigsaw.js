@@ -384,6 +384,7 @@ function JigsawPuzzle(config) {
             }
             instance.groups[i] = i;
             instance.sizes[i] = 0;
+            tile.wantToMoveAway = -1;
         }
 
         if (instance.saveHintedLinks) {
@@ -1079,6 +1080,36 @@ function JigsawPuzzle(config) {
         return 0;
     }
 
+    function moveAwayDelay(tile, d){
+        if((tile.wantToMoveAway >= 0 && tile.wantToMoveAway != d) || !tile.noAroundTiles){
+            return false;
+        }
+        tile.wantToMoveAway = d;
+        var cellPositionAfter = tile.cellPosition + directions[d];
+
+        for (var i = 0; i < 4; i++) {
+            var neighborTile = getTileAtCellPosition(cellPositionAfter + directions[i]);
+            if(neighborTile != undefined && tile != neighborTile){
+                var canMoveAway = moveAwayDelay(neighborTile, d);
+                if(!canMoveAway){
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    function allMoveAway(){
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            if(tile.wantToMoveAway >= 0 && tile.noAroundTiles){
+                placeTile(tile, tile.cellPosition + directions[tile.wantToMoveAway]);
+                tile.wantToMoveAway = -1;
+            }
+        }
+    }
+
     function checkConflict(tiles, centerCellPosition) {
         if (Math.abs(centerCellPosition.x) > 70 || Math.abs(centerCellPosition.y) > 50) {
             return true;
@@ -1086,6 +1117,7 @@ function JigsawPuzzle(config) {
         var hasConflict = false;
         if (this.allowOverlap)
             return hasConflict;
+        var onlyOneTile = (tiles.length == 1);
         for (var i = 0; i < tiles.length; i++) {
             var tile = tiles[i];
             var tileIndex = getTileIndex(tile);
@@ -1095,33 +1127,71 @@ function JigsawPuzzle(config) {
 
             var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
             hasConflict = hasConflict || alreadyPlacedTile;
-            if (instance.tileShape != "voronoi") {
+            if (!hasConflict && instance.tileShape != "voronoi") {
                 var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
                 var rightTile = getTileAtCellPosition(cellPosition + new Point(1, 0));
                 var bottomTile = getTileAtCellPosition(cellPosition + new Point(0, 1));
                 var leftTile = getTileAtCellPosition(cellPosition + new Point(-1, 0));
 
+                var hintAroundTiles = undefined;
+                if(instance.hintsShowing){
+                    hintAroundTiles = instance.hintAroundTilesMap[tileIndex];
+                }
+
                 var topTileConflict = (topTile != undefined) && (!(topTile.shape.bottomTab + tile.shape.topTab == 0) ||
                     (instance.tileShape == 'curved' && topTile.shape.bottomTab == 0 && tile.shape.topTab == 0));
-                var bottomTileConflict = (bottomTile != undefined) && (!(bottomTile.shape.topTab + tile.shape.bottomTab == 0) ||
-                    (instance.tileShape == 'curved' && bottomTile.shape.topTab == 0 && tile.shape.bottomTab == 0));
-                var rightTileConflict = (rightTile != undefined) && (!(rightTile.shape.leftTab + tile.shape.rightTab == 0) ||
-                    (instance.tileShape == 'curved' && rightTile.shape.leftTab == 0 && tile.shape.rightTab == 0));
-                var leftTileConflict = (leftTile != undefined) && (!(leftTile.shape.rightTab + tile.shape.leftTab == 0) ||
-                    (instance.tileShape == 'curved' && leftTile.shape.rightTab == 0 && tile.shape.leftTab == 0));
-                hasConflict = hasConflict || topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
-
-                if(instance.hintsShowing && !hasConflict){
-                    var hintAroundTiles = instance.hintAroundTilesMap[tileIndex];
-                    if(hintAroundTiles){
-                        var topTileHintConflict = (topTile != undefined) && (getTileIndex(topTile) != hintAroundTiles[0]);
-                        var rightTileHintConflict = (rightTile != undefined) && (getTileIndex(rightTile) != hintAroundTiles[1]);
-                        var bottomTileHintConflict = (bottomTile != undefined) && (getTileIndex(bottomTile) != hintAroundTiles[2]);
-                        var leftTileHintConflict = (leftTile != undefined) && (getTileIndex(leftTile) != hintAroundTiles[3]);
-                        hasConflict = hasConflict || topTileHintConflict || rightTileHintConflict || bottomTileHintConflict || leftTileHintConflict;
+                if(hintAroundTiles){
+                    topTileConflict = topTileConflict || (topTile != undefined) && (getTileIndex(topTile) != hintAroundTiles[0]);
+                    if (topTileConflict && tile.aroundTiles[0] < 0 && onlyOneTile) {
+                        var canMoveAway = moveAwayDelay(topTile, 0);
+                        if(canMoveAway){
+                            topTileConflict = false;
+                        }
                     }
                 }
+
+                var rightTileConflict = (rightTile != undefined) && (!(rightTile.shape.leftTab + tile.shape.rightTab == 0) ||
+                    (instance.tileShape == 'curved' && rightTile.shape.leftTab == 0 && tile.shape.rightTab == 0));
+                if(hintAroundTiles){
+                    rightTileConflict = rightTileConflict || (rightTile != undefined) && (getTileIndex(rightTile) != hintAroundTiles[1]);
+                    if (rightTileConflict && tile.aroundTiles[1] < 0 && onlyOneTile) {
+                        var canMoveAway = moveAwayDelay(rightTile, 1);
+                        if(canMoveAway){
+                            rightTileConflict = false;
+                        }
+                    }
+                }
+
+                var bottomTileConflict = (bottomTile != undefined) && (!(bottomTile.shape.topTab + tile.shape.bottomTab == 0) ||
+                    (instance.tileShape == 'curved' && bottomTile.shape.topTab == 0 && tile.shape.bottomTab == 0));
+                if(hintAroundTiles){
+                    bottomTileConflict = bottomTileConflict || (bottomTile != undefined) && (getTileIndex(bottomTile) != hintAroundTiles[2]);
+                    if (bottomTileConflict && tile.aroundTiles[2] < 0 && onlyOneTile) {
+                        var canMoveAway = moveAwayDelay(bottomTile, 2);
+                        if(canMoveAway){
+                            bottomTileConflict = false;
+                        }
+                    }
+                }
+
+                var leftTileConflict = (leftTile != undefined) && (!(leftTile.shape.rightTab + tile.shape.leftTab == 0) ||
+                    (instance.tileShape == 'curved' && leftTile.shape.rightTab == 0 && tile.shape.leftTab == 0));
+                if(hintAroundTiles){
+                    leftTileConflict = leftTileConflict || (leftTile != undefined) && (getTileIndex(leftTile) != hintAroundTiles[3]);
+                    if (leftTileConflict && tile.aroundTiles[3] < 0 && onlyOneTile) {
+                        var canMoveAway = moveAwayDelay(leftTile, 3);
+                        if(canMoveAway){
+                            leftTileConflict = false;
+                        }
+                    }
+                }
+
+                var aroundConflict = topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
+                var hasConflict = aroundConflict || hasConflict;
             }
+        }
+        if(!hasConflict){
+            allMoveAway();
         }
         return hasConflict;
     }
@@ -1383,7 +1453,7 @@ function JigsawPuzzle(config) {
                 instance.thisStepTime = time;
                 clearTimeout(instance.askHelpTimeout);
                 var delta = Number(instance.thisStepTime-instance.lastStepTime);
-                if(delta >= 2 && instance.linksChangedCount > 10){
+                if(delta >= 2 && instance.linksChangedCount >= 0){
                     console.log("Delta", delta);
                     instance.linksChangedCount = 0;
                     instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
@@ -1639,6 +1709,7 @@ function JigsawPuzzle(config) {
             if(!forAskHelp){
                 tile.aroundTilesChanged = false;
             }
+            tile.wantToMoveAway = -1;
             tile.positionMoved = false;
         }
     }
