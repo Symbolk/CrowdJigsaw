@@ -36,7 +36,7 @@ function getSeletorImage() {
         };
         template.find('.mdl-card__media').append(img);
         template.find('.mdl-card__title').append('<p class="text-center"><strong>' 
-                + imgSrc.slice(7, -4) + '</strong></p>')
+                + imgSrc.slice(11, -10) + '</strong></p>')
         template.appendTo('#selectimage_table');
     }
     $('.selector-image').click(function () {

@@ -136,7 +136,7 @@ if (app.get('env') === 'development') {
  */
 if (server) {
   io.on('connection', function (socket) {
-    glob('./public/images/*_thumb.jpg', function (err, files) {
+    glob('./public/images/raw/*_thumb.jpg', function (err, files) {
       if (err) {
         console.log(err);
       } else {
