@@ -7,7 +7,7 @@ var UserSchema = new mongoose.Schema({
     password: { type: String }, // encrypted with crypto
     last_online_time:  { type: String }, // formatted time, e.g. 2017-10-31 14:00:20
     register_time: { type: String }, // formatted time, e.g. 2017-10-31 14:00:20
-    admin: { type: Boolean, default: false }, // only admin can new rounds&see images
+    admin: { type: Boolean, default: true }, // only admin can new rounds&see images
     records: [
         {
             round_id: { type: Number }, // participated rounds

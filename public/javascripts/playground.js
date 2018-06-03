@@ -214,7 +214,6 @@ function initNewRoundDialog() {
         //$('#newround_blank').css('display', 'none');
         $('#newround_image_wrap').css('display', 'none');
         $('#newround_image').removeAttr('src');
-
         //newRoundDialog.showModal();
     });
 }
@@ -229,6 +228,7 @@ function initSelectImageDialog() {
     });
 
     $('#newround_image_button').click(function () {
+        $('#newround_image_wrap').css('display', '');        
         selectImageDialog.showModal();
     });
 
@@ -286,7 +286,6 @@ function renderRoundDetail(round) {
     for (var player of round.players) {
         var li = $($('#rounddetail_li_template').html());
         li.find('.player-name').text(player.player_name);
-        console.log("li:" + player.player_name);
         li.appendTo('#rounddetail_playerlist');
 
         if (player.player_name == username) {
