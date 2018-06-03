@@ -426,7 +426,7 @@ module.exports = function (io) {
             // directions(0 1 2 3=T R B L)
             let hints = new Array(4).fill(-1);
             let confidences = new Array(4).fill(-1);
-            let index = data.index;
+            let index = data.index[0];
             // fetch the saved edges data of this round
             RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
                 if (err) {
