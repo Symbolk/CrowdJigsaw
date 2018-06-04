@@ -279,7 +279,7 @@ function update(data) {
                             "tag": e.tag,
                             "supporters": supporters,
                             "opposers": opposers,
-                            "confidence": e.size
+                            "confidence": 1
                         };
                     }
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: obj } }, function (err) {
@@ -349,7 +349,7 @@ function update(data) {
                         for (let o in opposers) {
                             wn += opposers[o];
                         }
-                        if (wp + wn > 0 && wp > 0) {
+                        if (wp + wn != 0) {
                             edges_saved[e].confidence = wp / (wp + wn);
                         }
                     }

@@ -310,7 +310,6 @@ module.exports = function (io) {
                     res.send({ msg: "Round is Already Start!" });
                     return;
                 }
-                // if (doc.players.length == doc.players_num) {
                     let TIME = util.getNowFormatDate();
                     // set start_time for all players
                     for (let p of doc.players) {
@@ -329,6 +328,7 @@ module.exports = function (io) {
                     let operation = {
                         $set: {
                             start_time: TIME,
+                            players_num: doc.players.length
                         }
                     };
                     RoundModel.update(condition, operation, function (err) {
@@ -366,9 +366,6 @@ module.exports = function (io) {
                         console.log('results: %j', results);
                         console.log('GA algorithm for round %d ends.', doc.round_id);
                     });*/
-                // } else {
-                //     res.send({ msg: "Players are not enough!" });
-                // }
             }
         });
     });
