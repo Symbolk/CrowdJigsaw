@@ -3,8 +3,12 @@ module.exports = {
     // the recommendation strategy option: 
     // Equal Voting : conservative/aggressive/considerate
     // Capacity Value : contribution/subgraph
-    strategy: "contribution", 
+    strategy: "contribution",
     unsure_gap: 1, // the max gap that the hint is sure
-    hint_weight: 0.8, // the weight of the hinted link
-    };
-  
+    hint_weight: 0.8, // the weight of the hinted link(in Equal Voting)
+
+    decay: 0.8, // the weight discount of the hinted link
+    epilson: 2, // the gap beteen weight-positive
+    phi: 0.618, // the minimal confidence value to be hinted
+    msn: 2 // minimal supporter num to be hinted
+};

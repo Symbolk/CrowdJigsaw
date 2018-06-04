@@ -269,12 +269,16 @@ function update(data) {
                     for (let e of data.edges) {
                         let key = e.x + e.tag + e.y;
                         let supporters = {};
-                        supporters[data.player_name] = e.size;
+                        let opposers = {};
+                        if (e.size > 0) {
+                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                        }
                         obj[key] = {
                             "x": e.x,
                             "y": e.y,
                             "tag": e.tag,
                             "supporters": supporters,
+                            "opposers": opposers,
                             "confidence": e.size
                         };
                     }
@@ -293,33 +297,61 @@ function update(data) {
                         // if the edge exists, update the size
                         if (edges_saved.hasOwnProperty(temp)) {
                             let supporters = edges_saved[temp].supporters;
-                            if (supporters.hasOwnProperty(data.player_name)) {
-                                supporters[data.player_name] = e.size;
-                            } else {
-                                supporters[data.player_name] = e.size;
+                            let opposers = edges_saved[temp].opposers;
+                            if (e.size > 0) {
+                                if (supporters.hasOwnProperty(data.player_name)) {
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                } else if (opposers.hasOwnProperty(data.player_name)) {
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                    delete opposers[data.player_name];
+                                } else {
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                }
+                            } else { // e.size<0(e.size==0?)
+                                if (supporters.hasOwnProperty(data.player_name)) {
+                                    opposers[data.player_name] = 0 - e.size;
+                                    delete supporters[data.player_name];
+                                } else if (opposers.hasOwnProperty(data.player_name)) {
+                                    opposers[data.player_name] = 0 - e.size;
+                                } else {
+                                    opposers[data.player_name] = 0 - e.size;
+                                }
                             }
                         } else {
                             // if the edge not exists, create the edge
                             let key = e.x + e.tag + e.y;
                             let supporters = {};
-                            supporters[data.player_name] = e.size;
+                            let opposers = {};
+                            if (e.size > 0) {
+                                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                            } else {
+                                opposers[data.player_name] = 0 - e.size;
+                            }
                             edges_saved[key] = {
                                 "x": e.x,
                                 "y": e.y,
                                 "tag": e.tag,
                                 "supporters": supporters,
-                                "confidence": e.size
+                                "opposers": opposers,
+                                "confidence": 0
                             };
                         }
                     }
                     // update the confidence of every saved edge
-                    for (let key in edges_saved) {
-                        let supporters = edges_saved[key].supporters;
-                        let temp = 0;
-                        for (let key in supporters) {
-                            temp += supporters[key];
+                    for (let e in edges_saved) {
+                        let supporters = edges_saved[e].supporters;
+                        let opposers = edges_saved[e].opposers;
+                        let wp = 0;
+                        let wn = 0;
+                        for (let s in supporters) {
+                            wp += supporters[s];
                         }
-                        edges_saved[key].confidence = temp;
+                        for (let o in opposers) {
+                            wn += opposers[o];
+                        }
+                        if (wp + wn > 0 && wp > 0) {
+                            edges_saved[e].confidence = wp / (wp + wn);
+                        }
                     }
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved } }, function (err) {
                         if (err) {
@@ -361,72 +393,39 @@ module.exports = function (io) {
                             let sortedEdges = edges_array.sort(util.descending("confidence"));
                             // format the edges as hints
                             for (let se of sortedEdges) {
-                                let sl=Object.getOwnPropertyNames(se.supporters).length;
-                                if (se.tag == "L-R" && se.confidence > sl) {
-                                    if (results[se.x][1] == -1) {
-                                        results[se.x][1] = se.y;
-                                    }
-                                    if (results[se.y][3] == -1) {
-                                        results[se.y][3] = se.x;
-                                    }
-                                } else if (se.tag == "T-B" && se.confidence > sl) {
-                                    if (results[se.x][2] == -1) {
-                                        results[se.x][2] = se.y;
-                                    }
-                                    if (results[se.y][0] == -1) {
-                                        results[se.y][0] = se.x;
+                                let sNum = Object.getOwnPropertyNames(se.supporters).length;
+                                if (se.confidence >= constants.phi && sNum >= constants.msn) {
+                                    if (se.tag == "L-R") {
+                                        if (results[se.x][1] == -1) {
+                                            results[se.x][1] = se.y;
+                                        }
+                                        if (results[se.y][3] == -1) {
+                                            results[se.y][3] = se.x;
+                                        }
+                                    } else if (se.tag == "T-B") {
+                                        if (results[se.x][2] == -1) {
+                                            results[se.x][2] = se.y;
+                                        }
+                                        if (results[se.y][0] == -1) {
+                                            results[se.y][0] = se.x;
+                                        }
                                     }
                                 }
                             }
                             socket.emit('proactiveHints', results);
                         }
-                        else{
+                        else {
                             socket.emit('proactiveHints', {});
                         }
                     }
                 }
             });
-            // NodeModel.find({ round_id: data.round_id }, function (err, docs) {
-            //     if (err) {
-            //         console.log(err);
-            //     } else {
-            //         if (docs) {
-            //             for (let node of docs) {
-            //                 var h = {
-            //                     index: -1,
-            //                     hints: new Array()
-            //                 };
-            //                 for (let d = 0; d < 4; d++) {
-            //                     let edges = node[dirs[d]];
-            //                     if (edges.length > 0) {
-            //                         let most_sup = edges[0];
-            //                         for (let edge of edges) {
-            //                             if (edge.sup_num > most_sup.sup_num) {
-            //                                 most_sup = edge;
-            //                             }
-            //                         }
-            //                         if (most_sup.sup_num > 0) {
-            //                             h.index = node.index;
-            //                             h.hints.push(most_sup.index);
-            //                         }
-            //                     } else {
-            //                         h.index = node.index;
-            //                         h.hints.push(-1);
-            //                     }
-            //                 }
-            //                 results.push(h);
-            //             }
-            //             socket.emit("receiveHints", results);
-            //         }
-            //     }
-            // });
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
+            let index = data.index[0];
             // directions(0 1 2 3=T R B L)
             let hints = new Array(4).fill(-1);
-            let confidences = new Array(4).fill(-1);
-            let index = data.index[0];
             // fetch the saved edges data of this round
             RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
                 if (err) {
@@ -441,33 +440,52 @@ module.exports = function (io) {
                                 hints: hints,
                             });
                         } else {
-                            // generate hints in the 4 directions
+                            let pHints = new Array([], [], [], []);
+                            // 1, confidence > PHI
+                            // 2, |supporters| > MSN
                             for (let key in doc.edges_saved) {
                                 let e = doc.edges_saved[key];
-                                if (e.x == index) {
-                                    if (e.tag == "T-B") {
-                                        if (e.confidence > confidences[2]) {
-                                            hints[2] = e.y;
+                                let sNum = Object.getOwnPropertyNames(e.supporters).length;
+                                if (Number(e.confidence) >= constants.phi && sNum >= constants.msn) {
+                                    if (e.x == index) {
+                                        if (e.tag == "T-B") {
+                                            pHints[2].push(e);
                                         }
-                                    }
-                                    if (e.tag == "L-R") {
-                                        if (e.confidence > confidences[1]) {
-                                            hints[1] = e.y;
+                                        if (e.tag == "L-R") {
+                                            pHints[1].push(e);
                                         }
-                                    }
-                                } else if (e.y == index) {
-                                    if (e.tag == "T-B") {
-                                        if (e.confidence > confidences[0]) {
-                                            hints[0] = e.x;
+                                    } else if (e.y == index) {
+                                        if (e.tag == "T-B") {
+                                            pHints[0].push(e);
                                         }
-                                    }
-                                    if (e.tag == "L-R") {
-                                        if (e.confidence > confidences[3]) {
-                                            hints[3] = e.x;
+                                        if (e.tag == "L-R") {
+                                            pHints[3].push(e);
                                         }
                                     }
                                 }
                             }
+                            // 3, delta(w+) > EPLISON
+                            for (let i = 0; i < 4; i++) {
+                                if (pHints[i].length > 0) {
+                                    // no choice
+                                    if (pHints[i].length == 1) {
+                                        if (pHints[i][0].x == index) {
+                                            hints[i] = pHints[i][0].y;
+                                        } else {
+                                            hints[i] = pHints[i][0].x;
+                                        }
+                                    } else {
+                                        // let's select the biggest
+                                        let sortedEdges = pHints[i].sort(util.descending("confidence"));
+                                        if (pHints[i][0].x == index) {
+                                            hints[i] = pHints[i][0].y;
+                                        } else {
+                                            hints[i] = pHints[i][0].x;
+                                        }
+                                    }
+                                }
+                            }
+
                             socket.emit('reactiveHints', {
                                 index: index,
                                 currentStep: data.currentStep,

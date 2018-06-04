@@ -336,7 +336,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                             if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
                                 hintPercent = r.hinted_links / r.total_links * 100;
                             }
-                            if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0) {
+                            if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0 && hintPercent > 0) {
                                 correctPercent = r.correct_hints / r.total_hints * 100;
                             }
                             if (r.end_time != "-1") {

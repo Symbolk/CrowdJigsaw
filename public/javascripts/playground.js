@@ -31,12 +31,12 @@ function getSeletorImage() {
             imgReadyCount += 1;
             if (imgReadyCount >= puzzleImageSrcList.size) {
                 allImageReadyCallback();
-                console.log(imgReadyCount +' images loaded.');
+                console.log(imgReadyCount + ' images loaded.');
             }
         };
         template.find('.mdl-card__media').append(img);
-        template.find('.mdl-card__title').append('<p class="text-center"><strong>' 
-                + imgSrc.slice(11, -10) + '</strong></p>')
+        template.find('.mdl-card__title').append('<p class="text-center"><strong>'
+            + imgSrc.slice(11, -10) + '</strong></p>')
         template.appendTo('#selectimage_table');
     }
     $('.selector-image').click(function () {
@@ -68,8 +68,7 @@ function initRoundDetailDialog() {
         var roundID = $('#rounddetail_id').text();
         if (roundDetailJoinButton.text() == 'Join') {
             joinRound(roundID);
-        }
-        else {
+        } else {
             getRound(roundID);
         }
     });
@@ -228,7 +227,7 @@ function initSelectImageDialog() {
     });
 
     $('#newround_image_button').click(function () {
-        $('#newround_image_wrap').css('display', '');        
+        $('#newround_image_wrap').css('display', '');
         selectImageDialog.showModal();
     });
 
@@ -289,7 +288,14 @@ function renderRoundDetail(round) {
         li.appendTo('#rounddetail_playerlist');
 
         if (player.player_name == username) {
-            roundDetailJoinButton.text('Waiting...');
+            if (round.creator == username) {
+                roundDetailJoinButton.text('Start!');
+                roundDetailJoinButton.click(function () {
+                    startRound(roundID);
+                });
+            } else {
+                roundDetailJoinButton.text('Waiting...');
+            }
             roundDetailCancelButton.text('Quit');
             if (round.players.length == round.players_num) {
                 startRound(roundID);
