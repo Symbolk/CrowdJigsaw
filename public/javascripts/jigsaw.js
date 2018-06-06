@@ -396,6 +396,13 @@ function JigsawPuzzle(config) {
             }
         }
 
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            computeSubGraph(tile);
+        }
+
+        uploadGraphData();
+
         if (!instance.saveTilePositions) {
             saveGame();
         }
@@ -541,6 +548,10 @@ function JigsawPuzzle(config) {
                 tile.allLinksHinted = allLinksHinted;
             }
             tile.allAroundByTiles = allAroundByTiles;
+        }
+
+        if(!tile.oldAroundTiles){
+            tile.oldAroundTiles = new Array(-1, -1, -1, -1);
         }
     }
 
@@ -1619,7 +1630,7 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             edges: instance.subGraphData
         };
-        // console.log(param);
+        //console.log(param);
         socket.emit("upload", param);
 
         instance.dfsGraphLinksMap = new Array();
