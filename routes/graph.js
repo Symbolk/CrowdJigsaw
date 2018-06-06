@@ -13,6 +13,8 @@ var hint_weight = constants.hint_weight;
 var dirs = ['top', 'right', 'bottom', 'left'];
 var reverseDirs = ['bottom', 'left', 'top', 'right'];
 
+var roundNodesAndHints = {};
+
 /**
  * Get the best link with different strategies
  * @param {*} links
@@ -256,6 +258,118 @@ function mutualRemove(round_id, from, to, dir, NAME) {
     });
 }
 
+function initNodesAndEdges(roundID, tilesNum){
+    var nodesAndHints = {};
+    nodesAndHints.nodes = new Array(tilesNum);
+    nodesAndHints.hints = new Array(tilesNum);
+    for (var i = 0; i < tilesNum; i++) {
+        nodesAndHints.nodes[i] = {
+            up: {
+                index: -1,
+                confidence: -1,
+                createTime: -1,
+            },
+            right: {
+                index: -1,
+                confidence: -1,
+                createTime: -1,
+            },
+            bottom: {
+                index: -1,
+                confidence: -1,
+                createTime: -1,
+            },
+            left: {
+                index: -1,
+                confidence: -1,
+                createTime: -1,
+            }
+        };
+        nodesAndHints.hints[i] = new Array(-1, -1, -1, -1);
+    }
+    roundNodesAndHints[roundID] = nodesAndHints;
+}
+
+function updateNodesAndEdges(roundID, tilesNum, edge){
+    var nodesAndHints = roundNodesAndHints[roundID];
+    if(!nodesAndHints){
+        initNodesAndEdges(roundID, tilesNum);
+        nodesAndHints = roundNodesAndHints[roundID];
+    }
+    var nodes = nodesAndHints.nodes;
+    var hints = nodesAndHints.hints;
+
+    var confidence = edge.confidence;
+    var x = edge.x;
+    var y = edge.y;
+    var tag = edge.tag;
+    var supporters = edge.supporters;
+    if(tag == "T-B"){
+        if((confidence < constants.phi || supporters.length < constants.msn) && 
+            nodes[x].bottom.index == y){
+            nodes[x].bottom.index = -1;
+            nodes[y].up.index = -1;
+
+            nodes[x].bottom.confidence = -1;
+            nodes[y].up.confidence = -1;
+
+            nodes[x].bottom.createTime = -1;
+            nodes[y].up.createTime = -1;
+
+            hints[x][2] = -1;
+            hints[y][0] = -1;
+        }
+
+        if(confidence >= constants.phi && supporters.length >= constants.msn &&
+            confidence > nodes[x].bottom.confidence){
+            nodes[x].bottom.index = y;
+            nodes[y].up.index = x;
+
+            nodes[x].bottom.confidence = confidence;
+            nodes[y].up.confidence = confidence;
+
+            var nowTime = (new Date()).getTime();
+            nodes[x].bottom.createTime = nowTime;
+            nodes[y].up.createTime = nowTime;
+
+            hints[x][2] = y;
+            hints[y][0] = x;
+        }
+    }
+    else if(tag == "L-R"){
+        if((confidence < constants.phi || supporters.length < constants.msn) && 
+            nodes[x].right.index == y){
+            nodes[x].right.index = -1;
+            nodes[y].left.index = -1;
+
+            nodes[x].right.confidence = -1;
+            nodes[y].left.confidence = -1;
+
+            nodes[x].right.createTime = -1;
+            nodes[y].left.createTime = -1;
+
+            hints[x][1] = -1;
+            hints[y][3] = -1;
+        }
+
+        if(confidence >= constants.phi && supporters.length >= constants.msn && 
+            confidence > nodes[x].right.confidence){
+            nodes[x].right.index = y;
+            nodes[y].left.index = x;
+
+            nodes[x].right.confidence = confidence;
+            nodes[y].left.confidence = confidence;
+
+            var nowTime = (new Date()).getTime();
+            nodes[x].right.createTime = nowTime;
+            nodes[y].left.createTime = nowTime;
+
+            hints[x][1] = y;
+            hints[y][3] = x;
+        }
+    }
+}
+
 function update(data) {
     // fetch the saved edges data of this round
     RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
@@ -266,6 +380,7 @@ function update(data) {
                 if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
                     // create the edges object & update db directly
                     let obj = {};
+
                     for (let e of data.edges) {
                         let key = e.x + e.tag + e.y;
                         let supporters = {};
@@ -281,6 +396,8 @@ function update(data) {
                             "opposers": opposers,
                             "confidence": 1
                         };
+
+                        updateNodesAndEdges(data.round_id, doc.tile_num, obj[key]);
                     }
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: obj } }, function (err) {
                         if (err) {
@@ -351,7 +468,16 @@ function update(data) {
                         }
                         if (wp + wn != 0) {
                             edges_saved[e].confidence = wp / (wp + wn);
+
+                            var edge = edges_saved[e];
+                            updateNodesAndEdges(data.round_id, doc.tile_num, edge);
                         }
+                    }
+                    for (let e in edges_saved) {
+                        var edge = edges_saved[e];
+
+                        updateNodesAndEdges(data.round_id, doc.tile_num, edge);
+    
                     }
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved } }, function (err) {
                         if (err) {
@@ -374,126 +500,14 @@ module.exports = function (io) {
         // request global hints
         socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
-            var results = new Array();
-            for (let i = 0; i < data.tilesNum; ++i) {
-                results.push(new Array(4).fill(-1));
-            }
-            // fetch the saved edges data of this round            
-            RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (doc) {
-                        if (doc.edges_saved != undefined && JSON.stringify(doc.edges_saved) != "{}") {
-                            // get the most confident edges
-                            let edges_array = new Array();
-                            for (let key in doc.edges_saved) {
-                                edges_array.push(doc.edges_saved[key]);
-                            }
-                            let sortedEdges = edges_array.sort(util.descending("confidence"));
-                            // format the edges as hints
-                            for (let se of sortedEdges) {
-                                let sNum = Object.getOwnPropertyNames(se.supporters).length;
-                                if (se.confidence >= constants.phi && sNum >= constants.msn) {
-                                    if (se.tag == "L-R") {
-                                        if (results[se.x][1] == -1) {
-                                            results[se.x][1] = se.y;
-                                        }
-                                        if (results[se.y][3] == -1) {
-                                            results[se.y][3] = se.x;
-                                        }
-                                    } else if (se.tag == "T-B") {
-                                        if (results[se.x][2] == -1) {
-                                            results[se.x][2] = se.y;
-                                        }
-                                        if (results[se.y][0] == -1) {
-                                            results[se.y][0] = se.x;
-                                        }
-                                    }
-                                }
-                            }
-                            socket.emit('proactiveHints', results);
-                        }
-                        else {
-                            socket.emit('proactiveHints', {});
-                        }
-                    }
-                }
-            });
+            socket.emit('proactiveHints', roundNodesAndHints[data.round_id].hints);
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
-            let index = data.index[0];
-            // directions(0 1 2 3=T R B L)
-            let hints = new Array(4).fill(-1);
-            // fetch the saved edges data of this round
-            RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (doc) {
-                        // empty data
-                        if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
-                            socket.emit('reactiveHints', {
-                                index: index,
-                                currentStep: data.currentStep,
-                                hints: hints,
-                            });
-                        } else {
-                            let pHints = new Array([], [], [], []);
-                            // 1, confidence > PHI
-                            // 2, |supporters| > MSN
-                            for (let key in doc.edges_saved) {
-                                let e = doc.edges_saved[key];
-                                let sNum = Object.getOwnPropertyNames(e.supporters).length;
-                                if (Number(e.confidence) >= constants.phi && sNum >= constants.msn) {
-                                    if (e.x == index) {
-                                        if (e.tag == "T-B") {
-                                            pHints[2].push(e);
-                                        }
-                                        if (e.tag == "L-R") {
-                                            pHints[1].push(e);
-                                        }
-                                    } else if (e.y == index) {
-                                        if (e.tag == "T-B") {
-                                            pHints[0].push(e);
-                                        }
-                                        if (e.tag == "L-R") {
-                                            pHints[3].push(e);
-                                        }
-                                    }
-                                }
-                            }
-                            // 3, delta(w+) > EPLISON
-                            for (let i = 0; i < 4; i++) {
-                                if (pHints[i].length > 0) {
-                                    // no choice
-                                    if (pHints[i].length == 1) {
-                                        if (pHints[i][0].x == index) {
-                                            hints[i] = pHints[i][0].y;
-                                        } else {
-                                            hints[i] = pHints[i][0].x;
-                                        }
-                                    } else {
-                                        // let's select the biggest
-                                        let sortedEdges = pHints[i].sort(util.descending("confidence"));
-                                        if (pHints[i][0].x == index) {
-                                            hints[i] = pHints[i][0].y;
-                                        } else {
-                                            hints[i] = pHints[i][0].x;
-                                        }
-                                    }
-                                }
-                            }
-
-                            socket.emit('reactiveHints', {
-                                index: index,
-                                currentStep: data.currentStep,
-                                hints: hints,
-                            });
-                        }
-                    }
-                }
+            socket.emit('reactiveHints', {
+                index: data.index,
+                currentStep: data.currentStep,
+                hints: roundNodesAndHints[data.round_id].hints,
             });
         });
     });

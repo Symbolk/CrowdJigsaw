@@ -396,6 +396,13 @@ function JigsawPuzzle(config) {
             }
         }
 
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            computeSubGraph(tile);
+        }
+
+        uploadGraphData();
+
         if (!instance.saveTilePositions) {
             saveGame();
         }
@@ -541,6 +548,10 @@ function JigsawPuzzle(config) {
                 tile.allLinksHinted = allLinksHinted;
             }
             tile.allAroundByTiles = allAroundByTiles;
+        }
+
+        if(!tile.oldAroundTiles){
+            tile.oldAroundTiles = new Array(-1, -1, -1, -1);
         }
     }
 
@@ -1359,7 +1370,7 @@ function JigsawPuzzle(config) {
     }
     socket.on("proactiveHints", function (data) {
         console.log(data);
-        if(!mousedowned && !instance.hintsShowing && data.length > 0)
+        if(!mousedowned && !instance.hintsShowing && data && data.length > 0)
         {
             if(!instance.hintsShowing){
                 instance.hintsShowing = true;
@@ -1619,7 +1630,7 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             edges: instance.subGraphData
         };
-        // console.log(param);
+        //console.log(param);
         socket.emit("upload", param);
 
         instance.dfsGraphLinksMap = new Array();
@@ -1769,7 +1780,7 @@ function JigsawPuzzle(config) {
             }
         }
         if(getHintsIndex.length > 0){
-            console.log(instance.getHintsArray, getHintsIndex);
+            //console.log(instance.getHintsArray, getHintsIndex);
             socket.emit("getHintsAround", {
                 "round_id": round_id,
                 "index": getHintsIndex,
@@ -1781,10 +1792,12 @@ function JigsawPuzzle(config) {
     socket.on("reactiveHints", function (data) {
         console.log("hints:", data);
         var currentStep = data.currentStep;
-        var selectedTileIndex = data.index;
         if (!mousedowned && currentStep == instance.steps) {
             instance.hintsShowing = true;
             var shouldSave = false;
+
+            instance.hintAroundTilesMap = data.hints;
+            /*
             if (data.sure) {
                 var sureHintTiles = JSON.parse(data.sure);
                 var unsureHintTiles = JSON.parse(data.unsure);
@@ -1796,10 +1809,19 @@ function JigsawPuzzle(config) {
                 }
                 var shouldSaveThis = showHints(selectedTileIndex, sureHintTiles);
                 shouldSave = shouldSave || shouldSaveThis;
-            }
-            else {
-                var shouldSaveThis = showHints(selectedTileIndex, data.hints);
-                shouldSave = shouldSave || shouldSaveThis;
+            }*/
+
+            for (var i = 0; i < data.index.length; i++) {
+                var index = data.index[i];
+                for(var j = 0; j < 4; j++){
+                    if(data.hints[index][j] > -1){
+                        var tile = instance.tiles[index];
+                        var shouldSaveThis = showHints(index, data.hints[index]);
+                        normalizeTiles(true);
+                        shouldSave = shouldSave || shouldSaveThis;
+                        break;
+                    }
+                }
             }
 
             if (shouldSave) {
@@ -1807,6 +1829,7 @@ function JigsawPuzzle(config) {
             }
 
             uploadHintedSubGraph();
+            normalizeTiles();
 
             // judge the hint tiles
             if (!instance.gameFinished) {
@@ -1816,7 +1839,6 @@ function JigsawPuzzle(config) {
                 }
             }
 
-            normalizeTiles();
             instance.hintsShowing = false;
         }
     });
