@@ -1794,6 +1794,9 @@ function JigsawPuzzle(config) {
 
     socket.on("reactiveHints", function (data) {
         console.log("hints:", data);
+        if(data.hints.length == 0){
+            return;
+        }
         var currentStep = data.currentStep;
         if (!mousedowned && currentStep == instance.steps) {
             instance.hintsShowing = true;

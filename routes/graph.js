@@ -510,13 +510,13 @@ module.exports = function (io) {
             if(roundNodesAndHints[data.round_id]){
                 socket.emit('proactiveHints', roundNodesAndHints[data.round_id].hints);
             }
-            else{
-                socket.emit('proactiveHints', "{}");
+            else{ 
+                socket.emit('proactiveHints', []);
             }
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
-            var hints = {};
+            var hints = [];
             if(roundNodesAndHints[data.round_id]){
                 hints = roundNodesAndHints[data.round_id].hints;
             }
