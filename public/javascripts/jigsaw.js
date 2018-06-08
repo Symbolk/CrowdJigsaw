@@ -1370,7 +1370,6 @@ function JigsawPuzzle(config) {
     }
     socket.on("proactiveHints", function (data) {
         console.log(data);
-        data = data.hints;
         if(!mousedowned && !instance.hintsShowing && data && data.length > 0)
         {
             if(!instance.hintsShowing){
@@ -1795,10 +1794,6 @@ function JigsawPuzzle(config) {
 
     socket.on("reactiveHints", function (data) {
         console.log("hints:", data);
-        if(!data.hints){
-            return;
-        }
-        data = data.hints;
         var currentStep = data.currentStep;
         if (!mousedowned && currentStep == instance.steps) {
             instance.hintsShowing = true;

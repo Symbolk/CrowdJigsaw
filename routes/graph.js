@@ -508,7 +508,7 @@ module.exports = function (io) {
         socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
             if(roundNodesAndHints[data.round_id]){
-                socket.emit('proactiveHints', roundNodesAndHints[data.round_id]);
+                socket.emit('proactiveHints', roundNodesAndHints[data.round_id].hints);
             }
             else{
                 socket.emit('proactiveHints', "{}");
@@ -518,7 +518,7 @@ module.exports = function (io) {
         socket.on('getHintsAround', function (data) {
             var hints = {};
             if(roundNodesAndHints[data.round_id]){
-                hints = roundNodesAndHints[data.round_id];
+                hints = roundNodesAndHints[data.round_id].hints;
             }
             socket.emit('reactiveHints', {
                 index: data.index,
