@@ -290,11 +290,16 @@ function initNodesAndEdges(roundID, tilesNum){
     roundNodesAndHints[roundID] = nodesAndHints;
 }
 
-function updateNodesAndEdges(roundID, tilesNum, edge){
+function updateNodesAndEdges(roundID, tilesNum, edge, edges_saved){
     var nodesAndHints = roundNodesAndHints[roundID];
     if(!nodesAndHints){
         initNodesAndEdges(roundID, tilesNum);
         nodesAndHints = roundNodesAndHints[roundID];
+
+        for (let e in edges_saved) {
+            var eedge = edges_saved[e];
+            updateNodesAndEdges(roundID, tilesNum, eedge, edges_saved);
+        }
     }
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
@@ -304,14 +309,15 @@ function updateNodesAndEdges(roundID, tilesNum, edge){
     var y = edge.y;
     var tag = edge.tag;
     var supporters = edge.supporters;
+    var sLen = Object.getOwnPropertyNames(supporters).length;
     if(tag == "T-B"){
-        if((confidence < constants.phi || supporters.length < constants.msn) && 
+        if((confidence < constants.phi || sLen < constants.msn) && 
             nodes[x].bottom.index == y){
             nodes[x].bottom.index = -1;
             nodes[y].up.index = -1;
 
-            nodes[x].bottom.confidence = -1;
-            nodes[y].up.confidence = -1;
+            nodes[x].bottom.confidence = 0;
+            nodes[y].up.confidence = 0;
 
             nodes[x].bottom.createTime = -1;
             nodes[y].up.createTime = -1;
@@ -320,7 +326,7 @@ function updateNodesAndEdges(roundID, tilesNum, edge){
             hints[y][0] = -1;
         }
 
-        if(confidence >= constants.phi && supporters.length >= constants.msn &&
+        if(confidence >= constants.phi && sLen >= constants.msn &&
             confidence > nodes[x].bottom.confidence){
             nodes[x].bottom.index = y;
             nodes[y].up.index = x;
@@ -337,13 +343,13 @@ function updateNodesAndEdges(roundID, tilesNum, edge){
         }
     }
     else if(tag == "L-R"){
-        if((confidence < constants.phi || supporters.length < constants.msn) && 
+        if((confidence < constants.phi || sLen < constants.msn) && 
             nodes[x].right.index == y){
             nodes[x].right.index = -1;
             nodes[y].left.index = -1;
 
-            nodes[x].right.confidence = -1;
-            nodes[y].left.confidence = -1;
+            nodes[x].right.confidence = 0;
+            nodes[y].left.confidence = 0;
 
             nodes[x].right.createTime = -1;
             nodes[y].left.createTime = -1;
@@ -352,7 +358,7 @@ function updateNodesAndEdges(roundID, tilesNum, edge){
             hints[y][3] = -1;
         }
 
-        if(confidence >= constants.phi && supporters.length >= constants.msn && 
+        if(confidence >= constants.phi && sLen >= constants.msn && 
             confidence > nodes[x].right.confidence){
             nodes[x].right.index = y;
             nodes[y].left.index = x;
@@ -372,7 +378,8 @@ function updateNodesAndEdges(roundID, tilesNum, edge){
 
 function update(data) {
     // fetch the saved edges data of this round
-    RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
+    var roundID = data.round_id;
+    RoundModel.findOne({ round_id: roundID }, function (err, doc) {
         if (err) {
             console.log(err);
         } else {
@@ -397,7 +404,7 @@ function update(data) {
                             "confidence": 1
                         };
 
-                        updateNodesAndEdges(data.round_id, doc.tile_num, obj[key]);
+                        updateNodesAndEdges(roundID, doc.tile_num, obj[key], doc.edges_saved);
                     }
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: obj } }, function (err) {
                         if (err) {
@@ -450,7 +457,7 @@ function update(data) {
                                 "tag": e.tag,
                                 "supporters": supporters,
                                 "opposers": opposers,
-                                "confidence": 0
+                                "confidence": 1
                             };
                         }
                     }
@@ -470,13 +477,13 @@ function update(data) {
                             edges_saved[e].confidence = wp / (wp + wn);
 
                             var edge = edges_saved[e];
-                            updateNodesAndEdges(data.round_id, doc.tile_num, edge);
+                            updateNodesAndEdges(roundID, doc.tile_num, edge, edges_saved);
                         }
                     }
                     for (let e in edges_saved) {
                         var edge = edges_saved[e];
 
-                        updateNodesAndEdges(data.round_id, doc.tile_num, edge);
+                        updateNodesAndEdges(roundID, doc.tile_num, edge, edges_saved);
     
                     }
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved } }, function (err) {
@@ -500,14 +507,23 @@ module.exports = function (io) {
         // request global hints
         socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
-            socket.emit('proactiveHints', roundNodesAndHints[data.round_id].hints);
+            if(roundNodesAndHints[data.round_id]){
+                socket.emit('proactiveHints', roundNodesAndHints[data.round_id].hints);
+            }
+            else{
+                socket.emit('proactiveHints', "{}");
+            }
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
+            var hints = {};
+            if(roundNodesAndHints[data.round_id]){
+                hints = roundNodesAndHints[data.round_id].hints;
+            }
             socket.emit('reactiveHints', {
                 index: data.index,
                 currentStep: data.currentStep,
-                hints: roundNodesAndHints[data.round_id].hints,
+                hints: hints,
             });
         });
     });

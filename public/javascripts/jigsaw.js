@@ -1274,10 +1274,10 @@ function JigsawPuzzle(config) {
             }
         }
 
+        uploadGraphData();
+
         if (tilesMoved) {
             instance.steps += 1;
-
-            uploadGraphData();
 
             document.getElementById("steps").innerHTML = instance.steps;
             undoStep = instance.steps;
@@ -1467,6 +1467,8 @@ function JigsawPuzzle(config) {
                 }
             }
 
+            uploadGraphData();
+
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps += 1;
 
@@ -1479,9 +1481,7 @@ function JigsawPuzzle(config) {
                     instance.linksChangedCount = 0;
                     instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
                 }
-
-                uploadGraphData();
-
+                
                 document.getElementById("steps").innerHTML = instance.steps;
                 $('#undo_button').css('display', 'inline');
                 saveGame();
@@ -1622,6 +1622,9 @@ function JigsawPuzzle(config) {
         }*/
 
         if (instance.subGraphData.length == 0) {
+            instance.dfsGraphLinksMap = new Array();
+            instance.subGraphData = new Array();
+            instance.removeLinksData = new Array();
             return;
         }
 
