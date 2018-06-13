@@ -104,7 +104,7 @@ function initRandomRoundDialog() {
     // }
     newRoundCreateButton.click(function () {
 
-        var imgSrc = puzzleImageSrcList[Math.floor((Math.random() * (puzzleImageSrcList.length - 1)))];
+        var imgSrc = Array.from(puzzleImageSrcList)[Math.floor((Math.random() * (puzzleImageSrcList.size - 1)))];
         var playersNum = 1;
         var shape = 'jagged';
         var level = 1;
@@ -125,6 +125,7 @@ function initRandomRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
+        
         postNewRound(imgSrc, level, playersNum, shape, edge, border);
         getJoinableRounds();
         //newRoundModal.modal("hide");
