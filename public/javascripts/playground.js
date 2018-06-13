@@ -19,7 +19,7 @@ var newRoundCancelButton = $('#newround_cancelbutton');
 var selectImageDialog = $('#selectimage_dialog').get(0);
 var mySlider = $("#newround_number_slider").slider();
 
-function getSeletorImage() {
+function getSelectorImage() {
     for (var thumb of puzzleImageSrcList) {
         var imgSrc = thumb;
         var template = $($('#selectimage_template').html());
@@ -125,7 +125,7 @@ function initRandomRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
-        
+
         postNewRound(imgSrc, level, playersNum, shape, edge, border);
         getJoinableRounds();
         //newRoundModal.modal("hide");

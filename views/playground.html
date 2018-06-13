@@ -128,7 +128,9 @@
             <% include roundcard.html %>
                 <% include rounddetail1.html %>
                     <% include newround1.html %>
+                    <% if(admin==true){%>
                         <% include roundimageselector.html %>
+                    <% } %>
                             <% include roundimageshower.html %>
 
         </section>
@@ -142,7 +144,8 @@
     <script type="text/javascript" src="/javascripts/socket.io.js"></script>
     <script type="text/javascript" src="/javascripts/main.js"></script>
     <script type="text/javascript" src="/javascripts/playground.js"></script>
-
-
+    <% if(admin!=true){%>
+        <% include roundimageselector.html %>
+    <% } %>
     <% include toast.html %>
         <% include footer2.html %>
