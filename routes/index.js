@@ -226,6 +226,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                     roundID: roundID,
                     image: round.image,
                     tileWidth: round.tileWidth,
+                    startTime: round.start_time,
                     shape: round.shape,
                     edge: round.edge,
                     border: round.border,

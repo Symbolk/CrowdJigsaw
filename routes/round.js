@@ -11,6 +11,23 @@ var util = require('./util.js');
 var images = require("images");
 var PythonShell = require('python-shell');
 
+function getRoundFinishTime(startTime){
+    let finishTime = Math.floor(((new Date()).getTime() - startTime) / 1000);
+    let hours = Math.floor(finishTime / 3600);
+    let minutes = Math.floor((finishTime - hours * 3600) / 60);
+    let seconds = finishTime - hours * 3600 - minutes * 60;
+    if (hours >= 0 && hours <= 9) {
+        hours = '0' + hours;
+    }
+    if (minutes >= 0 && minutes <= 9) {
+        minutes = '0' + minutes;
+    }
+    if (seconds >= 0 && seconds <= 9) {
+        seconds = '0' + seconds;
+    }
+    return hours + ":" + minutes + ":" + seconds;
+}
+
 function createRecord(player_name, round_id, join_time) {
     let condition = {
         username: player_name
@@ -70,7 +87,7 @@ module.exports = function (io) {
             let operation = {
                 $set: {
                     "MVP": data.player_name,
-                    "collective_time": data.time,
+                    "collective_time": getRoundFinishTime(data.startTime),
                     "collective_steps": data.steps,
                     "total_links": data.totalLinks,
                     "hinted_links": data.hintedLinks,
@@ -101,7 +118,7 @@ module.exports = function (io) {
             var save_game = {
                 round_id: data.round_id,
                 steps: data.steps,
-                time: data.time,
+                startTime: data.startTime,
                 maxSubGraphSize: data.maxSubGraphSize,
                 tiles: data.tiles,
                 tileHintedLinks: data.tileHintedLinks,
@@ -463,7 +480,7 @@ module.exports = function (io) {
                         $set: {
                             "records.$.end_time": TIME,
                             "records.$.steps": req.body.steps,
-                            "records.$.time": req.body.time,
+                            "records.$.time": getRoundFinishTime(req.body.startTime),
                             "records.$.contribution": contri.toFixed(3),
                             "records.$.total_links": req.body.totalLinks,
                             "records.$.hinted_links": req.body.hintedLinks,
@@ -477,7 +494,7 @@ module.exports = function (io) {
                         $set: {
                             "records.$.end_time": "-1",
                             "records.$.steps": req.body.steps,
-                            "records.$.time": req.body.time,
+                            "records.$.time": getRoundFinishTime(req.body.startTime),
                             "records.$.contribution": contri.toFixed(3),
                             "records.$.total_links": req.body.totalLinks,
                             "records.$.hinted_links": req.body.hintedLinks,
@@ -488,7 +505,12 @@ module.exports = function (io) {
                     };
                 }
 
-                UserModel.update({ username: req.session.user.username, "records.round_id": req.body.round_id }, operation, function (err, doc) {
+                let condition = {
+                    username: req.session.user.username, 
+                    "records.round_id": req.body.round_id
+                };
+
+                UserModel.update(condition, operation, function (err, doc) {
                     if (err) {
                         console.log(err);
                     } else {

@@ -6,12 +6,12 @@ var socket = io.connect(requrl);
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, finished, steps, time, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
+function sendRecord(round_id, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
     var params = {
         round_id: round_id,
         finished: finished,
         steps: steps,
-        time: time,
+        startTime: startTime,
         totalLinks: totalLinks,
         hintedLinks: hintedLinks,
         totalHintsNum: totalHintsNum,
