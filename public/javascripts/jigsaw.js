@@ -349,6 +349,8 @@ function JigsawPuzzle(config) {
 
     this.getHintsArray = new Array();
 
+    this.multiHintsMap = {};
+
     $.amaran({
         'title': 'startRound',
         'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
@@ -1367,6 +1369,33 @@ function JigsawPuzzle(config) {
             tilesNum: instance.tilesNum
         });
     }
+
+    function computeMultiHintsConflict(sureHints, indexes){
+        var tilesMap = {};
+        var indexesMap = {};
+        for (var i = 0; i < indexes.length; i++) {
+            indexesMap[indexes[i]] = true;
+        }
+
+        for(var i = 0; i < sureHints.length; i++){
+            if(indexes.length > 0 && !indexesMap[i]){
+                continue;
+            }
+            var hintTiles = sureHints[i];
+            for (var j = 0; j < hintTiles.length; j++) {
+                var hintTileIndex = hintTiles[j];
+                if(hintTileIndex >= 0){
+                    if(!tilesMap[hintTileIndex]) {
+                        tilesMap[hintTileIndex] = [0, 0, 0, 0];
+                    }
+                    tilesMap[hintTileIndex][j] += 1;
+                }
+            }
+        }
+        //console.log(tilesMap);
+        instance.multiHintsMap = tilesMap;
+    }
+
     socket.on("proactiveHints", function (data) {
         console.log(data);
         if(!mousedowned && !instance.hintsShowing && data && data.sureHints)
@@ -1381,6 +1410,7 @@ function JigsawPuzzle(config) {
             var shouldSave = false;
             
             instance.hintAroundTilesMap = data.sureHints;
+            computeMultiHintsConflict(data.sureHints, []);
 
             for(var t = 0; t < 1; t++){
                 var changeForIteration = false;
@@ -1632,7 +1662,7 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             edges: instance.subGraphData
         };
-        console.log(param);
+        //console.log(param);
         socket.emit("upload", param);
 
         instance.dfsGraphLinksMap = new Array();
@@ -1802,6 +1832,7 @@ function JigsawPuzzle(config) {
             var shouldSave = false;
 
             instance.hintAroundTilesMap = data.sureHints;
+            computeMultiHintsConflict(data.sureHints, data.index);
             /*
             if (data.sure) {
                 var sureHintTiles = JSON.parse(data.sure);
@@ -1865,6 +1896,12 @@ function JigsawPuzzle(config) {
         for (var j = 0; j < hintTiles.length; j++) {
             var correctTileIndex = hintTiles[j];
             if (correctTileIndex < 0) {
+                continue;
+            }
+
+            if(instance.multiHintsMap[correctTileIndex] && 
+                instance.multiHintsMap[correctTileIndex][j] > 1){
+                //console.log("multiHints conflictTile");
                 continue;
             }
 
