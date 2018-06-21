@@ -60,9 +60,8 @@ var correctHintsNum = 0;
         var rating = $("#rating").val();
 
         var steps = Number(document.getElementById("steps").innerHTML);
-        var full_time = document.getElementById('timer').innerHTML;
 
-        sendRecord(roundID, true, steps, full_time,
+        sendRecord(roundID, true, steps, startTime,
             hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
         $.ajax({
@@ -153,7 +152,8 @@ var puzzle = new JigsawPuzzle(config);
 
 var time = 0;
 var t;
-var startTime = (new Date()).getTime();
+//var startTime = (new Date()).getTime(); //compute from when the user ready
+var startTime = serverStartTime; //compute from when the round start at server-side
 function timedCount() {
     time = Math.floor(((new Date()).getTime() - startTime) / 1000);
     var hours = Math.floor(time / 3600);
@@ -594,12 +594,11 @@ function JigsawPuzzle(config) {
          * Send a msg to the server and the server broadcast it to all players          
          **/
         steps = Number(document.getElementById("steps").innerHTML);
-        full_time = document.getElementById('timer').innerHTML;
         socket.emit('iSolved', {
             round_id: roundID,
             player_name: player_name,
             steps: steps,
-            time: full_time,
+            time: startTime,
             totalLinks: hintedLinksNum.totalLinks,
             hintedLinks: hintedLinksNum.hintedLinks,
             totalHintsNum: totalHintsNum,
@@ -2183,7 +2182,7 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             player_name: player_name,
             steps: instance.steps,
-            time: time,
+            startTime: startTime,
             maxSubGraphSize: instance.maxSubGraphSize,
             tiles: JSON.stringify(tilePositions),
             tileHintedLinks: JSON.stringify(tileHintedLinks),
@@ -2212,8 +2211,7 @@ function JigsawPuzzle(config) {
                         'closeOnClick': true,
                         'closeButton': true
                     });
-                    time = data.time;
-                    startTime -= time * 1000;
+                    startTime = data.startTime;
                     instance.maxSubGraphSize = data.maxSubGraphSize;
                     instance.steps = data.steps;
                     document.getElementById("steps").innerHTML = instance.steps;
@@ -2265,7 +2263,7 @@ function JigsawPuzzle(config) {
         puzzle.calcHintedTile();
 
         sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML),
-            document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks,
+            startTime, hintedLinksNum.totalLinks,
             hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
         $.ajax({
@@ -2291,7 +2289,7 @@ $('#give_up').on('click', function (event) {
     puzzle.calcHintedTile();
 
     sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML),
-        document.getElementById('timer').innerHTML, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks,
+        startTime, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks,
         totalHintsNum, correctHintsNum, -1);
 
     $.ajax({
