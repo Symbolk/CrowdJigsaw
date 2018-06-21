@@ -1369,7 +1369,7 @@ function JigsawPuzzle(config) {
     }
     socket.on("proactiveHints", function (data) {
         console.log(data);
-        if(!mousedowned && !instance.hintsShowing && data && data.length > 0)
+        if(!mousedowned && !instance.hintsShowing && data && data.sureHints)
         {
             if(!instance.hintsShowing){
                 instance.hintsShowing = true;
@@ -1380,15 +1380,15 @@ function JigsawPuzzle(config) {
 
             var shouldSave = false;
             
-            instance.hintAroundTilesMap = data;
+            instance.hintAroundTilesMap = data.sureHints;
 
             for(var t = 0; t < 1; t++){
                 var changeForIteration = false;
 
-                var changeForThis = showAskHelpHints(data, false);
+                var changeForThis = showAskHelpHints(data.sureHints, false);
                 changeForIteration = changeForIteration || changeForThis;
 
-                changeForThis = showAskHelpHints(data, true);
+                changeForThis = showAskHelpHints(data.sureHints, true);
                 changeForIteration = changeForIteration || changeForThis;
 
                 shouldSave = shouldSave || changeForIteration;
@@ -1632,7 +1632,7 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             edges: instance.subGraphData
         };
-        //console.log(param);
+        console.log(param);
         socket.emit("upload", param);
 
         instance.dfsGraphLinksMap = new Array();
@@ -1793,7 +1793,7 @@ function JigsawPuzzle(config) {
 
     socket.on("reactiveHints", function (data) {
         console.log("hints:", data);
-        if(data.hints.length == 0){
+        if(data.sureHints.length == 0){
             return;
         }
         var currentStep = data.currentStep;
@@ -1801,7 +1801,7 @@ function JigsawPuzzle(config) {
             instance.hintsShowing = true;
             var shouldSave = false;
 
-            instance.hintAroundTilesMap = data.hints;
+            instance.hintAroundTilesMap = data.sureHints;
             /*
             if (data.sure) {
                 var sureHintTiles = JSON.parse(data.sure);
@@ -1819,9 +1819,9 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < data.index.length; i++) {
                 var index = data.index[i];
                 for(var j = 0; j < 4; j++){
-                    if(data.hints[index][j] > -1){
+                    if(data.sureHints[index][j] > -1){
                         var tile = instance.tiles[index];
-                        var shouldSaveThis = showHints(index, data.hints[index]);
+                        var shouldSaveThis = showHints(index, data.sureHints[index]);
                         normalizeTiles(true);
                         shouldSave = shouldSave || shouldSaveThis;
                         break;
