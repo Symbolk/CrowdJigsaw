@@ -262,123 +262,252 @@ function initNodesAndEdges(roundID, tilesNum){
     var nodesAndHints = {};
     nodesAndHints.nodes = new Array(tilesNum);
     nodesAndHints.hints = new Array(tilesNum);
+
     for (var i = 0; i < tilesNum; i++) {
         nodesAndHints.nodes[i] = {
             up: {
-                index: -1,
-                confidence: -1,
+                indexes: {},
+                maxConfidence: 0,
                 createTime: -1,
+                unsure: false
             },
             right: {
-                index: -1,
-                confidence: -1,
+                indexes: {},
+                maxConfidence: 0,
                 createTime: -1,
+                unsure: false
             },
             bottom: {
-                index: -1,
-                confidence: -1,
+                indexes: {},
+                maxConfidence: 0,
                 createTime: -1,
+                unsure: false
             },
             left: {
-                index: -1,
-                confidence: -1,
+                indexes: {},
+                maxConfidence: 0,
                 createTime: -1,
-            }
+                unsure: false
+            },
         };
         nodesAndHints.hints[i] = new Array(-1, -1, -1, -1);
     }
     roundNodesAndHints[roundID] = nodesAndHints;
 }
 
-function updateNodesAndEdges(roundID, tilesNum, edge, edges_saved){
-    var nodesAndHints = roundNodesAndHints[roundID];
+function getNodesAndHints(roundID, tilesNum, edges_saved){
+    let nodesAndHints = roundNodesAndHints[roundID];
     if(!nodesAndHints){
         initNodesAndEdges(roundID, tilesNum);
         nodesAndHints = roundNodesAndHints[roundID];
 
         for (let e in edges_saved) {
-            var eedge = edges_saved[e];
+            let eedge = edges_saved[e];
             updateNodesAndEdges(roundID, tilesNum, eedge, edges_saved);
         }
     }
+    return nodesAndHints;
+}
+
+function updateNodesAndEdges(nodesAndHints, edge){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
 
     var confidence = edge.confidence;
-    var x = edge.x;
-    var y = edge.y;
+    var x = Number(edge.x);
+    var y = Number(edge.y);
     var tag = edge.tag;
     var supporters = edge.supporters;
+    if(!supporters){
+        return;
+    }
     var sLen = Object.getOwnPropertyNames(supporters).length;
     if(tag == "T-B"){
-        if((confidence < constants.phi || sLen < constants.msn) && 
-            nodes[x].bottom.index == y){
-            nodes[x].bottom.index = -1;
-            nodes[y].up.index = -1;
-
-            nodes[x].bottom.confidence = 0;
-            nodes[y].up.confidence = 0;
-
-            nodes[x].bottom.createTime = -1;
-            nodes[y].up.createTime = -1;
-
-            hints[x][2] = -1;
-            hints[y][0] = -1;
+        if(nodes[x].bottom.indexes[y] && (confidence < nodes[x].bottom.indexes[y] || 
+            sLen < constants.msn)) {
+            if(confidence < constants.phi || sLen < constants.msn){
+                delete nodes[x].bottom.indexes[y];
+                delete nodes[y].up.indexes[x];
+            }
+            if(hints[x][2] == y){
+                nodes[x].bottom.maxConfidence = 0;
+                nodes[x].bottom.createTime = -1;
+                hints[x][2] = -1;
+            }
+            if(hints[y][0] == x){
+                nodes[y].up.maxConfidence = 0;
+                nodes[y].up.createTime = -1;
+                hints[y][0] = -1;
+            }
         }
-
-        if(confidence >= constants.phi && sLen >= constants.msn &&
-            confidence > nodes[x].bottom.confidence){
-            nodes[x].bottom.index = y;
-            nodes[y].up.index = x;
-
-            nodes[x].bottom.confidence = confidence;
-            nodes[y].up.confidence = confidence;
-
+        if(confidence >= constants.phi && sLen >= constants.msn){
+            nodes[x].bottom.indexes[y] = confidence;
+            nodes[y].up.indexes[x] = confidence;
             var nowTime = (new Date()).getTime();
-            nodes[x].bottom.createTime = nowTime;
-            nodes[y].up.createTime = nowTime;
-
-            hints[x][2] = y;
-            hints[y][0] = x;
+            if(confidence > nodes[x].bottom.maxConfidence){
+                nodes[x].bottom.maxConfidence = confidence;
+                nodes[x].bottom.createTime = nowTime;
+                hints[x][2] = y;
+            }
+            if(confidence > nodes[y].up.maxConfidence){
+                nodes[y].up.maxConfidence = confidence;
+                nodes[y].up.createTime = nowTime;
+                hints[y][0] = x;
+            }
         }
     }
     else if(tag == "L-R"){
-        if((confidence < constants.phi || sLen < constants.msn) && 
-            nodes[x].right.index == y){
-            nodes[x].right.index = -1;
-            nodes[y].left.index = -1;
-
-            nodes[x].right.confidence = 0;
-            nodes[y].left.confidence = 0;
-
-            nodes[x].right.createTime = -1;
-            nodes[y].left.createTime = -1;
-
-            hints[x][1] = -1;
-            hints[y][3] = -1;
+        if(nodes[x].right.indexes[y] && (confidence < nodes[x].right.indexes[y] || 
+            sLen < constants.msn)) {
+            if(confidence < constants.phi || sLen < constants.msn){
+                delete nodes[x].right.indexes[y];
+                delete nodes[y].left.indexes[x];
+            }
+            if(hints[x][1] == y){
+                nodes[x].right.maxConfidence = 0;
+                nodes[x].right.createTime = -1;
+                hints[x][1] = -1;
+            }
+            if(hints[y][3] == x){
+                nodes[y].left.maxConfidence = 0;
+                nodes[y].left.createTime = -1;
+                hints[y][3] = -1;
+            }
         }
-
-        if(confidence >= constants.phi && sLen >= constants.msn && 
-            confidence > nodes[x].right.confidence){
-            nodes[x].right.index = y;
-            nodes[y].left.index = x;
-
-            nodes[x].right.confidence = confidence;
-            nodes[y].left.confidence = confidence;
-
+        if(confidence >= constants.phi && sLen >= constants.msn){
+            nodes[x].right.indexes[y] = confidence;
+            nodes[y].left.indexes[x] = confidence;
             var nowTime = (new Date()).getTime();
-            nodes[x].right.createTime = nowTime;
-            nodes[y].left.createTime = nowTime;
-
-            hints[x][1] = y;
-            hints[y][3] = x;
+            if(confidence > nodes[x].right.maxConfidence){
+                nodes[x].right.maxConfidence = confidence;
+                nodes[x].right.createTime = nowTime;
+                hints[x][1] = y;
+            }
+            if(confidence > nodes[y].left.maxConfidence){
+                nodes[y].left.maxConfidence = confidence;
+                nodes[y].left.createTime = nowTime;
+                hints[y][3] = x;
+            }
         }
     }
 }
 
+function initUnsureHints(unsureHints, index){
+    if(unsureHints[index]){
+        return;
+    }
+    unsureHints[index] = {};
+    unsureHints[index].aroundTiles = new Array([],[],[],[]);
+    unsureHints[index].maxConfidence = 0;
+    unsureHints[index].tie = constants.epilson;
+}
+
+function updateUnsureHints(unsureHints, x, y, dir, confidence, tie){
+    initUnsureHints(unsureHints, x);
+    unsureHints[x].aroundTiles[dir].push({index: Number(y), confidence: confidence});
+    if(confidence > unsureHints[x].maxConfidence){
+        unsureHints[x].maxConfidence = confidence;
+    }
+    if(unsureHints[x].tie > tie){
+        unsureHints[x].tie = tie;
+    }
+}
+
+function checkUnsureHints(nodesAndHints){
+    var nodes = nodesAndHints.nodes;
+    var hints = nodesAndHints.hints;
+    var unsureHints = {};
+
+    var tilesNum = hints.length; 
+    for (var x = 0; x < tilesNum; x++) {
+        // up
+        var unsure = false;
+        for(var y in nodes[x].up.indexes){
+            var confidence = nodes[x].up.indexes[y];
+            if (hints[x][0] != y && confidence >= (nodes[x].up.maxConfidence - constants.epilson)) {
+                unsure = true;
+                let tie = nodes[x].up.maxConfidence - confidence;
+                updateUnsureHints(unsureHints, x, y, 0, confidence, tie);
+            }
+        }
+        nodes[x].up.unsure = unsure;
+        if(unsure){
+            let y = hints[x][0];
+            let confidence = nodes[x].up.maxConfidence;
+            let tie = constants.epilson;
+            updateUnsureHints(unsureHints, x, y, 0, confidence, tie);
+            nodes[x].up.maxConfidence = 0;
+            nodes[x].up.createTime = -1;
+            hints[x][0] = -1;
+        }
+        // right
+        unsure = false;
+        for(var y in nodes[x].right.indexes){
+            var confidence = nodes[x].right.indexes[y];
+            if (hints[x][1] != y && confidence >= (nodes[x].right.maxConfidence - constants.epilson)) {
+                unsure = true;
+                let tie = nodes[x].right.maxConfidence - confidence;
+                updateUnsureHints(unsureHints, x, y, 1, confidence, tie);
+            }
+        }
+        nodes[x].right.unsure = unsure;
+        if(unsure){
+            let y = hints[x][1];
+            let confidence = nodes[x].right.maxConfidence;
+            let tie = constants.epilson;
+            updateUnsureHints(unsureHints, x, y, 1, confidence, tie);
+            nodes[x].right.maxConfidence = 0;
+            nodes[x].right.createTime = -1;
+            hints[x][1] = -1;
+        }
+        //bottom
+        unsure = false;
+        for(var y in nodes[x].bottom.indexes){
+            var confidence = nodes[x].bottom.indexes[y];
+            if (hints[x][2] != y && confidence >= (nodes[x].bottom.maxConfidence - constants.epilson)) {
+                unsure = true;
+                let tie = nodes[x].bottom.maxConfidence - confidence;
+                updateUnsureHints(unsureHints, x, y, 2, confidence, tie);
+            }
+        }
+        nodes[x].bottom.unsure = unsure;
+        if(unsure){
+            let y = hints[x][2];
+            let confidence = nodes[x].bottom.maxConfidence;
+            let tie = constants.epilson;
+            updateUnsureHints(unsureHints, x, y, 2, confidence, tie);
+            nodes[x].bottom.maxConfidence = 0;
+            nodes[x].bottom.createTime = -1;
+            hints[x][2] = -1;
+        }
+        //left
+        unsure = false;
+        for(var y in nodes[x].left.indexes){
+            var confidence = nodes[x].left.indexes[y];
+            if (hints[x][3] != y && confidence >= nodes[x].left.maxConfidence - constants.epilson) {
+                unsure = true;
+                let tie = nodes[x].left.maxConfidence - confidence;
+                updateUnsureHints(unsureHints, x, y, 3, confidence, tie);
+            }
+        }
+        nodes[x].left.unsure = unsure;
+        if(unsure){
+            let y = hints[x][3];
+            let confidence = nodes[x].left.maxConfidence;
+            let tie = constants.epilson;
+            updateUnsureHints(unsureHints, x, y, 3, confidence, tie);
+            nodes[x].left.maxConfidence = 0;
+            nodes[x].left.createTime = -1;
+            hints[x][3] = -1;
+        }
+    }
+
+    nodesAndHints.unsureHints = unsureHints;
+}
+
 function update(data) {
     // fetch the saved edges data of this round
-    var roundID = data.round_id;
+    let roundID = data.round_id;
     RoundModel.findOne({ round_id: roundID }, function (err, doc) {
         if (err) {
             console.log(err);
@@ -404,7 +533,8 @@ function update(data) {
                             "confidence": 1
                         };
 
-                        updateNodesAndEdges(roundID, doc.tile_num, obj[key], doc.edges_saved);
+                        let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, obj);
+                        updateNodesAndEdges(nodesAndHints, obj[key]);
                     }
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: obj } }, function (err) {
                         if (err) {
@@ -461,8 +591,12 @@ function update(data) {
                             };
                         }
                     }
+
+                    let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, edges_saved);
+
                     // update the confidence of every saved edge
                     for (let e in edges_saved) {
+                        let oldConfidence = edges_saved[e].confidence;
                         let supporters = edges_saved[e].supporters;
                         let opposers = edges_saved[e].opposers;
                         let wp = 0;
@@ -475,17 +609,18 @@ function update(data) {
                         }
                         if (wp + wn != 0) {
                             edges_saved[e].confidence = wp / (wp + wn);
-
-                            var edge = edges_saved[e];
-                            updateNodesAndEdges(roundID, doc.tile_num, edge, edges_saved);
+                            if(edges_saved[e].confidence < oldConfidence){
+                                updateNodesAndEdges(nodesAndHints, edges_saved[e]);
+                            }
                         }
                     }
-                    for (let e in edges_saved) {
-                        var edge = edges_saved[e];
 
-                        updateNodesAndEdges(roundID, doc.tile_num, edge, edges_saved);
-    
+                    for (let e in edges_saved) {
+                        updateNodesAndEdges(nodesAndHints, edges_saved[e]);
                     }
+
+                    checkUnsureHints(nodesAndHints);
+
                     RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved } }, function (err) {
                         if (err) {
                             console.log(err);
@@ -508,22 +643,28 @@ module.exports = function (io) {
         socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
             if(roundNodesAndHints[data.round_id]){
-                socket.emit('proactiveHints', roundNodesAndHints[data.round_id].hints);
+                socket.emit('proactiveHints', { 
+                    sureHints: roundNodesAndHints[data.round_id].hints,
+                    unsureHints: roundNodesAndHints[data.round_id].unsureHints
+                });
             }
             else{ 
-                socket.emit('proactiveHints', []);
+                socket.emit('proactiveHints', {});
             }
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
             var hints = [];
+            var unsureHints = {};
             if(roundNodesAndHints[data.round_id]){
                 hints = roundNodesAndHints[data.round_id].hints;
+                unsureHints = roundNodesAndHints[data.round_id].unsureHints;
             }
             socket.emit('reactiveHints', {
                 index: data.index,
                 currentStep: data.currentStep,
-                hints: hints,
+                sureHints: hints,
+                unsureHints: unsureHints
             });
         });
     });

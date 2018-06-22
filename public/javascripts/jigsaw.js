@@ -349,6 +349,8 @@ function JigsawPuzzle(config) {
 
     this.getHintsArray = new Array();
 
+    this.multiHintsMap = {};
+
     $.amaran({
         'title': 'startRound',
         'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
@@ -1367,9 +1369,36 @@ function JigsawPuzzle(config) {
             tilesNum: instance.tilesNum
         });
     }
+
+    function computeMultiHintsConflict(sureHints, indexes){
+        var tilesMap = {};
+        var indexesMap = {};
+        for (var i = 0; i < indexes.length; i++) {
+            indexesMap[indexes[i]] = true;
+        }
+
+        for(var i = 0; i < sureHints.length; i++){
+            if(indexes.length > 0 && !indexesMap[i]){
+                continue;
+            }
+            var hintTiles = sureHints[i];
+            for (var j = 0; j < hintTiles.length; j++) {
+                var hintTileIndex = hintTiles[j];
+                if(hintTileIndex >= 0){
+                    if(!tilesMap[hintTileIndex]) {
+                        tilesMap[hintTileIndex] = [0, 0, 0, 0];
+                    }
+                    tilesMap[hintTileIndex][j] += 1;
+                }
+            }
+        }
+        //console.log(tilesMap);
+        instance.multiHintsMap = tilesMap;
+    }
+
     socket.on("proactiveHints", function (data) {
         console.log(data);
-        if(!mousedowned && !instance.hintsShowing && data && data.length > 0)
+        if(!mousedowned && !instance.hintsShowing && data && data.sureHints)
         {
             if(!instance.hintsShowing){
                 instance.hintsShowing = true;
@@ -1380,15 +1409,16 @@ function JigsawPuzzle(config) {
 
             var shouldSave = false;
             
-            instance.hintAroundTilesMap = data;
+            instance.hintAroundTilesMap = data.sureHints;
+            computeMultiHintsConflict(data.sureHints, []);
 
             for(var t = 0; t < 1; t++){
                 var changeForIteration = false;
 
-                var changeForThis = showAskHelpHints(data, false);
+                var changeForThis = showAskHelpHints(data.sureHints, false);
                 changeForIteration = changeForIteration || changeForThis;
 
-                changeForThis = showAskHelpHints(data, true);
+                changeForThis = showAskHelpHints(data.sureHints, true);
                 changeForIteration = changeForIteration || changeForThis;
 
                 shouldSave = shouldSave || changeForIteration;
@@ -1793,7 +1823,7 @@ function JigsawPuzzle(config) {
 
     socket.on("reactiveHints", function (data) {
         console.log("hints:", data);
-        if(data.hints.length == 0){
+        if(data.sureHints.length == 0){
             return;
         }
         var currentStep = data.currentStep;
@@ -1801,7 +1831,8 @@ function JigsawPuzzle(config) {
             instance.hintsShowing = true;
             var shouldSave = false;
 
-            instance.hintAroundTilesMap = data.hints;
+            instance.hintAroundTilesMap = data.sureHints;
+            computeMultiHintsConflict(data.sureHints, data.index);
             /*
             if (data.sure) {
                 var sureHintTiles = JSON.parse(data.sure);
@@ -1819,9 +1850,9 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < data.index.length; i++) {
                 var index = data.index[i];
                 for(var j = 0; j < 4; j++){
-                    if(data.hints[index][j] > -1){
+                    if(data.sureHints[index][j] > -1){
                         var tile = instance.tiles[index];
-                        var shouldSaveThis = showHints(index, data.hints[index]);
+                        var shouldSaveThis = showHints(index, data.sureHints[index]);
                         normalizeTiles(true);
                         shouldSave = shouldSave || shouldSaveThis;
                         break;
@@ -1865,6 +1896,12 @@ function JigsawPuzzle(config) {
         for (var j = 0; j < hintTiles.length; j++) {
             var correctTileIndex = hintTiles[j];
             if (correctTileIndex < 0) {
+                continue;
+            }
+
+            if(instance.multiHintsMap[correctTileIndex] && 
+                instance.multiHintsMap[correctTileIndex][j] > 1){
+                //console.log("multiHints conflictTile");
                 continue;
             }
 
