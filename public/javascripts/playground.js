@@ -20,7 +20,7 @@ var selectImageDialog = $('#selectimage_dialog').get(0);
 var mySlider = $("#newround_number_slider").slider();
 
 function getSelectorImage() {
-    for (var thumb of puzzleImageSrcList) {
+    for (var thumb of puzzleImageSrcSet) {
         var imgSrc = thumb;
         var template = $($('#selectimage_template').html());
         var img = new Image();
@@ -29,7 +29,7 @@ function getSelectorImage() {
         $(img).addClass('selector-image');
         img.onload = function () {
             imgReadyCount += 1;
-            if (imgReadyCount >= puzzleImageSrcList.size) {
+            if (imgReadyCount >= puzzleImageSrcSet.size) {
                 allImageReadyCallback();
                 console.log(imgReadyCount + ' images loaded.');
             }
@@ -54,7 +54,6 @@ function allImageReadyCallback() {
     if (admin == "true") {
         initNewRoundDialog();
         initSelectImageDialog();
-        // initRandomRoundDialog();        
     }
     else {
         initRandomRoundDialog();
@@ -104,7 +103,7 @@ function initRandomRoundDialog() {
     // }
     newRoundCreateButton.click(function () {
 
-        var imgSrc = Array.from(puzzleImageSrcList)[Math.floor((Math.random() * (puzzleImageSrcList.size - 1)))];
+        var imgSrc = Array.from(simpleImageSrcSet)[Math.floor((Math.random() * (simpleImageSrcSet.size - 1)))];
         var playersNum = 1;
         var shape = 'jagged';
         var level = 1;

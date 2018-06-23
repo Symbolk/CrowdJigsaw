@@ -20,8 +20,10 @@
 
 <script type="text/javascript" src="/javascripts/socket.io.js"></script>
 <script type="text/javascript">
-    var puzzleImageSrcList = new Set();
-    puzzleImageSrcList.add("images/raw/starter_thumb.png");
+    var puzzleImageSrcSet = new Set();
+    puzzleImageSrcSet.add("images/raw/starter_thumb.png");
+    // only relatively simple images in random rounds
+    var simpleImageSrcSet = new Set();
 
     var url = window.location.protocol + '//' + window.location.host + '/';
     var socket = io.connect(url);
@@ -29,7 +31,10 @@
     socket.on("thumbnails", function (data) {
         if (data.thumblist.length > 0) {
             data.thumblist.forEach(function (item, index, input) {
-                puzzleImageSrcList.add(item);
+                puzzleImageSrcSet.add(item);
+                if (item.indexOf("4x4") > -1 || item.indexOf("5x5") > -1) {
+                    simpleImageSrcSet.add(item);
+                }
             });
             getSelectorImage();
         }

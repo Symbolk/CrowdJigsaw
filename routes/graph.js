@@ -399,7 +399,7 @@ function initUnsureHints(unsureHints, index){
     unsureHints[index] = {};
     unsureHints[index].aroundTiles = new Array([],[],[],[]);
     unsureHints[index].maxConfidence = 0;
-    unsureHints[index].tie = constants.epilson;
+    unsureHints[index].tie = constants.epsilon;
 }
 
 function updateUnsureHints(unsureHints, x, y, dir, confidence, tie){
@@ -424,7 +424,7 @@ function checkUnsureHints(nodesAndHints){
         var unsure = false;
         for(var y in nodes[x].up.indexes){
             var confidence = nodes[x].up.indexes[y];
-            if (hints[x][0] != y && confidence >= (nodes[x].up.maxConfidence - constants.epilson)) {
+            if (hints[x][0] != y && confidence >= (nodes[x].up.maxConfidence - constants.epsilon)) {
                 unsure = true;
                 let tie = nodes[x].up.maxConfidence - confidence;
                 updateUnsureHints(unsureHints, x, y, 0, confidence, tie);
@@ -434,7 +434,7 @@ function checkUnsureHints(nodesAndHints){
         if(unsure){
             let y = hints[x][0];
             let confidence = nodes[x].up.maxConfidence;
-            let tie = constants.epilson;
+            let tie = constants.epsilon;
             updateUnsureHints(unsureHints, x, y, 0, confidence, tie);
             nodes[x].up.maxConfidence = 0;
             nodes[x].up.createTime = -1;
@@ -444,7 +444,7 @@ function checkUnsureHints(nodesAndHints){
         unsure = false;
         for(var y in nodes[x].right.indexes){
             var confidence = nodes[x].right.indexes[y];
-            if (hints[x][1] != y && confidence >= (nodes[x].right.maxConfidence - constants.epilson)) {
+            if (hints[x][1] != y && confidence >= (nodes[x].right.maxConfidence - constants.epsilon)) {
                 unsure = true;
                 let tie = nodes[x].right.maxConfidence - confidence;
                 updateUnsureHints(unsureHints, x, y, 1, confidence, tie);
@@ -454,7 +454,7 @@ function checkUnsureHints(nodesAndHints){
         if(unsure){
             let y = hints[x][1];
             let confidence = nodes[x].right.maxConfidence;
-            let tie = constants.epilson;
+            let tie = constants.epsilon;
             updateUnsureHints(unsureHints, x, y, 1, confidence, tie);
             nodes[x].right.maxConfidence = 0;
             nodes[x].right.createTime = -1;
@@ -464,7 +464,7 @@ function checkUnsureHints(nodesAndHints){
         unsure = false;
         for(var y in nodes[x].bottom.indexes){
             var confidence = nodes[x].bottom.indexes[y];
-            if (hints[x][2] != y && confidence >= (nodes[x].bottom.maxConfidence - constants.epilson)) {
+            if (hints[x][2] != y && confidence >= (nodes[x].bottom.maxConfidence - constants.epsilon)) {
                 unsure = true;
                 let tie = nodes[x].bottom.maxConfidence - confidence;
                 updateUnsureHints(unsureHints, x, y, 2, confidence, tie);
@@ -474,7 +474,7 @@ function checkUnsureHints(nodesAndHints){
         if(unsure){
             let y = hints[x][2];
             let confidence = nodes[x].bottom.maxConfidence;
-            let tie = constants.epilson;
+            let tie = constants.epsilon;
             updateUnsureHints(unsureHints, x, y, 2, confidence, tie);
             nodes[x].bottom.maxConfidence = 0;
             nodes[x].bottom.createTime = -1;
@@ -484,7 +484,7 @@ function checkUnsureHints(nodesAndHints){
         unsure = false;
         for(var y in nodes[x].left.indexes){
             var confidence = nodes[x].left.indexes[y];
-            if (hints[x][3] != y && confidence >= nodes[x].left.maxConfidence - constants.epilson) {
+            if (hints[x][3] != y && confidence >= nodes[x].left.maxConfidence - constants.epsilon) {
                 unsure = true;
                 let tie = nodes[x].left.maxConfidence - confidence;
                 updateUnsureHints(unsureHints, x, y, 3, confidence, tie);
@@ -494,7 +494,7 @@ function checkUnsureHints(nodesAndHints){
         if(unsure){
             let y = hints[x][3];
             let confidence = nodes[x].left.maxConfidence;
-            let tie = constants.epilson;
+            let tie = constants.epsilon;
             updateUnsureHints(unsureHints, x, y, 3, confidence, tie);
             nodes[x].left.maxConfidence = 0;
             nodes[x].left.createTime = -1;
