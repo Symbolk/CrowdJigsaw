@@ -315,7 +315,6 @@ function updateNodesAndEdges(nodesAndHints, edge){
 
     var confidence = edge.confidence;
     var weight = edge.weight;
-    console.log("weight:", weight);
     var x = Number(edge.x);
     var y = Number(edge.y);
     var tag = edge.tag;
@@ -402,6 +401,7 @@ function updateNodesAndEdges(nodesAndHints, edge){
 
 function initUnsureHints(unsureHints, index){
     unsureHints[index] = {};
+    unsureHints[index].index = index;
     unsureHints[index].aroundTiles = new Array([],[],[],[]);
     unsureHints[index].maxWeight = 0;
     unsureHints[index].weightSum = 0;
@@ -411,18 +411,22 @@ function updateUnsureHints(unsureHints, x, y, dir, weight){
     if(!unsureHints[x]){
         initUnsureHints(unsureHints, x);
     }
-    fixedWeight = Number(weight).toFixed(3);
-    unsureHints[x].aroundTiles[dir].push({index: Number(y), weight: fixedWeight});
+    var fixedWeight = Number(Number(weight).toFixed(3));
+    unsureHints[x].aroundTiles[dir].push(Number(y));
     if(fixedWeight > unsureHints[x].maxWeight){
         unsureHints[x].maxWeight = fixedWeight;
     }
     unsureHints[x].weightSum += fixedWeight;
 }
 
+function sortUnsureHints(a, b){
+    return a.weightSum < b.weightSum;
+}
+
 function checkUnsureHints(nodesAndHints){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
-    var unsureHints = {};
+    var unsureHints = [];
 
     var tilesNum = hints.length; 
     for (var x = 0; x < tilesNum; x++) {
@@ -507,6 +511,8 @@ function checkUnsureHints(nodesAndHints){
             hints[x][3] = -1;
         }
     }
+
+    unsureHints.sort(sortUnsureHints);
 
     nodesAndHints.unsureHints = unsureHints;
 }
@@ -671,7 +677,7 @@ module.exports = function (io) {
                 unsureHints = roundNodesAndHints[data.round_id].unsureHints;
             }
             socket.emit('reactiveHints', {
-                index: data.index,
+                indexes: data.indexes,
                 currentStep: data.currentStep,
                 sureHints: hints,
                 unsureHints: unsureHints

@@ -557,6 +557,7 @@ module.exports = function (io) {
         var save_game = {
             round_id: req.body.round_id,
             steps: req.body.steps,
+            realSteps: req.body.realSteps,
             time: req.body.time,
             tiles: req.body.tiles,
             tileHintedLinks: req.body.tileHintedLinks,
