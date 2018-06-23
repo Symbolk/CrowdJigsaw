@@ -434,7 +434,7 @@ function checkUnsureHints(nodesAndHints){
         var unsure = false;
         for(var y in nodes[x].up.indexes){
             var confidence = nodes[x].up.indexes[y].confidence;
-            if (hints[x][0] != y && confidence >= (nodes[x].up.maxConfidence - constants.epilson)) {
+            if (hints[x][0] != y && confidence >= (nodes[x].up.maxConfidence - constants.epsilon)) {
                 unsure = true;
                 var weight = nodes[x].up.indexes[y].weight;
                 updateUnsureHints(unsureHints, x, y, 0, weight);
@@ -454,7 +454,7 @@ function checkUnsureHints(nodesAndHints){
         unsure = false;
         for(var y in nodes[x].right.indexes){
             var confidence = nodes[x].right.indexes[y].confidence;
-            if (hints[x][1] != y && confidence >= (nodes[x].right.maxConfidence - constants.epilson)) {
+            if (hints[x][1] != y && confidence >= (nodes[x].right.maxConfidence - constants.epsilon)) {
                 unsure = true;
                 var weight = nodes[x].right.indexes[y].weight;
                 updateUnsureHints(unsureHints, x, y, 1, weight);
@@ -474,7 +474,7 @@ function checkUnsureHints(nodesAndHints){
         unsure = false;
         for(var y in nodes[x].bottom.indexes){
             var confidence = nodes[x].bottom.indexes[y].confidence;
-            if (hints[x][2] != y && confidence >= (nodes[x].bottom.maxConfidence - constants.epilson)) {
+            if (hints[x][2] != y && confidence >= (nodes[x].bottom.maxConfidence - constants.epsilon)) {
                 unsure = true;
                 var weight = nodes[x].bottom.indexes[y].weight;
                 updateUnsureHints(unsureHints, x, y, 2, weight);
@@ -494,7 +494,7 @@ function checkUnsureHints(nodesAndHints){
         unsure = false;
         for(var y in nodes[x].left.indexes){
             var confidence = nodes[x].left.indexes[y].confidence;
-            if (hints[x][3] != y && confidence >= nodes[x].left.maxConfidence - constants.epilson) {
+            if (hints[x][3] != y && confidence >= nodes[x].left.maxConfidence - constants.epsilon) {
                 unsure = true;
                 var weight = nodes[x].left.indexes[y].weight;
                 updateUnsureHints(unsureHints, x, y, 3, weight);
