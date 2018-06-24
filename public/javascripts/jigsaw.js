@@ -629,6 +629,7 @@ function JigsawPuzzle(config) {
          * Send a msg to the server and the server broadcast it to all players          
          **/
         steps = Number(document.getElementById("steps").innerHTML);
+        
         socket.emit('iSolved', {
             round_id: roundID,
             player_name: player_name,

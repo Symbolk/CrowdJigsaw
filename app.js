@@ -151,8 +151,6 @@ if (server) {
  * A schedule job to clear the endless rounds
  */
 var schedule = require('node-schedule');
-var util = require('./routes/util.js');
-var ActionModel = require('./models/action').Action;
 var RoundModel = require('./models/round').Round;
 //once an hour
 schedule.scheduleJob('0 0 * * * *', function () {

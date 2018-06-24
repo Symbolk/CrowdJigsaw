@@ -2,10 +2,8 @@
 'use strict'
 var express = require('express');
 var router = express.Router();
-const mongoose = require('mongoose');
 var RoundModel = require('../models/round').Round;
 var UserModel = require('../models/user').User;
-var NodeModel = require('../models/node').Node;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
 var images = require("images");
@@ -86,9 +84,9 @@ module.exports = function (io) {
             console.log('!!!Round ' + data.round_id + ' : ' + data.player_name + ' solves!');
             let operation = {
                 $set: {
-                    "MVP": data.player_name,
-                    "collective_time": getRoundFinishTime(data.startTime),
-                    "collective_steps": data.steps,
+                    "winner": data.player_name,
+                    "winner_time": getRoundFinishTime(data.time),
+                    "winner_steps": data.steps,
                     "total_links": data.totalLinks,
                     "hinted_links": data.hintedLinks,
                     "total_hints": data.totalHintsNum,
@@ -101,7 +99,7 @@ module.exports = function (io) {
                         console.log(err);
                     }else{
                         if(doc){
-                            if(doc.collective_steps==-1){
+                            if(doc.winner_steps==-1){
                                 // only remember the first winner of the round
                                 RoundModel.update({ round_id: data.round_id }, operation, function(err){
                                     if(err){
@@ -459,13 +457,6 @@ module.exports = function (io) {
     router.route('/saveRecord').all(LoginFirst).post(function (req, res, next) {
         let operation = {};
         let contri = 0;
-
-        let totalLinks = req.body.totalLinks;
-        let hintedLinks = req.body.hintedLinks;
-
-        let totalHintsNum = req.body.totalHintsNum;
-        let correctHintsNum = req.body.correctHintsNum;
-
         let rating = req.body.rating;
 
         ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, { _id: 0, contribution: 1 }, function (err, docs) {
@@ -628,7 +619,7 @@ module.exports = function (io) {
             edge: 1,
             border: 1,
             tile_num: 1,
-            collective_time: 1
+            winner_time: 1
         };
         RoundModel.findOne(condition, fields, function (err, doc) {
             if (err) {

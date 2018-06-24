@@ -37,11 +37,11 @@ var RoundSchema = new mongoose.Schema({
         }
     ],
     // crowd results
-    MVP: { type: String },  // who solves the round first with the power of the crowd
-    collective_time: { type: String, default: "-1" }, // when the round is solved by crowd(the fastest)(-1:unsolved))
-    collective_steps: { type: Number, default: -1 }, // steps the round is solved by crowd(the fastest)(-1:unsolved))
+    winner: { type: String },  // who solves the round first with the power of the crowd
+    winner_time: { type: String, default: "-1" }, // when the round is solved by crowd(the fastest)(-1:unsolved))
+    winner_steps: { type: Number, default: -1 }, // steps the round is solved by crowd(the fastest)(-1:unsolved))
     total_links: { type: String, default: "-1" }, // # of total links in the jigsaw puzzle
-    hinted_links: { type: String, default: "-1" }, // # of hinted links for the MVP
+    hinted_links: { type: String, default: "-1" }, // # of hinted links for the winner
     // solver results
     // solver_time: { type: String, default: "-1" }, // when the round is solved by the crowd-based solver(-1:unsolved)
     // solver_gen: { type: Number, default: -1}, // in which generation the round is solved(-1:unsolved)
