@@ -47,13 +47,13 @@ var correctHintsNum = 0;
         'stars': '5',
         'min': '0',
         'max': '5',
-        'step': '1',
+        'step': '0.5',
         'size': 'xs',
         'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
     });
     submitButton.addEventListener('click', function (event) {
         // player's rating for the hint(what he thinks about the function)
-        var rating = $("#rating").val();
+        var rating = $("#rating2").val();
 
         var steps = Number(document.getElementById("steps").innerHTML);
 
@@ -629,7 +629,7 @@ function JigsawPuzzle(config) {
          * Send a msg to the server and the server broadcast it to all players          
          **/
         steps = Number(document.getElementById("steps").innerHTML);
-        
+
         socket.emit('iSolved', {
             round_id: roundID,
             player_name: player_name,
@@ -2342,7 +2342,6 @@ function JigsawPuzzle(config) {
  */
 (function () {
     var showDialog = document.querySelector('#quit');
-    var dialog = document.querySelector('#ensure_quit_dialog');
     var applyButton = document.querySelector('#apply-button');
 
     showDialog.addEventListener('click', function (event) {
@@ -2358,7 +2357,7 @@ function JigsawPuzzle(config) {
         'stars': '5',
         'min': '0',
         'max': '5',
-        'step': '1',
+        'step': '0.5',
         'size': 'xs',
         'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
     });

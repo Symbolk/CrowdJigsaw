@@ -374,7 +374,7 @@ function update(data) {
             if (doc) {
                 if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
                     // create the edges object & update db directly
-                    let obj = {};
+                    let edges_saved = {};
 
                     for (let e of data.edges) {
                         let key = e.x + e.tag + e.y;
@@ -386,11 +386,15 @@ function update(data) {
                             weight += supporters[data.player_name];
                         }
                         let confidence = 1;
-                        obj[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
-                        let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, obj);
-                        updateNodesAndEdges(nodesAndHints, obj[key]);
+                        edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
+                        let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, edges_saved);
+                        updateNodesAndEdges(nodesAndHints, edges_saved[key]);
                     }
-                    RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: obj } }, function (err) {
+
+                    let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, edges_saved);
+
+                    RoundModel.update({ round_id: data.round_id }, 
+                        { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints) } }, function (err) {
                         if (err) {
                             console.log(err);
                         } else {
@@ -471,11 +475,10 @@ function update(data) {
                     }
 
                     checkUnsureHints(nodesAndHints);
-                    
-                    var contribution = computeContribution(nodesAndHints);
-                    //console.log(contribution);
+                
 
-                    RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved, contribution: contribution } }, function (err) {
+                    RoundModel.update({ round_id: data.round_id }, 
+                        { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints) } }, function (err) {
                         if (err) {
                             console.log(err);
                         }

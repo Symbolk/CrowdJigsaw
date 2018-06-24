@@ -28,7 +28,7 @@ function sendRecord(round_id, finished, steps, startTime, totalLinks, hintedLink
         success: function (data) {
             $.amaran({
                 'title': 'saveRecord',
-                'message': 'Record saved.',
+                'message': data.msg,
                 'inEffect': 'slideRight',
                 'cssanimationOut': 'zoomOutUp',
                 'position': "top right",

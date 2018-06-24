@@ -76,9 +76,10 @@
 
                                 function showDetails($detail, round_id) {
                                         var $el = $detail.html('<table></table>').find('table');
+
                                         // get the data from ajax
                                         $.ajax({
-                                                url: requrl + 'round' + '/getRoundDetails/' + round_id,
+                                                url: window.location.protocol + '//' + window.location.host + '/' + 'round' + '/getRoundDetails/' + round_id,
                                                 type: 'get',
                                                 dataType: 'json',
                                                 cache: false,

@@ -9,7 +9,7 @@ var util = require('./util.js');
 var images = require("images");
 var PythonShell = require('python-shell');
 
-function getRoundFinishTime(startTime){
+function getRoundFinishTime(startTime) {
     let finishTime = Math.floor(((new Date()).getTime() - startTime) / 1000);
     let hours = Math.floor(finishTime / 3600);
     let minutes = Math.floor((finishTime - hours * 3600) / 60);
@@ -90,19 +90,19 @@ module.exports = function (io) {
                     "total_links": data.totalLinks,
                     "hinted_links": data.hintedLinks,
                     "total_hints": data.totalHintsNum,
-                    "correct_hints": data.correctHintsNum 
+                    "correct_hints": data.correctHintsNum
                 }
             };
             RoundModel.findOne({ round_id: data.round_id },
                 function (err, doc) {
                     if (err) {
                         console.log(err);
-                    }else{
-                        if(doc){
-                            if(doc.winner_steps==-1){
+                    } else {
+                        if (doc) {
+                            if (doc.winner_steps == -1) {
                                 // only remember the first winner of the round
-                                RoundModel.update({ round_id: data.round_id }, operation, function(err){
-                                    if(err){
+                                RoundModel.update({ round_id: data.round_id }, operation, function (err) {
+                                    if (err) {
                                         console.log(err);
                                     }
                                 });
@@ -112,7 +112,7 @@ module.exports = function (io) {
                     }
                 });
         });
-        socket.on('saveGame', function(data){
+        socket.on('saveGame', function (data) {
             var save_game = {
                 round_id: data.round_id,
                 steps: data.steps,
@@ -124,7 +124,7 @@ module.exports = function (io) {
                 totalHintsNum: data.totalHintsNum,
                 correctHintsNum: data.correctHintsNum
             };
-    
+
             let operation = {
                 $set: {
                     save_game: save_game
@@ -140,7 +140,7 @@ module.exports = function (io) {
             });
         });
     });
-    
+
     /**
      * Get all rounds
      */
@@ -194,11 +194,11 @@ module.exports = function (io) {
                         let operation = {
                             $addToSet: { //if exists, give up add
                                 players:
-                                    {
-                                        player_name: req.session.user.username,
-                                        // player_name: req.session.user.username,
-                                        join_time: TIME
-                                    }
+                                {
+                                    player_name: req.session.user.username,
+                                    // player_name: req.session.user.username,
+                                    join_time: TIME
+                                }
                             }
                         };
                         RoundModel.update(condition, operation, function (err) {
@@ -300,7 +300,7 @@ module.exports = function (io) {
                     } else {
                         console.log(req.session.user.username + ' creates Round' + index);
                         io.sockets.emit('roundChanged', '');
-                        res.send({ msg: 'Round '+index+' created successfully.', round_id: index });
+                        res.send({ msg: 'Round ' + index + ' created successfully.', round_id: index });
                         // createRecord(req.session.user.username, operation.round_id, TIME);
                     }
                 });
@@ -326,62 +326,62 @@ module.exports = function (io) {
                     res.send({ msg: "Round is Already Start!" });
                     return;
                 }
-                    let TIME = util.getNowFormatDate();
-                    // set start_time for all players
-                    for (let p of doc.players) {
-                        let operation = {
-                            $set: {
-                                "records.$.start_time": TIME
-                            }
-                        };
-                        UserModel.update({ username: p.player_name, "records.round_id": req.params.round_id }, operation, function (err) {
-                            if (err) {
-                                console.log(err);
-                            }
-                        });
-                    }
-                    // set start time for round
+                let TIME = util.getNowFormatDate();
+                // set start_time for all players
+                for (let p of doc.players) {
                     let operation = {
                         $set: {
-                            start_time: TIME,
-                            players_num: doc.players.length
+                            "records.$.start_time": TIME
                         }
                     };
-                    RoundModel.update(condition, operation, function (err) {
+                    UserModel.update({ username: p.player_name, "records.round_id": req.params.round_id }, operation, function (err) {
                         if (err) {
                             console.log(err);
-                        } else {
-                            io.sockets.emit('roundChanged', '');
-                            res.send({ msg: "Round Starts Now!" });
-                            console.log(req.session.user.username + ' starts Round' + req.params.round_id);
                         }
                     });
-                    /*
-                    // run genetic algorithm
-                    console.log('start running python script of GA algorithm for round %d.', doc.round_id);
-                    var path = require('path');
-                    var options = {
-                        mode: 'text',
-                        pythonPath: 'python3',
-                        pythonOptions: ['-u'], // get print results in real-time
-                        scriptPath: path.resolve(__dirname, '../../gaps/bin'),
-                        args: ['--algorithm', 'crowd',
-                            '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
-                            '--size', doc.tileWidth.toString(),
-                            '--cols', doc.tilesPerRow.toString(),
-                            '--rows', doc.tilesPerColumn.toString(),
-                            '--population', '600',
-                            '--generations', '1000000000',
-                            '--roundid', doc.round_id.toString()]
-                    };
-                    PythonShell.run('gaps', options, function (err, results) {
-                        if (err)
-                            console.log(err);
-                        // results is an array consisting of messages collected during execution
-                        // if GA founds a solution, the last element in results is "solved".
-                        console.log('results: %j', results);
-                        console.log('GA algorithm for round %d ends.', doc.round_id);
-                    });*/
+                }
+                // set start time for round
+                let operation = {
+                    $set: {
+                        start_time: TIME,
+                        players_num: doc.players.length
+                    }
+                };
+                RoundModel.update(condition, operation, function (err) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        io.sockets.emit('roundChanged', '');
+                        res.send({ msg: "Round Starts Now!" });
+                        console.log(req.session.user.username + ' starts Round' + req.params.round_id);
+                    }
+                });
+                /*
+                // run genetic algorithm
+                console.log('start running python script of GA algorithm for round %d.', doc.round_id);
+                var path = require('path');
+                var options = {
+                    mode: 'text',
+                    pythonPath: 'python3',
+                    pythonOptions: ['-u'], // get print results in real-time
+                    scriptPath: path.resolve(__dirname, '../../gaps/bin'),
+                    args: ['--algorithm', 'crowd',
+                        '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
+                        '--size', doc.tileWidth.toString(),
+                        '--cols', doc.tilesPerRow.toString(),
+                        '--rows', doc.tilesPerColumn.toString(),
+                        '--population', '600',
+                        '--generations', '1000000000',
+                        '--roundid', doc.round_id.toString()]
+                };
+                PythonShell.run('gaps', options, function (err, results) {
+                    if (err)
+                        console.log(err);
+                    // results is an array consisting of messages collected during execution
+                    // if GA founds a solution, the last element in results is "solved".
+                    console.log('results: %j', results);
+                    console.log('GA algorithm for round %d ends.', doc.round_id);
+                });*/
             }
         });
     });
@@ -404,11 +404,11 @@ module.exports = function (io) {
                 if (isIn) {
                     if (doc.players.length == 1) { // the last player
                         let operation = {
-                            $pull: {  
+                            $pull: {
                                 players:
-                                    {
-                                        player_name: req.session.user.username
-                                    }
+                                {
+                                    player_name: req.session.user.username
+                                }
                             },
                             end_time: util.getNowFormatDate()
                         };
@@ -428,9 +428,9 @@ module.exports = function (io) {
                         let operation = {
                             $pull: { //if exists, give up add
                                 players:
-                                    {
-                                        player_name: req.session.user.username
-                                    }
+                                {
+                                    player_name: req.session.user.username
+                                }
                             }
                         };
                         RoundModel.update(condition, operation, function (err) {
@@ -458,58 +458,61 @@ module.exports = function (io) {
         let operation = {};
         let contri = 0;
         let rating = req.body.rating;
-
-        ActionModel.find({ round_id: req.body.round_id, player_name: req.session.user.username }, { _id: 0, contribution: 1 }, function (err, docs) {
+        RoundModel.findOne({ round_id: req.body.round_id }, function (err, doc) {
             if (err) {
                 console.log(err);
             } else {
-                for (let d of docs) {
-                    contri += d.contribution;
-                }
-                if (req.body.finished == "true") {
-                    let TIME = util.getNowFormatDate();
-                    operation = {
-                        $set: {
-                            "records.$.end_time": TIME,
-                            "records.$.steps": req.body.steps,
-                            "records.$.time": getRoundFinishTime(req.body.startTime),
-                            "records.$.contribution": contri.toFixed(3),
-                            "records.$.total_links": req.body.totalLinks,
-                            "records.$.hinted_links": req.body.hintedLinks,
-                            "records.$.total_hints": req.body.totalHintsNum,
-                            "records.$.correct_hints":req.body.correctHintsNum,
-                            "records.$.rating": rating                           
-                        }
-                    };
-                } else if (req.body.finished == "false") {
-                    operation = {
-                        $set: {
-                            "records.$.end_time": "-1",
-                            "records.$.steps": req.body.steps,
-                            "records.$.time": getRoundFinishTime(req.body.startTime),
-                            "records.$.contribution": contri.toFixed(3),
-                            "records.$.total_links": req.body.totalLinks,
-                            "records.$.hinted_links": req.body.hintedLinks,
-                            "records.$.total_hints": req.body.totalHintsNum,
-                            "records.$.correct_hints": req.body.correctHintsNum,
-                            "records.$.rating": rating                                                       
-                        }
-                    };
-                }
-
-                let condition = {
-                    username: req.session.user.username, 
-                    "records.round_id": req.body.round_id
-                };
-
-                UserModel.update(condition, operation, function (err, doc) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log(req.session.user.username + ' saves his record: ' + contri.toFixed(3));
-                        res.send({ contribution: contri });
+                if (doc && doc.contribution) {
+        console.log("SR" + rating);
+                    console.log(req.body.finished);
+                    if (doc.contribution.hasOwnProperty(req.session.user.username)) {
+                        contri = doc.contribution[req.session.user.username];
                     }
-                });
+                    if (req.body.finished == "true") {
+                        let TIME = util.getNowFormatDate();
+                        operation = {
+                            $set: {
+                                "records.$.end_time": TIME,
+                                "records.$.steps": req.body.steps,
+                                "records.$.time": getRoundFinishTime(req.body.startTime),
+                                "records.$.contribution": contri.toFixed(3),
+                                "records.$.total_links": req.body.totalLinks,
+                                "records.$.hinted_links": req.body.hintedLinks,
+                                "records.$.total_hints": req.body.totalHintsNum,
+                                "records.$.correct_hints": req.body.correctHintsNum,
+                                "records.$.rating": rating
+                            }
+                        };
+                    } else if (req.body.finished == "false") {
+                        operation = {
+                            $set: {
+                                "records.$.end_time": "-1",
+                                "records.$.steps": req.body.steps,
+                                "records.$.time": getRoundFinishTime(req.body.startTime),
+                                "records.$.contribution": contri.toFixed(3),
+                                "records.$.total_links": req.body.totalLinks,
+                                "records.$.hinted_links": req.body.hintedLinks,
+                                "records.$.total_hints": req.body.totalHintsNum,
+                                "records.$.correct_hints": req.body.correctHintsNum,
+                                "records.$.rating": rating
+                            }
+                        };
+                    }
+
+                    let condition = {
+                        username: req.session.user.username,
+                        "records.round_id": req.body.round_id
+                    };
+
+                    UserModel.update(condition, operation, function (err, doc) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(req.session.user.username + ' saves his record: ' + contri.toFixed(3));
+                            res.send({ msg: "Record has been saved." });
+                        }
+                    });
+                }
             }
         });
     });
