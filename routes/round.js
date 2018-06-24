@@ -118,6 +118,7 @@ module.exports = function (io) {
             var save_game = {
                 round_id: data.round_id,
                 steps: data.steps,
+                realSteps: data.realSteps,
                 startTime: data.startTime,
                 maxSubGraphSize: data.maxSubGraphSize,
                 tiles: data.tiles,

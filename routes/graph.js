@@ -269,25 +269,21 @@ function initNodesAndEdges(roundID, tilesNum){
                 indexes: {},
                 maxConfidence: 0,
                 createTime: -1,
-                unsure: false
             },
             right: {
                 indexes: {},
                 maxConfidence: 0,
                 createTime: -1,
-                unsure: false
             },
             bottom: {
                 indexes: {},
                 maxConfidence: 0,
                 createTime: -1,
-                unsure: false
             },
             left: {
                 indexes: {},
                 maxConfidence: 0,
                 createTime: -1,
-                unsure: false
             },
         };
         nodesAndHints.hints[i] = new Array(-1, -1, -1, -1);
@@ -336,16 +332,28 @@ function updateNodesAndEdges(nodesAndHints, edge){
             if(confidence < constants.phi || sLen < constants.msn){
                 delete nodes[x].bottom.indexes[y];
                 delete nodes[y].up.indexes[x];
+                if(hints[x][2] == y){
+                    hints[x][2] = -1;
+                    nodes[x].bottom.maxConfidence = 0;
+                    nodes[x].bottom.createTime = -1;
+                }
+                if(hints[y][0] == x){
+                    hints[y][0] = -1;
+                    nodes[x].up.maxConfidence = 0;
+                    nodes[x].up.createTime = -1;
+                }
             }
         }
         if(confidence >= constants.phi && sLen >= constants.msn){
             nodes[x].bottom.indexes[y] = {
                 "confidence": confidence,
-                "weight": weight
+                "weight": weight,
+                "edge": edge
             };
             nodes[y].up.indexes[x] = {
                 "confidence": confidence,
-                "weight": weight
+                "weight": weight,
+                "edge": edge
             };
             var nowTime = (new Date()).getTime();
             if(confidence > nodes[x].bottom.maxConfidence){
@@ -373,16 +381,28 @@ function updateNodesAndEdges(nodesAndHints, edge){
             if(confidence < constants.phi || sLen < constants.msn){
                 delete nodes[x].right.indexes[y];
                 delete nodes[y].left.indexes[x];
+                if(hints[x][1] == y){
+                    hints[x][1] = -1;
+                    nodes[x].right.maxConfidence = 0;
+                    nodes[x].right.createTime = -1;
+                }
+                if(hints[y][3] == x){
+                    hints[y][3] = -1;
+                    nodes[x].right.maxConfidence = 0;
+                    nodes[x].right.createTime = -1;
+                }
             }
         }
         if(confidence >= constants.phi && sLen >= constants.msn){
             nodes[x].right.indexes[y] = {
                 "confidence": confidence,
-                "weight": weight
+                "weight": weight,
+                "edge": edge
             };
             nodes[y].left.indexes[x] = {
                 "confidence": confidence,
-                "weight": weight
+                "weight": weight,
+                "edge": edge
             };
             var nowTime = (new Date()).getTime();
             if(confidence > nodes[x].right.maxConfidence){
@@ -440,10 +460,8 @@ function checkUnsureHints(nodesAndHints){
                 updateUnsureHints(unsureHints, x, y, 0, weight);
             }
         }
-        nodes[x].up.unsure = unsure;
         if(unsure){
             let y = hints[x][0];
-            let confidence = nodes[x].up.indexes[y].confidence;
             let weight = nodes[x].up.indexes[y].weight;
             updateUnsureHints(unsureHints, x, y, 0, weight);
             nodes[x].up.maxConfidence = 0;
@@ -460,10 +478,8 @@ function checkUnsureHints(nodesAndHints){
                 updateUnsureHints(unsureHints, x, y, 1, weight);
             }
         }
-        nodes[x].right.unsure = unsure;
         if(unsure){
             let y = hints[x][1];
-            let confidence = nodes[x].right.indexes[y].confidence;
             let weight = nodes[x].right.indexes[y].weight;
             updateUnsureHints(unsureHints, x, y, 1, weight);
             nodes[x].right.maxConfidence = 0;
@@ -480,10 +496,8 @@ function checkUnsureHints(nodesAndHints){
                 updateUnsureHints(unsureHints, x, y, 2, weight);
             }
         }
-        nodes[x].bottom.unsure = unsure;
         if(unsure){
             let y = hints[x][2];
-            let confidence = nodes[x].bottom.indexes[y].confidence;
             let weight = nodes[x].bottom.indexes[y].weight;
             updateUnsureHints(unsureHints, x, y, 2, weight);
             nodes[x].bottom.maxConfidence = 0;
@@ -500,10 +514,8 @@ function checkUnsureHints(nodesAndHints){
                 updateUnsureHints(unsureHints, x, y, 3, weight);
             }
         }
-        nodes[x].left.unsure = unsure;
         if(unsure){
             let y = hints[x][3];
-            let confidence = nodes[x].left.indexes[y].confidence;
             let weight = nodes[x].left.indexes[y].weight;
             updateUnsureHints(unsureHints, x, y, 3, weight);
             nodes[x].left.maxConfidence = 0;
@@ -519,13 +531,13 @@ function checkUnsureHints(nodesAndHints){
 
 function generateEdgeObject(x, y, tag, supporters, opposers, confidence, weight){
     return {
-                "x": x,
-                "y": y,
-                "tag": tag,
-                "supporters": supporters,
-                "opposers": opposers,
-                "confidence": confidence,
-                "weight": weight
+        "x": x,
+        "y": y,
+        "tag": tag,
+        "supporters": supporters,
+        "opposers": opposers,
+        "confidence": confidence,
+        "weight": weight
     };
 }
 
@@ -636,8 +648,11 @@ function update(data) {
                     }
 
                     checkUnsureHints(nodesAndHints);
+                    
+                    var contribution = computeContribution(nodesAndHints);
+                    //console.log(contribution);
 
-                    RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved } }, function (err) {
+                    RoundModel.update({ round_id: data.round_id }, { $set: { edges_saved: edges_saved, contribution: contribution } }, function (err) {
                         if (err) {
                             console.log(err);
                         }
@@ -646,6 +661,55 @@ function update(data) {
             }
         }
     });
+}
+
+function computeContribution(nodesAndHints){
+    var nodes = nodesAndHints.nodes;
+    var hints = nodesAndHints.hints;
+
+    var hintsCount = 0;
+
+    var contibutionMap = {};
+    for (var x = 0; x < hints.length; x++) {
+        for(var d = 0; d < 4; d++){
+            var direction = undefined;
+            switch(d){
+                case 0: direction = 'up'; break;
+                case 1: direction = 'right'; break;
+                case 2: direction = 'bottom'; break;
+                case 3: direction = 'left'; break;
+                default: break;
+            }
+            if(hints[x][d] >= 0 && nodes[x][direction]){
+                hintsCount += 1;
+                var y = hints[x][d];
+                var edge = nodes[x][direction].indexes[y].edge;
+                var weight = edge.weight;
+                var supporters = edge.supporters;
+                for (var s in supporters) {
+                    var contribution = supporters[s] / weight;
+                    if(!contibutionMap[s]){
+                        contibutionMap[s] = 0;
+                    }
+                    contibutionMap[s] += contribution;
+                }
+            }
+        }
+    }
+
+    var sum = 0;
+    var latestPlayer = undefined;
+    for(var p in contibutionMap){
+        contibutionMap[p] /= hintsCount;
+        contibutionMap[p] = Number(Number(contibutionMap[p]).toFixed(5));
+        sum += contibutionMap[p];
+        latestPlayer = p;
+    }
+    if(latestPlayer){
+        contibutionMap[latestPlayer] += 1 - sum;
+    }
+
+    return contibutionMap;
 }
 
 

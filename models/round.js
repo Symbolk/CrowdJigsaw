@@ -47,7 +47,8 @@ var RoundSchema = new mongoose.Schema({
     // solver_gen: { type: Number, default: -1}, // in which generation the round is solved(-1:unsolved)
     // solver_best_fitness: { type: Number, default: -1}, // the fitness of the correct individual in the solver(-1:unsolved)
     // persistent edges data
-    edges_saved: { type: Object }
+    edges_saved: { type: Object },
+    contribution: { type: Object }
 }, { collection: 'rounds' });
 
 

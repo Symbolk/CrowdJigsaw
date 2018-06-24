@@ -333,6 +333,8 @@ function JigsawPuzzle(config) {
     this.realSteps = 0;
     this.realStepsCounted = false;
 
+    this.gameStarted = false;
+
     this.allowOverlap = config.allowOverlap;
 
     this.gameFinished = false;
@@ -418,6 +420,8 @@ function JigsawPuzzle(config) {
             }
         }
 
+        instance.gameStarted = true;
+        
         // if (needIntro) {
         //     // $("#step1").click();
         //     introJs().setOption("overlayOpacity", 0).setOptions({
@@ -515,7 +519,7 @@ function JigsawPuzzle(config) {
             }
         }
         if (aroundTilesChanged) {
-            if(!instance.realStepsCounted && !beHinted){
+            if(instance.gameStarted && !instance.realStepsCounted && !beHinted){
                 instance.realSteps += 1;
                 document.getElementById("steps").innerHTML = instance.realSteps;
                 instance.realStepsCounted = true;
