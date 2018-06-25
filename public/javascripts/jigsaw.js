@@ -1794,19 +1794,14 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function checkHints(selectedTileIndex, hintTiles) {
-        for (var i = 0; i < hintTiles.length; i++) {
-            var hintIndex = hintTiles[i];
-            if (hintIndex >= 0) {
-                totalHintsNum += 1;
-            }
-            else {
-                continue;
-            }
-            var correctIndex = selectedTileIndex + directions[i].x + directions[i].y * instance.tilesPerRow;
-            if (hintIndex == correctIndex) {
-                correctHintsNum += 1;
-            }
+    function checkHints(selectedTileIndex, dir, hintIndex) {
+        if (hintIndex < 0) {
+            return;
+        }
+        totalHintsNum += 1;
+        var correctIndex = selectedTileIndex + directions[dir].x + directions[dir].y * instance.tilesPerRow;
+        if (hintIndex == correctIndex) {
+            correctHintsNum += 1;
         }
     }
 
@@ -1944,8 +1939,6 @@ function JigsawPuzzle(config) {
     });
 
     function showHints(selectedTileIndex, hintTiles) {
-        checkHints(selectedTileIndex, hintTiles);
-
         var tile = instance.tiles[selectedTileIndex];
 
         var shouldSave = false;
@@ -2030,6 +2023,8 @@ function JigsawPuzzle(config) {
 
 
             if (!hasConflict) {
+                checkHints(selectedTileIndex, j, correctTileIndex);
+
                 for (var i = 0; i < groupTiles.length; i++) {
                     var hintTile = groupTiles[i];
                     placeTile(hintTile, correctCellposition + hintTile.relativePosition);
