@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<!--
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title> CrowdJigaw | Puzzle</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Font Awesome -->
+    <!-- <link rel="stylesheet" href="/stylesheets/font-awesome.min.css"> -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/stylesheets/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/stylesheets/AdminLTE.min.css">
+    <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
+          page. However, you can choose any other skin. Make sure you
+          apply the skin class to the body tag so the changes take effect. -->
+    <link rel="stylesheet" href="/stylesheets/skin-blue-light.min.css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-blue.min.css" />
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+    <link rel="stylesheet" href="/stylesheets/display.css" />
+    <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/dialog-polyfill.css" />
+    <link rel="stylesheet" href="/stylesheets/buttons.css">
+    <link rel="stylesheet" href="/stylesheets/animate.min.css">
+    <link rel="stylesheet" href="/stylesheets/amaran.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-slider.min.css">
+
+    <!-- iCheck -->
+    <link rel="stylesheet" href="/stylesheets/icheck-bootstrap.min.css">
+
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+    <script type="text/javascript" src="/javascripts/vis.js"></script>
+
+    <script type="text/javascript">
+        var data = null;
+        var graph = null;
+
+
+        // Called when the Visualization API is loaded.
+        function drawVisualization() {
+            var dataset = new Array();
+            var zLab = 'Steps';
+            var style = document.getElementById('style').value;
+            var withValue = ['bar-color', 'bar-size', 'dot-size', 'dot-color'].indexOf(style) != -1;
+            var metric = document.getElementById('metric').value;
+            if(metric == 'step'){
+                for(var i=0;i<100;i++)
+                    dataset[i]=Math.random()*10+1001;
+                zLab = 'Steps';
+            }
+
+            else if(metric == 'time' ){
+                for(var i=0;i<100;i++)
+                    dataset[i]=Math.random()*10+2001;
+                zLab = 'Time';
+            }
+            // Create and populate a data table.
+            data = new vis.DataSet();
+            var extra_content = [
+                'Arbitrary information',
+                'You can access data from the point source object',
+                'Tooltip example content',
+            ];
+            var dataset = new Array();
+            for(var i=0;i<100;i++)
+                dataset[i]=Math.random()*1000+1;
+
+            // create some nice looking data with sin/cos
+            var steps = 1;  // number of datapoints will be steps*steps
+            var axisMax = 10;
+            for (var x = 0; x < axisMax; x+=steps) {
+                for (var y = 0; y < axisMax; y+=steps) {
+                    //var z = Math.round(dataset[x*10+y]);
+                    var z = -10*x+10*y+1000+Math.round(Math.random()*50);
+                    //var z = Math.round((Math.sin(x*314/900) * Math.cos(y*314/900) * 30 + 30));
+                    var extraInfo = ""
+                    if(metric == "time"){
+                        var h = Math.floor(z/3600);
+                        var m = Math.floor((z-h*3600)/60);
+                        var s = z-h*3600-m*60;
+                        if(h<10)
+                            h = '0'+h;
+                        if(m<10)
+                            m = '0'+m;
+                        if(s<10)
+                            s = '0'+s;
+                        extraInfo = h+':'+m+':'+s;
+                    }
+                    if (withValue) {
+                        var value = (y - x);
+                        data.add({x:x, y:y, z: z, style:value, extra:extraInfo});
+                    }
+                    else {
+                        data.add({x:x, y:y, z: z, extra:extraInfo});
+                    }
+                }
+            }
+
+            // specify options
+            // var smoothObj = new Object();
+            // smoothObj.enabled = true;
+            // smoothObj.type = 'dynamic';
+            var options = {
+                width:  '750px',
+                height: '750px',
+                style: style,
+                showPerspective: true,
+                showLegend: true,
+                showGrid: true,
+                showShadow: false,
+                xValueLabel: function(x) {
+                    return x+1;
+                },
+                yValueLabel: function(y) {
+                    return (y+1)+'*'+(y+1);
+                },
+                xLabel: 'GroupSize',
+                yLabel: 'PuzzleSize',
+                zLabel: zLab,
+                xBarWidth: 0.5,
+                yBarWidth: 0.5,
+                xStep: 1,
+                yStep: 1,
+
+                // Option tooltip can be true, false, or a function returning a string with HTML contents
+                tooltip: function (point) {
+                    // parameter point contains properties x, y, z, and data
+                    // data is the original object passed to the point constructor
+                    return 'value: <b>' + point.z + '</b><br>' + point.data.extra;
+                },
+
+                // Tooltip default styling can be overridden
+                tooltipStyle: {
+                    content: {
+                        background    : 'rgba(255, 255, 255, 0.7)',
+                        padding       : '10px',
+                        borderRadius  : '10px'
+                    },
+                    line: {
+                        borderLeft    : '1px dotted rgba(0, 0, 0, 0.5)'
+                    },
+                    dot: {
+                        border        : '5px solid rgba(0, 0, 0, 0.5)'
+                    }
+                },
+
+                keepAspectRatio: true,
+                verticalRatio: 0.5
+            };
+
+            var camera = graph ? graph.getCameraPosition() : null;
+
+            // create our graph
+            var container = document.getElementById('mygraph');
+            graph = new vis.Graph3d(container, data, options);
+
+            if (camera) graph.setCameraPosition(camera); // restore camera position
+
+            document.getElementById('style').onchange = drawVisualization;
+            document.getElementById('metric').onchange = drawVisualization;
+        }
+    </script>
+    <style>
+        #mygraph {
+            position: absolute;
+            left: 30%;
+            top: 5%;
+        }
+    </style>
+</head>
+<!--
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to get the
+desired effect
+|---------------------------------------------------------|
+| SKINS         | skin-blue                               |
+|               | skin-black                              |
+|               | skin-purple                             |
+|               | skin-yellow                             |
+|               | skin-red                                |
+|               | skin-green                              |
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | fixed                                   |
+|               | layout-boxed                            |
+|               | layout-top-nav                          |
+|               | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+-->
+<body class="hold-transition skin-blue-light sidebar-mini" onload="drawVisualization()">
+<div class="wrapper">
+
+    <!-- Main Header -->
+    <header class="main-header">
+
+        <!-- Logo -->
+        <a href="/home" class="logo">
+            <!-- mini logo for sidebar mini 50x50 pixels -->
+            <span class="logo-mini"><b>C</b>JP</span>
+            <!-- logo for regular state and mobile devices -->
+            <span class="logo-lg"><b>Crowd</b>Jigsaw</span>
+        </a>
+
+        <!-- Header Navbar -->
+        <nav class="navbar navbar-static-top" role="navigation">
+            <!-- Sidebar toggle button-->
+            <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                <span class="sr-only">Toggle navigation</span>
+            </a>
+            <!-- Navbar Right Menu -->
+            <div class="navbar-custom-menu">
+                <ul class="nav navbar-nav">
+                    <!-- User Account Menu -->
+                    <li class="dropdown user user-menu">
+                        <!-- Menu Toggle Button -->
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <!-- The user image in the navbar-->
+                            <img src="" class="user-image headImg" alt="User Image">
+                            <canvas id="headImg" style="display:none"></canvas>
+                            <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                            <span class="hidden-xs"><%= username %></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- The user image in the menu -->
+                            <li class="user-header">
+                                <img src="" class="img-circle headImg" alt="User Image">
+                                <canvas id="headImg" style="display:none"></canvas>
+                                <p>
+                                    <%= username %>
+                                    <small>Member since 2018.</small>
+                                </p>
+                            </li>
+                            <!-- Menu Footer-->
+                            <li class="user-footer">
+                                <!-- <div class="pull-left">
+                                  <a href="#" class="btn btn-default btn-flat">Profile</a>
+                                </div> -->
+                                <div class="pull-right">
+                                    <a href="/logout" class="btn btn-default btn-flat">Sign out</a>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- Control Sidebar Toggle Button -->
+                    <li>
+                        <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <!-- Left side column. contains the logo and sidebar -->
+    <aside class="main-sidebar">
+
+        <!-- sidebar: style can be found in sidebar.less -->
+        <section class="sidebar">
+
+            <!-- Sidebar user panel (optional) -->
+            <div class="user-panel">
+                <div class="pull-left image">
+                    <img src="" class="img-circle head-sidebar" alt="User Image">
+                    <canvas id="head-sidebar" style="display:none"></canvas>
+                </div>
+                <div class="pull-left info">
+                    <p><%= username %></p>
+                    <!-- Status -->
+                    <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+                </div>
+            </div>
+
+            <!-- search form (Optional) -->
+            <!-- <form action="#" method="get" class="sidebar-form">
+              <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Search...">
+                <span class="input-group-btn">
+                    <button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>
+                    </button>
+                  </span>
+              </div>
+            </form> -->
+            <!-- /.search form -->
+
+            <!-- Sidebar Menu -->
+            <ul class="sidebar-menu" data-widget="tree">
+                <li class="header">Pages</li>
+                <!-- Optionally, you can add icons to the links -->
+                <li class="active"><a href="/home"><i class="fa fa-gamepad fa-lg"></i> <span>Playground</span></a></li>
+                <li><a href="/records"><i class="fa fa-calendar fa-lg"></i> <span>Records</span></a></li>
+                <li><a href="/settings"><i class="fa fa-gears fa-lg"></i> <span>Settings</span></a></li>
+                <li><a href="/rank"><i class="fa fa-bar-chart fa-lg"></i> <span>Ranks</span></a></li>
+                <li><a href="/help"><i class="fa fa-question-circle fa-lg"></i> <span>Help</span></a></li>
+                <li><a href="/logout"><i class="fa fa-sign-out fa-lg"></i> <span>Sign Out</span></a></li>
+                <li class="treeview">
+                    <a href="#"><i class="fa fa-link fa-lg"></i> <span>Links</span>
+                        <span class="pull-right-container">
+                <i class="fa fa-angle-right pull-right"></i>
+              </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="https://github.com/Symbolk/CrowdJigsaw">Github</a></li>
+                        <li><a href="http://symbolk.com">Blog</a></li>
+                    </ul>
+                </li>
+                <li><a href="/statistics"><i class="fa fa-area-chart fa-lg"></i> <span>Statistics</span></a></li>
+            </ul>
+            <!-- /.sidebar-menu -->
+        </section>
+        <!-- /.sidebar -->
+    </aside>
+    <script src="/javascripts/jquery.min.js"></script>
+
+    <script>
+        $(function () {
+            var uname = '<%= username %>';
+            var name = uname.charAt(0);
+            var fontSize = 60;
+            var fontWeight = 'bold';
+
+            var canvas = document.getElementById('headImg');
+            var img1 = document.getElementById('headImg');
+            canvas.width = 120;
+            canvas.height = 120;
+            var context = canvas.getContext('2d');
+            context.fillStyle = '#FFFFFF';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = '#4682B4';
+            context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = "middle";
+            context.fillText(name, fontSize, fontSize);
+            $('.headImg').attr('src', canvas.toDataURL("image/png"));
+
+            var canvas = document.getElementById('head-sidebar');
+            var img1 = document.getElementById('head-sidebar');
+            canvas.width = 120;
+            canvas.height = 120;
+            var context = canvas.getContext('2d');
+            context.fillStyle = '#4682B4';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = '#FFFFFF';
+            context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = "middle";
+            context.fillText(name, fontSize, fontSize);
+            $('.head-sidebar').attr('src', canvas.toDataURL("image/png"));
+        });
+    </script>
+
+    <div class="content-wrapper">
+        <p>
+            <label for="style"> Style:
+                <select id="style">
+                    <option value="bar">bar</option>
+                    <option value="bar-color">bar-color</option>
+                    <option value="bar-size">bar-size</option>
+
+                    <option value="dot">dot</option>
+                    <option value="dot-line">dot-line</option>
+                    <option value="dot-color">dot-color</option>
+                    <option value="dot-size">dot-size</option>
+
+                    <option value="grid">grid</option>
+                    <option value="line">line</option>
+                    <option value="surface">surface</option>
+                </select>
+            </label>
+        </p>
+        <p>
+            <label for="metric"> Metric:
+                <select id="metric">
+                    <option value="steps">steps</option>
+                    <option value="time">time</option>
+                </select>
+            </label>
+        </p>
+
+        <div id="mygraph"></div>
+    </div>
+
+
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <!-- To the right -->
+        <div class="pull-right hidden-xs">
+            Collective Intelligence Software Engineering
+        </div>
+        <!-- Default to the left -->
+        <strong>Copyright &copy; 2018
+            <a href="#">Peking University</a>.</strong> All rights reserved.
+    </footer>
+
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Create the tabs -->
+        <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
+            <li class="active">
+                <a href="#control-sidebar-home-tab" data-toggle="tab">
+                    <i class="fa fa-home"></i>
+                </a>
+            </li>
+            <li>
+                <a href="#control-sidebar-settings-tab" data-toggle="tab">
+                    <i class="fa fa-gears"></i>
+                </a>
+            </li>
+        </ul>
+        <!-- Tab panes -->
+        <div class="tab-content">
+            <!-- Home tab content -->
+            <div class="tab-pane active" id="control-sidebar-home-tab">
+                <h3 class="control-sidebar-heading">Recent Activity</h3>
+                <ul class="control-sidebar-menu">
+                    <li>
+                        <a href="javascript:;">
+                            <i class="menu-icon fa fa-birthday-cake bg-red"></i>
+
+                            <div class="menu-info">
+                                <h4 class="control-sidebar-subheading">Last login</h4>
+
+                                <p>Last login just now.</p>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+                <!-- /.control-sidebar-menu -->
+
+                <h3 class="control-sidebar-heading">Tasks Progress</h3>
+                <ul class="control-sidebar-menu">
+                    <li>
+                        <a href="javascript:;">
+                            <h4 class="control-sidebar-subheading">
+                                Profile Completion
+                                <span class="pull-right-container">
+                <span class="label label-danger pull-right">50%</span>
+              </span>
+                            </h4>
+
+                            <div class="progress progress-xxs">
+                                <div class="progress-bar progress-bar-danger" style="width: 50%"></div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+                <!-- /.control-sidebar-menu -->
+
+            </div>
+            <!-- /.tab-pane -->
+            <!-- Stats tab content -->
+            <div class="tab-pane" id="control-sidebar-stats-tab">Stats Tab Content</div>
+            <!-- /.tab-pane -->
+            <!-- Settings tab content -->
+            <div class="tab-pane" id="control-sidebar-settings-tab">
+                <form method="post">
+                    <h3 class="control-sidebar-heading">General Settings</h3>
+
+                    <div class="form-group">
+                        <label class="control-sidebar-subheading">
+                            Report personal usage
+                            <input type="checkbox" class="pull-right" checked>
+                        </label>
+
+                        <p>
+                            Send your data to our server for analysis.
+                        </p>
+                    </div>
+                    <!-- /.form-group -->
+                </form>
+            </div>
+            <!-- /.tab-pane -->
+        </div>
+    </aside>
+    <!-- /.control-sidebar -->
+    <!-- Add the sidebar's background. This div must be placed
+          immediately after the control sidebar -->
+    <div class="control-sidebar-bg"></div>
+</div>
+<!-- ./wrapper -->
+
+<!-- REQUIRED JS SCRIPTS -->
+
+<!-- jQuery 3 -->
+<script src="/javascripts/jquery.min.js"></script>
+<!-- Bootstrap 3.3.7 -->
+<script src="/javascripts/bootstrap.min.js"></script>
+<!-- AdminLTE App -->
+<script src="/javascripts/adminlte.min.js"></script>
+
+<!-- Optionally, you can add Slimscroll and FastClick plugins.
+         Both of these plugins are recommended to enhance the
+         user experience. -->
+<script type="text/javascript" src="/javascripts/socket.io.js"></script>
+<script src="/javascripts/dialog-polyfill.js"></script>
+<script src="/javascripts/jquery.amaran.min.js"></script>
+
+<!-- <script src="/javascripts/bootstrap-table.min.js" ></script> -->
+<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+</body>
+
+</html>
