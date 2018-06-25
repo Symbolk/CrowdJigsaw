@@ -1369,7 +1369,7 @@ function JigsawPuzzle(config) {
             for(var j = 0; j < 4; j++){
                 if(data[index][j] > -1){
                     var tile = instance.tiles[index];
-                    if(tile.subGraphSize == instance.maxSubGraphSize){
+                    if(tile.subGraphSize == instance.maxSubGraphSize && !tile.allAroundByTiles){
                         var shouldSaveThis = showHints(index, data[index]);
                         normalizeTiles(true);
                         changeForIteration = changeForIteration || shouldSaveThis;
@@ -1718,6 +1718,7 @@ function JigsawPuzzle(config) {
                 tile.differentColor = new Array();
                 tile.colorDirection = new Array();
             }
+            tile.opacity = 1;
         }
     }
 
@@ -1865,6 +1866,7 @@ function JigsawPuzzle(config) {
         if(!unsureHints){
             return;
         }
+        hideAllColorBorder();
         var indexesMap = {};
         if(indexes){
             for (var i = 0; i < indexes.length; i++) {
@@ -1894,6 +1896,14 @@ function JigsawPuzzle(config) {
             }
             else{
                 break;
+            }
+        }
+        if(colorIndex > 0){
+            for (var i = 0; i < instance.tiles.length; i++) {
+                var tile = instance.tiles[i];
+                if(!tile.differentColor || tile.differentColor.length == 0){
+                    tile.opacity = 0.25;
+                }
             }
         }
     }
