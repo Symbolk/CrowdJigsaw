@@ -475,6 +475,8 @@ function LoginFirst(req, res, next) {
     }
     next();
 }
-
+router.route('/statistics').all(LoginFirst).get(function (req, res) {
+    res.render('statistics', { title: 'Statistics',username: req.session.user.username});
+});
 
 module.exports = router;
