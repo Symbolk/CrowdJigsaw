@@ -1648,7 +1648,7 @@ function JigsawPuzzle(config) {
     }
 
     function uploadGraphData() {
-        instance.subGraphData = instance.subGraphData.concat(instance.removeLinksData);
+        instance.subGraphData = instance.removeLinksData.concat(instance.subGraphData);
         //console.log(instance.subGraphData);
         instance.getHintsArray = new Array();
         for(var i = 0; i < instance.subGraphData.length; i++){
@@ -1678,28 +1678,16 @@ function JigsawPuzzle(config) {
                 instance.maxSubGraphSize = tile.subGraphSize;
             }
         }
-        /*
-        for(var i = 0; i < instance.tiles.length; i++){
-            var tile = instance.tiles[i];
-            if(tile.subGraphSize == instance.maxSubGraphSize){
-                console.log(tile.name);
-            }
-        }*/
 
-        if (instance.subGraphData.length == 0) {
-            instance.dfsGraphLinksMap = new Array();
-            instance.subGraphData = new Array();
-            instance.removeLinksData = new Array();
-            return;
+        if(instance.subGraphData.length > 0){
+            var param = {
+                player_name: player_name,
+                round_id: roundID,
+                edges: instance.subGraphData
+            };
+            //console.log(param);
+            socket.emit("upload", param);
         }
-
-        var param = {
-            player_name: player_name,
-            round_id: roundID,
-            edges: instance.subGraphData
-        };
-        //console.log(param);
-        socket.emit("upload", param);
 
         instance.dfsGraphLinksMap = new Array();
         instance.subGraphData = new Array();
