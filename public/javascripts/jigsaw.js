@@ -301,7 +301,7 @@ function JigsawPuzzle(config) {
 
     this.maxSubGraphSize = 0;
 
-    this.unsureHintsColor = ["red", "purple", "green", "blue"];
+    this.unsureHintsColor = ["red"];
     this.colorBorderWidth = 10;
 
     this.hintedTilesMap = new Array();
@@ -1513,7 +1513,11 @@ function JigsawPuzzle(config) {
             }
 
             if (!hasConflict && instance.showHints) {
-                getHints(roundID);
+                var selectedTileIndexes = new Array();
+                for (var i = 0; i < instance.selectedTile.length; i++) {
+                    selectedTileIndexes.push(getTileIndex(instance.selectedTile[i]));
+                }
+                getHints(roundID, selectedTileIndexes);
             }
 
             for (var i = 0; i < instance.selectedTile.length; i++) {
@@ -1787,7 +1791,7 @@ function JigsawPuzzle(config) {
         instance.hintedTilesMap = new Array();
     }
 
-    function getHints(round_id) {
+    function getHints(round_id, selectedTileIndexes) {
         // var hintTileIndexes=new Array(-1,-1,-1,-1);
         var currentStep = instance.steps;
         var getHintsIndex = new Array();
@@ -1800,6 +1804,7 @@ function JigsawPuzzle(config) {
             //console.log(instance.getHintsArray, getHintsIndex);
             socket.emit("getHintsAround", {
                 "round_id": round_id,
+                "selectedTileIndexes": selectedTileIndexes,
                 "indexes": getHintsIndex,
                 "currentStep": currentStep,
             });
@@ -1897,7 +1902,7 @@ function JigsawPuzzle(config) {
                 }
             }
 
-            processUnsureHints(data.unsureHints, data.indexes);
+            processUnsureHints(data.unsureHints, data.selectedTileIndexes);
 
             instance.hintsShowing = false;
         }
