@@ -625,6 +625,7 @@ module.exports = function (io) {
             }
             socket.emit('reactiveHints', {
                 indexes: data.indexes,
+                selectedTileIndexes: data.selectedTileIndexes,
                 currentStep: data.currentStep,
                 sureHints: hints,
                 unsureHints: unsureHints
