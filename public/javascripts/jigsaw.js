@@ -36,46 +36,6 @@ var hintedLinksNum = undefined;
 var totalHintsNum = 0;
 var correctHintsNum = 0;
 
-/**
- * Game Finish
- */
-(function () {
-    var submitButton = document.querySelector('#submit-button');
-    $('.rb-rating').rating({
-        'showCaption': true,
-        'showClear': false,
-        'stars': '5',
-        'min': '0',
-        'max': '5',
-        'step': '0.5',
-        'size': 'xs',
-        'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
-    });
-    submitButton.addEventListener('click', function (event) {
-        // player's rating for the hint(what he thinks about the function)
-        var rating = $("#rating2").val();
-
-        var steps = Number(document.getElementById("steps").innerHTML);
-
-        sendRecord(roundID, true, steps, startTime,
-            hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
-
-        $.ajax({
-            url: requrl + 'round' + '/quitRound/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                window.location = '/roundrank/' + roundID;
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('error ' + textStatus + " " + errorThrown);
-            }
-        });
-    });
-}());
-
 // document.querySelector('#show_steps').addEventListener('click', function () {
 //     $('#steps').fadeToggle('slow');
 // });
@@ -2328,6 +2288,43 @@ function JigsawPuzzle(config) {
 }
 
 
+/**
+ * Game Finish
+ */
+(function () {
+    var submitButton = document.querySelector('#submit-button');
+    $('.rb-rating').rating({
+        'showCaption': true,
+        'showClear': false,
+        'stars': '5',
+        'min': '0',
+        'max': '5',
+        'step': '0.5',
+        'size': 'xs',
+        'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
+    });
+    submitButton.addEventListener('click', function (event) {
+        // player's rating for the hint(what he thinks about the function)
+        var rating = $("#rating2").val();
+
+        sendRecord(roundID, true, puzzle.realSteps, startTime,
+            hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
+
+        $.ajax({
+            url: requrl + 'round' + '/quitRound/' + roundID,
+            type: 'get',
+            dataType: 'json',
+            cache: false,
+            timeout: 5000,
+            success: function (data) {
+                window.location = '/roundrank/' + roundID;
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('error ' + textStatus + " " + errorThrown);
+            }
+        });
+    });
+}());
 
 
 /**
@@ -2359,7 +2356,7 @@ function JigsawPuzzle(config) {
         var rating = $("#rating").val();
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML),
+        sendRecord(roundID, false, puzzle.realSteps,
             startTime, hintedLinksNum.totalLinks,
             hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
@@ -2385,7 +2382,7 @@ $('#give_up').on('click', function (event) {
 
     puzzle.calcHintedTile();
 
-    sendRecord(roundID, false, Number(document.getElementById("steps").innerHTML),
+    sendRecord(roundID, false, puzzle.realSteps,
         startTime, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks,
         totalHintsNum, correctHintsNum, -1);
 
