@@ -358,7 +358,8 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                             "steps": r.steps,
                                             "contribution": contribution.toFixed(3),
                                             "hintPercent": hintPercent.toFixed(3),
-                                            "correctPercent": correctPercent.toFixed(3)
+                                            "correctPercent": correctPercent.toFixed(3),
+                                            "rating": r.rating
                                         });
                                     } else {
                                         unfinished.push({
@@ -368,7 +369,8 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                             "steps": r.steps,
                                             "contribution": contribution.toFixed(3),
                                             "hintPercent": hintPercent.toFixed(3),
-                                            "correctPercent": correctPercent.toFixed(3)
+                                            "correctPercent": correctPercent.toFixed(3),
+                                            "rating": r.rating
                                         });
                                     }
                                 }

@@ -34,6 +34,7 @@
                         <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
                         <th data-field="hint_percent" data-halign="center" data-align="center" data-sortable="true">Collective Intelligence</th>
                         <th data-field="correct_hint_percent" data-halign="center" data-align="center" data-sortable="true">Hint Precision</th>
+                        <th data-field="rating" data-halign="center" data-align="center">Rating</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,6 +132,18 @@
                                                 </span>
                                                 <%} %>
                                     </td>
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.rating %>
+                                            </span>
+                                            <%}
+                                                    else{%>
+                                                <span>
+                                                    <%- u.rating %>
+                                                </span>
+                                                <%} %>
+                                    </td>
                             </tr>
                             <% }) %>
                                 <% Unfinished.forEach(function(u){ %>
@@ -223,6 +236,18 @@
                                                             else{%>
                                                         <span>
                                                             <%- u.correctPercent %>%
+                                                        </span>
+                                                        <%} %>
+                                            </td>
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.rating %>
+                                                    </span>
+                                                    <%}
+                                                            else{%>
+                                                        <span>
+                                                            <%- u.rating %>
                                                         </span>
                                                         <%} %>
                                             </td>
