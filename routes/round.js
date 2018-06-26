@@ -463,8 +463,6 @@ module.exports = function (io) {
                 console.log(err);
             } else {
                 if (doc && doc.contribution) {
-        console.log("SR" + rating);
-                    console.log(req.body.finished);
                     if (doc.contribution.hasOwnProperty(req.session.user.username)) {
                         contri = doc.contribution[req.session.user.username];
                     }
