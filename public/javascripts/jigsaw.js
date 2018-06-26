@@ -301,7 +301,7 @@ function JigsawPuzzle(config) {
 
     this.maxSubGraphSize = 0;
 
-    this.unsureHintsColor = ["red"];
+    this.unsureHintsColor = ["red", "purple", "green", "blue"];
     this.colorBorderWidth = 10;
 
     this.hintedTilesMap = new Array();
