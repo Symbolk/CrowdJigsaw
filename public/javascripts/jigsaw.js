@@ -1679,8 +1679,8 @@ function JigsawPuzzle(config) {
             tile.leftEdge.visible = false;
             tile.colorBorder.visible = false;
         }
-        for (var i = 0; i < instance.tile.length; i++) {
-            var tile = instance.tile[i];
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
             if(tile.differentColor.length == 0){
                 tile.opacity = 1;
             }
