@@ -1679,6 +1679,12 @@ function JigsawPuzzle(config) {
             tile.leftEdge.visible = false;
             tile.colorBorder.visible = false;
         }
+        for (var i = 0; i < instance.tile.length; i++) {
+            var tile = instance.tile[i];
+            if(tile.differentColor.length == 0){
+                tile.opacity = 1;
+            }
+        }
     }
 
     function setGradientStrockColor(path, color) {
@@ -1727,7 +1733,6 @@ function JigsawPuzzle(config) {
                 tile.differentColor.push(direction);
                 tile.colorDirection.push(colorIndex);
             }
-
         }
     }
 
