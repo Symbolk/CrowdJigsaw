@@ -186,6 +186,15 @@ $(window).bind('mousewheel', function (e) {
     }
 });
 
+function onKeyDown(event) {
+    if (event.event.ctrlKey && event.key == "z") {
+        // undo a step
+        if (puzzle.steps != undoStep) {
+            puzzle.undoNextStep();
+        }
+    }
+}
+
 function onKeyUp(event) {
     switch (event.key) {
         case 'z':
@@ -2313,14 +2322,14 @@ function JigsawPuzzle(config) {
 (function () {
     var submitButton = document.querySelector('#submit-button');
     $('.rb-rating').rating({
-        'showCaption': true,
+        'showCaption': false,
         'showClear': false,
         'stars': '5',
         'min': '0',
         'max': '5',
         'step': '0.5',
         'size': 'xs',
-        'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
+        // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
     });
     submitButton.addEventListener('click', function (event) {
         // player's rating for the hint(what he thinks about the function)
@@ -2361,14 +2370,14 @@ function JigsawPuzzle(config) {
     });
 
     $('.rb-rating').rating({
-        'showCaption': true,
+        'showCaption': false,
         'showClear': false,
         'stars': '5',
         'min': '0',
         'max': '5',
         'step': '0.5',
         'size': 'xs',
-        'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
+        // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
     });
 
     applyButton.addEventListener('click', function (event) {
