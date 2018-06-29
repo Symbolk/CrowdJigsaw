@@ -630,5 +630,95 @@ module.exports = function (io) {
             }
         });
     });
+
+
+    /**
+     * Get the data required by statistics
+     */
+    function getWinnerData(round_id) {
+        return new Promise((resolve, reject) => {
+            RoundModel.findOne({ round_id: round_id }, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (doc.winner_time != "-1" && doc.winner_steps != -1) {
+                        let time = doc.winner_time.split(":");
+                        let h = parseInt(time[0]);
+                        let m = parseInt(time[1]);
+                        let s = parseInt(time[2]);
+                        resolve({
+                            "time": h * 3600 + m * 60 + s,
+                            "steps": doc.winner_steps
+                        });
+                    } else {
+                        console.log("Empty: " + round_id);
+                    }
+                }
+            });
+        });
+    }
+
+    router.route('/getStatistics').get(async function (req, res, next) {
+        // ids[0][0]=1--4 ids[0][1]
+        // ids[x][y]=x+1--y+4
+        let ids = [
+            // 1 participant
+            [
+                [242, 243, 301, 302, 303, 272, 279, 286], // 4x4
+                [248, 250, 304, 306, 307, 273, 280, 287], // 5x5
+                [308, 309, 310, 274, 281, 288], // 6x6             
+                [311, 312, 313, 275, 282, 289], // 7x7
+                [314, 315, 316, 276, 283, 290], // 8x8
+                [317, 318, 319, 277, 284, 291], // 9x9
+                [305, 320, 321, 278, 285, 292, 346] // 10x10
+            ],
+            // 2 participants
+            [
+                [240, 331],
+                [332, 334],
+                [247, 333],
+                [335],
+                [],
+                [],
+                []
+            ],
+            // 3 participants
+            [
+                [337, 339],
+                [338, 340],
+                [245, 246],
+                [336, 341],
+                [342],
+                [344],
+                []
+            ],
+            // 4 participants
+        ];
+
+        let results = new Array();
+
+        for (let gs = 0; gs < ids.length; gs++) {
+            for (let ps = 0; ps < ids[gs].length; ps++) {
+                let average_time = 0;
+                let average_steps = 0;
+                for (let i = 0; i < ids[gs][ps].length; i++) {
+                    let round_id = ids[gs][ps][i];
+                    let data = await getWinnerData(round_id);
+                    average_time += data.time;
+                    average_steps += data.steps;
+                }
+                average_time /= ids[gs][ps].length;
+                average_steps /= ids[gs][ps].length;
+                results.push({
+                    "group_size": gs + 1,
+                    "puzzle_size": ps + 4,
+                    "average_time": average_time.toFixed(3),
+                    "average_steps": average_steps.toFixed(3)
+                });
+            }
+        }
+        res.send(results);
+    });
+
     return router;
 };
