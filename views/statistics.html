@@ -85,9 +85,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
             // create some nice looking data with sin/cos
             var steps = 1;  // number of datapoints will be steps*steps
-            var axisMax = 10;
-            for (var x = 0; x < axisMax; x+=steps) {
-                for (var y = 0; y < axisMax; y+=steps) {
+            var xAxisMax = 10;
+            var yAxisMax = 7;
+            for (var x = 0; x < xAxisMax; x+=steps) {
+                for (var y = 0; y < yAxisMax; y+=steps) {
                     //var z = Math.round(dataset[x*10+y]);
                     var z = -10*x+10*y+1000+Math.round(Math.random()*50);
                     //var z = Math.round((Math.sin(x*314/900) * Math.cos(y*314/900) * 30 + 30));
@@ -130,7 +131,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     return x+1;
                 },
                 yValueLabel: function(y) {
-                    return (y+1)+'*'+(y+1);
+                    return (y+4)+'*'+(y+4);
                 },
                 xLabel: 'GroupSize',
                 yLabel: 'PuzzleSize',
@@ -370,6 +371,8 @@ desired effect
         <p>
             <label for="style"> Style:
                 <select id="style">
+                    <option value="surface">surface</option>
+
                     <option value="bar">bar</option>
                     <option value="bar-color">bar-color</option>
                     <option value="bar-size">bar-size</option>
@@ -381,7 +384,6 @@ desired effect
 
                     <option value="grid">grid</option>
                     <option value="line">line</option>
-                    <option value="surface">surface</option>
                 </select>
             </label>
         </p>
