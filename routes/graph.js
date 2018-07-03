@@ -589,7 +589,7 @@ function computeCOG(COG, nodesAndHints, start_time, tilesPerRow, tilesPerColumn,
             edges_changed: briefEdges_changed
         };
         COG.push(currentCOG);
-        console.log(COG.length, COG);
+        //console.log(COG.length, COG);
     }
     return COG;
 }
