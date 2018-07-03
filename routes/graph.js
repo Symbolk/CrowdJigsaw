@@ -380,6 +380,7 @@ function update(data) {
             console.log(err);
         } else {
             if (doc) {
+                let roundStartTime = Date.parse(doc.start_time);
                 if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
                     // create the edges object & update db directly
                     let edges_saved = {};
@@ -400,9 +401,7 @@ function update(data) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[key]);
                     }
 
-                    var COGThisTime = computeCOG(nodesAndHints, Date.parse(doc.start_time), doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
-                    var COG = new Array();
-                    COG.push(COGThisTime);
+                    var COG = computeCOG(doc.COG, nodesAndHints, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG  }}, function (err) {
@@ -415,6 +414,7 @@ function update(data) {
                 } else {
                     // get and update the object, then update db once
                     let edges_saved = doc.edges_saved;
+                    let edges_changed = {};
                     for (let e of data.edges) {
                         let temp = e.x + e.tag + e.y;
                         // if the edge exists, update the size
@@ -454,6 +454,7 @@ function update(data) {
                             }
                             let confidence = 1;
                             edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
+                            edges_changed[key] = edges_saved[key];
                         }
                     }
 
@@ -462,6 +463,7 @@ function update(data) {
                     // update the confidence of every saved edge
                     for (let e in edges_saved) {
                         let oldConfidence = edges_saved[e].confidence;
+                        let oldWeight = edges_saved[e].weight;
                         let supporters = edges_saved[e].supporters;
                         let opposers = edges_saved[e].opposers;
                         let wp = 0;
@@ -475,6 +477,9 @@ function update(data) {
                         edges_saved[e].weight = wp;
                         if (wp + wn != 0) {
                             edges_saved[e].confidence = wp / (wp + wn);
+                            if(edges_saved[e].confidence != oldConfidence || wp != oldWeight){
+                                edges_changed[e] = edges_saved[e];
+                            }
                             if(edges_saved[e].confidence < oldConfidence){
                                 updateNodesAndEdges(nodesAndHints, edges_saved[e]);
                             }
@@ -487,12 +492,7 @@ function update(data) {
 
                     checkUnsureHints(nodesAndHints);
 
-                    var COGThisTime = computeCOG(nodesAndHints, Date.parse(doc.start_time), doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
-                    var COG = doc.COG;
-                    if(!COG){
-                        COG = new Array();
-                    }
-                    COG.push(COGThisTime);
+                    var COG = computeCOG(doc.COG, nodesAndHints, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn, edges_changed);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG } }, function (err) {
@@ -506,7 +506,11 @@ function update(data) {
     });
 }
 
-function computeCOG(nodesAndHints, start_time, tilesPerRow, tilesPerColumn, edges_saved){
+function computeCOG(COG, nodesAndHints, start_time, tilesPerRow, tilesPerColumn, edges_changed){
+    if(!COG){
+        COG = new Array();
+    }
+
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
 
@@ -538,13 +542,56 @@ function computeCOG(nodesAndHints, start_time, tilesPerRow, tilesPerColumn, edge
         }
     }
 
-    return {
-        time: time,
-        correctLinks: correctLinks,
-        completeLinks: completeLinks,
-        totalLinks: totalLinks,
-        edges_saved: edges_saved
-    };
+    var COGchanged = true;
+    var preTime = 0;
+    if(COG.length > 0){
+        var preCOG = COG[COG.length - 1];
+        preTime = preCOG.time;
+        if(preCOG.correctLinks == correctLinks && preCOG.completeLinks == completeLinks){
+            COGchanged = false;
+        }
+    }
+
+    var briefEdges_changed = {}
+    for (var e in edges_changed) {
+        var edge = edges_changed[e];
+        var supporters = edge.supporters;
+        var opposers = edge.opposers;
+        var sLen = Object.getOwnPropertyNames(supporters).length;
+        var oLen = Object.getOwnPropertyNames(opposers).length;
+        var wp = edge.weight;
+        var confidence = edge.confidence;
+        var wn = 0;
+        if(confidence > 0){
+            wn = wp / confidence - wp;
+        }
+        else{
+            for (var o in opposers) {
+                wn += opposers[o];
+            }
+        }
+        wp = Number(wp).toFixed(2);
+        wn = Number(wn).toFixed(2);
+        briefEdges_changed[e] = {
+            wp: wp,
+            wn: wn,
+            sLen: sLen,
+            oLen: oLen
+        }
+    }
+
+    if(COGchanged){
+        var currentCOG = {
+            time: time,
+            correctLinks: correctLinks,
+            completeLinks: completeLinks,
+            totalLinks: totalLinks,
+            edges_changed: briefEdges_changed
+        };
+        COG.push(currentCOG);
+        console.log(COG.length, COG);
+    }
+    return COG;
 }
 
 function computeContribution(nodesAndHints){
