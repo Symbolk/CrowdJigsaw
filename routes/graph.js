@@ -400,7 +400,7 @@ function update(data) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[key]);
                     }
 
-                    var COGThisTime = computeCOG(nodesAndHints, Date.parse(doc.start_time), doc.tilesPerRow, doc.tilesPerColumn);
+                    var COGThisTime = computeCOG(nodesAndHints, Date.parse(doc.start_time), doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
                     var COG = new Array();
                     COG.push(COGThisTime);
 
@@ -487,7 +487,7 @@ function update(data) {
 
                     checkUnsureHints(nodesAndHints);
 
-                    var COGThisTime = computeCOG(nodesAndHints, Date.parse(doc.start_time), doc.tilesPerRow, doc.tilesPerColumn);
+                    var COGThisTime = computeCOG(nodesAndHints, Date.parse(doc.start_time), doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
                     var COG = doc.COG;
                     if(!COG){
                         COG = new Array();
@@ -506,7 +506,7 @@ function update(data) {
     });
 }
 
-function computeCOG(nodesAndHints, start_time, tilesPerRow, tilesPerColumn){
+function computeCOG(nodesAndHints, start_time, tilesPerRow, tilesPerColumn, edges_saved){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
 
@@ -543,6 +543,7 @@ function computeCOG(nodesAndHints, start_time, tilesPerRow, tilesPerColumn){
         correctLinks: correctLinks,
         completeLinks: completeLinks,
         totalLinks: totalLinks,
+        edges_saved: edges_saved
     };
 }
 
