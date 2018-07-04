@@ -5,6 +5,7 @@ var router = express.Router();
 var NodeModel = require('../models/node').Node;
 var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
+var COGModel = require('../models/COG').COG;
 // var EdgeModel = require('../models/edge').Edge;
 var util = require('./util.js');
 var constants = require('../config/constants');
@@ -401,7 +402,7 @@ function update(data) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[key]);
                     }
 
-                    var COG = computeCOG(doc.COG, nodesAndHints, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
+                    var COG = computeCOG(roundID, doc.COG, nodesAndHints, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG  }}, function (err) {
@@ -492,7 +493,11 @@ function update(data) {
 
                     checkUnsureHints(nodesAndHints);
 
-                    var COG = computeCOG(doc.COG, nodesAndHints, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn, edges_changed);
+                    if(!nodesAndHints.edges_changed){
+                        edges_changed = edges_saved;
+                    }
+
+                    var COG = computeCOG(roundID, doc.COG, nodesAndHints, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn, edges_saved);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG } }, function (err) {
@@ -506,9 +511,9 @@ function update(data) {
     });
 }
 
-function computeCOG(COG, nodesAndHints, start_time, tilesPerRow, tilesPerColumn, edges_changed){
-    if(!COG){
-        COG = new Array();
+function computeCOG(roundID, COGList, nodesAndHints, start_time, tilesPerRow, tilesPerColumn, edges_changed){
+    if(!COGList){
+        COGList = new Array();
     }
 
     var nodes = nodesAndHints.nodes;
@@ -544,15 +549,18 @@ function computeCOG(COG, nodesAndHints, start_time, tilesPerRow, tilesPerColumn,
 
     var COGchanged = true;
     var preTime = 0;
-    if(COG.length > 0){
-        var preCOG = COG[COG.length - 1];
+    if(COGList.length > 0){
+        var preCOG = COGList[COGList.length - 1];
         preTime = preCOG.time;
         if(preCOG.correctLinks == correctLinks && preCOG.completeLinks == completeLinks){
             COGchanged = false;
         }
     }
 
-    var briefEdges_changed = {}
+    if(!nodesAndHints.edges_changed){
+        nodesAndHints.edges_changed = {};
+    }
+
     for (var e in edges_changed) {
         var edge = edges_changed[e];
         var supporters = edge.supporters;
@@ -572,7 +580,7 @@ function computeCOG(COG, nodesAndHints, start_time, tilesPerRow, tilesPerColumn,
         }
         wp = Number(wp).toFixed(2);
         wn = Number(wn).toFixed(2);
-        briefEdges_changed[e] = {
+        nodesAndHints.edges_changed[e] = {
             wp: wp,
             wn: wn,
             sLen: sLen,
@@ -586,12 +594,29 @@ function computeCOG(COG, nodesAndHints, start_time, tilesPerRow, tilesPerColumn,
             correctLinks: correctLinks,
             completeLinks: completeLinks,
             totalLinks: totalLinks,
-            edges_changed: briefEdges_changed
         };
-        COG.push(currentCOG);
-        //console.log(COG.length, COG);
+        COGList.push(currentCOG);
+
+        var COG = {
+            round_id: roundID,
+            time: time,
+            correctLinks: correctLinks,
+            completeLinks: completeLinks,
+            totalLinks: totalLinks,
+            edges_changed: nodesAndHints.edges_changed,
+        }
+        COGModel.create(COG, function (err) {
+            if (err) {
+                console.log(err);
+                return false;
+            } else {
+                return true;
+            }
+        });
+        nodesAndHints.edges_changed = {};
+        //console.log(COGList.length, COGList);
     }
-    return COG;
+    return COGList;
 }
 
 function computeContribution(nodesAndHints){
