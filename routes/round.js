@@ -633,6 +633,49 @@ module.exports = function (io) {
 
 
     /**
+     * Get hint ration&precision in a dirty way
+     */
+    function getHRHP(round_id) {
+        return new Promise((resolve, reject) => {
+            RoundModel.findOne({ round_id: round_id }, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (doc.winner) {
+                        UserModel.findOne({ username: doc.winner }, { _id: 0, records: 1 }, function (err, d) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                if (d) {
+                                    for (let r of d.records) {
+                                        if (r.round_id == round_id) {
+                                            let hint_ratio = 0;
+                                            let hint_precision = 0;
+                                            if (r.total_links > 0 && r.total_hints > 0) {
+                                                hint_ratio = r.hinted_links / r.total_links;
+                                                hint_precision = r.correct_hints / r.total_hints;
+                                            }
+                                            resolve({
+                                                "hint_ratio": hint_ratio,
+                                                "hint_precision": hint_precision
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }else{
+                        console.log("Winner Empty "+round_id);
+                        resolve({
+                            "hint_ratio": 0,
+                            "hint_precision": 0
+                        });
+                    }
+                }
+            });
+        });
+    }
+    /**
      * Get the data required by statistics
      */
     function getWinnerData(round_id) {
@@ -684,39 +727,39 @@ module.exports = function (io) {
             ],
             // 3 participants
             [
-                [337, 339,412],
+                [337, 339, 412, 421],
                 [338, 340],
                 [245, 246],
-                [336, 341],
+                [336, 341, 432],
                 [342],
                 [344],
-                []
+                [440, 460]
             ],
             // 4 participants
             [
                 [348],
-                [349],
-                [350],
+                [349, 422],
+                [350, 424],
                 [351],
                 [352],
-                [354],
+                [354, 426],
                 [355]
             ],
             // 5 participants
             [
                 [392],
                 [405],
-                [406],
+                [406, 441],
                 [407],
-                [408],
-                [],
-                []
+                [408,450,451],
+                [434,459],
+                [442]
             ],
             // 6 participants
             [
                 [386],
                 [388],
-                [389,390],
+                [389, 390],
                 [393],
                 [395],
                 [398],
@@ -724,43 +767,43 @@ module.exports = function (io) {
             ],
             // 7 participants
             [
-                [387,391],
+                [387, 391],
                 [394],
                 [396],
                 [397],
-                [399],
-                [],
-                []
+                [399, 438],
+                [436],
+                [439]
             ],
             // 8 participants
             [
                 [400],
-                [401],
+                [401,446],
                 [402],
                 [404],
-                [],
-                [],
-                []
+                [431],
+                [435],
+                [443]
             ],
             // 9 participants
             [
                 [409],
-                [410],
+                [410, 420],
                 [411],
                 [413],
-                [],
-                [],
-                []
+                [423],
+                [425],
+                [427]
             ],
             // 10 participants
             [
-                [261,265,367,373,375],
-                [253,254,259,267,372,376],
-                [255,256,366,371,377],
-                [257,258,264,371,378],
-                [262,263,365,370,379],
-                [266,268,363,369,380],
-                [252,361,368,381]
+                [261, 265, 367, 373, 375, 419],
+                [253, 254, 259, 267, 372, 376],
+                [255, 256, 366, 371, 377],
+                [257, 258, 264, 371, 378],
+                [262, 263, 365, 370, 379],
+                [266, 268, 363, 369, 380],
+                [252, 361, 368, 381, 427, 429, 452]
             ]
         ];
 
@@ -770,19 +813,28 @@ module.exports = function (io) {
             for (let ps = 0; ps < ids[gs].length; ps++) {
                 let average_time = 0;
                 let average_steps = 0;
+                let average_hint_ratio = 0;
+                let average_hint_precision = 0;
                 for (let i = 0; i < ids[gs][ps].length; i++) {
                     let round_id = ids[gs][ps][i];
                     let data = await getWinnerData(round_id);
                     average_time += data.time;
                     average_steps += data.steps;
+                    data = await getHRHP(round_id);
+                    average_hint_ratio += data.hint_ratio;
+                    average_hint_precision += data.hint_precision;
                 }
                 average_time /= ids[gs][ps].length;
                 average_steps /= ids[gs][ps].length;
+                average_hint_ratio /= ids[gs][ps].length;
+                average_hint_precision /= ids[gs][ps].length;
                 results.push({
                     "group_size": gs + 1,
                     "puzzle_size": ps + 4,
                     "average_time": average_time.toFixed(3),
-                    "average_steps": average_steps.toFixed(3)
+                    "average_steps": average_steps.toFixed(3),
+                    "average_hint_ratio": average_hint_ratio.toFixed(5),
+                    "average_hint_precision": average_hint_precision.toFixed(5)
                 });
             }
         }

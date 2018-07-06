@@ -106,6 +106,6 @@ function genRawImages(srcFolder, dstFolder, min, max) {
 }
 // genThumbs("./public/images/raw/*.jpg");
 
-genRawImages("./public/images/original/pig&angel.jpg", "./public/images/raw/", 4, 10);
+genRawImages("./public/images/original/run3.jpg", "./public/images/raw/", 4, 7);
 
 // checkSizes("./public/images/raw/*.jpg");
