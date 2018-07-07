@@ -90,7 +90,8 @@ for r in rounds:
 	cogs = list(db['cogs'].find({'round_id': round_id}))
 	round_COG = []
 	if len(cogs) > 0 and 'edges_changed' in cogs[0]:
-		cog_json['correct_cog'][round_id] = r['COG']
+		aver_strongLinks_ratio_for_cog = 0.0
+		strongLinks_ratio_time_for_cog = 0.0
 		for cog in cogs:
 			nodes = {}
 			hints = {}
@@ -119,10 +120,22 @@ for r in rounds:
 			completeLinks = cog['completeLinks']
 			strongLinks_sum += strongLinks
 			completeLinks_sum += completeLinks
-			ratio_sum += (strongLinks * 1.0) / (completeLinks * 1.0) 
+			ratio_sum += (strongLinks * 1.0) / (completeLinks * 1.0)
+			aver_strongLinks_ratio_for_cog  += (strongLinks * 1.0) / (completeLinks * 1.0)
 			ratio_count += 1.0
+			strongLinks_ratio_time_for_cog += 1.0
+		cog_json['correct_cog'][round_id] = {
+			'COG': r['COG'],
+			'puzzle_size': r['tilesPerRow'],
+			'group_size': r['players_num'],
+			'strongLinks_ratio': aver_strongLinks_ratio_for_cog / strongLinks_ratio_time_for_cog
+		}
 	elif len(r['COG']) > 0:
-		cog_json['incorrect_cog'][round_id] = r['COG']
+		cog_json['correct_cog'][round_id] = {
+			'COG': r['COG'],
+			'puzzle_size': r['tilesPerRow'],
+			'group_size': r['players_num']
+		}
 
 aver_ratio = ratio_sum / ratio_count
 sum_ratio = (strongLinks_sum * 1.0) / (completeLinks_sum * 1.0) 
