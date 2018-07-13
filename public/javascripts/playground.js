@@ -358,6 +358,7 @@ function renderRoundList(data) {
         var roundCardTitle = roundCard.find('.roundcard-title');
         var roundCardNum = roundCard.find('.roundcard-num');
         var roundCardJoin = roundCard.find('.roundcard-join');
+        roundCardJoin.attr('id', roundID);
 
         if (admin == "true") {
             // roundCardImage.attr('src', round.image);
@@ -372,6 +373,7 @@ function renderRoundList(data) {
         roundCard.find('.roundcard-level').text(round.level);
         roundCardNum.text(round.players.length + '/' + round.players_num);
         roundCardJoin.click(function () {
+            var roundID = $(this).attr('id');
             getRound(roundID);
         });
         for (var player of round.players) {
