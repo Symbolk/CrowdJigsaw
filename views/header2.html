@@ -68,7 +68,7 @@ desired effect
 |               | sidebar-mini                            |
 |---------------------------------------------------------|
 -->
-<body class="hold-transition skin-blue-light sidebar-mini">
+<body class="hold-transition skin-blue-light sidebar-mini" onload="detectBrowser()">
 <div class="wrapper">
 
   <!-- Main Header -->
@@ -226,4 +226,11 @@ desired effect
           context.fillText(name, fontSize, fontSize);
           $('.head-sidebar').attr('src', canvas.toDataURL("image/png"));
       });
+      function detectBrowser()
+      {
+          var ua = window.navigator.userAgent;
+          var isChrome = ua.indexOf("Chrome") && window.chrome;
+          if (!isChrome)
+          {alert("Chrome is the only browser we support, please use Chrome!")}
+      }
   </script>
