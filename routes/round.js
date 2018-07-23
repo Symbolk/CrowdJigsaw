@@ -41,8 +41,6 @@ function createRecord(player_name, round_id, join_time) {
     UserModel.findOneAndUpdate(condition, operation, function (err) {
         if (err) {
             console.log(err);
-        } else {
-            console.log(player_name + ' joins Round' + round_id);
         }
     });
 }
@@ -77,7 +75,6 @@ module.exports = function (io) {
 
     io.on('connection', function (socket) {
         socket.on('join', function (data) {
-            // console.log(data);
             socket.emit('hello', { hello: 'Hello ' + data.player_name });
         });
         socket.on('iSolved', function (data) {

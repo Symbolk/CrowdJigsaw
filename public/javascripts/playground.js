@@ -2,6 +2,9 @@ var socket = io.connect(requrl);
 socket.on('roundChanged', function (data) {
     getJoinableRounds();
 });
+socket.on('hello', function (data) {
+    console.log(data);
+});
 var imgReadyCount = 0;
 var roundsList = new Array();
 var roundsIDList = new Array();
@@ -529,9 +532,6 @@ function joinRound(roundID) {
     //  * Report to the server
     //  */
     socket.emit('join', { player_name: username });
-    socket.on('hello', function (data) {
-        console.log(data);
-    });
 }
 
 function startRound(roundID) {
