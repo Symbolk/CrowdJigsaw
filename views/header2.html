@@ -229,7 +229,8 @@ desired effect
       function detectBrowser()
       {
           var ua = window.navigator.userAgent;
-          var isChrome = ua.indexOf("Chrome") && window.chrome;
+          var isEdge = ua.indexOf("Edge")!=-1
+          var isChrome = ua.indexOf("Chrome")!=-1 && ua.indexOf("Safari")!=-1 && !isEdge;
           if (!isChrome)
           {alert("Chrome is the only browser we support, please use Chrome!")}
       }
