@@ -319,7 +319,7 @@ function JigsawPuzzle(config) {
 
     this.maxSubGraphSize = 0;
 
-    this.unsureHintsColor = ["red", "purple", "green", "blue"];
+    this.unsureHintsColor = ["red"];
     this.colorBorderWidth = 10;
 
     this.hintedTilesMap = new Array();
@@ -1455,7 +1455,9 @@ function JigsawPuzzle(config) {
                 }
             }
 
-            processUnsureHints(data.unsureHints);
+            if (!shouldSave){
+                processUnsureHints(data.unsureHints);
+            }
             instance.hintsShowing = false;
         }
         else {
@@ -1920,7 +1922,9 @@ function JigsawPuzzle(config) {
                 }
             }
 
-            processUnsureHints(data.unsureHints, data.selectedTileIndexes);
+            if (!shouldSave){
+                processUnsureHints(data.unsureHints, data.selectedTileIndexes);
+            }
 
             instance.hintsShowing = false;
         }

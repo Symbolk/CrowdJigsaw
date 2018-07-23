@@ -337,7 +337,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                         let unfinished = new Array();
                         for (let d of docs) {
                             for (let r of d.records) {
-                                if (r.round_id == req.params.round_id) {
+                                if (r.round_id == req.params.round_id && r.start_time != "-1" ) {
                                     let hintPercent = 0;
                                     let correctPercent = 0;
                                     if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
