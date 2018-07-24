@@ -122,8 +122,8 @@ function getNodesAndHints(roundID, tilesNum, edges_saved){
         nodesAndHints = roundNodesAndHints[roundID];
 
         for (let e in edges_saved) {
-            let eedge = edges_saved[e];
-            updateNodesAndEdges(roundID, tilesNum, eedge, edges_saved);
+            let edge = edges_saved[e];
+            updateNodesAndEdges(nodesAndHints, edge);
         }
     }
     return nodesAndHints;
