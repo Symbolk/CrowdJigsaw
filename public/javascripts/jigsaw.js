@@ -501,6 +501,17 @@ function JigsawPuzzle(config) {
             if (instance.gameStarted && !instance.realStepsCounted && !beHinted) {
                 instance.realSteps += 1;
                 document.getElementById("steps").innerHTML = instance.realSteps;
+
+                instance.lastStepTime = instance.thisStepTime;
+                instance.thisStepTime = time;
+                clearTimeout(instance.askHelpTimeout);
+                var delta = Number(instance.thisStepTime - instance.lastStepTime);
+                if (delta >= 2 && instance.linksChangedCount >= 0) {
+                    console.log("Delta", delta);
+                    instance.linksChangedCount = 0;
+                    instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
+                }
+                
                 instance.realStepsCounted = true;
             }
 
@@ -1516,16 +1527,6 @@ function JigsawPuzzle(config) {
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps += 1;
                 instance.realStepsCounted = false;
-
-                instance.lastStepTime = instance.thisStepTime;
-                instance.thisStepTime = time;
-                clearTimeout(instance.askHelpTimeout);
-                var delta = Number(instance.thisStepTime - instance.lastStepTime);
-                if (delta >= 2 && instance.linksChangedCount >= 0) {
-                    console.log("Delta", delta);
-                    instance.linksChangedCount = 0;
-                    instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
-                }
 
                 document.getElementById("steps").innerHTML = instance.realSteps;
                 $('#undo_button').css('display', 'inline');
