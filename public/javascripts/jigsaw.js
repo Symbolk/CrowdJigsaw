@@ -2084,36 +2084,36 @@ function JigsawPuzzle(config) {
             }
         }
 
-        for (var i = 0; i < instance.tiles.length; i++) {
-            var tile = instance.tiles[i];
-            if (tile.differentColor.length > 0) {
-                for (var j = 0; j < tile.differentColor.length; j++) {
-                    var edgeIndex = tile.differentColor[j];
-                    switch (edgeIndex) {
-                        case 0:
-                            //tile.topEdge.strokeColor.hue += 1;
-                            changeOpacity(tile.topEdge);
-                            break;
-                        case 1:
-                            //tile.rightEdge.strokeColor.hue += 1;
-                            changeOpacity(tile.rightEdge);
-                            break;
-                        case 2:
-                            //tile.bottomEdge.strokeColor.hue += 1;
-                            changeOpacity(tile.bottomEdge);
-                            break;
-                        case 3:
-                            //tile.leftEdge.strokeColor.hue += 1;
-                            changeOpacity(tile.leftEdge);
-                            break;
-                        default:
-                            //tile.colorBorder.strokeColor.hue += 1;
-                            changeOpacity(tile.colorBorder);
-                            break;
-                    }
-                }
-            }
-        }
+        // for (var i = 0; i < instance.tiles.length; i++) {
+        //     var tile = instance.tiles[i];
+        //     if (tile.differentColor.length > 0) {
+        //         for (var j = 0; j < tile.differentColor.length; j++) {
+        //             var edgeIndex = tile.differentColor[j];
+        //             switch (edgeIndex) {
+        //                 case 0:
+        //                     //tile.topEdge.strokeColor.hue += 1;
+        //                     changeOpacity(tile.topEdge);
+        //                     break;
+        //                 case 1:
+        //                     //tile.rightEdge.strokeColor.hue += 1;
+        //                     changeOpacity(tile.rightEdge);
+        //                     break;
+        //                 case 2:
+        //                     //tile.bottomEdge.strokeColor.hue += 1;
+        //                     changeOpacity(tile.bottomEdge);
+        //                     break;
+        //                 case 3:
+        //                     //tile.leftEdge.strokeColor.hue += 1;
+        //                     changeOpacity(tile.leftEdge);
+        //                     break;
+        //                 default:
+        //                     //tile.colorBorder.strokeColor.hue += 1;
+        //                     changeOpacity(tile.colorBorder);
+        //                     break;
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     this.dragTile = function (delta) {
