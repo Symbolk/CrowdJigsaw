@@ -125,17 +125,13 @@
                         </div>
                         <%} %>
             </div>
+            <% include newround1.html %>
             <% include roundcard.html %>
                 <% include rounddetail1.html %>
-                    <% include newround1.html %>
                     <% if(admin==true){%>
                         <% include roundimageselector.html %>
                     <% } %>
                             <% include roundimageshower.html %>
-
-        </section>
-        <!-- /.content -->
-    </div>
     <!-- /.content-wrapper -->
     <script src="/javascripts/jquery.min.js"></script>
     <script src="/javascripts/bootstrap.min.js"></script>
@@ -144,6 +140,9 @@
     <script type="text/javascript" src="/javascripts/socket.io.js"></script>
     <script type="text/javascript" src="/javascripts/main.js"></script>
     <script type="text/javascript" src="/javascripts/playground.js"></script>
+    </section>
+<!-- /.content -->
+</div>
     <% if(admin!=true){%>
         <% include roundimageselector.html %>
     <% } %>
