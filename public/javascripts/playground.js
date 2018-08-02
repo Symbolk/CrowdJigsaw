@@ -1,4 +1,4 @@
-var socket = io.connect(requrl);
+var socket = io.connect(window.location.protocol + '//' + window.location.host + '/');
 socket.on('roundChanged', function (data) {
     getJoinableRounds();
 });
@@ -34,6 +34,16 @@ function getSelectorImage() {
             imgReadyCount += 1;
             if (imgReadyCount >= puzzleImageSrcSet.size) {
                 allImageReadyCallback();
+                $.amaran({
+                    'title': 'Resource Loaded',
+                    'message': 'Resource Loaded!',
+                    'inEffect': 'slideRight',
+                    'cssanimationOut': 'zoomOutUp',
+                    'position': "top right",
+                    'delay': 2000,
+                    'closeOnClick': true,
+                    'closeButton': true
+                });
                 console.log(imgReadyCount + ' images loaded.');
             }
         };
