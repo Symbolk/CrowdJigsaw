@@ -253,9 +253,10 @@ function initSelectImageDialog() {
 
     $('#newround_image_button').click(function () {
         $('#newround_image_wrap').css('display', '');
-        selectImageDialog.showModal();
+        if (!selectImageDialog.open) {
+            selectImageDialog.showModal();
+        }
     });
-
 }
 
 

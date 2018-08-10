@@ -184,7 +184,6 @@ if (server) {
         if(err){
           console.log(err);
         }else{
-          console.log(docs.length);
           socket.emit('refresh', { thumblist: docs });
         }
       });
