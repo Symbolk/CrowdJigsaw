@@ -169,7 +169,7 @@ if (server) {
   });
   io.on('connection', function (socket) {
     // select the simple puzzles from the database
-    ImagesModel.find({ 'row_num': { $lte: 6 } }, function (err, docs) {
+    ImagesModel.find({ 'row_num': { $lte: 5 } }, function (err, docs) {
       if (err) {
         console.log(err);
       } else {

@@ -34,7 +34,7 @@
             data.thumblist.forEach(function (item, index, input) {
                 puzzleImageSrcSet.add(item.image_path);
                 if (item.image_path.indexOf("4x4") > -1 || item.image_path.indexOf("5x5") > -1) {
-                    simpleImageSrcSet.add(item);
+                    simpleImageSrcSet.add(item.image_path);
                 }
             });
             getSelectorImage();

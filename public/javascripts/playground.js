@@ -44,9 +44,9 @@ function getSelectorImage() {
         $(img).addClass('selector-image');
         img.onload = function () {
             imgReadyCount += 1;
-            if (imgReadyCount >= puzzleImageSrcSet.size) {
+            if (imgReadyCount >= simpleImageSrcSet.size + pageCount * 20 + 1) {
                 allImageReadyCallback();
-                // console.log(imgReadyCount + ' images loaded.');
+                console.log(imgReadyCount + ' images loaded.');
             }
         };
         template.find('.mdl-card__media').append(img);
@@ -128,6 +128,7 @@ function initRandomRoundDialog() {
     newRoundCreateButton.click(function () {
 
         var imgSrc = Array.from(simpleImageSrcSet)[Math.floor((Math.random() * (simpleImageSrcSet.size - 1)))];
+        console.log(imgSrc);
         var playersNum = 1;
         var shape = 'jagged';
         var level = 1;
