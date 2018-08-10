@@ -42,6 +42,6 @@ var UserSchema = new mongoose.Schema({
 
 // UserSchema.set('collection', 'users');
 // var User = mongoose.model('User', UserSchema, 'users');
-console.log('User Schema Created.');
+console.log('[OK] User Schema Created.');
 
 exports.User = mongoose.model('User', UserSchema);

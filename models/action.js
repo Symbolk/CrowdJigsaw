@@ -13,6 +13,6 @@ var ActionSchema=new mongoose.Schema({
         contribution: { type: Number } // the player's contribution of this action
 });
 
-console.log('Action Schema Created.');
+console.log('[OK] Action Schema Created.');
 
 exports.Action = mongoose.model('Action', ActionSchema);

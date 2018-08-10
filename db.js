@@ -19,21 +19,21 @@ const db = mongoose.connection;
 
 db.on('error', function (err) {
     db.close();
-    console.log('Mongoose connection error: ' + err);
+    console.log('[DB] Mongoose connection error: ' + err);
 });
 
 db.once('open', function () {
-    console.log('Mongoose connecting to ' + DB_URL);
+    console.log('[DB] Mongoose connecting to ' + DB_URL);
 });
 
 db.on('connected', function () {
-    console.log('Mongoose connected to ' + DB_URL);
+    console.log('[DB] Mongoose connected to ' + DB_URL);
 });
 
 
 db.on('disconnected', function () {
     db.close()
-    console.log('Mongoose connection disconnected');
+    console.log('[DB] Mongoose connection disconnected');
 });
 
 module.exports = mongoose;

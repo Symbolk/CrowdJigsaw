@@ -5,6 +5,17 @@ socket.on('roundChanged', function (data) {
 socket.on('hello', function (data) {
     console.log(data);
 });
+// get the next page, and refresh the thumblist
+socket.on("refresh", function (data) {
+    $('.more_images').parent().parent().remove();
+    puzzleImageSrcSet = new Set();
+    if (data.thumblist.length > 0) {
+        data.thumblist.forEach(function (item, index, input) {
+            puzzleImageSrcSet.add(item.image_path);
+        });
+        getSelectorImage();
+    }
+});
 var imgReadyCount = 0;
 var roundsList = new Array();
 var roundsIDList = new Array();
@@ -21,6 +32,7 @@ var newRoundCreateButton = $('#newround_createbutton');
 var newRoundCancelButton = $('#newround_cancelbutton');
 var selectImageDialog = $('#selectimage_dialog').get(0);
 var mySlider = $("#newround_number_slider").slider();
+var pageCount = 0;
 
 function getSelectorImage() {
     for (var thumb of puzzleImageSrcSet) {
@@ -34,24 +46,23 @@ function getSelectorImage() {
             imgReadyCount += 1;
             if (imgReadyCount >= puzzleImageSrcSet.size) {
                 allImageReadyCallback();
-                $.amaran({
-                    'title': 'Resource Loaded',
-                    'message': 'Resource Loaded!',
-                    'inEffect': 'slideRight',
-                    'cssanimationOut': 'zoomOutUp',
-                    'position': "top right",
-                    'delay': 2000,
-                    'closeOnClick': true,
-                    'closeButton': true
-                });
-                console.log(imgReadyCount + ' images loaded.');
+                // console.log(imgReadyCount + ' images loaded.');
             }
         };
         template.find('.mdl-card__media').append(img);
         template.find('.mdl-card__title').append('<p class="text-center"><strong>'
-            + imgSrc.slice(11, -10) + '</strong></p>')
+            + imgSrc.slice(11, -10) + '</strong></p>');
         template.appendTo('#selectimage_table');
     }
+    template = $($('#selectimage_template').html());
+    template.find('.mdl-card__media').append('<button class="more_images button button-highlight button-box button-giant button-longshadow-right button-longshadow-expand"><i class="fa fa-chevron-right"></i></button>');
+    template.find('.mdl-card__title').append('<p class="text-center"><strong> Load More Images </strong></p>');
+    template.appendTo('#selectimage_table');
+    $('.more_images').click(function () {
+        socket.emit('nextPage', { pageCount: pageCount });
+        pageCount += 1;
+        console.log('Page ' + pageCount);
+    });
     $('.selector-image').click(function () {
         var imgSrc = $(this).attr('src');
         $('#newround_image').attr('src', imgSrc);

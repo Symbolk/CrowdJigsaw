@@ -27,7 +27,7 @@ var EdgeSchema = new mongoose.Schema({
 });
 
 // var Link = mongoose.model('Link', NodeSchema, 'links');
-console.log('Edge Schema Created.');
+console.log('[OK] Edge Schema Created.');
 
 
 exports.Edge = mongoose.model('Edge', EdgeSchema);

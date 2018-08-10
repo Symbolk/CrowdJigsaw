@@ -9,6 +9,6 @@ var COGSchema=new mongoose.Schema({
         edges_changed: { type: Object, required: true },
 });
 
-console.log('COG Schema Created.');
+console.log('[OK] COG Schema Created.');
 
 exports.COG = mongoose.model('COG', COGSchema);

@@ -5,8 +5,8 @@ var RoundSchema = new mongoose.Schema({
     round_id: { type: Number, required: true, unique: true, index: true }, //inc
     // puzzle info
     image: { type: String, required: true }, //image url
-    imageWidth: { type: Number}, //image url
-    imageHeight: { type: Number}, //image url
+    imageWidth: { type: Number},
+    imageHeight: { type: Number},
     shape: { type: String, required: true }, // jagged or square
     tileWidth: {type: Number, required: true, default: 64},
     shapeArray: { type: String, default: "" }, // jagged or square
@@ -56,7 +56,7 @@ var RoundSchema = new mongoose.Schema({
 
 
 // var Round = mongoose.model('Round', RoundSchema, 'rounds');
-console.log('Round Schema Created.');
+console.log('[OK] Round Schema Created.');
 
 
 exports.Round = mongoose.model('Round', RoundSchema);

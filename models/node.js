@@ -69,6 +69,6 @@ var NodeSchema = new mongoose.Schema({
     }]
 });
 
-console.log('Node Schema Created.');
+console.log('[OK] Node Schema Created.');
 
 exports.Node = mongoose.model('Node', NodeSchema);

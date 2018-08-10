@@ -8,6 +8,7 @@ const session = require('express-session');
 const ejs = require('ejs');
 var fs = require('fs');
 const glob = require('glob');
+var gm = require('gm');
 var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
@@ -134,15 +135,59 @@ if (app.get('env') === 'development') {
 /**
  * socket.io to send&receive the msg
  */
+var ImagesModel = require('./models/images').Images;
 if (server) {
+  // update the image paths to database: "images/raw/starter_thumb.png"
+  // empty the last database and save the latest
+  ImagesModel.remove({}, function (err) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log('[OK] Images Collection Rebuilt.');
+      glob('./public/images/raw/*_thumb.jpg', function (err, files) {
+        if (err) {
+          console.log(err);
+        } else {
+          var thumbnails = files.map(f => f.substring(9));
+          thumbnails.forEach(function (item, index, input) {
+            let num = Number(item.split('_')[1].split('x')[0]);
+            if (num) {
+              ImagesModel.create({
+                image_path: item,
+                row_num: num,
+                col_num: num
+              }, function (err) {
+                if (err) {
+                  console.log(err);
+                }
+              });
+            }
+          });
+        };
+      });
+    }
+  });
   io.on('connection', function (socket) {
-    glob('./public/images/raw/*_thumb.jpg', function (err, files) {
+    // select the simple puzzles from the database
+    ImagesModel.find({ 'row_num': { $lte: 6 } }, function (err, docs) {
       if (err) {
         console.log(err);
       } else {
-        var thumbnails = files.map(f => f.substring(9));
-        socket.emit('thumbnails', { thumblist: thumbnails });
+        socket.emit('thumbnails', { thumblist: docs });
       }
+    });
+    // more images listener
+    socket.on('nextPage', function (data) {
+      // select the next n results and send
+      let pageSize = 20;
+      ImagesModel.find({}, null, { skip: pageSize * data.pageCount, limit: pageSize }, function (err, docs) {
+        if(err){
+          console.log(err);
+        }else{
+          console.log(docs.length);
+          socket.emit('refresh', { thumblist: docs });
+        }
+      });
     });
   });
 }
