@@ -36201,7 +36201,7 @@ Graph3d.prototype._redrawSurfaceGraphPoint = function (ctx, point) {
   if (topSideVisible) {
 
     // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-    var zAvg = (point.point.z + right.point.z + top.point.z + cross.point.z) / 4;
+    var zAvg = point.point.z;
     var h = (1 - (zAvg - this.zRange.min) * this.scale.z / this.verticalRatio) * 240;
     var s = 1; // saturation
     var v;
