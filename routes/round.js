@@ -661,8 +661,8 @@ module.exports = function (io) {
                                 }
                             }
                         });
-                    }else{
-                        console.log("Winner Empty "+round_id);
+                    } else {
+                        console.log("Winner Empty " + round_id);
                         resolve({
                             "hint_ratio": 0,
                             "hint_precision": 0
@@ -681,17 +681,19 @@ module.exports = function (io) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (doc.winner_time != "-1" && doc.winner_steps != -1) {
-                        let time = doc.winner_time.split(":");
-                        let h = parseInt(time[0]);
-                        let m = parseInt(time[1]);
-                        let s = parseInt(time[2]);
-                        resolve({
-                            "time": h * 3600 + m * 60 + s,
-                            "steps": doc.winner_steps
-                        });
-                    } else {
-                        console.log("Empty: " + round_id);
+                    if (doc) {
+                        if (doc.winner_time != "-1" && doc.winner_steps != -1) {
+                            let time = doc.winner_time.split(":");
+                            let h = parseInt(time[0]);
+                            let m = parseInt(time[1]);
+                            let s = parseInt(time[2]);
+                            resolve({
+                                "time": h * 3600 + m * 60 + s,
+                                "steps": doc.winner_steps
+                            });
+                        } else {
+                            console.log("Empty: " + round_id);
+                        }
                     }
                 }
             });
@@ -715,21 +717,21 @@ module.exports = function (io) {
             // 2 participants
             [
                 [240, 331],
-                [332, 334],
-                [247, 333],
+                [332, 334, 525],
+                [247, 333, 498],
                 [335],
                 [356],
-                [357],
-                [347]
+                [357, 527],
+                [347, 481, 482]
             ],
             // 3 participants
             [
                 [337, 339, 412, 421],
                 [338, 340],
-                [245, 246],
-                [336, 341, 432],
+                [245, 246, 522],
+                [336, 341, 432, 523],
                 [342],
-                [344],
+                [344, 524],
                 [440, 460]
             ],
             // 4 participants
@@ -740,7 +742,7 @@ module.exports = function (io) {
                 [351],
                 [352],
                 [354, 426],
-                [355]
+                [355, 488, 489]
             ],
             // 5 participants
             [
@@ -748,9 +750,9 @@ module.exports = function (io) {
                 [405],
                 [406, 441],
                 [407],
-                [408,450,451],
-                [434,459],
-                [442]
+                [408, 450, 451],
+                [434, 459],
+                [442, 487]
             ],
             // 6 participants
             [
@@ -760,7 +762,7 @@ module.exports = function (io) {
                 [393],
                 [395],
                 [398],
-                [403]
+                [403, 486]
             ],
             // 7 participants
             [
@@ -770,37 +772,37 @@ module.exports = function (io) {
                 [397],
                 [399, 438],
                 [436],
-                [439]
+                [439, 456, 252]
             ],
             // 8 participants
             [
                 [400],
-                [401,446],
+                [401, 446],
                 [402],
                 [404],
                 [431],
                 [435],
-                [443]
+                [443, 485]
             ],
             // 9 participants
             [
-                [409],
+                [409, 483],
                 [410, 420],
-                [411],
+                [411, 484],
                 [413],
                 [423],
-                [425],
-                [427]
+                [425, 477],
+                [427, 480]
             ],
             // 10 participants
             [
-                [261, 265, 367, 373, 375, 419],
-                [253, 254, 259, 267, 372, 376],
-                [255, 256, 366, 371, 377],
-                [257, 258, 264, 371, 378],
-                [262, 263, 365, 370, 379],
-                [266, 268, 363, 369, 380],
-                [252, 361, 368, 381, 427, 429, 452]
+                [261, 265, 367, 373, 375, 419, 471],
+                [253, 254, 259, 267, 372, 376, 472],
+                [255, 256, 366, 371, 377, 475],
+                [257, 258, 264, 371, 378, 474],
+                [262, 263, 365, 370, 379, 476],
+                [266, 268, 363, 369, 380, 478],
+                [252, 361, 368, 381, 427, 429, 452, 479]
             ]
         ];
 
