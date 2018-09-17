@@ -43,42 +43,17 @@ function calcContri(operation, num_before) {
 /**
  * Write one action into the action sequence
  */
-function writeAction(NAME, round_id, operation, from, direction, to, contri) {
-    ActionModel.find({ round_id: round_id }, function (err, docs) {
+function saveAction(round_id, time, player_name, links_size) {
+    var action = {
+        round_id: round_id,
+        time: time,
+        player_name: player_name,
+        links_size: links_size
+    }
+    ActionModel.create(action, function (err) {
         if (err) {
             console.log(err);
-        } else {
-            let aid = docs.length;
-            var action = {
-                round_id: round_id,
-                action_id: aid,
-                time_stamp: util.getNowFormatDate(),
-                player_name: NAME,
-                operation: operation,
-                from: from,
-                direction: direction,
-                to: to,
-                contribution: contri
-            };
-            ActionModel.create(action, function (err) {
-                if (err) {
-                    console.log(err);
-                    return false;
-                } else {
-                    return true;
-                }
-            });
-            // Update the players contribution in this round
-            RoundModel.findOneAndUpdate(
-                { round_id: round_id, "players.player_name": NAME },
-                { $inc: { "players.$.contribution": contri } },
-                // { new: true },
-                function (err) {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-        }
+        } 
     });
 }
 
@@ -330,6 +305,8 @@ function update(data) {
         } else {
             if (doc) {
                 let roundStartTime = Date.parse(doc.start_time);
+                let time = (new Date()).getTime() - roundStartTime;
+                saveAction(roundID, time, data.player_name, data.edges);
                 if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
                     // create the edges object & update db directly
                     let edges_saved = {};
@@ -352,7 +329,7 @@ function update(data) {
                     if(constants.duration > 0){
                         generateHints(nodesAndHints);
                     }
-                    var COG = computeCOG(roundID, doc.COG, edges_saved, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn);
+                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG  }}, function (err) {
@@ -440,7 +417,7 @@ function update(data) {
                     }
                     checkUnsureHints(nodesAndHints);
 
-                    var COG = computeCOG(roundID, doc.COG, edges_saved, roundStartTime, doc.tilesPerRow, doc.tilesPerColumn);
+                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG } }, function (err) {
@@ -454,12 +431,10 @@ function update(data) {
     });
 }
 
-function computeCOG(roundID, COGList, edges_saved, start_time, tilesPerRow, tilesPerColumn){
+function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerColumn){
     if(!COGList){
         COGList = new Array();
     }
-
-    var time = (new Date()).getTime() - start_time;
 
     var totalLinks = 2 * tilesPerRow * tilesPerColumn - tilesPerRow -tilesPerColumn;
 
