@@ -319,7 +319,7 @@ function update(data) {
                         let opposers = {};
                         let weight = 0;
                         if (e.size > 0) {
-                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * e.nodes;
                             weight += supporters[data.player_name];
                         }
                         let confidence = 1;
@@ -350,21 +350,21 @@ function update(data) {
                             let opposers = edges_saved[temp].opposers;
                             if (e.size > 0) {
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * e.nodes;
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * e.nodes;
                                     delete opposers[data.player_name];
                                 } else {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * e.nodes;
                                 }
                             } else { // e.size<0(e.size==0?)
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = 0 - e.size;
+                                    opposers[data.player_name] = 0 - e.size * e.nodes;
                                     delete supporters[data.player_name];
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = 0 - e.size;
+                                    opposers[data.player_name] = 0 - e.size * e.nodes;
                                 } else {
-                                    opposers[data.player_name] = 0 - e.size;
+                                    opposers[data.player_name] = 0 - e.size * e.nodes;
                                 }
                             }
                         } else {
@@ -374,10 +374,10 @@ function update(data) {
                             let opposers = {};
                             let weight = 0;
                             if (e.size > 0) {
-                                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * e.nodes;
                                 weight += supporters[data.player_name];
                             } else {
-                                opposers[data.player_name] = 0 - e.size;
+                                opposers[data.player_name] = 0 - e.size * e.nodes;
                             }
                             let confidence = 1;
                             edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);

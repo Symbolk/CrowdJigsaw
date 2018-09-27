@@ -300,6 +300,7 @@ function JigsawPuzzle(config) {
     this.dfsGraphLinksMap = new Array();
     this.subGraphData = new Array();
     this.removeLinksData = new Array();
+    this.subGraphNodesCount = 0;
 
     this.hintsShowing = false;
     this.undoing = false;
@@ -365,6 +366,7 @@ function JigsawPuzzle(config) {
             tile.preCellPosition = tile.cellPosition;
             if (!tile.subGraphSize) {
                 tile.subGraphSize = 0;
+                tile.nodesCount = 1;
             }
             instance.groups[i] = i;
             instance.sizes[i] = 0;
@@ -641,6 +643,7 @@ function JigsawPuzzle(config) {
                 var tile = instance.tiles[tilePos.index];
                 placeTile(tile, new Point(tilePos.x, tilePos.y));
                 tile.subGraphSize = tilePos.subGraphSize;
+                tile.nodesCount = tilePos.nodesCount;
                 tile.moved = false; // if one tile just clicked or actually moved(if moved, opacity=1)
                 tile.aroundTilesChanged = false;
                 tile.noAroundTiles = true;
@@ -1329,6 +1332,7 @@ function JigsawPuzzle(config) {
             return;
         }
         instance.dfsGraphLinksMap[tileIndex] = new Array();
+        instance.subGraphNodesCount += 1;
         var tile = instance.tiles[tileIndex];
         for (var i = 0; i < tile.aroundTiles.length; i++) {
             var aroundTileIndex = tile.aroundTiles[i];
@@ -1345,8 +1349,10 @@ function JigsawPuzzle(config) {
 
     function updateGraphSize(preSize) {
         var size = instance.subGraphData.length - preSize;
+        var nodes = instance.subGraphNodesCount;
         for (var i = preSize; i < instance.subGraphData.length; i++) {
             instance.subGraphData[i].size = size;
+            instance.subGraphData[i].nodes = nodes;
         }
     }
 
@@ -1595,6 +1601,8 @@ function JigsawPuzzle(config) {
     })
     */
     function computeSubGraph(tile) {
+        instance.subGraphNodesCount = 0;
+
         var selectedTileIndex = getTileIndex(tile);
         var aroundTilesBefore = tile.oldAroundTiles;
         var aroundTilesAfter = tile.aroundTiles;
@@ -1604,6 +1612,7 @@ function JigsawPuzzle(config) {
         if (preSize < instance.subGraphData.length) {
             updateGraphSize(preSize);
         }
+        instance.subGraphNodesCount = 0;
 
         for (var i = 0; i < 4; i++) {
             if (aroundTilesBefore[i] >= 0) {
@@ -1612,20 +1621,23 @@ function JigsawPuzzle(config) {
                 if (preSize < instance.subGraphData.length) {
                     updateGraphSize(preSize);
                 }
+                instance.subGraphNodesCount = 0;
 
                 if (aroundTilesBefore[i] != aroundTilesAfter[i]) {
                     var beHinted = (aroundTilesBefore[i] == Math.floor(tile.hintedLinks[i]));
                     removeLink = generateLinksTags(selectedTileIndex, aroundTilesBefore[i], i, beHinted);
                     removeLink.size = -tile.subGraphSize;
+                    removeLink.nodes = tile.nodesCount;
                     instance.removeLinksData.push(removeLink);
                 }
             }
-            if (aroundTilesAfter[i] >= 0) {
+            if (aroundTilesAfter[i] >= 0) { // useless
                 preSize = instance.subGraphData.length;
                 dfsGraph(aroundTilesAfter[i]);
                 if (preSize < instance.subGraphData.length) {
                     updateGraphSize(preSize);
                 }
+                instance.subGraphNodesCount = 0;
             }
         }
 
@@ -1643,10 +1655,14 @@ function JigsawPuzzle(config) {
             if (linksData.size < 0) {
                 xTile.subGraphSize = 0;
                 yTile.subGraphSize = 0;
+                xTile.nodesCount = 1;
+                yTile.nodesCount = 1;
             }
             else {
                 xTile.subGraphSize = linksData.size;
                 yTile.subGraphSize = linksData.size;
+                xTile.nodesCount = linksData.nodes;
+                yTile.nodesCount = linksData.nodes;
                 if (!xTile.allAroundByTiles) {
                     instance.getHintsArray[linksData.x] = true;
                 }
@@ -2260,6 +2276,7 @@ function JigsawPuzzle(config) {
             var tilePos = {
                 index: i,
                 subGraphSize: tile.subGraphSize,
+                nodesCount: tile.nodesCount,
                 x: tile.cellPosition.x,
                 y: tile.cellPosition.y,
             };
