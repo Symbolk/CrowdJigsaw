@@ -1,4 +1,27 @@
 var socket = io.connect(window.location.protocol + '//' + window.location.host + '/');
+//roundimageselector.js
+var puzzleImageSrcSet = new Set();
+//puzzleImageSrcSet.add("images/raw/starter_thumb.png");
+// only relatively simple images in random rounds
+var simpleImageSrcSet = new Set();
+//var puzzle_size;
+socket.on('simple_thumbnails', function (data) {
+    if (data.thumblist.length > 0) {
+        data.thumblist.forEach(function (item, index, input) {
+            simpleImageSrcSet.add(item.image_path);
+        });
+    }
+});
+socket.on('thumbnails', function (data) {
+    if (data.thumblist.length > 0) {
+        data.thumblist.forEach(function (item, index, input) {
+            puzzleImageSrcSet.add(item.image_path);
+        });
+        getSelectorImage();
+    }
+});
+
+
 socket.on('roundChanged', function (data) {
     getJoinableRounds();
 });
@@ -32,7 +55,24 @@ var newRoundCreateButton = $('#newround_createbutton');
 var newRoundCancelButton = $('#newround_cancelbutton');
 var selectImageDialog = $('#selectimage_dialog').get(0);
 var mySlider = $("#newround_number_slider").slider();
+var mySlider2 = $("#puzzle_size_slider").slider();
 var pageCount = 0;
+var theOnlyNewRoundDialog = false;
+var selected_puzzle_size = mySlider2.slider('getValue');
+socket.emit('puzzle_size_update', { puzzle_size: selected_puzzle_size });
+
+mySlider2.slider().on('change',function (event) {
+    selected_puzzle_size = event.value.newValue;
+    $('#selectimage_table').empty();
+    puzzleImageSrcSet = new Set();
+    pageCount=0;
+    imgReadyCount=0;
+    socket.emit('puzzle_size_update', { puzzle_size: selected_puzzle_size });
+    newRoundCreateButton.attr('disabled',"true");
+    $('#newround_image').removeAttr('src');
+    $('#newround_image_wrap').css('display', 'none');
+
+})
 
 function getSelectorImage() {
     for (var thumb of puzzleImageSrcSet) {
@@ -44,9 +84,9 @@ function getSelectorImage() {
         $(img).addClass('selector-image');
         img.onload = function () {
             imgReadyCount += 1;
-            if (imgReadyCount >= simpleImageSrcSet.size + pageCount * 20 + 1) {
+            if (imgReadyCount >=  (pageCount+1) * 10 && !theOnlyNewRoundDialog) {
                 allImageReadyCallback();
-                console.log(imgReadyCount + ' images loaded.');
+                theOnlyNewRoundDialog = true;
             }
         };
         template.find('.mdl-card__media').append(img);
@@ -59,9 +99,8 @@ function getSelectorImage() {
     template.find('.mdl-card__title').append('<p class="text-center"><strong> Load More Images </strong></p>');
     template.appendTo('#selectimage_table');
     $('.more_images').click(function () {
-        socket.emit('nextPage', { pageCount: pageCount });
         pageCount += 1;
-        console.log('Page ' + pageCount);
+        socket.emit('nextPage', { pageCount: pageCount, puzzle_size:selected_puzzle_size });
     });
     $('.selector-image').click(function () {
         var imgSrc = $(this).attr('src');
@@ -73,7 +112,6 @@ function getSelectorImage() {
 }
 
 function allImageReadyCallback() {
-
     initRoundDetailDialog();
     if (admin == "true") {
         initNewRoundDialog();
@@ -128,7 +166,6 @@ function initRandomRoundDialog() {
     newRoundCreateButton.click(function () {
 
         var imgSrc = Array.from(simpleImageSrcSet)[Math.floor((Math.random() * (simpleImageSrcSet.size - 1)))];
-        console.log(imgSrc);
         var playersNum = 1;
         var shape = 'jagged';
         var level = 1;
@@ -160,6 +197,7 @@ function initRandomRoundDialog() {
 
     $('#player_num_div').css('display', 'none');
     $('#select_img_div').css('display', 'none');
+    $('#puzzle_size_div').css('display','none');
     //$('#newround_num_area').css('display','none');
     // $('#newround_number_slider').change(function() {
     //     $('#newround_num').text(1);
@@ -232,6 +270,11 @@ function initNewRoundDialog() {
             return 'Current value: ' + value;
         }
     });
+    mySlider2.slider({
+        formatter: function (value) {
+            return 'Current value: ' + value+"*"+value;
+        }
+    });
 
     $('#newround_button').click(function () {
         newRoundCreateButton.attr('disabled', 'true');
@@ -248,7 +291,9 @@ function initSelectImageDialog() {
     }
 
     $('#newround_image').click(function () {
-        selectImageDialog.showModal();
+        if (!selectImageDialog.open) {
+            selectImageDialog.showModal();
+        }
     });
 
     $('#newround_image_button').click(function () {
