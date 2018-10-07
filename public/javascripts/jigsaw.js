@@ -1442,9 +1442,8 @@ function JigsawPuzzle(config) {
             var shouldSave = false;
 
             instance.hintAroundTilesMap = data.sureHints;
-            var bidirectionLinks = countBidirectionLinks(data.sureHints);
             computeMultiHintsConflict(data.sureHints, []);
-
+            /*
             for (var t = 0; t < 1; t++) {
                 var changeForIteration = false;
 
@@ -1459,11 +1458,27 @@ function JigsawPuzzle(config) {
                 if (!changeForIteration) {
                     break;
                 }
+            }*/
+
+            var strongHintsNeededTiles = new Array();
+            for (var index = 0; index < instance.tiles.length; index++) {
+                var tile = instance.tiles[index];
+                for (var j = 0; j < 4; j++) {
+                    if (tile.aroundTiles[j] < 0 && data.sureHints[index][j] > -1) {
+                        strongHintsNeededTiles.push(index);
+                        break;
+                    }
+                }
             }
+
+            var shouldSave = showStrongAndWeakHints(data.sureHints, strongHintsNeededTiles);
 
             if (shouldSave) {
                 saveGame();
             }
+
+            uploadHintedSubGraph();
+            normalizeTiles();
 
             $("#show_hints_dialog").modal().hide();
 
@@ -1689,7 +1704,7 @@ function JigsawPuzzle(config) {
                 round_id: roundID,
                 edges: instance.subGraphData
             };
-            console.log(param);
+            //console.log(param);
             socket.emit("upload", param);
         }
 
