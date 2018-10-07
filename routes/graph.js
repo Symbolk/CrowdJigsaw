@@ -122,7 +122,7 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
     if(constants.duration == 0 && confidence > nodeLink.maxConfidence){
         nodeLink.maxConfidence = confidence;
         nodeLink.createTime = createTime;
-        hints[x][dir] = y;
+        hints[x][dir] = Number(y);
     }
 }
 
@@ -144,7 +144,7 @@ function generateHints(nodesAndHints){
                 var confidence = nodes[x][dirName[d]].indexes[y].confidence;
                 if(confidence > nodes[x][dirName[d]].maxConfidence){
                     nodes[x][dirName[d]].maxConfidence = confidence;
-                    hints[x][d] = y;
+                    hints[x][d] = Number(y);
                 }
             }
         }
