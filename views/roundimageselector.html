@@ -17,28 +17,3 @@
         </div>
     </div>
 </div>
-
-
-<script type="text/javascript" src="/javascripts/socket.io.js"></script>
-<script type="text/javascript">
-    var puzzleImageSrcSet = new Set();
-    puzzleImageSrcSet.add("images/raw/starter_thumb.png");
-    // only relatively simple images in random rounds
-    var simpleImageSrcSet = new Set();
-
-    var url = window.location.protocol + '//' + window.location.host + '/';
-    var socket = io.connect(url);
-
-    socket.on("thumbnails", function (data) {
-        if (data.thumblist.length > 0) {
-            data.thumblist.forEach(function (item, index, input) {
-                puzzleImageSrcSet.add(item.image_path);
-                if (item.image_path.indexOf("4x4") > -1 || item.image_path.indexOf("5x5") > -1) {
-                    simpleImageSrcSet.add(item.image_path);
-                }
-            });
-            getSelectorImage();
-        }
-    });
-
-</script>
