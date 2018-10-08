@@ -296,6 +296,8 @@ function generateEdgeObject(x, y, tag, supporters, opposers, confidence, weight)
     };
 }
 
+var averageTime = 0.0;
+var updateTimes = 0;
 function update(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
@@ -304,6 +306,7 @@ function update(data) {
             console.log(err);
         } else {
             if (doc) {
+                //let updateStartTime = (new Date()).getTime();
                 let roundStartTime = Date.parse(doc.start_time);
                 let time = (new Date()).getTime() - roundStartTime;
                 saveAction(roundID, time, data.player_name, data.edges);
@@ -425,6 +428,13 @@ function update(data) {
                             console.log(err);
                         }
                     });
+                    /*
+                    let updateEndTime = (new Date()).getTime();
+                    let durationTime = updateEndTime - updateStartTime;
+                    averageTime = (averageTime * updateTimes + durationTime) / (updateTimes + 1);
+                    updateTimes += 1;
+                    console.log(durationTime, averageTime);
+                    */
                 }
             }
         }
@@ -579,6 +589,8 @@ module.exports = function (io) {
     io.on('connection', function (socket) {
         socket.on('upload', function (data) {
             // check(data);
+            //console.log(data);
+            //console.log(data.player_name);
             update(data);
         });
         // request global hints
