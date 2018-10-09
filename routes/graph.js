@@ -122,7 +122,7 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
     if(constants.duration == 0 && confidence > nodeLink.maxConfidence){
         nodeLink.maxConfidence = confidence;
         nodeLink.createTime = createTime;
-        hints[x][dir] = y;
+        hints[x][dir] = Number(y);
     }
 }
 
@@ -144,7 +144,7 @@ function generateHints(nodesAndHints){
                 var confidence = nodes[x][dirName[d]].indexes[y].confidence;
                 if(confidence > nodes[x][dirName[d]].maxConfidence){
                     nodes[x][dirName[d]].maxConfidence = confidence;
-                    hints[x][d] = y;
+                    hints[x][d] = Number(y);
                 }
             }
         }
@@ -296,6 +296,8 @@ function generateEdgeObject(x, y, tag, supporters, opposers, confidence, weight)
     };
 }
 
+var averageTime = 0.0;
+var updateTimes = 0;
 function update(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
@@ -304,6 +306,7 @@ function update(data) {
             console.log(err);
         } else {
             if (doc) {
+                //let updateStartTime = (new Date()).getTime();
                 let roundStartTime = Date.parse(doc.start_time);
                 let time = (new Date()).getTime() - roundStartTime;
                 saveAction(roundID, time, data.player_name, data.edges);
@@ -319,7 +322,7 @@ function update(data) {
                         let opposers = {};
                         let weight = 0;
                         if (e.size > 0) {
-                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                             weight += supporters[data.player_name];
                         }
                         let confidence = 1;
@@ -350,21 +353,21 @@ function update(data) {
                             let opposers = edges_saved[temp].opposers;
                             if (e.size > 0) {
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                     delete opposers[data.player_name];
                                 } else {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 }
                             } else { // e.size<0(e.size==0?)
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = 0 - e.size;
+                                    opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
                                     delete supporters[data.player_name];
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = 0 - e.size;
+                                    opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
                                 } else {
-                                    opposers[data.player_name] = 0 - e.size;
+                                    opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
                                 }
                             }
                         } else {
@@ -374,10 +377,10 @@ function update(data) {
                             let opposers = {};
                             let weight = 0;
                             if (e.size > 0) {
-                                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1);
+                                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 weight += supporters[data.player_name];
                             } else {
-                                opposers[data.player_name] = 0 - e.size;
+                                opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
                             }
                             let confidence = 1;
                             edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
@@ -425,6 +428,13 @@ function update(data) {
                             console.log(err);
                         }
                     });
+                    /*
+                    let updateEndTime = (new Date()).getTime();
+                    let durationTime = updateEndTime - updateStartTime;
+                    averageTime = (averageTime * updateTimes + durationTime) / (updateTimes + 1);
+                    updateTimes += 1;
+                    console.log(durationTime, averageTime);
+                    */
                 }
             }
         }
@@ -579,6 +589,8 @@ module.exports = function (io) {
     io.on('connection', function (socket) {
         socket.on('upload', function (data) {
             // check(data);
+            //console.log(data);
+            //console.log(data.player_name);
             update(data);
         });
         // request global hints
