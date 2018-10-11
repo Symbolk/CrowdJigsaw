@@ -182,7 +182,6 @@ if (server) {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log(docs);
                     socket.emit('thumbnails', { thumblist: docs });
 
                 }
