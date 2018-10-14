@@ -2566,3 +2566,21 @@ $('.returnCenter').click(function () {
     puzzle.focusToCenter();
 });
 
+/**
+ * Send personal records to the server at the end of one game
+ */
+function sendRecord(round_id, username, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
+    var params = {
+        round_id: round_id,
+        username: username,
+        finished: finished,
+        steps: steps,
+        startTime: startTime,
+        totalLinks: totalLinks,
+        hintedLinks: hintedLinks,
+        totalHintsNum: totalHintsNum,
+        correctHintsNum: correctHintsNum,
+        rating: rating
+    };
+    socket.emit('saveRecord', params);
+}

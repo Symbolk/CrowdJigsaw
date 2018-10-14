@@ -405,10 +405,15 @@ function renderRoundList(data) {
     for (var round of data) {
         var roundID = round.round_id;
 
-        if (round.start_time != '-1') {
+        if (round.start_time != '-1' || round.players.length == round.players_num || round.players_num == 1) {
             for (var player of round.players) {
                 if (username == player.player_name) {
-                    startPuzzle(roundID);
+                    if(round.start_time == '-1'){
+                        startRound(roundID);
+                    }
+                    else{
+                        startPuzzle(roundID);
+                    }
                 }
             }
             continue;
