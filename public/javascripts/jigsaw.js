@@ -1,7 +1,10 @@
 var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
-
+socket.on('connect_error', function(data){
+    console.log(data + ' - connect_error');
+    location.reload()
+});
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
 

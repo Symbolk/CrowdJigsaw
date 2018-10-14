@@ -1,4 +1,8 @@
 var socket = io.connect(window.location.protocol + '//' + window.location.host + '/');
+socket.on('connect_error', function(data){
+    console.log(data + ' - connect_error');
+    location.reload()
+});
 //roundimageselector.js
 var puzzleImageSrcSet = new Set();
 //puzzleImageSrcSet.add("images/raw/starter_thumb.png");
@@ -568,54 +572,11 @@ function quitRound(roundID) {
 }
 
 function joinRound(roundID) {
-    var round = roundsList[roundID];
-    var param = {
-        round_id: roundID
-    };
-    $.ajax({
-        data: param,
-        url: requrl + 'round' + '/joinRound',
-        type: 'post',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            $.amaran({
-                'title': 'joinRound',
-                'message': 'You just join ' + roundID,
-                'inEffect': 'slideRight',
-                'cssanimationOut': 'zoomOutUp',
-                'position': "top right",
-                'delay': 2000,
-                'closeOnClick': true,
-                'closeButton': true
-            });
-            getJoinableRounds(roundID);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
-    // /**
-    //  * Report to the server
-    //  */
-    socket.emit('join', { player_name: username });
+    socket.emit('joinRound', {round_id:roundID, username: username });
 }
 
 function startRound(roundID) {
-    $.ajax({
-        url: requrl + 'round' + '/startRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            getJoinableRounds();
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
+    socket.emit('startRound', {round_id:roundID, username: username});
 }
 
 function startPuzzle(roundID) {

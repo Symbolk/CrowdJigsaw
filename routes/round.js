@@ -74,8 +74,44 @@ function isCreator(req, res, next) {
 module.exports = function (io) {
 
     io.on('connection', function (socket) {
-        socket.on('join', function (data) {
-            socket.emit('hello', { hello: 'Hello ' + data.player_name });
+        socket.on('joinRound', function (data) {
+            let condition = {
+                round_id: data.round_id
+            };
+            // check if joinable
+            RoundModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (doc.players.length < doc.players_num) {
+                        let isIn = doc.players.some(function (p) {
+                            return (p.player_name == data.username);
+                        });
+                        let TIME = util.getNowFormatDate();
+                        if (!isIn) {
+                            let operation = {
+                                $addToSet: { //if exists, give up add
+                                    players:
+                                    {
+                                        player_name: data.username,
+                                        join_time: TIME
+                                    }
+                                }
+                            };
+                            RoundModel.update(condition, operation, function (err) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    io.sockets.emit('roundChanged', '');
+                                    console.log(data.username + ' joins Round' + condition.round_id);
+                                    createRecord(data.username, data.round_id, TIME);
+                                }
+                            });
+
+                        }
+                    }
+                }
+            });
         });
         socket.on('iSolved', function (data) {
             console.log('!!!Round ' + data.round_id + ' : ' + data.player_name + ' solves!');
@@ -136,6 +172,78 @@ module.exports = function (io) {
                 }
             });
         });
+
+        socket.on('startRound', function (data) {
+            let condition = {
+                round_id: data.round_id,
+            };
+            // check if the players are enough
+            // findOneAndUpdate
+            RoundModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (doc.start_time != '-1') {
+                        return;
+                    }
+                    let TIME = util.getNowFormatDate();
+                    // set start_time for all players
+                    for (let p of doc.players) {
+                        let operation = {
+                            $set: {
+                                "records.$.start_time": TIME
+                            }
+                        };
+                        UserModel.update({ username: p.player_name, "records.round_id": data.round_id }, operation, function (err) {
+                            if (err) {
+                                console.log(err);
+                            }
+                        });
+                    }
+                    // set start time for round
+                    let operation = {
+                        $set: {
+                            start_time: TIME,
+                            players_num: doc.players.length
+                        }
+                    };
+                    RoundModel.update(condition, operation, function (err) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            io.sockets.emit('roundChanged', '');
+                            console.log(data.username + ' starts Round' + data.round_id);
+                        }
+                    });
+                    /*
+                    // run genetic algorithm
+                    console.log('start running python script of GA algorithm for round %d.', doc.round_id);
+                    var path = require('path');
+                    var options = {
+                        mode: 'text',
+                        pythonPath: 'python3',
+                        pythonOptions: ['-u'], // get print results in real-time
+                        scriptPath: path.resolve(__dirname, '../../gaps/bin'),
+                        args: ['--algorithm', 'crowd',
+                            '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
+                            '--size', doc.tileWidth.toString(),
+                            '--cols', doc.tilesPerRow.toString(),
+                            '--rows', doc.tilesPerColumn.toString(),
+                            '--population', '600',
+                            '--generations', '1000000000',
+                            '--roundid', doc.round_id.toString()]
+                    };
+                    PythonShell.run('gaps', options, function (err, results) {
+                        if (err)
+                            console.log(err);
+                        // results is an array consisting of messages collected during execution
+                        // if GA founds a solution, the last element in results is "solved".
+                        console.log('results: %j', results);
+                        console.log('GA algorithm for round %d ends.', doc.round_id);
+                    });*/
+                }
+            });
+        });
     });
 
     /**
@@ -165,56 +273,6 @@ module.exports = function (io) {
                 //     }
                 // }
                 res.send(JSON.stringify(docs));
-            }
-        });
-    });
-
-
-    /**
-     * Join a round
-     */
-    router.route('/joinRound').all(LoginFirst).post(function (req, res, next) {
-        let condition = {
-            round_id: req.body.round_id
-        };
-        // check if joinable
-        RoundModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                if (doc.players.length < doc.players_num) {
-                    let isIn = doc.players.some(function (p) {
-                        return (p.player_name == req.session.user.username);
-                    });
-                    let TIME = util.getNowFormatDate();
-                    if (!isIn) {
-                        let operation = {
-                            $addToSet: { //if exists, give up add
-                                players:
-                                {
-                                    player_name: req.session.user.username,
-                                    // player_name: req.session.user.username,
-                                    join_time: TIME
-                                }
-                            }
-                        };
-                        RoundModel.update(condition, operation, function (err) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                io.sockets.emit('roundChanged', '');
-                                console.log(req.session.user.username + ' joins Round' + condition.round_id);
-                                res.send({ msg: 'You joined the round successfully.' });
-                                createRecord(req.session.user.username, req.body.round_id, TIME);
-                            }
-                        });
-
-                    } else {
-                        res.send({ msg: "You are already in!" });
-                    }
-                } else {
-                    res.send({ msg: "This round is full." });
-                }
             }
         });
     });
@@ -305,83 +363,6 @@ module.exports = function (io) {
         });
     });
 
-
-    /**
-     * Start a round(when the player_num reached)
-     */
-    router.route('/startRound/:round_id').all(isCreator).get(function (req, res, next) {
-        let condition = {
-            round_id: req.params.round_id,
-        };
-        // check if the players are enough
-        // findOneAndUpdate
-        RoundModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                if (doc.start_time != '-1') {
-                    res.send({ msg: "Round is Already Start!" });
-                    return;
-                }
-                let TIME = util.getNowFormatDate();
-                // set start_time for all players
-                for (let p of doc.players) {
-                    let operation = {
-                        $set: {
-                            "records.$.start_time": TIME
-                        }
-                    };
-                    UserModel.update({ username: p.player_name, "records.round_id": req.params.round_id }, operation, function (err) {
-                        if (err) {
-                            console.log(err);
-                        }
-                    });
-                }
-                // set start time for round
-                let operation = {
-                    $set: {
-                        start_time: TIME,
-                        players_num: doc.players.length
-                    }
-                };
-                RoundModel.update(condition, operation, function (err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        io.sockets.emit('roundChanged', '');
-                        res.send({ msg: "Round Starts Now!" });
-                        console.log(req.session.user.username + ' starts Round' + req.params.round_id);
-                    }
-                });
-                /*
-                // run genetic algorithm
-                console.log('start running python script of GA algorithm for round %d.', doc.round_id);
-                var path = require('path');
-                var options = {
-                    mode: 'text',
-                    pythonPath: 'python3',
-                    pythonOptions: ['-u'], // get print results in real-time
-                    scriptPath: path.resolve(__dirname, '../../gaps/bin'),
-                    args: ['--algorithm', 'crowd',
-                        '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
-                        '--size', doc.tileWidth.toString(),
-                        '--cols', doc.tilesPerRow.toString(),
-                        '--rows', doc.tilesPerColumn.toString(),
-                        '--population', '600',
-                        '--generations', '1000000000',
-                        '--roundid', doc.round_id.toString()]
-                };
-                PythonShell.run('gaps', options, function (err, results) {
-                    if (err)
-                        console.log(err);
-                    // results is an array consisting of messages collected during execution
-                    // if GA founds a solution, the last element in results is "solved".
-                    console.log('results: %j', results);
-                    console.log('GA algorithm for round %d ends.', doc.round_id);
-                });*/
-            }
-        });
-    });
 
     /**
      * Quit a round, either by user or by accident, when unfinished
