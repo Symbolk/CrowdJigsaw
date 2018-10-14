@@ -254,8 +254,8 @@ module.exports = function (io) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (doc && doc.contribution) {
-                        if (doc.contribution.hasOwnProperty(data.username)) {
+                    if (doc) {
+                        if (doc.contribution && doc.contribution.hasOwnProperty(data.username)) {
                             contri = doc.contribution[data.username];
                         }
                         if (data.finished) {
