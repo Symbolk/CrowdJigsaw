@@ -1,10 +1,7 @@
 var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
-socket.on('connect_error', function(data){
-    console.log(data + ' - connect_error');
-    location.reload()
-});
+
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
 
@@ -2447,7 +2444,7 @@ function JigsawPuzzle(config) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
 
-        sendRecord(roundID, true, puzzle.realSteps, startTime,
+        sendRecord(roundID, player_name, true, puzzle.realSteps, startTime,
             hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
         $.ajax({
@@ -2496,7 +2493,7 @@ function JigsawPuzzle(config) {
         var rating = $("#rating").val();
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, false, puzzle.realSteps,
+        sendRecord(roundID, player_name, false, puzzle.realSteps,
             startTime, hintedLinksNum.totalLinks,
             hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
 
@@ -2522,7 +2519,7 @@ $('#give_up').on('click', function (event) {
 
     puzzle.calcHintedTile();
 
-    sendRecord(roundID, false, puzzle.realSteps,
+    sendRecord(roundID, player_name, false, puzzle.realSteps,
         startTime, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks,
         totalHintsNum, correctHintsNum, -1);
 

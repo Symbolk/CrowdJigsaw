@@ -1,14 +1,17 @@
 const requrl = window.location.protocol + '//' + window.location.host + '/';
 var socket = io.connect(requrl);
-
-
+socket.on('connect_error', function(data){
+    console.log(data + ' - connect_error');
+    location.reload()
+});
 
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
+function sendRecord(round_id, username, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
     var params = {
         round_id: round_id,
+        username: username,
         finished: finished,
         steps: steps,
         startTime: startTime,
@@ -18,6 +21,8 @@ function sendRecord(round_id, finished, steps, startTime, totalLinks, hintedLink
         correctHintsNum: correctHintsNum,
         rating: rating
     };
+    socket.emit('saveRecord', params);
+    /*
     $.ajax({
         data: params,
         url: requrl + 'round/saveRecord',
@@ -40,7 +45,7 @@ function sendRecord(round_id, finished, steps, startTime, totalLinks, hintedLink
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('saveRecord: ' + 'error ' + textStatus + " " + errorThrown);
         }
-    });
+    });*/
 }
 
 function getUrlParams(key) {

@@ -1,8 +1,5 @@
 var socket = io.connect(window.location.protocol + '//' + window.location.host + '/');
-socket.on('connect_error', function(data){
-    console.log(data + ' - connect_error');
-    location.reload()
-});
+
 //roundimageselector.js
 var puzzleImageSrcSet = new Set();
 //puzzleImageSrcSet.add("images/raw/starter_thumb.png");
@@ -27,6 +24,7 @@ socket.on('thumbnails', function (data) {
 
 
 socket.on('roundChanged', function (data) {
+    roundDetailJoinButton.removeAttr("disabled");
     getJoinableRounds();
 });
 socket.on('hello', function (data) {
@@ -132,6 +130,7 @@ function initRoundDetailDialog() {
     roundDetailJoinButton.click(function () {
         var roundID = $('#rounddetail_id').text();
         if (roundDetailJoinButton.text() == 'Join') {
+            roundDetailJoinButton.attr('disabled',"true");
             joinRound(roundID);
         } else {
             getRound(roundID);
@@ -140,6 +139,7 @@ function initRoundDetailDialog() {
     roundDetailCancelButton.click(function () {
         var roundID = $('#rounddetail_id').text();
         var round = roundsList[parseInt(roundID)];
+        roundDetailJoinButton.removeAttr("disabled");
         if (roundDetailCancelButton.text() == 'Quit') {
             quitRound(roundID);
             roundDetailCancelButton.text('Close');

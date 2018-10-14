@@ -84,6 +84,7 @@ module.exports = function (io) {
                     console.log(err);
                 } else {
                     if (doc.players.length < doc.players_num) {
+                        console.log(doc.players);
                         let isIn = doc.players.some(function (p) {
                             return (p.player_name == data.username);
                         });
@@ -241,6 +242,67 @@ module.exports = function (io) {
                         console.log('results: %j', results);
                         console.log('GA algorithm for round %d ends.', doc.round_id);
                     });*/
+                }
+            });
+        });
+
+        socket.on('saveRecord', function (data) {
+            let operation = {};
+            let contri = 0;
+            let rating = data.rating;
+            RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (doc && doc.contribution) {
+                        if (doc.contribution.hasOwnProperty(data.username)) {
+                            contri = doc.contribution[data.username];
+                        }
+                        if (data.finished) {
+                            let TIME = util.getNowFormatDate();
+                            operation = {
+                                $set: {
+                                    "records.$.end_time": TIME,
+                                    "records.$.steps": data.steps,
+                                    "records.$.time": getRoundFinishTime(data.startTime),
+                                    "records.$.contribution": contri.toFixed(3),
+                                    "records.$.total_links": data.totalLinks,
+                                    "records.$.hinted_links": data.hintedLinks,
+                                    "records.$.total_hints": data.totalHintsNum,
+                                    "records.$.correct_hints": data.correctHintsNum,
+                                    "records.$.rating": rating
+                                }
+                            };
+                        } 
+                        else {
+                            operation = {
+                                $set: {
+                                    "records.$.end_time": "-1",
+                                    "records.$.steps": data.steps,
+                                    "records.$.time": getRoundFinishTime(data.startTime),
+                                    "records.$.contribution": contri.toFixed(3),
+                                    "records.$.total_links": data.totalLinks,
+                                    "records.$.hinted_links": data.hintedLinks,
+                                    "records.$.total_hints": data.totalHintsNum,
+                                    "records.$.correct_hints": data.correctHintsNum,
+                                    "records.$.rating": rating
+                                }
+                            };
+                        }
+
+                        let condition = {
+                            username: data.username,
+                            "records.round_id": data.round_id
+                        };
+
+                        UserModel.update(condition, operation, function (err, doc) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                console.log(data.username + ' saves his record: ' + contri.toFixed(3));
+                            }
+                        });
+                    }
                 }
             });
         });
