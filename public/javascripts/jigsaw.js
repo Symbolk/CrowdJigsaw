@@ -1194,7 +1194,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     topTileConflict = topTileConflict || (topTile != undefined) && (getTileIndex(topTile) != hintAroundTiles[0]);
                     if (topTileConflict && tile.aroundTiles[0] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(topTile, 0);
+                        var canMoveAway = false;//moveAwayDelay(topTile, 0);
                         if (canMoveAway) {
                             topTileConflict = false;
                         }
@@ -1206,7 +1206,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     rightTileConflict = rightTileConflict || (rightTile != undefined) && (getTileIndex(rightTile) != hintAroundTiles[1]);
                     if (rightTileConflict && tile.aroundTiles[1] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(rightTile, 1);
+                        var canMoveAway = false;//moveAwayDelay(rightTile, 1);
                         if (canMoveAway) {
                             rightTileConflict = false;
                         }
@@ -1218,7 +1218,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     bottomTileConflict = bottomTileConflict || (bottomTile != undefined) && (getTileIndex(bottomTile) != hintAroundTiles[2]);
                     if (bottomTileConflict && tile.aroundTiles[2] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(bottomTile, 2);
+                        var canMoveAway = false;//moveAwayDelay(bottomTile, 2);
                         if (canMoveAway) {
                             bottomTileConflict = false;
                         }
@@ -1230,7 +1230,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     leftTileConflict = leftTileConflict || (leftTile != undefined) && (getTileIndex(leftTile) != hintAroundTiles[3]);
                     if (leftTileConflict && tile.aroundTiles[3] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(leftTile, 3);
+                        var canMoveAway = false;//moveAwayDelay(leftTile, 3);
                         if (canMoveAway) {
                             leftTileConflict = false;
                         }
