@@ -186,12 +186,6 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
     });
 });
 
-// Puzzle
-// router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-//     // let selected_level=req.query.level;
-//     req.session.error = 'Game Started!';
-//     res.render('puzzle', { title: 'Puzzle' });
-// });
 
 // Round
 router.route('/playground').all(LoginFirst).get(function (req, res) {
@@ -225,6 +219,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                     players_num: round.players_num,
                     level: round.level,
                     roundID: roundID,
+                    solved_players: round.solved_players,
                     image: round.image,
                     tileWidth: round.tileWidth,
                     startTime: round.start_time,

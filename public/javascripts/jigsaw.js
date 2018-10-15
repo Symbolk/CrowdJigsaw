@@ -239,6 +239,49 @@ function JigsawPuzzle(config) {
         }
     });
 
+    this.forceLeace = function(text)
+    {
+        var applyButton = document.querySelector('#apply-button');
+
+        $('#cancel-button').attr('disabled',"true");
+
+        $('#quitLabel').text(text);
+        $('#ensure_quit_dialog').modal({
+            keyboard: false,
+            backdrop: false
+        });
+
+        if(players_num == 1){
+            $('.rating-body').css('display', 'none');
+            $('#apply-button').text('Quit');
+        }
+        else{
+            $('.rb-rating').rating({
+                'showCaption': false,
+                'showClear': false,
+                'stars': '5',
+                'min': '0',
+                'max': '5',
+                'step': '0.5',
+                'size': 'xs',
+                // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
+            });
+        }
+        applyButton.addEventListener('click', function (event) {
+            var rating = $("#rating").val();
+            puzzle.calcHintedTile();
+
+            sendRecord(false, rating);
+            quitRound(roundID);
+        });
+    }
+
+    socket.on('forceLeave', function (data) {
+        if (data.round_id == roundID) {
+            instance.forceLeace('3 other players have finished puzzle. Please Leave!');
+        }
+    });
+
     socket.on('gameSaved', function (data) {
         if (data.success == true && data.round_id == roundID && data.player_name == player_name) {
             console.log("Saved.");
@@ -2566,4 +2609,8 @@ function quitRound(roundID) {
             console.log('error ' + textStatus + " " + errorThrown);
         }
     });
+}
+
+if(solved_players >= 3){
+    puzzle.forceLeace('3 other players have finished puzzle. Please Leave!');
 }

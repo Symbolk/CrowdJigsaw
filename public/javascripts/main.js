@@ -2,7 +2,7 @@ const requrl = window.location.protocol + '//' + window.location.host + '/';
 var socket = io.connect(requrl);
 socket.on('connect_error', function(data){
     console.log(data + ' - connect_error');
-    location.reload()
+    location.reload();
 });
 
 function getUrlParams(key) {

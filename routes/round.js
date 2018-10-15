@@ -120,6 +120,7 @@ module.exports = function (io) {
             let operation = {
                 $set: {
                     "winner": data.player_name,
+                    "solved_players": 1,
                     "winner_time": finish_time,
                     "winner_steps": data.steps,
                     "total_links": data.totalLinks,
@@ -134,11 +135,24 @@ module.exports = function (io) {
                         console.log(err);
                     } else {
                         if (doc) {
-                            if (doc.winner_steps == -1) {
+                            if (doc.solved_players == 0) {
                                 // only remember the first winner of the round
                                 RoundModel.update({ round_id: data.round_id }, operation, function (err) {
                                     if (err) {
                                         console.log(err);
+                                    }
+                                });
+                            }
+                            else{
+                                var solved_players = doc.solved_players;
+                                RoundModel.update({ round_id: data.round_id }, {"solved_players": solved_players + 1}, function (err) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    else{
+                                        if(solved_players >= 2) {
+                                            socket.broadcast.emit('forceLeave', { round_id: data.round_id });
+                                        }
                                     }
                                 });
                             }
