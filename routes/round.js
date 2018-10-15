@@ -156,6 +156,7 @@ module.exports = function (io) {
                                     "records.$.contribution": contri.toFixed(3),
                                     "records.$.total_links": data.totalLinks,
                                     "records.$.hinted_links": data.hintedLinks,
+                                    "records.$.correct_links": data.correctLinks,
                                     "records.$.total_hints": data.totalHintsNum,
                                     "records.$.correct_hints": data.correctHintsNum
                                 }
@@ -308,6 +309,7 @@ module.exports = function (io) {
                                     "records.$.contribution": contri.toFixed(3),
                                     "records.$.total_links": data.totalLinks,
                                     "records.$.hinted_links": data.hintedLinks,
+                                    "records.$.correct_links": data.correctLinks,
                                     "records.$.total_hints": data.totalHintsNum,
                                     "records.$.correct_hints": data.correctHintsNum,
                                     "records.$.rating": rating

@@ -588,12 +588,17 @@ function JigsawPuzzle(config) {
         hintedLinksNum = {
             totalLinks: 0,
             normalLinks: 0,
-            hintedLinks: 0
+            hintedLinks: 0,
+            correctLinks: 0
         };
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             for (var j = 0; j < tile.hintedLinks.length; j++) {
                 if (tile.aroundTiles[j] >= 0) {
+                    var correctIndex = i + directions[j].x + directions[j].y * instance.tilesPerRow;
+                    if(tile.aroundTiles[j] == correctIndex){
+                        hintedLinksNum.correctLinks += 1;
+                    }
                     if (tile.hintedLinks[j] >= 0 && Math.floor(tile.hintedLinks[j]) == tile.aroundTiles[j]) {
                         hintedLinksNum.hintedLinks += 1;
                     }
@@ -631,6 +636,7 @@ function JigsawPuzzle(config) {
             startTime: startTime,
             totalLinks: hintedLinksNum.totalLinks,
             hintedLinks: hintedLinksNum.hintedLinks,
+            correctLinks: hintedLinksNum.correctLinks,
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
@@ -2455,8 +2461,7 @@ function JigsawPuzzle(config) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
 
-        sendRecord(roundID, player_name, true, puzzle.realSteps, startTime,
-            hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
+        sendRecord(true, rating);
         quitRound(roundID);
     });
 }());
@@ -2496,9 +2501,7 @@ function JigsawPuzzle(config) {
         var rating = $("#rating").val();
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, player_name, false, puzzle.realSteps,
-            startTime, hintedLinksNum.totalLinks,
-            hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
+        sendRecord(false, rating);
         quitRound(roundID);
     });
 }());
@@ -2532,15 +2535,16 @@ $('.returnCenter').click(function () {
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, player_name, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
+function sendRecord(finished, rating) {
     var params = {
-        round_id: round_id,
+        round_id: roundID,
         player_name: player_name,
         finished: finished,
-        steps: steps,
+        steps: puzzle.realSteps,
         startTime: startTime,
-        totalLinks: totalLinks,
-        hintedLinks: hintedLinks,
+        totalLinks: hintedLinksNum.totalLinks,
+        hintedLinks: hintedLinksNum.hintedLinks,
+        correctLinks: hintedLinksNum.correctLinks,
         totalHintsNum: totalHintsNum,
         correctHintsNum: correctHintsNum,
         rating: rating
