@@ -628,7 +628,7 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             player_name: player_name,
             steps: steps,
-            time: startTime,
+            startTime: startTime,
             totalLinks: hintedLinksNum.totalLinks,
             hintedLinks: hintedLinksNum.hintedLinks,
             totalHintsNum: totalHintsNum,
@@ -2532,10 +2532,10 @@ $('.returnCenter').click(function () {
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, username, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
+function sendRecord(round_id, player_name, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
     var params = {
         round_id: round_id,
-        username: username,
+        player_name: player_name,
         finished: finished,
         steps: steps,
         startTime: startTime,
