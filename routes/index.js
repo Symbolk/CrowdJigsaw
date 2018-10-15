@@ -222,6 +222,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                 {
                     title: 'Puzzle',
                     player_name: req.session.user.username,
+                    players_num: round.players_num,
                     level: round.level,
                     roundID: roundID,
                     image: round.image,
