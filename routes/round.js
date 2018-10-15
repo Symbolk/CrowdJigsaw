@@ -116,10 +116,12 @@ module.exports = function (io) {
         });
         socket.on('iSolved', function (data) {
             console.log('!!!Round ' + data.round_id + ' : ' + data.player_name + ' solves!');
+            let finish_time = getRoundFinishTime(data.startTime);
             let operation = {
                 $set: {
                     "winner": data.player_name,
-                    "winner_time": getRoundFinishTime(data.time),
+                    "solved_players": 1,
+                    "winner_time": finish_time,
                     "winner_steps": data.steps,
                     "total_links": data.totalLinks,
                     "hinted_links": data.hintedLinks,
@@ -133,7 +135,7 @@ module.exports = function (io) {
                         console.log(err);
                     } else {
                         if (doc) {
-                            if (doc.winner_steps == -1) {
+                            if (doc.solved_players == 0) {
                                 // only remember the first winner of the round
                                 RoundModel.update({ round_id: data.round_id }, operation, function (err) {
                                     if (err) {
@@ -141,8 +143,54 @@ module.exports = function (io) {
                                     }
                                 });
                             }
+                            else{
+                                var solved_players = doc.solved_players;
+                                RoundModel.update({ round_id: data.round_id }, {"solved_players": solved_players + 1}, function (err) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    else{
+                                        if(solved_players >= 2) {
+                                            socket.broadcast.emit('forceLeave', { round_id: data.round_id });
+                                        }
+                                    }
+                                });
+                            }
+
+                            let contri = 0;
+                            if (doc.contribution && doc.contribution.hasOwnProperty(data.player_name)) {
+                                contri = doc.contribution[data.player_name];
+                            }
+                            let TIME = util.getNowFormatDate();
+                            operation = {
+                                $set: {
+                                    "records.$.end_time": TIME,
+                                    "records.$.steps": data.steps,
+                                    "records.$.time": finish_time,
+                                    "records.$.contribution": contri.toFixed(3),
+                                    "records.$.total_links": data.totalLinks,
+                                    "records.$.hinted_links": data.hintedLinks,
+                                    "records.$.correct_links": data.correctLinks,
+                                    "records.$.total_hints": data.totalHintsNum,
+                                    "records.$.correct_hints": data.correctHintsNum
+                                }
+                            };
+                            
+                            let condition = {
+                                username: data.player_name,
+                                "records.round_id": data.round_id
+                            };
+
+                            UserModel.update(condition, operation, function (err, doc) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
+                                }
+                            });
+
+                            socket.broadcast.emit('someoneSolved', data);
                         }
-                        socket.broadcast.emit('someoneSolved', data);
                     }
                 });
         });
@@ -255,21 +303,13 @@ module.exports = function (io) {
                     console.log(err);
                 } else {
                     if (doc) {
-                        if (doc.contribution && doc.contribution.hasOwnProperty(data.username)) {
-                            contri = doc.contribution[data.username];
+                        if (doc.contribution && doc.contribution.hasOwnProperty(data.player_name)) {
+                            contri = doc.contribution[data.player_name];
                         }
                         if (data.finished) {
                             let TIME = util.getNowFormatDate();
                             operation = {
                                 $set: {
-                                    "records.$.end_time": TIME,
-                                    "records.$.steps": data.steps,
-                                    "records.$.time": getRoundFinishTime(data.startTime),
-                                    "records.$.contribution": contri.toFixed(3),
-                                    "records.$.total_links": data.totalLinks,
-                                    "records.$.hinted_links": data.hintedLinks,
-                                    "records.$.total_hints": data.totalHintsNum,
-                                    "records.$.correct_hints": data.correctHintsNum,
                                     "records.$.rating": rating
                                 }
                             };
@@ -283,6 +323,7 @@ module.exports = function (io) {
                                     "records.$.contribution": contri.toFixed(3),
                                     "records.$.total_links": data.totalLinks,
                                     "records.$.hinted_links": data.hintedLinks,
+                                    "records.$.correct_links": data.correctLinks,
                                     "records.$.total_hints": data.totalHintsNum,
                                     "records.$.correct_hints": data.correctHintsNum,
                                     "records.$.rating": rating
@@ -291,7 +332,7 @@ module.exports = function (io) {
                         }
 
                         let condition = {
-                            username: data.username,
+                            username: data.player_name,
                             "records.round_id": data.round_id
                         };
 
@@ -299,7 +340,7 @@ module.exports = function (io) {
                             if (err) {
                                 console.log(err);
                             } else {
-                                console.log(data.username + ' saves his record: ' + contri.toFixed(3));
+                                console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
                             }
                         });
                     }
@@ -486,70 +527,6 @@ module.exports = function (io) {
                     // update the record
                 } else {
                     res.send({ msg: "You are not even in the round!" });
-                }
-            }
-        });
-    });
-
-    /**
-     * Save a record by one user when he gets his puzzle done
-     */
-    router.route('/saveRecord').all(LoginFirst).post(function (req, res, next) {
-        let operation = {};
-        let contri = 0;
-        let rating = req.body.rating;
-        RoundModel.findOne({ round_id: req.body.round_id }, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                if (doc && doc.contribution) {
-                    if (doc.contribution.hasOwnProperty(req.session.user.username)) {
-                        contri = doc.contribution[req.session.user.username];
-                    }
-                    if (req.body.finished == "true") {
-                        let TIME = util.getNowFormatDate();
-                        operation = {
-                            $set: {
-                                "records.$.end_time": TIME,
-                                "records.$.steps": req.body.steps,
-                                "records.$.time": getRoundFinishTime(req.body.startTime),
-                                "records.$.contribution": contri.toFixed(3),
-                                "records.$.total_links": req.body.totalLinks,
-                                "records.$.hinted_links": req.body.hintedLinks,
-                                "records.$.total_hints": req.body.totalHintsNum,
-                                "records.$.correct_hints": req.body.correctHintsNum,
-                                "records.$.rating": rating
-                            }
-                        };
-                    } else if (req.body.finished == "false") {
-                        operation = {
-                            $set: {
-                                "records.$.end_time": "-1",
-                                "records.$.steps": req.body.steps,
-                                "records.$.time": getRoundFinishTime(req.body.startTime),
-                                "records.$.contribution": contri.toFixed(3),
-                                "records.$.total_links": req.body.totalLinks,
-                                "records.$.hinted_links": req.body.hintedLinks,
-                                "records.$.total_hints": req.body.totalHintsNum,
-                                "records.$.correct_hints": req.body.correctHintsNum,
-                                "records.$.rating": rating
-                            }
-                        };
-                    }
-
-                    let condition = {
-                        username: req.session.user.username,
-                        "records.round_id": req.body.round_id
-                    };
-
-                    UserModel.update(condition, operation, function (err, doc) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            console.log(req.session.user.username + ' saves his record: ' + contri.toFixed(3));
-                            res.send({ msg: "Record has been saved." });
-                        }
-                    });
                 }
             }
         });

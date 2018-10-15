@@ -186,12 +186,6 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
     });
 });
 
-// Puzzle
-// router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-//     // let selected_level=req.query.level;
-//     req.session.error = 'Game Started!';
-//     res.render('puzzle', { title: 'Puzzle' });
-// });
 
 // Round
 router.route('/playground').all(LoginFirst).get(function (req, res) {
@@ -225,6 +219,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                     players_num: round.players_num,
                     level: round.level,
                     roundID: roundID,
+                    solved_players: round.solved_players,
                     image: round.image,
                     tileWidth: round.tileWidth,
                     startTime: round.start_time,
@@ -329,6 +324,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
         } else {
             var round = doc;
             var roundContribution = round.contribution;
+            var puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
             UserModel.find(condition, fields, function (err, docs) {
                 if (err) {
                     console.log(err);
@@ -341,11 +337,15 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                 if (r.round_id == req.params.round_id && r.start_time != "-1" ) {
                                     let hintPercent = 0;
                                     let correctPercent = 0;
+                                    let finishPercent = 0;
                                     if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
                                         hintPercent = r.hinted_links / r.total_links * 100;
                                     }
-                                    if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0 && hintPercent > 0) {
+                                    if (r.total_hints > 0 && r.correct_hints != -1 && hintPercent > 0) {
                                         correctPercent = r.correct_hints / r.total_hints * 100;
+                                    }
+                                    if (r.total_links > 0 && r.correct_links != -1) {
+                                        finishPercent = (r.correct_links/2) / puzzle_links * 100;
                                     }
                                     let contribution = 0;
                                     if(roundContribution && roundContribution[d.username]){
@@ -359,6 +359,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                             "steps": r.steps,
                                             "contribution": contribution.toFixed(3),
                                             "hintPercent": hintPercent.toFixed(3),
+                                            "finishPercent": finishPercent.toFixed(3),
                                             "correctPercent": correctPercent.toFixed(3),
                                             "rating": r.rating
                                         });
@@ -370,6 +371,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                             "steps": r.steps,
                                             "contribution": contribution.toFixed(3),
                                             "hintPercent": hintPercent.toFixed(3),
+                                            "finishPercent": finishPercent.toFixed(3),
                                             "correctPercent": correctPercent.toFixed(3),
                                             "rating": r.rating
                                         });

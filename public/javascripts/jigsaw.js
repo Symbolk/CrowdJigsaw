@@ -239,6 +239,23 @@ function JigsawPuzzle(config) {
         }
     });
 
+    this.forceLeace = function(text)
+    {
+        $('#cancel-button').attr('disabled',"true");
+
+        $('#quitLabel').text(text);
+        $('#ensure_quit_dialog').modal({
+            keyboard: false,
+            backdrop: false
+        });
+    }
+
+    socket.on('forceLeave', function (data) {
+        if (data.round_id == roundID) {
+            instance.forceLeace('3 other players have finished puzzle. Please Leave!');
+        }
+    });
+
     socket.on('gameSaved', function (data) {
         if (data.success == true && data.round_id == roundID && data.player_name == player_name) {
             console.log("Saved.");
@@ -588,12 +605,17 @@ function JigsawPuzzle(config) {
         hintedLinksNum = {
             totalLinks: 0,
             normalLinks: 0,
-            hintedLinks: 0
+            hintedLinks: 0,
+            correctLinks: 0
         };
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             for (var j = 0; j < tile.hintedLinks.length; j++) {
                 if (tile.aroundTiles[j] >= 0) {
+                    var correctIndex = i + directions[j].x + directions[j].y * instance.tilesPerRow;
+                    if(tile.aroundTiles[j] == correctIndex){
+                        hintedLinksNum.correctLinks += 1;
+                    }
                     if (tile.hintedLinks[j] >= 0 && Math.floor(tile.hintedLinks[j]) == tile.aroundTiles[j]) {
                         hintedLinksNum.hintedLinks += 1;
                     }
@@ -628,9 +650,10 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             player_name: player_name,
             steps: steps,
-            time: startTime,
+            startTime: startTime,
             totalLinks: hintedLinksNum.totalLinks,
             hintedLinks: hintedLinksNum.hintedLinks,
+            correctLinks: hintedLinksNum.correctLinks,
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
@@ -2435,7 +2458,6 @@ function JigsawPuzzle(config) {
  * Game Finish
  */
 (function () {
-    var submitButton = document.querySelector('#submit-button');
     if(players_num == 1){
         $('.rating-body').css('display', 'none');
     }
@@ -2451,54 +2473,26 @@ function JigsawPuzzle(config) {
             // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
         });
     }
-    submitButton.addEventListener('click', function (event) {
+    $('#submit-button').click(function (event) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
 
-        sendRecord(roundID, player_name, true, puzzle.realSteps, startTime,
-            hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
+        sendRecord(true, rating);
         quitRound(roundID);
     });
-}());
 
-
-/**
- * Ensure quit
- */
-(function () {
-    var showDialog = document.querySelector('#quit');
-    var applyButton = document.querySelector('#apply-button');
-
-    showDialog.addEventListener('click', function (event) {
+    $('#quit').click(function (event) {
         $('#quitLabel').text('Are You Sure?');
         $('#ensure_quit_dialog').modal({
             keyboard: true
         });
     });
 
-    if(players_num == 1){
-        $('.rating-body').css('display', 'none');
-        $('#apply-button').text('Quit');
-    }
-    else{
-        $('.rb-rating').rating({
-            'showCaption': false,
-            'showClear': false,
-            'stars': '5',
-            'min': '0',
-            'max': '5',
-            'step': '0.5',
-            'size': 'xs',
-            // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
-        });
-    }
-    applyButton.addEventListener('click', function (event) {
+    $('#apply-button').click(function (event) {
         var rating = $("#rating").val();
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, player_name, false, puzzle.realSteps,
-            startTime, hintedLinksNum.totalLinks,
-            hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
+        sendRecord(false, rating);
         quitRound(roundID);
     });
 }());
@@ -2532,15 +2526,16 @@ $('.returnCenter').click(function () {
 /**
  * Send personal records to the server at the end of one game
  */
-function sendRecord(round_id, username, finished, steps, startTime, totalLinks, hintedLinks, totalHintsNum, correctHintsNum, rating) {
+function sendRecord(finished, rating) {
     var params = {
-        round_id: round_id,
-        username: username,
+        round_id: roundID,
+        player_name: player_name,
         finished: finished,
-        steps: steps,
+        steps: puzzle.realSteps,
         startTime: startTime,
-        totalLinks: totalLinks,
-        hintedLinks: hintedLinks,
+        totalLinks: hintedLinksNum.totalLinks,
+        hintedLinks: hintedLinksNum.hintedLinks,
+        correctLinks: hintedLinksNum.correctLinks,
         totalHintsNum: totalHintsNum,
         correctHintsNum: correctHintsNum,
         rating: rating
@@ -2563,3 +2558,25 @@ function quitRound(roundID) {
         }
     });
 }
+
+if(solved_players >= 3){
+    puzzle.forceLeace('3 other players have finished puzzle. Please Leave!');
+}
+
+
+$(document).ready(function(e) { 
+    var counter = 0;
+    if (window.history && window.history.pushState) {
+        $(window).on('popstate', function () {
+            window.history.pushState('forward', null, '#');
+            window.history.forward(1);
+            $('#quitLabel').text('Are You Sure?');
+            $('#ensure_quit_dialog').modal({
+                keyboard: true
+            });
+        });
+    }
+ 
+    window.history.pushState('forward', null, '#'); //在IE中必须得有这两行
+    window.history.forward(1);
+});

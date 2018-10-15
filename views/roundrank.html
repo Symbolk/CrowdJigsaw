@@ -32,6 +32,7 @@
                         <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time Cost</th>
                         <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
                         <!-- <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th> -->
+                        <th data-field="finish_percent" data-halign="center" data-align="center" data-sortable="true">Finish Percent</th>
                         <th data-field="hint_percent" data-halign="center" data-align="center" data-sortable="true">Hint Ratio</th>
                         <th data-field="correct_hint_percent" data-halign="center" data-align="center" data-sortable="true">Hint Precision</th>
                         <th data-field="rating" data-halign="center" data-align="center">Rating</th>
@@ -108,6 +109,18 @@
                                                 </span>
                                                 <%} %>
                                     </td> -->
+                                    <td>
+                                        <% if(u.playername===user.username){%>
+                                            <span style="color:#3c3;">
+                                                <%- u.finishPercent %>%
+                                            </span>
+                                            <%}
+                                                    else{%>
+                                                <span>
+                                                    <%- u.finishPercent %>%
+                                                </span>
+                                                <%} %>
+                                    </td>
                                     <td>
                                         <% if(u.playername===user.username){%>
                                             <span style="color:#3c3;">
@@ -215,6 +228,18 @@
                                                         </span>
                                                         <%} %>
                                             </td> -->
+                                            <td>
+                                                <% if(u.playername===user.username){%>
+                                                    <span style="color:#3c3;">
+                                                        <%- u.finishPercent %>%
+                                                    </span>
+                                                    <%}
+                                                            else{%>
+                                                        <span>
+                                                            <%- u.finishPercent %>%
+                                                        </span>
+                                                        <%} %>
+                                            </td>
                                             <td>
                                                 <% if(u.playername===user.username){%>
                                                     <span style="color:#3c3;">
