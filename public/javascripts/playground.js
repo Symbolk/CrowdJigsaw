@@ -1,4 +1,5 @@
 var socket = io.connect(window.location.protocol + '//' + window.location.host + '/');
+
 //roundimageselector.js
 var puzzleImageSrcSet = new Set();
 //puzzleImageSrcSet.add("images/raw/starter_thumb.png");
@@ -23,6 +24,7 @@ socket.on('thumbnails', function (data) {
 
 
 socket.on('roundChanged', function (data) {
+    roundDetailJoinButton.removeAttr("disabled");
     getJoinableRounds();
 });
 socket.on('hello', function (data) {
@@ -128,6 +130,7 @@ function initRoundDetailDialog() {
     roundDetailJoinButton.click(function () {
         var roundID = $('#rounddetail_id').text();
         if (roundDetailJoinButton.text() == 'Join') {
+            roundDetailJoinButton.attr('disabled',"true");
             joinRound(roundID);
         } else {
             getRound(roundID);
@@ -136,6 +139,7 @@ function initRoundDetailDialog() {
     roundDetailCancelButton.click(function () {
         var roundID = $('#rounddetail_id').text();
         var round = roundsList[parseInt(roundID)];
+        roundDetailJoinButton.removeAttr("disabled");
         if (roundDetailCancelButton.text() == 'Quit') {
             quitRound(roundID);
             roundDetailCancelButton.text('Close');
@@ -401,10 +405,15 @@ function renderRoundList(data) {
     for (var round of data) {
         var roundID = round.round_id;
 
-        if (round.start_time != '-1') {
+        if (round.start_time != '-1' || round.players.length == round.players_num || round.players_num == 1) {
             for (var player of round.players) {
                 if (username == player.player_name) {
-                    startPuzzle(roundID);
+                    if(round.start_time == '-1'){
+                        startRound(roundID);
+                    }
+                    else{
+                        startPuzzle(roundID);
+                    }
                 }
             }
             continue;
@@ -568,54 +577,11 @@ function quitRound(roundID) {
 }
 
 function joinRound(roundID) {
-    var round = roundsList[roundID];
-    var param = {
-        round_id: roundID
-    };
-    $.ajax({
-        data: param,
-        url: requrl + 'round' + '/joinRound',
-        type: 'post',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            $.amaran({
-                'title': 'joinRound',
-                'message': 'You just join ' + roundID,
-                'inEffect': 'slideRight',
-                'cssanimationOut': 'zoomOutUp',
-                'position': "top right",
-                'delay': 2000,
-                'closeOnClick': true,
-                'closeButton': true
-            });
-            getJoinableRounds(roundID);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
-    // /**
-    //  * Report to the server
-    //  */
-    socket.emit('join', { player_name: username });
+    socket.emit('joinRound', {round_id:roundID, username: username });
 }
 
 function startRound(roundID) {
-    $.ajax({
-        url: requrl + 'round' + '/startRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            getJoinableRounds();
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
+    socket.emit('startRound', {round_id:roundID, username: username});
 }
 
 function startPuzzle(roundID) {

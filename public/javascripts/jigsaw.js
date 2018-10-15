@@ -588,12 +588,17 @@ function JigsawPuzzle(config) {
         hintedLinksNum = {
             totalLinks: 0,
             normalLinks: 0,
-            hintedLinks: 0
+            hintedLinks: 0,
+            correctLinks: 0
         };
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             for (var j = 0; j < tile.hintedLinks.length; j++) {
                 if (tile.aroundTiles[j] >= 0) {
+                    var correctIndex = i + directions[j].x + directions[j].y * instance.tilesPerRow;
+                    if(tile.aroundTiles[j] == correctIndex){
+                        hintedLinksNum.correctLinks += 1;
+                    }
                     if (tile.hintedLinks[j] >= 0 && Math.floor(tile.hintedLinks[j]) == tile.aroundTiles[j]) {
                         hintedLinksNum.hintedLinks += 1;
                     }
@@ -628,9 +633,10 @@ function JigsawPuzzle(config) {
             round_id: roundID,
             player_name: player_name,
             steps: steps,
-            time: startTime,
+            startTime: startTime,
             totalLinks: hintedLinksNum.totalLinks,
             hintedLinks: hintedLinksNum.hintedLinks,
+            correctLinks: hintedLinksNum.correctLinks,
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
@@ -1194,7 +1200,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     topTileConflict = topTileConflict || (topTile != undefined) && (getTileIndex(topTile) != hintAroundTiles[0]);
                     if (topTileConflict && tile.aroundTiles[0] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(topTile, 0);
+                        var canMoveAway = false;//moveAwayDelay(topTile, 0);
                         if (canMoveAway) {
                             topTileConflict = false;
                         }
@@ -1206,7 +1212,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     rightTileConflict = rightTileConflict || (rightTile != undefined) && (getTileIndex(rightTile) != hintAroundTiles[1]);
                     if (rightTileConflict && tile.aroundTiles[1] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(rightTile, 1);
+                        var canMoveAway = false;//moveAwayDelay(rightTile, 1);
                         if (canMoveAway) {
                             rightTileConflict = false;
                         }
@@ -1218,7 +1224,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     bottomTileConflict = bottomTileConflict || (bottomTile != undefined) && (getTileIndex(bottomTile) != hintAroundTiles[2]);
                     if (bottomTileConflict && tile.aroundTiles[2] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(bottomTile, 2);
+                        var canMoveAway = false;//moveAwayDelay(bottomTile, 2);
                         if (canMoveAway) {
                             bottomTileConflict = false;
                         }
@@ -1230,7 +1236,7 @@ function JigsawPuzzle(config) {
                 if (hintAroundTiles) {
                     leftTileConflict = leftTileConflict || (leftTile != undefined) && (getTileIndex(leftTile) != hintAroundTiles[3]);
                     if (leftTileConflict && tile.aroundTiles[3] < 0 && onlyOneTile) {
-                        var canMoveAway = moveAwayDelay(leftTile, 3);
+                        var canMoveAway = false;//moveAwayDelay(leftTile, 3);
                         if (canMoveAway) {
                             leftTileConflict = false;
                         }
@@ -1384,6 +1390,10 @@ function JigsawPuzzle(config) {
     }
 
     function askHelp() {
+        if(players_num == 1){
+            return;
+        }
+
         console.log("Asking for help...");
         clearTimeout(instance.askHelpTimeout);
 
@@ -1705,7 +1715,9 @@ function JigsawPuzzle(config) {
                 edges: instance.subGraphData
             };
             //console.log(param);
-            socket.emit("upload", param);
+            if(players_num > 1){
+                socket.emit("upload", param);
+            }
         }
 
         instance.dfsGraphLinksMap = new Array();
@@ -1855,7 +1867,7 @@ function JigsawPuzzle(config) {
                 getHintsIndex.push(i);
             }
         }
-        if (getHintsIndex.length > 0) {
+        if (getHintsIndex.length > 0 && players_num > 1) {
             //console.log(instance.getHintsArray, getHintsIndex);
             socket.emit("getHintsAround", {
                 "round_id": round_id,
@@ -2430,36 +2442,27 @@ function JigsawPuzzle(config) {
  */
 (function () {
     var submitButton = document.querySelector('#submit-button');
-    $('.rb-rating').rating({
-        'showCaption': false,
-        'showClear': false,
-        'stars': '5',
-        'min': '0',
-        'max': '5',
-        'step': '0.5',
-        'size': 'xs',
-        // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
-    });
+    if(players_num == 1){
+        $('.rating-body').css('display', 'none');
+    }
+    else{
+        $('.rb-rating').rating({
+            'showCaption': false,
+            'showClear': false,
+            'stars': '5',
+            'min': '0',
+            'max': '5',
+            'step': '0.5',
+            'size': 'xs',
+            // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
+        });
+    }
     submitButton.addEventListener('click', function (event) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
 
-        sendRecord(roundID, true, puzzle.realSteps, startTime,
-            hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
-
-        $.ajax({
-            url: requrl + 'round' + '/quitRound/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                window.location = '/roundrank/' + roundID;
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('error ' + textStatus + " " + errorThrown);
-            }
-        });
+        sendRecord(true, rating);
+        quitRound(roundID);
     });
 }());
 
@@ -2478,67 +2481,30 @@ function JigsawPuzzle(config) {
         });
     });
 
-    $('.rb-rating').rating({
-        'showCaption': false,
-        'showClear': false,
-        'stars': '5',
-        'min': '0',
-        'max': '5',
-        'step': '0.5',
-        'size': 'xs',
-        // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
-    });
-
+    if(players_num == 1){
+        $('.rating-body').css('display', 'none');
+        $('#apply-button').text('Quit');
+    }
+    else{
+        $('.rb-rating').rating({
+            'showCaption': false,
+            'showClear': false,
+            'stars': '5',
+            'min': '0',
+            'max': '5',
+            'step': '0.5',
+            'size': 'xs',
+            // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
+        });
+    }
     applyButton.addEventListener('click', function (event) {
         var rating = $("#rating").val();
         puzzle.calcHintedTile();
 
-        sendRecord(roundID, false, puzzle.realSteps,
-            startTime, hintedLinksNum.totalLinks,
-            hintedLinksNum.hintedLinks, totalHintsNum, correctHintsNum, rating);
-
-        $.ajax({
-            url: requrl + 'round' + '/quitRound/' + roundID,
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                window.location = '/roundrank/' + roundID;
-                console.log(data);
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                $('.quitLabel').text('Connection error, please try again.');
-                console.log('error ' + textStatus + " " + errorThrown);
-            }
-        });
+        sendRecord(false, rating);
+        quitRound(roundID);
     });
 }());
-
-$('#give_up').on('click', function (event) {
-
-    puzzle.calcHintedTile();
-
-    sendRecord(roundID, false, puzzle.realSteps,
-        startTime, hintedLinksNum.totalLinks, hintedLinksNum.hintedLinks,
-        totalHintsNum, correctHintsNum, -1);
-
-    $.ajax({
-        url: requrl + 'round' + '/quitRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            window.location = '/roundrank/' + roundID;
-            console.log(data);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            $('.quit-dialog-text').text('Connection error, please try again.');
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
-});
 
 $('#undo_button').on('click', function (event) {
     if (puzzle.steps != undoStep) {
@@ -2566,3 +2532,38 @@ $('.returnCenter').click(function () {
     puzzle.focusToCenter();
 });
 
+/**
+ * Send personal records to the server at the end of one game
+ */
+function sendRecord(finished, rating) {
+    var params = {
+        round_id: roundID,
+        player_name: player_name,
+        finished: finished,
+        steps: puzzle.realSteps,
+        startTime: startTime,
+        totalLinks: hintedLinksNum.totalLinks,
+        hintedLinks: hintedLinksNum.hintedLinks,
+        correctLinks: hintedLinksNum.correctLinks,
+        totalHintsNum: totalHintsNum,
+        correctHintsNum: correctHintsNum,
+        rating: rating
+    };
+    socket.emit('saveRecord', params);
+}
+
+function quitRound(roundID) {
+    $.ajax({
+        url: requrl + 'round' + '/quitRound/' + roundID,
+        type: 'get',
+        dataType: 'json',
+        cache: false,
+        timeout: 5000,
+        success: function (data) {
+            window.location = '/award/' + roundID;
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('error ' + textStatus + " " + errorThrown);
+        }
+    });
+}

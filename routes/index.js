@@ -222,6 +222,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                 {
                     title: 'Puzzle',
                     player_name: req.session.user.username,
+                    players_num: round.players_num,
                     level: round.level,
                     roundID: roundID,
                     image: round.image,
@@ -328,6 +329,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
         } else {
             var round = doc;
             var roundContribution = round.contribution;
+            var puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
             UserModel.find(condition, fields, function (err, docs) {
                 if (err) {
                     console.log(err);
@@ -340,11 +342,15 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                 if (r.round_id == req.params.round_id && r.start_time != "-1" ) {
                                     let hintPercent = 0;
                                     let correctPercent = 0;
+                                    let finishPercent = 0;
                                     if (r.hinted_links != -1 && r.total_links != -1 && r.total_links > 0 && r.hinted_links > 0) {
                                         hintPercent = r.hinted_links / r.total_links * 100;
                                     }
-                                    if (r.total_hints != -1 && r.correct_hints != -1 && r.total_hints > 0 && hintPercent > 0) {
+                                    if (r.total_hints > 0 && r.correct_hints != -1 && hintPercent > 0) {
                                         correctPercent = r.correct_hints / r.total_hints * 100;
+                                    }
+                                    if (r.total_links > 0 && r.correct_links != -1) {
+                                        finishPercent = (r.correct_links/2) / puzzle_links * 100;
                                     }
                                     let contribution = 0;
                                     if(roundContribution && roundContribution[d.username]){
@@ -358,6 +364,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                             "steps": r.steps,
                                             "contribution": contribution.toFixed(3),
                                             "hintPercent": hintPercent.toFixed(3),
+                                            "finishPercent": finishPercent.toFixed(3),
                                             "correctPercent": correctPercent.toFixed(3),
                                             "rating": r.rating
                                         });
@@ -369,6 +376,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                             "steps": r.steps,
                                             "contribution": contribution.toFixed(3),
                                             "hintPercent": hintPercent.toFixed(3),
+                                            "finishPercent": finishPercent.toFixed(3),
                                             "correctPercent": correctPercent.toFixed(3),
                                             "rating": r.rating
                                         });
@@ -479,6 +487,108 @@ function LoginFirst(req, res, next) {
 }
 router.route('/statistics').all(LoginFirst).get(function (req, res) {
     res.render('statistics', { title: 'Statistics',username: req.session.user.username});
+});
+// router.route('/award').all(LoginFirst).get(function (req, res) {
+//     res.render('award', {title: 'Award',username: req.session.user.username});
+// });
+
+router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
+    let condition = { "records.round_id": req.params.round_id };
+    let fields = { _id: 0, username: 1, avatar: 1, records: 1 };
+    RoundModel.findOne({ round_id: req.params.round_id }, function (err, doc) {
+        if (err) {
+            console.log(err);
+        } else {
+            var round = doc;
+            var roundContribution = round.contribution;
+            var puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
+            UserModel.find(condition, fields, function (err, docs) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (docs) {
+                        let finished = new Array();
+                        let unfinished = new Array();
+                        for (let d of docs) {
+                            for (let r of d.records) {
+                                if (r.round_id == req.params.round_id && r.start_time != "-1" ) {
+                                    let finishPercent = 0;
+                                    if (r.total_links > 0 && r.correct_links != -1) {
+                                        finishPercent = (r.correct_links/2) / puzzle_links * 100;
+                                    }
+                                    if (r.end_time != "-1") {
+                                        finished.push({
+                                            "playername": d.username,
+                                            "avatar": d.avatar,
+                                            "time": r.time,
+                                            "steps": r.steps,
+                                            "finishPercent": finishPercent.toFixed(3),
+                                        });
+                                    } else {
+                                        unfinished.push({
+                                            "playername": d.username,
+                                            "avatar": d.avatar,
+                                            "time": r.time,
+                                            "steps": r.steps,
+                                            "finishPercent": finishPercent.toFixed(3),
+
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        // sort the players
+                        finished = finished.sort(util.ascending("time"));
+                        unfinished = unfinished.sort(util.descending("finishPercent"));
+                        var unfinishCount = unfinished.length;
+                        var finishCount = finished.length;
+                        let defeat = new Array();
+                        for(var i=0;i<unfinishCount;i++){
+                            defeat.push({
+                                "playername":unfinished[i].playername,
+                                "defeatnum":unfinishCount-i-1,
+                            })
+                        };
+                        for(var i=0;i<finishCount;i++){
+                            defeat.push({
+                                "playername":finished[i].playername,
+                                "defeatnum":finishCount+unfinishCount-i-1,
+                            })
+                        };
+                        if(finishCount==1)
+                        {
+                            var player1=finished[0].playername;
+                            res.render('award', {
+                                title: 'Award', player1: player1, player2:"???", player3:"???",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
+                            });
+                        }
+                        else if(finishCount==2)
+                        {
+                            var player1=finished[0].playername;
+                            var player2=finished[1].playername;
+                            res.render('award', {
+                                title: 'Award', player1: player1, player2:player2, player3:"???",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
+                            });
+                        }
+                        else if(finishCount>=3)
+                        {
+                            var player1=finished[0].playername;
+                            var player2=finished[1].playername;
+                            var player3=finished[2].playername;
+                            res.render('award', {
+                                title: 'Award', player1: player1, player2:player2, player3:player3,defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
+                            });
+                        }
+                        else
+                        {
+                            console.log("error!");
+                        }
+
+                    }
+                }
+            });
+        }
+    });
 });
 
 module.exports = router;

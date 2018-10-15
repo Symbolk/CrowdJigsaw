@@ -14,7 +14,7 @@
                                 Are You Sure to Quit?
                             </h4>
                         </div>
-                        <div class="modal-body" style="text-align:center;">
+                        <div class="modal-body rating-body" style="text-align:center;">
                             <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
                             <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
                             <input id="rating" required class="rb-rating" type="text" value="" title="">
@@ -41,9 +41,8 @@
                                 Congratulations!
                             </h4>
                         </div>
-                        <div class="modal-body" style="text-align:center;">
+                        <div class="modal-body rating-body" style="text-align:center;">
                             <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
-                            <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
                             <input id="rating2" required class="rb-rating" type="text" value="" title="">
                         </div>
                         <div class="modal-footer">
@@ -131,6 +130,9 @@
                 var imgSrc = '<%-image%>';
                 var tileWidth = '<%-tileWidth%>';
                 tileWidth = parseInt(tileWidth);
+
+                var players_num = '<%-players_num%>';
+                players_num = parseInt(players_num);
 
                 var roundShape = '<%-shape%>';
                 var hasEdge = '<%-edge%>';
