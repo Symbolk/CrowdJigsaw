@@ -2563,6 +2563,14 @@ if(solved_players >= 3){
     puzzle.forceLeace('3 other players have finished puzzle. Please Leave!');
 }
 
+socket.on('connect_error', function(data){
+    $('#cancel-button').attr('disabled',"true");
+    $('#apply-button').attr('disabled',"true");
+    $('#apply-button').css('display', 'none');
+    $('#cancel-button').css('display', 'none');
+    puzzle.forceLeace('connection error. please refresh');
+});
+
 
 $(document).ready(function(e) { 
     var counter = 0;
