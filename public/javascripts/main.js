@@ -7,7 +7,7 @@ socket.on('connect_error', function(data){
             backdrop: false
         });
     }
-    else if (!$('#apply-button').get(0)) {
+    else {
         location.reload();
     }
 });

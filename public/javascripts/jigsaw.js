@@ -249,7 +249,7 @@ function JigsawPuzzle(config) {
             backdrop: false
         });
     }
-
+    ////
     socket.on('forceLeave', function (data) {
         if (data.round_id == roundID) {
             instance.forceLeace('3 other players have finished puzzle. Please Leave!');
@@ -2448,11 +2448,10 @@ function JigsawPuzzle(config) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
-                $('#cancel-button').attr('disabled',"true");
-                $('#apply-button').attr('disabled',"true");
-                $('#apply-button').css('display', 'none');
-                $('#cancel-button').css('display', 'none');
-                instance.forceLeace('connection error. please refresh');
+                $('#refresh_modal').modal({
+                    keyboard: false,
+                    backdrop: false
+                });
             }
         });
     }
@@ -2562,9 +2561,10 @@ function quitRound(roundID) {
             console.log('error ' + textStatus + " " + errorThrown);
             $('#cancel-button').attr('disabled',"true");
             $('#apply-button').attr('disabled',"true");
-            $('#apply-button').css('display', 'none');
-            $('#cancel-button').css('display', 'none');
-            puzzle.forceLeace('connection error. please refresh');
+            $('#submit-button').attr('disabled',"true");
+            $('#quitLabel').text('Connect error, please refresh.');
+            $('#msgLabel').text('Connect error, please refresh.');
+            $('.rating-body').css('display', 'none');
         }
     });
 }
@@ -2573,15 +2573,6 @@ if(solved_players >= 3){
     puzzle.forceLeace('3 other players have finished puzzle. Please Leave!');
 }
 
-socket.on('connect_error', function(data){
-    $('#cancel-button').attr('disabled',"true");
-    $('#apply-button').attr('disabled',"true");
-    $('#apply-button').css('display', 'none');
-    $('#cancel-button').css('display', 'none');
-    $('.rating-body').css('display', 'none');
-    puzzle.forceLeace('connection error. please refresh');
-});
-
 
 $(document).ready(function(e) { 
     var counter = 0;
@@ -2589,7 +2580,7 @@ $(document).ready(function(e) {
         $(window).on('popstate', function () {
             window.history.pushState('forward', null, '#');
             window.history.forward(1);
-            $('#quitLabel').text('Are You Sure?');
+            $('#quitLabel').text('Are You Sure To Quit?');
             $('#ensure_quit_dialog').modal({
                 keyboard: true
             });
