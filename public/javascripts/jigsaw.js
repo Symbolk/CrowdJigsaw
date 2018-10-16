@@ -2578,6 +2578,7 @@ socket.on('connect_error', function(data){
     $('#apply-button').attr('disabled',"true");
     $('#apply-button').css('display', 'none');
     $('#cancel-button').css('display', 'none');
+    $('.rating-body').css('display', 'none');
     puzzle.forceLeace('connection error. please refresh');
 });
 
