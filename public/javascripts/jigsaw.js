@@ -2448,6 +2448,11 @@ function JigsawPuzzle(config) {
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
+                $('#cancel-button').attr('disabled',"true");
+                $('#apply-button').attr('disabled',"true");
+                $('#apply-button').css('display', 'none');
+                $('#cancel-button').css('display', 'none');
+                instance.forceLeace('connection error. please refresh');
             }
         });
     }
@@ -2555,6 +2560,11 @@ function quitRound(roundID) {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
+            $('#cancel-button').attr('disabled',"true");
+            $('#apply-button').attr('disabled',"true");
+            $('#apply-button').css('display', 'none');
+            $('#cancel-button').css('display', 'none');
+            puzzle.forceLeace('connection error. please refresh');
         }
     });
 }
