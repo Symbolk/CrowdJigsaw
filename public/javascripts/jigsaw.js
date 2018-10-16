@@ -2551,7 +2551,7 @@ function quitRound(roundID) {
         cache: false,
         timeout: 5000,
         success: function (data) {
-            window.location = '/roundrank/' + roundID;
+            window.location = '/award/' + roundID;
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
