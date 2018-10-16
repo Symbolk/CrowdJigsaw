@@ -554,7 +554,7 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                         {
                             var player1=finished[0].playername;
                             res.render('award', {
-                                title: 'Award', player1: player1, player2:"???", player3:"???",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
+                                title: 'Award', player1: player1, player2:"", player3:"",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
                             });
                         }
                         else if(finishCount==2)
@@ -562,7 +562,7 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                             var player1=finished[0].playername;
                             var player2=finished[1].playername;
                             res.render('award', {
-                                title: 'Award', player1: player1, player2:player2, player3:"???",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
+                                title: 'Award', player1: player1, player2:player2, player3:"",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
                             });
                         }
                         else if(finishCount>=3)

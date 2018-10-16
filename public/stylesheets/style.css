@@ -94,7 +94,7 @@ a {
 
 #player1{
   position: relative;
-  left:45%;
+  text-align: center;
   top: 50%;
   font-size:60px;
   color: #ffb600;
@@ -103,7 +103,7 @@ a {
 
 #player2{
   position: relative;
-  left:10%;
+  left:17%;
   top: 92.5%;
   font-size:60px;
   color: #ddb3a6;
@@ -124,7 +124,7 @@ a {
   display: inline-block;
 }
 .right2 {
-  width: 70%;
+  width: 45%;
   height: 500px;
   display: inline-block;
 }

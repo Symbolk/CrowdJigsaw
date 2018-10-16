@@ -252,7 +252,7 @@ function JigsawPuzzle(config) {
     ////
     socket.on('forceLeave', function (data) {
         if (data.round_id == roundID) {
-            instance.forceLeace('3 other players have finished puzzle. Please Leave!');
+            instance.forceLeace('Three Players Have Finished the Puzzle. Please Quit.');
         }
     });
 
@@ -2486,7 +2486,7 @@ function JigsawPuzzle(config) {
     });
 
     $('#quit').click(function (event) {
-        $('#quitLabel').text('Are You Sure?');
+        $('#quitLabel').text('Are You Sure to Quit?');
         $('#ensure_quit_dialog').modal({
             keyboard: true
         });
@@ -2570,7 +2570,7 @@ function quitRound(roundID) {
 }
 
 if(solved_players >= 3){
-    puzzle.forceLeace('3 other players have finished puzzle. Please Leave!');
+    puzzle.forceLeace('Three Players Have Finished the Puzzle. Please Quit.');
 }
 
 
@@ -2580,7 +2580,7 @@ $(document).ready(function(e) {
         $(window).on('popstate', function () {
             window.history.pushState('forward', null, '#');
             window.history.forward(1);
-            $('#quitLabel').text('Are You Sure To Quit?');
+            $('#quitLabel').text('Are You Sure to Quit?');
             $('#ensure_quit_dialog').modal({
                 keyboard: true
             });
