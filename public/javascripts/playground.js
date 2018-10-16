@@ -396,6 +396,10 @@ function getRound(roundID) {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
+            $('#refresh_modal').modal({
+                keyboard: false,
+                backdrop: false
+            });
         }
     });
 }
@@ -500,6 +504,10 @@ function getJoinableRounds() {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
+            $('#refresh_modal').modal({
+                keyboard: false,
+                backdrop: false
+            });
         }
     });
 }
@@ -544,6 +552,10 @@ function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
+            $('#refresh_modal').modal({
+                keyboard: false,
+                backdrop: false
+            });
         }
     });
 }
@@ -572,6 +584,10 @@ function quitRound(roundID) {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
+            $('#refresh_modal').modal({
+                keyboard: false,
+                backdrop: false
+            });
         }
     });
 }
