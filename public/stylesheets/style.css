@@ -124,8 +124,13 @@ a {
   margin:0 auto; 
 }
 
+.ok_button{
+  left: 35%;
+  text-align: center;
+}
+
 .right2 {
-  width: 45%;
+  width: 40%;
   height: 500px;
   margin:0 auto; 
 }
