@@ -89,30 +89,50 @@ router.route('/login').all(Logined).get(function (req, res) {
  * Log in as a visitor
  */
 router.route('/visitor').get(function (req, res) {
-    UserModel.find({}, function (err, docs) {
-        if (err) {
-            console.log(err);
-        } else {
-            var index = docs.length;
-            let operation = {
-                userid: index,
-                username: 'Visitor#' + index,
-                password: "",
-                last_online_time: util.getNowFormatDate(),
-                register_time: util.getNowFormatDate()
-            };
-            let user = { username: operation.username };
-            UserModel.create(operation, function (err) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    req.session.user = user
-                    req.session.error = 'Welcome! ' + operation.username;
+    if(req.session.user){
+        console.log(req.session.user.username);
+        let selectStr = { username: req.session.user.username };
+        let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
+        UserModel.findOne(selectStr, fields, function (err, doc) {
+            if (err) {
+                console.log(err);
+                req.session.user = null;
+                req.session.error = null;
+                return res.redirect('/visitor');
+            } else {
+                if (doc) {
                     return res.redirect('/home');
                 }
-            });
-        }
-    });
+            }
+        });
+    }
+    else
+    {
+        UserModel.find({}, function (err, docs) {
+            if (err) {
+                console.log(err);
+            } else {
+                var index = docs.length;
+                let operation = {
+                    userid: index,
+                    username: 'Visitor#' + index,
+                    password: "",
+                    last_online_time: util.getNowFormatDate(),
+                    register_time: util.getNowFormatDate()
+                };
+                let user = { username: operation.username };
+                UserModel.create(operation, function (err) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        req.session.user = user
+                        req.session.error = 'Welcome! ' + operation.username;
+                        return res.redirect('/home');
+                    }
+                });
+            }
+        });
+    }
 
 });
 
