@@ -45,63 +45,61 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <!-- iCheck -->
     <link rel="stylesheet" href="/stylesheets/icheck-bootstrap.min.css">
 
-    <!-- Google Font -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-
     <script type="text/javascript">
-        var firework = function(){
+        var firework = function () {
             this.size = 40;
             this.speed = 0.1;
             this.rise();
         }
         firework.prototype = {
-            color:function(){
-                var c = ['0','3','6','9','c','f'];
-                var t = [c[Math.floor(Math.random()*100)%6],'0','f'];
-                t.sort(function(){return Math.random()>0.5?-1:1;});
-                return '#'+t.join('');
+            color: function () {
+                var c = ['0', '3', '6', '9', 'c', 'f'];
+                var t = [c[Math.floor(Math.random() * 100) % 6], '0', 'f'];
+                t.sort(function () {
+                    return Math.random() > 0.5 ? -1 : 1;
+                });
+                return '#' + t.join('');
             },
-            aheight:function(){
+            aheight: function () {
                 var h = document.documentElement.clientHeight;
-                return Math.abs(Math.floor(Math.random()*h-200))+201;
+                return Math.abs(Math.floor(Math.random() * h - 200)) + 201;
             },
-            firecracker:function(){
+            firecracker: function () {
                 var b = document.createElement('div');
                 var w = document.body.clientWidth;
                 b.style.color = this.color();
                 b.style.position = 'absolute';
                 b.style.bottom = 0;
-                b.style.left = Math.floor(Math.random()*w)+1+'px';
+                b.style.left = Math.floor(Math.random() * w) + 1 + 'px';
                 document.getElementById('fire').appendChild(b);
                 return b;
             },
-            rise:function(){
+            rise: function () {
                 var o = this.firecracker();
                 var n = this.aheight();
                 var speed = this.speed;
                 var e = this.expl;
                 var s = this.size;
                 var k = n;
-                var m = function(){
-                    o.style.bottom = parseFloat(o.style.bottom)+k*speed+'px';
-                    k-=k*speed;
-                    if(k<2){
+                var m = function () {
+                    o.style.bottom = parseFloat(o.style.bottom) + k * speed + 'px';
+                    k -= k * speed;
+                    if (k < 2) {
                         clearInterval(clear);
-                        e(o,n,s,speed);
+                        e(o, n, s, speed);
                     }
                 }
                 o.innerHTML = '*';
-                if(parseInt(o.style.bottom)<n){
-                    var clear = setInterval(m,20);
+                if (parseInt(o.style.bottom) < n) {
+                    var clear = setInterval(m, 20);
                 }
             },
-            expl:function(o,n,s,speed){
-                var R = n/3;
-                var Ri = n/6;
+            expl: function (o, n, s, speed) {
+                var R = n / 3;
+                var Ri = n / 6;
                 var r = 0;
                 var ri = 0;
-                for(var i=0;i<s;i++){
+                for (var i = 0; i < s; i++) {
                     var span = document.createElement('span');
                     var p = document.createElement('p');
                     span.style.position = 'absolute';
@@ -115,31 +113,32 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     o.appendChild(span);
                     o.appendChild(p);
                 }
-                function spr(){
-                    r += R*speed;
-                    ri+= Ri*speed/2;
+
+                function spr() {
+                    r += R * speed;
+                    ri += Ri * speed / 2;
                     sp = o.getElementsByTagName('span');
                     p = o.getElementsByTagName('p');
-                    for(var i=0; i<sp.length;i++){
-                        sp[i].style.left=r*Math.cos(360/s*i)+'px';
-                        sp[i].style.top=r*Math.sin(360/s*i)+'px';
-                        p[i].style.left=ri*Math.cos(360/s*i)+'px';
-                        p[i].style.top=ri*Math.sin(360/s*i)+'px';
+                    for (var i = 0; i < sp.length; i++) {
+                        sp[i].style.left = r * Math.cos(360 / s * i) + 'px';
+                        sp[i].style.top = r * Math.sin(360 / s * i) + 'px';
+                        p[i].style.left = ri * Math.cos(360 / s * i) + 'px';
+                        p[i].style.top = ri * Math.sin(360 / s * i) + 'px';
                     }
-                    R-=R*speed;
-                    if(R<2){
+                    R -= R * speed;
+                    if (R < 2) {
                         clearInterval(clearI);
                         o.parentNode.removeChild(o);
                     }
                 }
-                var clearI = setInterval(spr,20);
+                var clearI = setInterval(spr, 20);
             }
         }
-        window.onload = function(){
-            function happyNewYear(){
+        window.onload = function () {
+            function happyNewYear() {
                 new firework();
             }
-            setInterval(happyNewYear,400);
+            setInterval(happyNewYear, 400);
         }
     </script>
 </head>
@@ -164,98 +163,98 @@ desired effect
 |---------------------------------------------------------|
 -->
 
-<body class="hold-transition skin-blue-light sidebar-mini">
-<div class="wrapper">
+<body class="hold-transition skin-blue-light sidebar-mini" style="padding: 0;">
+    <div class="wrapper">
 
-    <!-- Main Header -->
-    <header class="main-header">
+        <!-- Main Header -->
+        <header class="main-header">
 
-        <!-- Logo -->
-        <a href="/home" class="logo">
-            <!-- mini logo for sidebar mini 50x50 pixels -->
-            <span class="logo-mini">
+            <!-- Logo -->
+            <a href="/home" class="logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                <span class="logo-mini">
                     <b>C</b>JP</span>
-            <!-- logo for regular state and mobile devices -->
-            <span class="logo-lg">
+                <!-- logo for regular state and mobile devices -->
+                <span class="logo-lg">
                     <b>Crowd</b>Jigsaw</span>
-        </a>
-
-        <!-- Header Navbar -->
-        <nav class="navbar navbar-static-top" role="navigation">
-            <!-- Sidebar toggle button-->
-            <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
-                <span class="sr-only">Toggle navigation</span>
             </a>
-            <!-- Navbar Right Menu -->
-            <div class="navbar-custom-menu">
-                <ul class="nav navbar-nav">
-                    <!-- User Account Menu -->
-                    <li class="dropdown user user-menu">
-                        <!-- Menu Toggle Button -->
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <!-- The user image in the navbar-->
-                            <img src="" class="user-image headImg" alt="User Image">
-                            <canvas id="headImg" style="display:none"></canvas>
-                            <!-- hidden-xs hides the username on small devices so only the image appears. -->
-                            <span class="hidden-xs">
+
+            <!-- Header Navbar -->
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+                <!-- Navbar Right Menu -->
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <!-- User Account Menu -->
+                        <li class="dropdown user user-menu">
+                            <!-- Menu Toggle Button -->
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <!-- The user image in the navbar-->
+                                <img src="" class="user-image headImg" alt="User Image">
+                                <canvas id="headImg" style="display:none"></canvas>
+                                <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                                <span class="hidden-xs">
                                     <%= username %>
                                 </span>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <!-- The user image in the menu -->
-                            <li class="user-header">
-                                <img src="" class="img-circle headImg" alt="User Image">
-                                <canvas id="headImg" style="display:none"></canvas>
-                                <p>
-                                    <%= username %>
-                                    <small>Member since 2018.</small>
-                                </p>
-                            </li>
-                            <!-- Menu Footer-->
-                            <li class="user-footer">
-                                <!-- <div class="pull-left">
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- The user image in the menu -->
+                                <li class="user-header">
+                                    <img src="" class="img-circle headImg" alt="User Image">
+                                    <canvas id="headImg" style="display:none"></canvas>
+                                    <p>
+                                        <%= username %>
+                                        <small>Member since 2018.</small>
+                                    </p>
+                                </li>
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    <!-- <div class="pull-left">
                               <a href="#" class="btn btn-default btn-flat">Profile</a>
                             </div> -->
-                                <div class="pull-right">
-                                    <a href="/logout" class="btn btn-default btn-flat">Sign out</a>
-                                </div>
-                            </li>
-                        </ul>
-                    </li>
-                    <!-- Control Sidebar Toggle Button -->
-                    <li>
-                        <a href="#" data-toggle="control-sidebar">
-                            <i class="fa fa-gears"></i>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
-    <!-- Left side column. contains the logo and sidebar -->
-    <aside class="main-sidebar">
-
-        <!-- sidebar: style can be found in sidebar.less -->
-        <section class="sidebar">
-
-            <!-- Sidebar user panel (optional) -->
-            <div class="user-panel">
-                <div class="pull-left image">
-                    <img src="" class="img-circle head-sidebar" alt="User Image">
-                    <canvas id="head-sidebar" style="display:none"></canvas>
+                                    <div class="pull-right">
+                                        <a href="/logout" class="btn btn-default btn-flat">Sign out</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Control Sidebar Toggle Button -->
+                        <li>
+                            <a href="#" data-toggle="control-sidebar">
+                                <i class="fa fa-gears"></i>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="pull-left info">
-                    <p>
-                        <%= username %>
-                    </p>
-                    <!-- Status -->
-                    <a href="#">
-                        <i class="fa fa-circle text-success"></i> Online</a>
-                </div>
-            </div>
+            </nav>
+        </header>
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
 
-            <!-- search form (Optional) -->
-            <!-- <form action="#" method="get" class="sidebar-form">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+
+                <!-- Sidebar user panel (optional) -->
+                <div class="user-panel">
+                    <div class="pull-left image">
+                        <img src="" class="img-circle head-sidebar" alt="User Image">
+                        <canvas id="head-sidebar" style="display:none"></canvas>
+                    </div>
+                    <div class="pull-left info">
+                        <p>
+                            <%= username %>
+                        </p>
+                        <!-- Status -->
+                        <a href="#">
+                            <i class="fa fa-circle text-success"></i> Online</a>
+                    </div>
+                </div>
+
+                <!-- search form (Optional) -->
+                <!-- <form action="#" method="get" class="sidebar-form">
           <div class="input-group">
             <input type="text" name="q" class="form-control" placeholder="Search...">
             <span class="input-group-btn">
@@ -264,81 +263,81 @@ desired effect
               </span>
           </div>
         </form> -->
-            <!-- /.search form -->
+                <!-- /.search form -->
 
-            <!-- Sidebar Menu -->
-            <ul class="sidebar-menu" data-widget="tree">
-                <li class="header">Pages</li>
-                <!-- Optionally, you can add icons to the links -->
-                <li class="active">
-                    <a href="/home">
-                        <i class="fa fa-gamepad fa-lg"></i>
-                        <span>Playground</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/records">
-                        <i class="fa fa-calendar fa-lg"></i>
-                        <span>Records</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/settings">
-                        <i class="fa fa-gears fa-lg"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/rank">
-                        <i class="fa fa-list-ol fa-lg"></i>
-                        <span>Ranks</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/statistics">
-                        <i class="fa fa-area-chart fa-lg"></i>
-                        <span>Statistics</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/help">
-                        <i class="fa fa-question-circle fa-lg"></i>
-                        <span>Help</span>
-                    </a>
-                </li>
+                <!-- Sidebar Menu -->
+                <ul class="sidebar-menu" data-widget="tree">
+                    <li class="header">Pages</li>
+                    <!-- Optionally, you can add icons to the links -->
+                    <li class="active">
+                        <a href="/home">
+                            <i class="fa fa-gamepad fa-lg"></i>
+                            <span>Playground</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/records">
+                            <i class="fa fa-calendar fa-lg"></i>
+                            <span>Records</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/settings">
+                            <i class="fa fa-gears fa-lg"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/rank">
+                            <i class="fa fa-list-ol fa-lg"></i>
+                            <span>Ranks</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/statistics">
+                            <i class="fa fa-area-chart fa-lg"></i>
+                            <span>Statistics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/help">
+                            <i class="fa fa-question-circle fa-lg"></i>
+                            <span>Help</span>
+                        </a>
+                    </li>
 
-                <li class="treeview">
-                    <a href="#">
-                        <i class="fa fa-link fa-lg"></i>
-                        <span>Links</span>
-                        <span class="pull-right-container">
+                    <li class="treeview">
+                        <a href="#">
+                            <i class="fa fa-link fa-lg"></i>
+                            <span>Links</span>
+                            <span class="pull-right-container">
                                 <i class="fa fa-angle-right pull-right"></i>
                             </span>
-                    </a>
-                    <ul class="treeview-menu">
-                        <li>
-                            <a href="https://github.com/Symbolk/CrowdJigsaw">Github</a>
-                        </li>
-                        <li>
-                            <a href="http://symbolk.com">Blog</a>
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <a href="/logout">
-                        <i class="fa fa-sign-out fa-lg"></i>
-                        <span>Sign Out</span>
-                    </a>
-                </li>
-            </ul>
-            <!-- /.sidebar-menu -->
-        </section>
-        <!-- /.sidebar -->
-    </aside>
-    <script src="/javascripts/jquery.min.js"></script>
+                        </a>
+                        <ul class="treeview-menu">
+                            <li>
+                                <a href="https://github.com/Symbolk/CrowdJigsaw">Github</a>
+                            </li>
+                            <li>
+                                <a href="http://symbolk.com">Blog</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="/logout">
+                            <i class="fa fa-sign-out fa-lg"></i>
+                            <span>Sign Out</span>
+                        </a>
+                    </li>
+                </ul>
+                <!-- /.sidebar-menu -->
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        <script src="/javascripts/jquery.min.js"></script>
 
-    <script>
-        $(function () {
+        <script>
+            $(function () {
             var uname = '<%= username %>';
             var name = uname.charAt(0);
             var fontSize = 60;
@@ -374,146 +373,154 @@ desired effect
         });
     </script>
 
-    <div class="content-wrapper" id="fire">
-        <div id="myhonor" class="left2">
-            <img id="badge" src="/images/badge.png">
-            <p id='defeat_message'>You defeated
-                <% defeat.forEach(function(u){ %>
+        <div class="content-wrapper" id="fire">
+            <div id="mypic" class="right2">
+                <p id="player1">
+                    <%= player1 %>
+                </p>
+                <p id="player2">
+                    <%= player2 %>
+                </p>
+                <p id="player3">
+                    <%= player3 %>
+                </p>
+                <!--<image src = '/images/medal.png' style="width:50%;height: 50%;"></image>-->
+                <!--<span style="position: absolute; top: 0; left: 0;">添加文字...添加文字...添加文字...</span>-->
+            </div>
+            <br />
+            <div id="myhonor" class="left2">
+                <img id="badge" src="/images/badge.png">
+                <p id='defeat_message'>You defeated
+                    <% defeat.forEach(function(u){ %>
                     <% if(u.playername==user.username) { %>
-                       <%= u.defeatnum %>
+                    <%= u.defeatnum %>
                     <% }}) %> people.
-            </p>
+                </p>
+            <a href="/home" class="ok_button button button-3d button-primary button-rounded">OK</a>
+            </div>
+
         </div>
-        <div id="mypic" class="right2">
-                <p id="player1"><%= player1 %></p>
-                <p id="player2"><%= player2 %></p>
-                <p id="player3"><%= player3 %></p>
-
-            <!--<image src = '/images/medal.png' style="width:50%;height: 50%;"></image>-->
-            <!--<span style="position: absolute; top: 0; left: 0;">添加文字...添加文字...添加文字...</span>-->
-        </div>
-    </div>
 
 
 
-    <!-- Main Footer -->
-    <footer class="main-footer">
-        <!-- To the right -->
-        <div class="pull-right hidden-xs">
-            Collective Intelligence Software Engineering
-        </div>
-        <!-- Default to the left -->
-        <strong>Copyright &copy; 2018
-            <a href="#">******</a>.</strong> All rights reserved.
-    </footer>
+        <!-- Main Footer -->
+        <footer class="main-footer">
+            <!-- To the right -->
+            <div class="pull-right hidden-xs">
+                Collective Intelligence Software Engineering
+            </div>
+            <!-- Default to the left -->
+            <strong>Copyright &copy; 2018
+                <a href="#">******</a>.</strong> All rights reserved.
+        </footer>
 
-    <!-- Control Sidebar -->
-    <aside class="control-sidebar control-sidebar-dark">
-        <!-- Create the tabs -->
-        <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
-            <li class="active">
-                <a href="#control-sidebar-home-tab" data-toggle="tab">
-                    <i class="fa fa-home"></i>
-                </a>
-            </li>
-            <li>
-                <a href="#control-sidebar-settings-tab" data-toggle="tab">
-                    <i class="fa fa-gears"></i>
-                </a>
-            </li>
-        </ul>
-        <!-- Tab panes -->
-        <div class="tab-content">
-            <!-- Home tab content -->
-            <div class="tab-pane active" id="control-sidebar-home-tab">
-                <h3 class="control-sidebar-heading">Recent Activity</h3>
-                <ul class="control-sidebar-menu">
-                    <li>
-                        <a href="javascript:;">
-                            <i class="menu-icon fa fa-birthday-cake bg-red"></i>
+        <!-- Control Sidebar -->
+        <aside class="control-sidebar control-sidebar-dark">
+            <!-- Create the tabs -->
+            <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
+                <li class="active">
+                    <a href="#control-sidebar-home-tab" data-toggle="tab">
+                        <i class="fa fa-home"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#control-sidebar-settings-tab" data-toggle="tab">
+                        <i class="fa fa-gears"></i>
+                    </a>
+                </li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+                <!-- Home tab content -->
+                <div class="tab-pane active" id="control-sidebar-home-tab">
+                    <h3 class="control-sidebar-heading">Recent Activity</h3>
+                    <ul class="control-sidebar-menu">
+                        <li>
+                            <a href="javascript:;">
+                                <i class="menu-icon fa fa-birthday-cake bg-red"></i>
 
-                            <div class="menu-info">
-                                <h4 class="control-sidebar-subheading">Last login</h4>
+                                <div class="menu-info">
+                                    <h4 class="control-sidebar-subheading">Last login</h4>
 
-                                <p>Last login just now.</p>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-                <!-- /.control-sidebar-menu -->
+                                    <p>Last login just now.</p>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- /.control-sidebar-menu -->
 
-                <h3 class="control-sidebar-heading">Tasks Progress</h3>
-                <ul class="control-sidebar-menu">
-                    <li>
-                        <a href="javascript:;">
-                            <h4 class="control-sidebar-subheading">
-                                Profile Completion
-                                <span class="pull-right-container">
+                    <h3 class="control-sidebar-heading">Tasks Progress</h3>
+                    <ul class="control-sidebar-menu">
+                        <li>
+                            <a href="javascript:;">
+                                <h4 class="control-sidebar-subheading">
+                                    Profile Completion
+                                    <span class="pull-right-container">
                                         <span class="label label-danger pull-right">50%</span>
                                     </span>
-                            </h4>
+                                </h4>
 
-                            <div class="progress progress-xxs">
-                                <div class="progress-bar progress-bar-danger" style="width: 50%"></div>
-                            </div>
-                        </a>
-                    </li>
-                </ul>
-                <!-- /.control-sidebar-menu -->
+                                <div class="progress progress-xxs">
+                                    <div class="progress-bar progress-bar-danger" style="width: 50%"></div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- /.control-sidebar-menu -->
 
+                </div>
+                <!-- /.tab-pane -->
+                <!-- Stats tab content -->
+                <div class="tab-pane" id="control-sidebar-stats-tab">Stats Tab Content</div>
+                <!-- /.tab-pane -->
+                <!-- Settings tab content -->
+                <div class="tab-pane" id="control-sidebar-settings-tab">
+                    <form method="post">
+                        <h3 class="control-sidebar-heading">General Settings</h3>
+
+                        <div class="form-group">
+                            <label class="control-sidebar-subheading">
+                                Report personal usage
+                                <input type="checkbox" class="pull-right" checked>
+                            </label>
+
+                            <p>
+                                Send your data to our server for analysis.
+                            </p>
+                        </div>
+                        <!-- /.form-group -->
+                    </form>
+                </div>
+                <!-- /.tab-pane -->
             </div>
-            <!-- /.tab-pane -->
-            <!-- Stats tab content -->
-            <div class="tab-pane" id="control-sidebar-stats-tab">Stats Tab Content</div>
-            <!-- /.tab-pane -->
-            <!-- Settings tab content -->
-            <div class="tab-pane" id="control-sidebar-settings-tab">
-                <form method="post">
-                    <h3 class="control-sidebar-heading">General Settings</h3>
-
-                    <div class="form-group">
-                        <label class="control-sidebar-subheading">
-                            Report personal usage
-                            <input type="checkbox" class="pull-right" checked>
-                        </label>
-
-                        <p>
-                            Send your data to our server for analysis.
-                        </p>
-                    </div>
-                    <!-- /.form-group -->
-                </form>
-            </div>
-            <!-- /.tab-pane -->
-        </div>
-    </aside>
-    <!-- /.control-sidebar -->
-    <!-- Add the sidebar's background. This div must be placed
+        </aside>
+        <!-- /.control-sidebar -->
+        <!-- Add the sidebar's background. This div must be placed
       immediately after the control sidebar -->
-    <div class="control-sidebar-bg"></div>
-</div>
-<!-- ./wrapper -->
+        <div class="control-sidebar-bg"></div>
+    </div>
+    <!-- ./wrapper -->
 
-<!-- REQUIRED JS SCRIPTS -->
+    <!-- REQUIRED JS SCRIPTS -->
 
-<!-- jQuery 3 -->
-<script src="/javascripts/jquery.min.js"></script>
-<!-- Bootstrap 3.3.7 -->
-<script src="/javascripts/bootstrap.min.js"></script>
-<!-- AdminLTE App -->
-<script src="/javascripts/adminlte.min.js"></script>
+    <!-- jQuery 3 -->
+    <script src="/javascripts/jquery.min.js"></script>
+    <!-- Bootstrap 3.3.7 -->
+    <script src="/javascripts/bootstrap.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="/javascripts/adminlte.min.js"></script>
 
-<!-- Optionally, you can add Slimscroll and FastClick plugins.
+    <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the
      user experience. -->
-<script type="text/javascript" src="/javascripts/socket.io.js"></script>
-<script src="/javascripts/dialog-polyfill.js"></script>
-<script src="/javascripts/jquery.amaran.min.js"></script>
+    <script type="text/javascript" src="/javascripts/socket.io.js"></script>
+    <script src="/javascripts/dialog-polyfill.js"></script>
+    <script src="/javascripts/jquery.amaran.min.js"></script>
 
 
-<!-- <script src="/javascripts/bootstrap-table.min.js" ></script> -->
-<!--<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.min.js"></script>
+    <!-- <script src="/javascripts/bootstrap-table.min.js" ></script> -->
+    <!--<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.min.js"></script>
 
 </body>
 
