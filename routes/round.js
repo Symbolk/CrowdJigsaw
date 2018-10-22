@@ -74,6 +74,79 @@ function isCreator(req, res, next) {
 module.exports = function (io) {
 
     io.on('connection', function (socket) {
+        /**
+         * Create a new round
+         */
+        socket.on('newRound', function (data) {
+            RoundModel.find({}, function (err, docs) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    let index = docs.length;
+                    let TIME = util.getNowFormatDate();
+                    let imageSrc = data.imageURL;
+                    let image = images('public/' + imageSrc);
+                    let size = image.size();
+                    let imageWidth = size.width;
+                    let imageHeight = size.height;
+                    let tileWidth = 64;
+                    let tilesPerRow = Math.floor(imageWidth / tileWidth);
+                    let tilesPerColumn = Math.floor(imageHeight / tileWidth);
+                    let shapeArray = util.getRandomShapes(tilesPerRow, tilesPerColumn, data.shape, data.edge);
+                    let operation = {
+                        round_id: index,
+                        creator: data.username,
+                        image: imageSrc,
+                        level: data.level,
+                        shape: data.shape,
+                        edge: data.edge,
+                        border: data.border,
+                        create_time: TIME,
+                        players_num: data.players_num,
+                        players: [
+                            {
+                                player_name: data.username,
+                                join_time: TIME
+                            }
+                        ],
+                        imageWidth: imageWidth,
+                        imageHeight: imageHeight,
+                        tileWidth: tileWidth,
+                        tilesPerRow: tilesPerRow,
+                        tilesPerColumn: tilesPerColumn,
+                        tile_num: tilesPerRow * tilesPerColumn,
+                        row_num: tilesPerRow,
+                        shapeArray: shapeArray
+                    };
+
+                    if(data.players_num == 1){
+                        operation.players = [
+                            {
+                                player_name: data.username,
+                                join_time: TIME
+                            }
+                        ]
+                    }
+
+                    RoundModel.create(operation, function (err, doc) {
+                        if (err) {
+                            console.log(err);
+                        } else {
+                            console.log(data.username + ' creates Round' + index);
+                            io.sockets.emit('roundChanged', {
+                                round: doc,
+                                username: data.username,
+                                round_id: data.round_id,
+                                action: "create",
+                                title: "CreateRound",
+                                msg: 'You just create round' + data.round_id
+                            });
+                        }
+                    });
+                }
+            });
+        });
+
         socket.on('joinRound', function (data) {
             let condition = {
                 round_id: data.round_id
@@ -99,11 +172,24 @@ module.exports = function (io) {
                                     }
                                 }
                             };
-                            RoundModel.update(condition, operation, function (err) {
+                            RoundModel.update(condition, operation, function (err, doc) {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    io.sockets.emit('roundChanged', '');
+                                    RoundModel.findOne(condition, function (err, doc) {
+                                        if (err) {
+                                            console.log(err);
+                                        } else {
+                                            io.sockets.emit('roundChanged', {
+                                                round: doc,
+                                                username: data.username,
+                                                round_id: data.round_id,
+                                                action: "join",
+                                                title: "JoinRound",
+                                                msg: 'You just join round' + data.round_id
+                                            });
+                                        }
+                                    });
                                     console.log(data.username + ' joins Round' + condition.round_id);
                                     createRecord(data.username, data.round_id, TIME);
                                 }
@@ -221,6 +307,24 @@ module.exports = function (io) {
                 }
             });
         });
+        /**
+         * Load a game by one user
+         */
+        socket.on('loadGame', function (data) {
+            let condition = {
+                username: data.username
+            };
+            UserModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    io.sockets.emit('loadGameSuccess', {
+                        username: data.username,
+                        gameData: doc.save_game
+                    });
+                }
+            });
+        });
 
         socket.on('startRound', function (data) {
             let condition = {
@@ -256,11 +360,24 @@ module.exports = function (io) {
                             players_num: doc.players.length
                         }
                     };
-                    RoundModel.update(condition, operation, function (err) {
+                    RoundModel.update(condition, operation, function (err, doc) {
                         if (err) {
                             console.log(err);
                         } else {
-                            io.sockets.emit('roundChanged', '');
+                            RoundModel.findOne(condition, function (err, doc) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    io.sockets.emit('roundChanged', {
+                                        round: doc,
+                                        username: data.username,
+                                        round_id: data.round_id,
+                                        action: "start",
+                                        title: "StartRound",
+                                        msg: 'You just start round' + data.round_id
+                                    });
+                                }
+                            });
                             console.log(data.username + ' starts Round' + data.round_id);
                         }
                     });
@@ -290,6 +407,85 @@ module.exports = function (io) {
                         console.log('results: %j', results);
                         console.log('GA algorithm for round %d ends.', doc.round_id);
                     });*/
+                }
+            });
+        });
+
+        socket.on('quitRound', function (data) {
+            let condition = {
+                round_id: data.round_id
+            };
+            RoundModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    let isIn = doc.players.some(function (p) {
+                        return (p.player_name == data.username);
+                    });
+                    if (isIn) {
+                        if (doc.players.length == 1) { // the last player
+                            let operation = {
+                                $pull: {
+                                    players:
+                                    {
+                                        player_name: data.username
+                                    }
+                                },
+                                end_time: util.getNowFormatDate()
+                            };
+                            RoundModel.update(condition, operation, function (err, doc) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    RoundModel.findOne(condition, function (err, doc) {
+                                        if (err) {
+                                            console.log(err);
+                                        } else {
+                                            io.sockets.emit('roundChanged', {
+                                                round: doc,
+                                                username: data.username,
+                                                round_id: data.round_id,
+                                                action: "quit",
+                                                title: "StopRound",
+                                                msg: 'You just stop round' + data.round_id
+                                            });
+                                        }
+                                    });
+                                    console.log(data.username + ' stops Round' + data.round_id);
+                                }
+                            });
+                        } else { // online>=2
+                            let operation = {
+                                $pull: { //if exists, give up add
+                                    players:
+                                    {
+                                        player_name: data.username
+                                    }
+                                }
+                            };
+                            RoundModel.update(condition, operation, function (err, doc) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    RoundModel.findOne(condition, function (err, doc) {
+                                        if (err) {
+                                            console.log(err);
+                                        } else {
+                                            io.sockets.emit('roundChanged', {
+                                                round: doc,
+                                                username: data.username,
+                                                round_id: data.round_id,
+                                                action: "quit",
+                                                title: "QuitRound",
+                                                msg: 'You just quit round' + data.round_id
+                                            });
+                                        }
+                                    });
+                                    console.log(data.username + ' quits Round' + data.round_id);
+                                }
+                            });
+                        }
+                    }
                 }
             });
         });
@@ -380,158 +576,6 @@ module.exports = function (io) {
         });
     });
 
-
-    /**
-     * Get player list for one round
-     */
-    router.route('/getPlayers/:round_id').all(LoginFirst).get(function (req, res, next) {
-        let condition = {
-            round_id: req.params.round_id
-        };
-        RoundModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send(doc.players);
-            }
-        });
-    });
-
-    /**
-     * Get a specify round
-     */
-    router.route('/getRound/:round_id').all(LoginFirst).get(function (req, res, next) {
-        let condition = {
-            round_id: req.params.round_id
-        };
-        RoundModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send(doc);
-            }
-        });
-    });
-
-    /**
-     * Create a new round
-     */
-    router.route('/newRound').all(LoginFirst).post(function (req, res, next) {
-        RoundModel.find({}, function (err, docs) {
-            if (err) {
-                console.log(err);
-            } else {
-                let index = docs.length;
-                let TIME = util.getNowFormatDate();
-                let imageSrc = req.body.imageURL;
-                let image = images('public/' + imageSrc);
-                let size = image.size();
-                let imageWidth = size.width;
-                let imageHeight = size.height;
-                let tileWidth = 64;
-                let tilesPerRow = Math.floor(imageWidth / tileWidth);
-                let tilesPerColumn = Math.floor(imageHeight / tileWidth);
-                let shapeArray = util.getRandomShapes(tilesPerRow, tilesPerColumn, req.body.shape, req.body.edge);
-                let operation = {
-                    round_id: index,
-                    creator: req.session.user.username,
-                    image: imageSrc,
-                    level: req.body.level,
-                    shape: req.body.shape,
-                    edge: req.body.edge,
-                    border: req.body.border,
-                    create_time: TIME,
-                    players_num: req.body.players_num,
-                    imageWidth: imageWidth,
-                    imageHeight: imageHeight,
-                    tileWidth: tileWidth,
-                    tilesPerRow: tilesPerRow,
-                    tilesPerColumn: tilesPerColumn,
-                    tile_num: tilesPerRow * tilesPerColumn,
-                    row_num: tilesPerRow,
-                    shapeArray: shapeArray
-                };
-
-                RoundModel.create(operation, function (err) {
-                    if (err) {
-                        console.log(err);
-                    } else {
-                        console.log(req.session.user.username + ' creates Round' + index);
-                        io.sockets.emit('roundChanged', '');
-                        res.send({ msg: 'Round ' + index + ' created successfully.', round_id: index });
-                        // createRecord(req.session.user.username, operation.round_id, TIME);
-                    }
-                });
-            }
-        });
-    });
-
-
-    /**
-     * Quit a round, either by user or by accident, when unfinished
-     */
-    router.route('/quitRound/:round_id').all(LoginFirst).get(function (req, res, next) {
-        let condition = {
-            round_id: req.params.round_id
-        };
-        // check if joinable
-        RoundModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                let isIn = doc.players.some(function (p) {
-                    return (p.player_name == req.session.user.username);
-                });
-                if (isIn) {
-                    if (doc.players.length == 1) { // the last player
-                        let operation = {
-                            $pull: {
-                                players:
-                                {
-                                    player_name: req.session.user.username
-                                }
-                            },
-                            end_time: util.getNowFormatDate()
-                        };
-                        RoundModel.update(condition, operation, function (err) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                io.sockets.emit('roundChanged', '');
-                                console.log(req.session.user.username + ' stops Round' + req.params.round_id);
-                                res.send({
-                                    msg: "You just stopped the round...",
-                                    stop_round: true
-                                });
-                            }
-                        });
-                    } else { // online>=2
-                        let operation = {
-                            $pull: { //if exists, give up add
-                                players:
-                                {
-                                    player_name: req.session.user.username
-                                }
-                            }
-                        };
-                        RoundModel.update(condition, operation, function (err) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                io.sockets.emit('roundChanged', '');
-                                console.log(req.session.user.username + ' quits Round' + req.params.round_id);
-                                res.send({ msg: "You just quitted the round..." });
-                            }
-                        });
-                    }
-                    // update the record
-                } else {
-                    res.send({ msg: "You are not even in the round!" });
-                }
-            }
-        });
-    });
-
     /**
      * Get the round contribution rank
      */
@@ -556,67 +600,6 @@ module.exports = function (io) {
                     // res.render('roundrank', { title: 'Round Rank', AllPlayers: JSON.stringify(rankedPlayers), username: req.session.user.username });
                     res.send({ AllPlayers: rankedPlayers });
                 }
-            }
-        });
-    });
-
-    /**
-     * Save the game status and calculate the progress
-     */
-    router.route('/saveGame').all(LoginFirst).post(function (req, res, next) {
-        var save_game = {
-            round_id: req.body.round_id,
-            steps: req.body.steps,
-            realSteps: req.body.realSteps,
-            time: req.body.time,
-            tiles: req.body.tiles,
-            tileHintedLinks: req.body.tileHintedLinks,
-            totalHintsNum: req.body.totalHintsNum,
-            correctHintsNum: req.body.correctHintsNum
-        }
-
-        let operation = {
-            $set: {
-                save_game: save_game
-            }
-        };
-        UserModel.findOneAndUpdate({ username: req.session.user.username }, operation, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send({ msg: "Your game has been saved." });
-            }
-        });
-    });
-
-    /**
-     * Load a game by one user
-     */
-    router.route('/loadGame').all(LoginFirst).get(function (req, res, next) {
-        let condition = {
-            username: req.session.user.username
-        };
-        UserModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send(JSON.stringify(doc.save_game));
-            }
-        });
-    });
-
-    /**
-     * Get ShapeArray by one user
-     */
-    router.route('/getShapeArray/:round_id').all(LoginFirst).get(function (req, res, next) {
-        let condition = {
-            round_id: parseInt(req.params.round_id)
-        };
-        RoundModel.findOne(condition, function (err, doc) {
-            if (err) {
-                console.log(err);
-            } else {
-                res.send(doc.shapeArray);
             }
         });
     });

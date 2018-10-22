@@ -264,6 +264,15 @@ function JigsawPuzzle(config) {
         }
     });
 
+    socket.on('roundChanged', function (data) {
+        console.log(data);
+        if (data.username == player_name && data.round_id == roundID) {
+            if(data.action == "quit"){
+                window.location = '/award/' + roundID;
+            }
+        }
+    });
+
     var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
     this.level = config.level;
@@ -608,6 +617,9 @@ function JigsawPuzzle(config) {
             hintedLinks: 0,
             correctLinks: 0
         };
+        if(!instance.tiles){
+            return;
+        }
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             for (var j = 0; j < tile.hintedLinks.length; j++) {
@@ -2414,46 +2426,37 @@ function JigsawPuzzle(config) {
         });
     }
 
-    function loadGame() {
-        $.ajax({
-            url: requrl + 'round/loadGame',
-            type: 'get',
-            dataType: 'json',
-            cache: false,
-            timeout: 5000,
-            success: function (data) {
-                var needIntro = !data.round_id;
-                if (data.round_id == roundID) {
-                    $.amaran({
-                        'title': 'loadGame',
-                        'message': 'Progress loaded.',
-                        'inEffect': 'slideRight',
-                        'cssanimationOut': 'zoomOutUp',
-                        'position': "top right",
-                        'delay': 2000,
-                        'closeOnClick': true,
-                        'closeButton': true
-                    });
-                    startTime = data.startTime;
-                    instance.maxSubGraphSize = data.maxSubGraphSize;
-                    instance.steps = data.steps;
-                    instance.realSteps = data.realSteps;
-                    document.getElementById("steps").innerHTML = instance.realSteps;
-                    instance.saveTilePositions = JSON.parse(data.tiles);
-                    instance.saveHintedLinks = JSON.parse(data.tileHintedLinks);
-                    totalHintsNum = data.totalHintsNum;
-                    correctHintsNum = data.correctHintsNum;
-                }
-                createAndPlaceTiles(needIntro)
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
-                $('#refresh_modal').modal({
-                    keyboard: false,
-                    backdrop: false
+    socket.on('loadGameSuccess', function (data) {
+        console.log(data);
+        if (data.username == player_name) {
+            var gameData = data.gameData;
+            var needIntro = !gameData.round_id;
+            if (gameData.round_id == roundID) {
+                $.amaran({
+                    'title': 'loadGame',
+                    'message': 'Progress loaded.',
+                    'inEffect': 'slideRight',
+                    'cssanimationOut': 'zoomOutUp',
+                    'position': "top right",
+                    'delay': 2000,
+                    'closeOnClick': true,
+                    'closeButton': true
                 });
+                startTime = gameData.startTime;
+                instance.maxSubGraphSize = gameData.maxSubGraphSize;
+                instance.steps = gameData.steps;
+                instance.realSteps = gameData.realSteps;
+                document.getElementById("steps").innerHTML = instance.realSteps;
+                instance.saveTilePositions = JSON.parse(gameData.tiles);
+                instance.saveHintedLinks = JSON.parse(gameData.tileHintedLinks);
+                totalHintsNum = gameData.totalHintsNum;
+                correctHintsNum = gameData.correctHintsNum;
             }
-        });
+            createAndPlaceTiles(needIntro)
+        }
+    });
+    function loadGame() {
+        socket.emit('loadGame', {username: player_name});
     }
 }
 
@@ -2548,25 +2551,7 @@ function sendRecord(finished, rating) {
 }
 
 function quitRound(roundID) {
-    $.ajax({
-        url: requrl + 'round' + '/quitRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            window.location = '/award/' + roundID;
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-            $('#cancel-button').attr('disabled',"true");
-            $('#apply-button').attr('disabled',"true");
-            $('#submit-button').attr('disabled',"true");
-            $('#quitLabel').text('Connect error, please refresh.');
-            $('#msgLabel').text('Connect error, please refresh.');
-            $('.rating-body').css('display', 'none');
-        }
-    });
+    socket.emit('quitRound', {round_id:roundID, username: player_name});
 }
 
 if(solved_players >= 3){
