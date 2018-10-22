@@ -128,6 +128,8 @@ module.exports = function (io) {
                         ]
                     }
 
+                    createRecord(data.username, operation.round_id, TIME);
+
                     RoundModel.create(operation, function (err, doc) {
                         if (err) {
                             console.log(err);
@@ -136,10 +138,10 @@ module.exports = function (io) {
                             io.sockets.emit('roundChanged', {
                                 round: doc,
                                 username: data.username,
-                                round_id: data.round_id,
+                                round_id: doc.round_id,
                                 action: "create",
                                 title: "CreateRound",
-                                msg: 'You just create round' + data.round_id
+                                msg: 'You just create and join round' + doc.round_id
                             });
                         }
                     });
