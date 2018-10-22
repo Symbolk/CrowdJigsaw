@@ -222,38 +222,66 @@ router.route('/playground').all(LoginFirst).get(function (req, res) {
     });
 });
 
+var roundsInMemory = {};
+
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     let roundID = req.query.roundID;
     let condition = {
         round_id: parseInt(roundID)
     };
-    RoundModel.findOne(condition, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            var round = doc;
-            res.render('puzzle',
-                {
-                    title: 'Puzzle',
-                    player_name: req.session.user.username,
-                    players_num: round.players_num,
-                    level: round.level,
-                    roundID: roundID,
-                    solved_players: round.solved_players,
-                    image: round.image,
-                    tileWidth: round.tileWidth,
-                    startTime: round.start_time,
-                    shape: round.shape,
-                    edge: round.edge,
-                    border: round.border,
-                    tilesPerRow: round.tilesPerRow,
-                    tilesPerColumn: round.tilesPerColumn,
-                    imageWidth: round.imageWidth,
-                    imageHeight: round.imageHeight,
-                    shapeArray: round.shapeArray
+    if(roundsInMemory[condition.round_id]){
+        let round = roundsInMemory[condition.round_id];
+        res.render('puzzle',
+            {
+                title: 'Puzzle',
+                player_name: req.session.user.username,
+                players_num: round.players_num,
+                level: round.level,
+                roundID: roundID,
+                solved_players: round.solved_players,
+                image: round.image,
+                tileWidth: round.tileWidth,
+                startTime: round.start_time,
+                shape: round.shape,
+                edge: round.edge,
+                border: round.border,
+                tilesPerRow: round.tilesPerRow,
+                tilesPerColumn: round.tilesPerColumn,
+                imageWidth: round.imageWidth,
+                imageHeight: round.imageHeight,
+                shapeArray: round.shapeArray
+        });
+    }
+    else{
+        RoundModel.findOne(condition, function (err, doc) {
+            if (err) {
+                console.log(err);
+            } else {
+                var round = doc;
+                roundsInMemory[doc.round_id] = round;
+                res.render('puzzle',
+                    {
+                        title: 'Puzzle',
+                        player_name: req.session.user.username,
+                        players_num: round.players_num,
+                        level: round.level,
+                        roundID: roundID,
+                        solved_players: round.solved_players,
+                        image: round.image,
+                        tileWidth: round.tileWidth,
+                        startTime: round.start_time,
+                        shape: round.shape,
+                        edge: round.edge,
+                        border: round.border,
+                        tilesPerRow: round.tilesPerRow,
+                        tilesPerColumn: round.tilesPerColumn,
+                        imageWidth: round.imageWidth,
+                        imageHeight: round.imageHeight,
+                        shapeArray: round.shapeArray
                 });
-        }
-    });
+            }
+        });
+    }
 });
 
 

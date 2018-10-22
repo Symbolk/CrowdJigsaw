@@ -2427,7 +2427,6 @@ function JigsawPuzzle(config) {
     }
 
     socket.on('loadGameSuccess', function (data) {
-        console.log(data);
         if (data.username == player_name) {
             var gameData = data.gameData;
             var needIntro = !gameData.round_id;
@@ -2469,6 +2468,8 @@ function JigsawPuzzle(config) {
         $('.rating-body').css('display', 'none');
     }
     else{
+        $('#apply-button').attr('disabled',"true");
+        $('#submit-button').attr('disabled',"true");
         $('.rb-rating').rating({
             'showCaption': false,
             'showClear': false,
@@ -2479,6 +2480,10 @@ function JigsawPuzzle(config) {
             'size': 'xs',
             // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
         });
+        $('.rb-rating').change(function (event){
+            $('#apply-button').removeAttr("disabled");
+            $('#submit-button').removeAttr("disabled");
+        })
     }
     $('#submit-button').click(function (event) {
         // player's rating for the hint(what he thinks about the function)

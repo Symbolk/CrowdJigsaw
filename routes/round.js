@@ -159,7 +159,6 @@ module.exports = function (io) {
                     console.log(err);
                 } else {
                     if (doc.players.length < doc.players_num) {
-                        console.log(doc.players);
                         let isIn = doc.players.some(function (p) {
                             return (p.player_name == data.username);
                         });
