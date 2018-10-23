@@ -264,6 +264,15 @@ module.exports = function (io) {
                                     "records.$.correct_hints": data.correctHintsNum
                                 }
                             };
+
+                            let finishTime = Math.floor(((new Date()).getTime() - data.startTime) / 1000);
+                            let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
+                            let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
+                            let score = parseFloat(finishPercent.toFixed(3));
+                            score += parseFloat(3600/finishTime);
+                            console.log(score, finishTime);
+                            let redis_key = 'round:' + doc.round_id + ':scoreboard';
+                            redis.zadd(redis_key, parseFloat(score), data.player_name);
                             
                             let condition = {
                                 username: data.player_name,
@@ -528,6 +537,12 @@ module.exports = function (io) {
                                     "records.$.rating": rating
                                 }
                             };
+
+                            let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
+                            let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
+                            let score = parseFloat(finishPercent.toFixed(3));
+                            let redis_key = 'round:' + doc.round_id + ':scoreboard';
+                            redis.zadd(redis_key, parseFloat(score), data.player_name);
                         }
 
                         let condition = {
@@ -542,16 +557,6 @@ module.exports = function (io) {
                                 console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
                             }
                         });
-
-                        let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
-                        let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
-                        let score = parseFloat(finishPercent.toFixed(3));
-                        if(data.finished){
-                            score += parseFloat(doc.players_num - doc.solved_players + 1);
-                        }
-                        let redis_key = 'round:' + doc.round_id + ':scoreboard';
-                        //console.log(redis_key, score, data.player_name);
-                        redis.zadd(redis_key, parseFloat(score), data.player_name);
                     }
                 }
             });

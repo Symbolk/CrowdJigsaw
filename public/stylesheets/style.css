@@ -98,7 +98,7 @@ a {
   position: relative;
   text-align: center;
   top: 50%;
-  font-size: 60px;
+  font-size: 30px;
   color: #ff7000;
 }
 
@@ -106,7 +106,7 @@ a {
   position: relative;
   left: 17%;
   top: 92.5%;
-  font-size: 60px;
+  font-size: 30px;
   color: #ddb3a6;
 
 }
@@ -115,7 +115,7 @@ a {
   position: relative;
   left: 65%;
   top: 85%;
-  font-size: 60px;
+  font-size: 30px;
   color: #ffb600;
 }
 
