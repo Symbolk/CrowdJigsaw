@@ -2563,9 +2563,9 @@ function quitRound(roundID) {
         socket.emit('quitRound', {round_id:roundID, username: player_name});
     }
     else{
-        var randomTime = 2000 + Math.random() * 8000;
-        $('#quitLabel').text('Please Wait for ' + Number(randomTime/1000).toFixed(1) + ' seconds');
-        $('#msgLabel').text('Please Wait for ' + Number(randomTime/1000).toFixed(1) + ' seconds');
+        var randomTime = Math.random() * 1000;
+        $('#quitLabel').text('Quiting...');
+        $('#msgLabel').text('Quiting...');
         $('.rating-body').css('display', 'none');
         $('#apply-button').attr('disabled',"true");
         $('#submit-button').attr('disabled',"true");

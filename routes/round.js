@@ -542,6 +542,16 @@ module.exports = function (io) {
                                 console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
                             }
                         });
+
+                        let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
+                        let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
+                        let score = parseFloat(finishPercent.toFixed(3));
+                        if(data.finished){
+                            score += parseFloat(doc.players_num - doc.solved_players + 1);
+                        }
+                        let redis_key = 'round:' + doc.round_id + ':scoreboard';
+                        //console.log(redis_key, score, data.player_name);
+                        redis.zadd(redis_key, parseFloat(score), data.player_name);
                     }
                 }
             });

@@ -391,10 +391,7 @@ desired effect
             <div id="myhonor" class="left2">
                 <img id="badge" src="/images/badge.png">
                 <p id='defeat_message'>You defeated
-                    <% defeat.forEach(function(u){ %>
-                    <% if(u.playername==user.username) { %>
-                    <%= u.defeatnum %>
-                    <% }}) %> people.
+                    <%= defeat_num %> people.
                 </p>
             <a href="/home" class="ok_button button button-3d button-primary button-rounded">OK</a>
             </div>
