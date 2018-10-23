@@ -9,6 +9,9 @@ var util = require('./util.js');
 var images = require("images");
 var PythonShell = require('python-shell');
 
+const redis = require('redis');
+const client = redis.createClient();
+
 function getRoundFinishTime(startTime) {
     let finishTime = Math.floor(((new Date()).getTime() - startTime) / 1000);
     let hours = Math.floor(finishTime / 3600);
@@ -78,11 +81,11 @@ module.exports = function (io) {
          * Create a new round
          */
         socket.on('newRound', function (data) {
-            RoundModel.find({}, function (err, docs) {
+            RoundModel.count({}, function (err, docs_size) {
                 if (err) {
                     console.log(err);
                 } else {
-                    let index = docs.length;
+                    let index = docs_size;
                     let TIME = util.getNowFormatDate();
                     let imageSrc = data.imageURL;
                     let image = images('public/' + imageSrc);

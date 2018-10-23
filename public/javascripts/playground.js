@@ -36,8 +36,10 @@ socket.on('roundChanged', function (data) {
             'closeOnClick': true,
             'closeButton': true
         });
+        roundDetailCancelButton.removeAttr("disabled");
+        roundDetailJoinButton.removeAttr("disabled");
+        renderRoundDetail(data.round);
     }
-    roundDetailJoinButton.removeAttr("disabled");
     renderRoundList(roundsList);
 });
 socket.on('hello', function (data) {
@@ -154,6 +156,7 @@ function initRoundDetailDialog() {
         roundDetailJoinButton.removeAttr("disabled");
         if (roundDetailCancelButton.text() == 'Quit') {
             quitRound(roundID);
+            roundDetailCancelButton.attr('disabled', 'true');
             roundDetailCancelButton.text('Close');
         }
         else {
@@ -359,7 +362,10 @@ function renderRoundDetail(round) {
         }
     }
 
-
+    if (round.end_time != '-1' || round.start_time != '-1') {
+        roundDetailDialog.modal('hide');
+        return;
+    }
     if (!(($("element").data('bs.modal') || {}).isShown)) {
         roundDetailDialog.modal('show');
     }
