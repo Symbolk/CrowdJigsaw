@@ -267,6 +267,10 @@ function JigsawPuzzle(config) {
     socket.on('roundChanged', function (data) {
         console.log(data);
         if (data.username == player_name && data.round_id == roundID) {
+            $('.rating-body').css('display', 'inline');
+            $('#apply-button').removeAttr('disabled');
+            $('#submit-button').removeAttr('disabled');
+            $('#cancel-button').removeAttr('disabled');
             if(data.action == "quit"){
                 window.location = '/award/' + roundID;
             }
@@ -2555,7 +2559,21 @@ function sendRecord(finished, rating) {
 }
 
 function quitRound(roundID) {
-    socket.emit('quitRound', {round_id:roundID, username: player_name});
+    if(players_num == 1){
+        socket.emit('quitRound', {round_id:roundID, username: player_name});
+    }
+    else{
+        var randomTime = 2000 + Math.random() * 8000;
+        $('#quitLabel').text('Please Wait for ' + Number(randomTime/1000).toFixed(1) + ' seconds');
+        $('#msgLabel').text('Please Wait for ' + Number(randomTime/1000).toFixed(1) + ' seconds');
+        $('.rating-body').css('display', 'none');
+        $('#apply-button').attr('disabled',"true");
+        $('#submit-button').attr('disabled',"true");
+        $('#cancel-button').attr('disabled',"true");
+        setTimeout(function(){ 
+            socket.emit('quitRound', {round_id:roundID, username: player_name});
+        }, randomTime);
+    }
 }
 
 if(solved_players >= 3){
