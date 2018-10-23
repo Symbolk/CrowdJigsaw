@@ -25,6 +25,10 @@ socket.on('thumbnails', function (data) {
 
 socket.on('roundChanged', function (data) {
     roundsList[data.round_id] = data.round;
+    //console.log(data.round.end_time, parseInt($('#rounddetail_id').text()));
+    if(data.round.end_time != '-1' && data.round_id == parseInt($('#rounddetail_id').text())){
+        roundDetailDialog.modal('hide');
+    }
     if (data.username == username) {
         $.amaran({
             'title': data.title,
@@ -459,7 +463,7 @@ function renderRoundList(data) {
     if (($("element").data('bs.modal') || {}).isShown) {
         var roundIDStr = $('#rounddetail_id').text();
         var roundID = parseInt(roundIDStr);
-        renderRoundDetail(roundsList[roundID]);
+        renderRoundDetail(data[roundID]);
     }
 }
 

@@ -1993,8 +1993,7 @@ function JigsawPuzzle(config) {
                 var hintTileIndex = sureHints[index][j];
                 if (hintTileIndex > -1) {
                     var hintTile = instance.tiles[hintTileIndex];
-                    if(bidirectionLinks[hintTileIndex].count == 4 
-                            && bidirectionLinks[index].aroundTiles[j] && hintTile.noAroundTiles){
+                    if(bidirectionLinks[index].aroundTiles[j] && hintTile.noAroundTiles){
                         var shouldSaveThis = showHints(index, sureHints[index], j);
                         normalizeTiles(true);
                         shouldSave = shouldSave || shouldSaveThis;
@@ -2012,7 +2011,7 @@ function JigsawPuzzle(config) {
         for (var i = 0; i < weakHintsNeededTiles.length; i++) {
             var index = weakHintsNeededTiles[i];
             for (var j = 0; j < 4; j++) {
-                if (sureHints[index][j] > -1) {
+                if (sureHints[index][j] > -1 && bidirectionLinks[index].aroundTiles[j]) {
                     var shouldSaveThis = showHints(index, sureHints[index], -1);
                     normalizeTiles(true);
                     shouldSave = shouldSave || shouldSaveThis;
