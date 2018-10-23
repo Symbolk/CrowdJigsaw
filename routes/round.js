@@ -9,8 +9,7 @@ var util = require('./util.js');
 var images = require("images");
 var PythonShell = require('python-shell');
 
-const redis = require('redis');
-const client = redis.createClient();
+const redis = require('redis').createClient();
 
 function getRoundFinishTime(startTime) {
     let finishTime = Math.floor(((new Date()).getTime() - startTime) / 1000);
