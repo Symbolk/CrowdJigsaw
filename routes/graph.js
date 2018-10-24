@@ -265,7 +265,7 @@ function checkUnsureHints(nodesAndHints){
                         continue;
                     }
                     var confidence = nodes[x][dirName[d]].indexes[y].confidence;
-                    if (hints[x][d] != y && confidence >= (nodes[x][dirName[d]].maxConfidence - constants.epsilon)) {
+                    if (hints[x][d] != y && confidence >= (nodes[x][dirName[d]].maxConfidence * (1-constants.epsilon))) {
                         unsure = true;
                         var weight = nodes[x][dirName[d]].indexes[y].weight;
                         updateUnsureHints(unsureHints, x, y, d, weight);
