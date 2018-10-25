@@ -305,12 +305,8 @@ module.exports = function (io) {
                 correctHintsNum: data.correctHintsNum
             };
 
-            let operation = {
-                $set: {
-                    save_game: save_game
-                }
-            };
-            UserModel.findOneAndUpdate({ username: data.player_name }, operation, function (err, doc) {
+            let redis_key = 'user:' + data.player_name + ':savegame';
+            redis.set(redis_key, JSON.stringify(save_game), function(err, response){
                 if (err) {
                     console.log(err);
                     socket.emit('gameSaved', { err: err });
@@ -323,18 +319,13 @@ module.exports = function (io) {
          * Load a game by one user
          */
         socket.on('loadGame', function (data) {
-            let condition = {
-                username: data.username
-            };
-            UserModel.findOne(condition, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    io.sockets.emit('loadGameSuccess', {
-                        username: data.username,
-                        gameData: doc.save_game
-                    });
-                }
+            let redis_key = 'user:' + data.username + ':savegame';
+            redis.get(redis_key, function(err, save_game){
+                //console.log(save_game);
+                io.sockets.emit('loadGameSuccess', {
+                    username: data.username,
+                    gameData: JSON.parse(save_game)
+                });
             });
         });
 
