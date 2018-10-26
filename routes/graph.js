@@ -166,14 +166,15 @@ function updateNodesAndEdges(nodesAndHints, edge){
     }
     var nowTime = (new Date()).getTime();
     var sLen = Object.getOwnPropertyNames(supporters).length;
+    var sConfidence = confidence * sLen;
     if(tag == "T-B"){
         if(nodes[x].bottom.indexes[y]) {
-            if(confidence < nodes[x].bottom.indexes[y].confidence){
+            if(sConfidence < nodes[x].bottom.indexes[y].confidence){
                 if(hints[x][2] == y){
-                    nodes[x].bottom.maxConfidence = confidence;
+                    nodes[x].bottom.maxConfidence = sConfidence;
                 }
                 if(hints[y][0] == x){
-                    nodes[y].up.maxConfidence = confidence;
+                    nodes[y].up.maxConfidence = sConfidence;
                 }
             }
             if(confidence < constants.phi || sLen < constants.msn){
@@ -190,18 +191,18 @@ function updateNodesAndEdges(nodesAndHints, edge){
             }
         }
         if(confidence >= constants.phi && sLen >= constants.msn){
-            updateNodesLinks(nodes[x].bottom, x, y, 2, confidence, weight, edge, nowTime, hints);
-            updateNodesLinks(nodes[y].up, y, x, 0, confidence, weight, edge, nowTime, hints);
+            updateNodesLinks(nodes[x].bottom, x, y, 2, sConfidence, weight, edge, nowTime, hints);
+            updateNodesLinks(nodes[y].up, y, x, 0, sConfidence, weight, edge, nowTime, hints);
         }
     }
     else if(tag == "L-R"){
         if(nodes[x].right.indexes[y]) {
-            if(confidence < nodes[x].right.indexes[y].confidence){
+            if(sConfidence < nodes[x].right.indexes[y].confidence){
                 if(hints[x][1] == y){
-                    nodes[x].right.maxConfidence = confidence;
+                    nodes[x].right.maxConfidence = sConfidence;
                 }
                 if(hints[y][3] == x){
-                    nodes[y].left.maxConfidence = confidence;
+                    nodes[y].left.maxConfidence = sConfidence;
                 }
             }
             if(confidence < constants.phi || sLen < constants.msn){
@@ -218,8 +219,8 @@ function updateNodesAndEdges(nodesAndHints, edge){
             }
         }
         if(confidence >= constants.phi && sLen >= constants.msn){
-            updateNodesLinks(nodes[x].right, x, y, 1, confidence, weight, edge, nowTime, hints);
-            updateNodesLinks(nodes[y].left, y, x, 3, confidence, weight, edge, nowTime, hints);
+            updateNodesLinks(nodes[x].right, x, y, 1, sConfidence, weight, edge, nowTime, hints);
+            updateNodesLinks(nodes[y].left, y, x, 3, sConfidence, weight, edge, nowTime, hints);
         }
     }
 }
@@ -264,7 +265,7 @@ function checkUnsureHints(nodesAndHints){
                         continue;
                     }
                     var confidence = nodes[x][dirName[d]].indexes[y].confidence;
-                    if (hints[x][d] != y && confidence >= (nodes[x][dirName[d]].maxConfidence - constants.epsilon)) {
+                    if (hints[x][d] != y && confidence >= (nodes[x][dirName[d]].maxConfidence * (1-constants.epsilon))) {
                         unsure = true;
                         var weight = nodes[x][dirName[d]].indexes[y].weight;
                         updateUnsureHints(unsureHints, x, y, d, weight);
@@ -362,12 +363,12 @@ function update(data) {
                                 }
                             } else { // e.size<0(e.size==0?)
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
+                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
                                     delete supporters[data.player_name];
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
+                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 } else {
-                                    opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
+                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 }
                             }
                         } else {
@@ -380,7 +381,7 @@ function update(data) {
                                 supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 weight += supporters[data.player_name];
                             } else {
-                                opposers[data.player_name] = 0 - e.size * (e.size / e.nodes);
+                                opposers[data.player_name] = e.size * (e.size / e.nodes);
                             }
                             let confidence = 1;
                             edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
