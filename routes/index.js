@@ -144,6 +144,11 @@ router.route('/register').all(Logined).get(function (req, res) {
     res.render('register', { title: 'Register' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
+    if(req.body.password.replace(/[ ]/g, "").length == 0){
+        req.session.error = 'Passwords must not be empty!';
+        return res.redirect('/register');
+    }
+
     let passwd_enc = encrypt(req.body.password, SECRET);
     let passwd_sec_enc = encrypt(req.body.passwordSec, SECRET);
 
@@ -168,6 +173,10 @@ router.route('/register').all(Logined).get(function (req, res) {
                     console.log(err);
                 } else {
                     if (!doc) {
+                        if(operation.username.replace(/[ ]/g, "").length == 0){
+                            req.session.error = 'Username must not be empty!';
+                            return res.redirect('/register'); 
+                        }
                         if (newUser.password === newUser.passwordSec) {
                             UserModel.create(operation, function (err) {
                                 if (err) {
