@@ -8,22 +8,21 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;
                             </button>
                             <h4 class="modal-title" id="quitLabel">
                                 Are You Sure to Quit?
                             </h4>
                         </div>
-                        <div class="modal-body" style="text-align:center;">
+                        <div class="modal-body rating-body" style="text-align:center;">
                             <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
                             <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
                             <input id="rating" required class="rb-rating" type="text" value="" title="">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" id="apply-button">
-                                Submit&Quit
+                                OK
                             </button>
-                            <button type="button" class="btn btn-primary" data-dismiss="modal">
+                            <button type="button" class="btn btn-primary" id="cancel-button" data-dismiss="modal">
                                 Cancel
                             </button>
                         </div>
@@ -41,14 +40,13 @@
                                 Congratulations!
                             </h4>
                         </div>
-                        <div class="modal-body" style="text-align:center;">
+                        <div class="modal-body rating-body" style="text-align:center;">
                             <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
-                            <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
                             <input id="rating2" required class="rb-rating" type="text" value="" title="">
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" id="submit-button">
-                                Submit
+                                OK
                             </button>
                         </div>
                     </div>
@@ -120,6 +118,7 @@
 
             <script type="text/javascript">
                 var player_name = '<%-player_name-%>';
+                var solved_players = '<%-solved_players-%>';
                 var level = '<%-level%>';
                 level = parseInt(level);
                 var roundID = '<%-roundID%>';
@@ -131,6 +130,9 @@
                 var imgSrc = '<%-image%>';
                 var tileWidth = '<%-tileWidth%>';
                 tileWidth = parseInt(tileWidth);
+
+                var players_num = '<%-players_num%>';
+                players_num = parseInt(players_num);
 
                 var roundShape = '<%-shape%>';
                 var hasEdge = '<%-edge%>';

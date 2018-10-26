@@ -1,4 +1,5 @@
 var socket = io.connect(window.location.protocol + '//' + window.location.host + '/');
+
 //roundimageselector.js
 var puzzleImageSrcSet = new Set();
 //puzzleImageSrcSet.add("images/raw/starter_thumb.png");
@@ -23,7 +24,27 @@ socket.on('thumbnails', function (data) {
 
 
 socket.on('roundChanged', function (data) {
-    getJoinableRounds();
+    roundsList[data.round_id] = data.round;
+    //console.log(data.round.end_time, parseInt($('#rounddetail_id').text()));
+    if(data.round.end_time != '-1' && data.round_id == parseInt($('#rounddetail_id').text())){
+        roundDetailDialog.modal('hide');
+    }
+    if (data.username == username) {
+        $.amaran({
+            'title': data.title,
+            'message': data.msg,
+            'inEffect': 'slideRight',
+            'cssanimationOut': 'zoomOutUp',
+            'position': "top right",
+            'delay': 2000,
+            'closeOnClick': true,
+            'closeButton': true
+        });
+        roundDetailCancelButton.removeAttr("disabled");
+        roundDetailJoinButton.removeAttr("disabled");
+        renderRoundDetail(data.round);
+    }
+    renderRoundList(roundsList);
 });
 socket.on('hello', function (data) {
     console.log(data);
@@ -40,7 +61,7 @@ socket.on("refresh", function (data) {
     }
 });
 var imgReadyCount = 0;
-var roundsList = new Array();
+var roundsList = {};
 var roundsIDList = new Array();
 var roundDetailDialog = $('#rounddetail_dialog');
 var roundDetailJoinButton = $('#rounddetail_joinbutton');
@@ -120,7 +141,6 @@ function allImageReadyCallback() {
     else {
         initRandomRoundDialog();
     }
-
     getJoinableRounds();
 }
 
@@ -128,16 +148,19 @@ function initRoundDetailDialog() {
     roundDetailJoinButton.click(function () {
         var roundID = $('#rounddetail_id').text();
         if (roundDetailJoinButton.text() == 'Join') {
+            roundDetailJoinButton.attr('disabled',"true");
             joinRound(roundID);
         } else {
-            getRound(roundID);
+            renderRoundDetail(roundsList[roundID]);
         }
     });
     roundDetailCancelButton.click(function () {
         var roundID = $('#rounddetail_id').text();
         var round = roundsList[parseInt(roundID)];
+        roundDetailJoinButton.removeAttr("disabled");
         if (roundDetailCancelButton.text() == 'Quit') {
             quitRound(roundID);
+            roundDetailCancelButton.attr('disabled', 'true');
             roundDetailCancelButton.text('Close');
         }
         else {
@@ -160,9 +183,6 @@ function initRandomRoundDialog() {
         }
     });
 
-    // if (!newRoundDialog.showModal) {
-    //     dialogPolyfill.registerDialog(newRoundDialog);
-    // }
     newRoundCreateButton.click(function () {
 
         var imgSrc = Array.from(simpleImageSrcSet)[Math.floor((Math.random() * (simpleImageSrcSet.size - 1)))];
@@ -179,7 +199,6 @@ function initRandomRoundDialog() {
             shape = 'jagged';
             level = 1;
             if ($('#egde_checkbox').prop("checked")) {
-                // shape = 'jagged_without_edge';
                 edge = true;
             }
         }
@@ -188,20 +207,11 @@ function initRandomRoundDialog() {
         }
 
         postNewRound(imgSrc, level, playersNum, shape, edge, border);
-        getJoinableRounds();
-        //newRoundModal.modal("hide");
     });
-    // newRoundCancelButton.click(function() {
-    //     newRoundModal.modal("hide");
-    // });
 
     $('#player_num_div').css('display', 'none');
     $('#select_img_div').css('display', 'none');
     $('#puzzle_size_div').css('display','none');
-    //$('#newround_num_area').css('display','none');
-    // $('#newround_number_slider').change(function() {
-    //     $('#newround_num').text(1);
-    // });
 
     mySlider.slider('setValue', 1);
     $('#randomround_button').click(function () {
@@ -225,9 +235,6 @@ function initNewRoundDialog() {
         }
     });
 
-    // if (!newRoundDialog.showModal) {
-    //     dialogPolyfill.registerDialog(newRoundDialog);
-    // }
     newRoundCreateButton.click(function () {
         var imgSrc = $('#newround_image').attr('src');
         var playersNum = mySlider.slider('getValue');
@@ -251,19 +258,7 @@ function initNewRoundDialog() {
             border = true;
         }
         postNewRound(imgSrc, level, playersNum, shape, edge, border);
-        getJoinableRounds();
-        //newRoundModal.modal("hide");
     });
-    // newRoundCancelButton.click(function() {
-    //     console.log(newRoundModal);
-    //     newRoundModal.modal("hide");
-    // });
-
-    //$('#newround_number_slider').css('display', 'inline');
-
-    // $('#newround_number_slider').change(function() {
-    //     $('#newround_num').text($('#newround_number_slider').val());
-    // });
 
     mySlider.slider({
         formatter: function (value) {
@@ -278,10 +273,8 @@ function initNewRoundDialog() {
 
     $('#newround_button').click(function () {
         newRoundCreateButton.attr('disabled', 'true');
-        //$('#newround_blank').css('display', 'none');
         $('#newround_image_wrap').css('display', 'none');
         $('#newround_image').removeAttr('src');
-        //newRoundDialog.showModal();
     });
 }
 
@@ -309,7 +302,6 @@ function renderRoundDetail(round) {
     var roundID = round.round_id;
     if (!roundsList[roundID]) {
         roundDetailDialog.modal('hide');
-        getJoinableRounds();
         return;
     }
     roundsList[roundID] = round;
@@ -374,37 +366,34 @@ function renderRoundDetail(round) {
         }
     }
 
-
+    if (round.end_time != '-1' || round.start_time != '-1') {
+        roundDetailDialog.modal('hide');
+        return;
+    }
     if (!(($("element").data('bs.modal') || {}).isShown)) {
         roundDetailDialog.modal('show');
     }
 }
 
-function getRound(roundID) {
-    $.ajax({
-        url: requrl + 'round' + '/getRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            renderRoundDetail(data);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
-}
-
 function renderRoundList(data) {
-    roundsList = new Array();
-    for (var round of data) {
+    roundsList = {};
+    for (var roundID in data) {
+        var round = data[roundID];
         var roundID = round.round_id;
 
-        if (round.start_time != '-1') {
+        if(round.end_time != '-1'){
+            continue;
+        }
+
+        if (round.start_time != '-1' || round.players.length == round.players_num || round.players_num == 1) {
             for (var player of round.players) {
                 if (username == player.player_name) {
-                    startPuzzle(roundID);
+                    if(round.start_time == '-1'){
+                        startRound(roundID);
+                    }
+                    else{
+                        startPuzzle(roundID);
+                    }
                 }
             }
             continue;
@@ -445,11 +434,11 @@ function renderRoundList(data) {
         roundCardNum.text(round.players.length + '/' + round.players_num);
         roundCardJoin.click(function () {
             var roundID = $(this).attr('id');
-            getRound(roundID);
+            renderRoundDetail(roundsList[roundID]);
         });
         for (var player of round.players) {
             if (username == player.player_name && !(($("element").data('bs.modal') || {}).isShown)) {
-                getRound(roundID);
+                renderRoundDetail(roundsList[roundID]);
             }
         }
     }
@@ -474,7 +463,7 @@ function renderRoundList(data) {
     if (($("element").data('bs.modal') || {}).isShown) {
         var roundIDStr = $('#rounddetail_id').text();
         var roundID = parseInt(roundIDStr);
-        getRound(roundID);
+        renderRoundDetail(data[roundID]);
     }
 }
 
@@ -486,11 +475,19 @@ function getJoinableRounds() {
         cache: false,
         timeout: 5000,
         success: function (data) {
-            // console.log(data);
-            renderRoundList(data);
+            roundsList = {};
+            for (var i = 0; i < data.length; i++) {
+                var round = data[i];
+                roundsList[round.round_id] = round;
+            }
+            renderRoundList(roundsList);
         },
         error: function (jqXHR, textStatus, errorThrown) {
             console.log('error ' + textStatus + " " + errorThrown);
+            $('#refresh_modal').modal({
+                keyboard: false,
+                backdrop: false
+            });
         }
     });
 }
@@ -504,6 +501,7 @@ function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
     }
     img.src = imgSrc;
     var param = {
+        username: username,
         imageURL: imgSrc,
         level: level,
         edge: edge,
@@ -511,111 +509,20 @@ function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
         border: border,
         players_num: playersNum,
     };
-
-    $.ajax({
-        data: param,
-        url: requrl + 'round' + '/newRound',
-        type: 'post',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            $.amaran({
-                'title': 'joinRound',
-                'message': data.msg,
-                'inEffect': 'slideRight',
-                'cssanimationOut': 'zoomOutUp',
-                'position': "top right",
-                'delay': 2000,
-                'closeOnClick': true,
-                'closeButton': true
-            });
-            var roundID = data.round_id;
-            joinRound(roundID);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
+    socket.emit('newRound', param);
 }
 
 
 function quitRound(roundID) {
-    var round = roundsList[roundID];
-    $.ajax({
-        url: requrl + 'round' + '/quitRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            $.amaran({
-                'title': 'quitRound',
-                'message': 'You just quit ' + roundID,
-                'inEffect': 'slideRight',
-                'cssanimationOut': 'zoomOutUp',
-                'position': "top right",
-                'delay': 2000,
-                'closeOnClick': true,
-                'closeButton': true
-            });
-            getJoinableRounds();
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
+    socket.emit('quitRound', {round_id:roundID, username: username});
 }
 
 function joinRound(roundID) {
-    var round = roundsList[roundID];
-    var param = {
-        round_id: roundID
-    };
-    $.ajax({
-        data: param,
-        url: requrl + 'round' + '/joinRound',
-        type: 'post',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            $.amaran({
-                'title': 'joinRound',
-                'message': 'You just join ' + roundID,
-                'inEffect': 'slideRight',
-                'cssanimationOut': 'zoomOutUp',
-                'position': "top right",
-                'delay': 2000,
-                'closeOnClick': true,
-                'closeButton': true
-            });
-            getJoinableRounds(roundID);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
-    // /**
-    //  * Report to the server
-    //  */
-    socket.emit('join', { player_name: username });
+    socket.emit('joinRound', {round_id:roundID, username: username});
 }
 
 function startRound(roundID) {
-    $.ajax({
-        url: requrl + 'round' + '/startRound/' + roundID,
-        type: 'get',
-        dataType: 'json',
-        cache: false,
-        timeout: 5000,
-        success: function (data) {
-            getJoinableRounds();
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.log('error ' + textStatus + " " + errorThrown);
-        }
-    });
+    socket.emit('startRound', {round_id:roundID, username: username});
 }
 
 function startPuzzle(roundID) {
