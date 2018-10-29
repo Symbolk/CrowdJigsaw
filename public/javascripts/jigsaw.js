@@ -2436,6 +2436,10 @@ function JigsawPuzzle(config) {
 
     socket.on('loadGameSuccess', function (data) {
         if (data.username == player_name) {
+            if(!data.gameData){
+                createAndPlaceTiles(true);
+                return;
+            }
             var gameData = data.gameData;
             var needIntro = !gameData.round_id;
             if (gameData.round_id == roundID) {
@@ -2459,7 +2463,7 @@ function JigsawPuzzle(config) {
                 totalHintsNum = gameData.totalHintsNum;
                 correctHintsNum = gameData.correctHintsNum;
             }
-            createAndPlaceTiles(needIntro)
+            createAndPlaceTiles(needIntro);
         }
     });
     function loadGame() {

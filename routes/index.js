@@ -570,7 +570,7 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                         }
                     }
                     for(var i = 6; i < scoreboard.length; i += 2){
-                        if(req.session.user.username == player2){
+                        if(req.session.user.username == scoreboard[i]){
                             defeat_num = round.players_num - 1 - i / 2;
                         }
                     }

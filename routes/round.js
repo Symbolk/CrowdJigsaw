@@ -264,6 +264,15 @@ module.exports = function (io) {
                                     "records.$.correct_hints": data.correctHintsNum
                                 }
                             };
+
+                            let finishTime = Math.floor(((new Date()).getTime() - data.startTime) / 1000);
+                            let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
+                            let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
+                            let score = parseFloat(finishPercent.toFixed(3));
+                            score += parseFloat(3600/finishTime);
+                            console.log(score, finishTime);
+                            let redis_key = 'round:' + doc.round_id + ':scoreboard';
+                            redis.zadd(redis_key, parseFloat(score), data.player_name);
                             
                             let condition = {
                                 username: data.player_name,
@@ -296,12 +305,8 @@ module.exports = function (io) {
                 correctHintsNum: data.correctHintsNum
             };
 
-            let operation = {
-                $set: {
-                    save_game: save_game
-                }
-            };
-            UserModel.findOneAndUpdate({ username: data.player_name }, operation, function (err, doc) {
+            let redis_key = 'user:' + data.player_name + ':savegame';
+            redis.set(redis_key, JSON.stringify(save_game), function(err, response){
                 if (err) {
                     console.log(err);
                     socket.emit('gameSaved', { err: err });
@@ -314,18 +319,13 @@ module.exports = function (io) {
          * Load a game by one user
          */
         socket.on('loadGame', function (data) {
-            let condition = {
-                username: data.username
-            };
-            UserModel.findOne(condition, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    io.sockets.emit('loadGameSuccess', {
-                        username: data.username,
-                        gameData: doc.save_game
-                    });
-                }
+            let redis_key = 'user:' + data.username + ':savegame';
+            redis.get(redis_key, function(err, save_game){
+                //console.log(save_game);
+                io.sockets.emit('loadGameSuccess', {
+                    username: data.username,
+                    gameData: JSON.parse(save_game)
+                });
             });
         });
 
@@ -528,6 +528,12 @@ module.exports = function (io) {
                                     "records.$.rating": rating
                                 }
                             };
+
+                            let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
+                            let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
+                            let score = parseFloat(finishPercent.toFixed(3));
+                            let redis_key = 'round:' + doc.round_id + ':scoreboard';
+                            redis.zadd(redis_key, parseFloat(score), data.player_name);
                         }
 
                         let condition = {
@@ -542,16 +548,6 @@ module.exports = function (io) {
                                 console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
                             }
                         });
-
-                        let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
-                        let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
-                        let score = parseFloat(finishPercent.toFixed(3));
-                        if(data.finished){
-                            score += parseFloat(doc.players_num - doc.solved_players + 1);
-                        }
-                        let redis_key = 'round:' + doc.round_id + ':scoreboard';
-                        //console.log(redis_key, score, data.player_name);
-                        redis.zadd(redis_key, parseFloat(score), data.player_name);
                     }
                 }
             });
