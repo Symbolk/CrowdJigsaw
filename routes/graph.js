@@ -456,7 +456,7 @@ function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerCo
     for (e in edges_saved) {
         edge = edges_saved[e];
         if(edge.tag == 'L-R'){
-            if(edge.x + 1 == edge.y){
+            if(edge.x + 1 == edge.y && edge.y % tilesPerRow != 0){
                 correctLinks += 1;
             }
         }
