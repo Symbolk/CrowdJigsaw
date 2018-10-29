@@ -416,7 +416,6 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             computeSubGraph(tile);
         }
-
         uploadGraphData();
 
         instance.focusToCenter();
@@ -650,6 +649,12 @@ function JigsawPuzzle(config) {
         clearTimeout(t);
 
         instance.calcHintedTile();
+
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            computeSubGraph(tile);
+        }
+        uploadGraphData();
 
         $('#finish_dialog').modal({
             keyboard: false,
