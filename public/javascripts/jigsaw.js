@@ -363,6 +363,8 @@ function JigsawPuzzle(config) {
 
     this.multiHintsMap = {};
 
+    this.hintsLog = {};
+
     $.amaran({
         'title': 'startRound',
         'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
@@ -1402,31 +1404,6 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function showAskHelpHints(data, reverse) {
-        var changeForIteration = false;
-        var len = data.length;
-
-        for (var i = 0; i < len; i++) {
-            var index = reverse ? (len - 1 - i) : i;
-            for (var j = 0; j < 4; j++) {
-                if (data[index][j] > -1) {
-                    var tile = instance.tiles[index];
-                    if (tile.subGraphSize == instance.maxSubGraphSize && !tile.allAroundByTiles) {
-                        var shouldSaveThis = showHints(index, data[index], -1);
-                        normalizeTiles(true);
-                        changeForIteration = changeForIteration || shouldSaveThis;
-                    }
-                    break;
-                }
-            }
-        }
-
-        uploadHintedSubGraph();
-        normalizeTiles();
-
-        return changeForIteration;
-    }
-
     function askHelp() {
         if(players_num == 1){
             return;
@@ -1489,24 +1466,14 @@ function JigsawPuzzle(config) {
 
             var shouldSave = false;
 
+            instance.hintsLog = {
+                type: 'reactive',
+                sure_hints: data.sureHints,
+                unsure_hints: data.unsureHints,
+                log: new Array(),
+            };
             instance.hintAroundTilesMap = data.sureHints;
             computeMultiHintsConflict(data.sureHints, []);
-            /*
-            for (var t = 0; t < 1; t++) {
-                var changeForIteration = false;
-
-                var changeForThis = showAskHelpHints(data.sureHints, false);
-                changeForIteration = changeForIteration || changeForThis;
-
-                changeForThis = showAskHelpHints(data.sureHints, true);
-                changeForIteration = changeForIteration || changeForThis;
-
-                shouldSave = shouldSave || changeForIteration;
-
-                if (!changeForIteration) {
-                    break;
-                }
-            }*/
 
             var strongHintsNeededTiles = new Array();
             for (var index = 0; index < instance.tiles.length; index++) {
@@ -1746,11 +1713,16 @@ function JigsawPuzzle(config) {
             }
         }
 
-        if (instance.subGraphData.length > 0) {
+        if (instance.subGraphData.length > 0 || instance.hintsLog.sure_hints) {
+            if(!instance.hintsShowing){
+                instance.hintsLog = {};
+            }
             var param = {
                 player_name: player_name,
                 round_id: roundID,
-                edges: instance.subGraphData
+                edges: instance.subGraphData,
+                is_hint: instance.hintsShowing && !instance.gameFinished,
+                logs: instance.hintsLog
             };
             //console.log(param);
             if(players_num > 1){
@@ -1894,6 +1866,7 @@ function JigsawPuzzle(config) {
 
         uploadGraphData();
         instance.hintedTilesMap = new Array();
+        instance.hintsLog = {};
     }
 
     function getHints(round_id, selectedTileIndexes) {
@@ -2019,9 +1992,13 @@ function JigsawPuzzle(config) {
  
         for (var i = 0; i < weakHintsNeededTiles.length; i++) {
             var index = weakHintsNeededTiles[i];
+            var tile = instance.tiles[index];
             for (var j = 0; j < 4; j++) {
+                if(tile.aroundTiles[j] >= 0){
+                    continue;
+                }
                 if (sureHints[index][j] > -1 && bidirectionLinks[index].aroundTiles[j]) {
-                    var shouldSaveThis = showHints(index, sureHints[index], -1);
+                    var shouldSaveThis = showHints(index, sureHints[index], j);
                     normalizeTiles(true);
                     shouldSave = shouldSave || shouldSaveThis;
                 }
@@ -2039,6 +2016,12 @@ function JigsawPuzzle(config) {
         if (!mousedowned && currentStep == instance.steps) {
             instance.hintsShowing = true;
 
+            instance.hintsLog = {
+                type: 'reactive',
+                sure_hints: data.sureHints,
+                unsure_hints: data.unsureHints,
+                log: new Array(),
+            };
             instance.hintAroundTilesMap = data.sureHints;
             computeMultiHintsConflict(data.sureHints, data.indexes);
 
@@ -2098,29 +2081,61 @@ function JigsawPuzzle(config) {
 
             var correctTileIndex = hintTiles[j];
             if (correctTileIndex < 0) {
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: 'hint_tile no exists'
+                });
                 continue;
             }
 
             if (instance.multiHintsMap[correctTileIndex] &&
                 instance.multiHintsMap[correctTileIndex][j] > 1) {
-                //console.log("multiHints conflictTile");
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: 'hint_tile can also be recommented to other tile'
+                });
                 continue;
             }
 
             if (tile.aroundTiles && tile.aroundTiles[j] >= 0) {
-                //console.log("already has aroundTiles", tile.aroundTiles[j], "in direction", j);
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: 'tile already has aroundTile in direction ' + j
+                });
                 continue;
             }
 
 
             if (tile.conflictTiles[correctTileIndex]) {
-                //console.log("conflictTile");
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: 'hint_tile was remove by player before'
+                });
                 continue;
             }
 
             var correctTile = instance.tiles[correctTileIndex];
 
             if (correctTile.picking) {
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: 'hint_tile is picking by player'
+                });
                 continue;
             }
 
@@ -2144,6 +2159,13 @@ function JigsawPuzzle(config) {
                     groupTiles.push(correctTile);
                 }
                 else {
+                    instance.hintsLog.log.push({
+                        tile: selectedTileIndex,
+                        hint_tile: correctTileIndex,
+                        direction: j,
+                        success: false,
+                        msg: 'tile and hint_tile are in the same group'
+                    });
                     continue;
                 }
             }
@@ -2188,8 +2210,24 @@ function JigsawPuzzle(config) {
                     refreshAroundTiles(hintTile, true);
                     hintTile.picking = false;
                 }
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: true,
+                    msg: "recomment " + groupTiles.length + " tiles"
+                });
 
                 hintTilesCount += groupTiles.length;
+            }
+            else{
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: "cannot put hint_tile because of other tiles's position"
+                });
             }
         }
         if (hintTilesCount) {

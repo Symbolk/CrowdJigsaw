@@ -43,12 +43,14 @@ function calcContri(operation, num_before) {
 /**
  * Write one action into the action sequence
  */
-function saveAction(round_id, time, player_name, links_size) {
+function saveAction(round_id, time, player_name, links_size, logs, is_hint) {
     var action = {
         round_id: round_id,
         time: time,
         player_name: player_name,
-        links_size: links_size
+        is_hint: is_hint,
+        links_size: links_size,
+        logs: logs
     }
     ActionModel.create(action, function (err) {
         if (err) {
@@ -310,7 +312,7 @@ function update(data) {
                 //let updateStartTime = (new Date()).getTime();
                 let roundStartTime = Date.parse(doc.start_time);
                 let time = (new Date()).getTime() - roundStartTime;
-                saveAction(roundID, time, data.player_name, data.edges);
+                saveAction(roundID, time, data.player_name, data.edges, data.logs, data.is_hint);
                 if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
                     // create the edges object & update db directly
                     let edges_saved = {};
@@ -333,7 +335,7 @@ function update(data) {
                     if(constants.duration > 0){
                         generateHints(nodesAndHints);
                     }
-                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn);
+                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG  }}, function (err) {
@@ -421,7 +423,7 @@ function update(data) {
                     }
                     checkUnsureHints(nodesAndHints);
 
-                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn);
+                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
                     RoundModel.update({ round_id: data.round_id }, 
                         { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG } }, function (err) {
@@ -442,7 +444,7 @@ function update(data) {
     });
 }
 
-function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerColumn){
+function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
     if(!COGList){
         COGList = new Array();
     }
@@ -515,13 +517,33 @@ function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerCo
         };
         COGList.push(currentCOG);
 
+        var correctHints = 0;
+        for (var i = 0; i < nodesAndHints.hints.length; i++) {
+            var hint = nodesAndHints.hints[i];
+            if(i >= tilesPerRow && (i - tilesPerRow) == hint[0]){ //up
+                correctHints += 1;
+            }
+            if(i % tilesPerRow < tilesPerRow - 1 && (i + 1) == hint[1]){ //right
+                correctHints += 1;
+            }
+            if(i < (tilesPerColumn - 1) * tilesPerRow && (i + tilesPerRow) == hint[2]){ //bottom
+                correctHints += 1;
+            }
+            if(i % tilesPerRow > 0 && (i - 1) == hint[2]){ //left
+                correctHints += 1;
+            }
+        }
+
         var COG = {
             round_id: roundID,
             time: time,
             correctLinks: correctLinks,
+            correctHints: correctHints,
             completeLinks: completeLinks,
             totalLinks: totalLinks,
-            edges_changed: brief_edges_saved,
+            nodes: nodesAndHints.nodes,
+            hints: nodesAndHints.hints,
+            edges_saved: brief_edges_saved,
         }
         COGModel.create(COG, function (err) {
             if (err) {
