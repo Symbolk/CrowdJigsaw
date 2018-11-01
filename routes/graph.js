@@ -863,7 +863,7 @@ module.exports = function (io) {
         if (!req.session.user) {
             req.session.error = 'Please Login First!';
             return res.redirect('/login');
-            //return res.redirect('back');//返回之前的页面
+            //return res.redirect('back');
         }
         next();
     }

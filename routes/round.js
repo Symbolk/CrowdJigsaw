@@ -1,4 +1,3 @@
-
 'use strict'
 var express = require('express');
 var router = express.Router();
@@ -56,19 +55,25 @@ function LoginFirst(req, res, next) {
 }
 
 function isCreator(req, res, next) {
-    RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, creator: 1 }, function (err, doc) {
+    RoundModel.findOne({
+        round_id: req.params.round_id
+    }, {
+        _id: 0,
+        creator: 1
+    }, function (err, doc) {
         if (err) {
             console.log(err);
         } else {
-            if (!req.session.user) {
-                req.session.error = 'Please Login First!';
-                return res.redirect('/login');
+            if (doc) {
+                if (!req.session.user) {
+                    req.session.error = 'Please Login First!';
+                    return res.redirect('/login');
+                }
+                if (doc.creator != req.session.user.username) {
+                    req.session.error = "You are not the Boss!";
+                }
+                next();
             }
-
-            if (doc.creator != req.session.user.username) {
-                req.session.error = "You are not the Boss!";
-            }
-            next();
         }
     });
 }
@@ -105,12 +110,10 @@ module.exports = function (io) {
                         border: data.border,
                         create_time: TIME,
                         players_num: data.players_num,
-                        players: [
-                            {
-                                player_name: data.username,
-                                join_time: TIME
-                            }
-                        ],
+                        players: [{
+                            player_name: data.username,
+                            join_time: TIME
+                        }],
                         imageWidth: imageWidth,
                         imageHeight: imageHeight,
                         tileWidth: tileWidth,
@@ -121,13 +124,11 @@ module.exports = function (io) {
                         shapeArray: shapeArray
                     };
 
-                    if(data.players_num == 1){
-                        operation.players = [
-                            {
-                                player_name: data.username,
-                                join_time: TIME
-                            }
-                        ]
+                    if (data.players_num == 1) {
+                        operation.players = [{
+                            player_name: data.username,
+                            join_time: TIME
+                        }]
                     }
 
                     createRecord(data.username, operation.round_id, TIME);
@@ -160,44 +161,45 @@ module.exports = function (io) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (doc.players.length < doc.players_num) {
-                        let isIn = doc.players.some(function (p) {
-                            return (p.player_name == data.username);
-                        });
-                        let TIME = util.getNowFormatDate();
-                        if (!isIn) {
-                            let operation = {
-                                $addToSet: { //if exists, give up add
-                                    players:
-                                    {
-                                        player_name: data.username,
-                                        join_time: TIME
-                                    }
-                                }
-                            };
-                            RoundModel.update(condition, operation, function (err, doc) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    RoundModel.findOne(condition, function (err, doc) {
-                                        if (err) {
-                                            console.log(err);
-                                        } else {
-                                            io.sockets.emit('roundChanged', {
-                                                round: doc,
-                                                username: data.username,
-                                                round_id: data.round_id,
-                                                action: "join",
-                                                title: "JoinRound",
-                                                msg: 'You just join round' + data.round_id
-                                            });
-                                        }
-                                    });
-                                    console.log(data.username + ' joins Round' + condition.round_id);
-                                    createRecord(data.username, data.round_id, TIME);
-                                }
+                    if (doc) {
+                        if (doc.players.length < doc.players_num) {
+                            let isIn = doc.players.some(function (p) {
+                                return (p.player_name == data.username);
                             });
+                            let TIME = util.getNowFormatDate();
+                            if (!isIn) {
+                                let operation = {
+                                    $addToSet: { //if exists, give up add
+                                        players: {
+                                            player_name: data.username,
+                                            join_time: TIME
+                                        }
+                                    }
+                                };
+                                RoundModel.update(condition, operation, function (err, doc) {
+                                    if (err) {
+                                        console.log(err);
+                                    } else {
+                                        RoundModel.findOne(condition, function (err, doc) {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                io.sockets.emit('roundChanged', {
+                                                    round: doc,
+                                                    username: data.username,
+                                                    round_id: data.round_id,
+                                                    action: "join",
+                                                    title: "JoinRound",
+                                                    msg: 'You just join round' + data.round_id
+                                                });
+                                            }
+                                        });
+                                        console.log(data.username + ' joins Round' + condition.round_id);
+                                        createRecord(data.username, data.round_id, TIME);
+                                    }
+                                });
 
+                            }
                         }
                     }
                 }
@@ -218,7 +220,9 @@ module.exports = function (io) {
                     "correct_hints": data.correctHintsNum
                 }
             };
-            RoundModel.findOne({ round_id: data.round_id },
+            RoundModel.findOne({
+                    round_id: data.round_id
+                },
                 function (err, doc) {
                     if (err) {
                         console.log(err);
@@ -226,21 +230,27 @@ module.exports = function (io) {
                         if (doc) {
                             if (doc.solved_players == 0) {
                                 // only remember the first winner of the round
-                                RoundModel.update({ round_id: data.round_id }, operation, function (err) {
+                                RoundModel.update({
+                                    round_id: data.round_id
+                                }, operation, function (err) {
                                     if (err) {
                                         console.log(err);
                                     }
                                 });
-                            }
-                            else{
+                            } else {
                                 var solved_players = doc.solved_players;
-                                RoundModel.update({ round_id: data.round_id }, {"solved_players": solved_players + 1}, function (err) {
+                                RoundModel.update({
+                                    round_id: data.round_id
+                                }, {
+                                    "solved_players": solved_players + 1
+                                }, function (err) {
                                     if (err) {
                                         console.log(err);
-                                    }
-                                    else{
-                                        if(solved_players >= 2) {
-                                            socket.broadcast.emit('forceLeave', { round_id: data.round_id });
+                                    } else {
+                                        if (solved_players >= 2) {
+                                            socket.broadcast.emit('forceLeave', {
+                                                round_id: data.round_id
+                                            });
                                         }
                                     }
                                 });
@@ -267,13 +277,13 @@ module.exports = function (io) {
 
                             let finishTime = Math.floor(((new Date()).getTime() - data.startTime) / 1000);
                             let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
-                            let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
+                            let finishPercent = (data.correctLinks / 2) / puzzle_links * 100;
                             let score = parseFloat(finishPercent.toFixed(3));
-                            score += parseFloat(3600/finishTime);
+                            score += parseFloat(3600 / finishTime);
                             console.log(score, finishTime);
                             let redis_key = 'round:' + doc.round_id + ':scoreboard';
                             redis.zadd(redis_key, parseFloat(score), data.player_name);
-                            
+
                             let condition = {
                                 username: data.player_name,
                                 "records.round_id": data.round_id
@@ -306,12 +316,18 @@ module.exports = function (io) {
             };
 
             let redis_key = 'user:' + data.player_name + ':savegame';
-            redis.set(redis_key, JSON.stringify(save_game), function(err, response){
+            redis.set(redis_key, JSON.stringify(save_game), function (err, response) {
                 if (err) {
                     console.log(err);
-                    socket.emit('gameSaved', { err: err });
+                    socket.emit('gameSaved', {
+                        err: err
+                    });
                 } else {
-                    socket.emit('gameSaved', { success: true, round_id: data.round_id, player_name: data.player_name });
+                    socket.emit('gameSaved', {
+                        success: true,
+                        round_id: data.round_id,
+                        player_name: data.player_name
+                    });
                 }
             });
         });
@@ -320,7 +336,7 @@ module.exports = function (io) {
          */
         socket.on('loadGame', function (data) {
             let redis_key = 'user:' + data.username + ':savegame';
-            redis.get(redis_key, function(err, save_game){
+            redis.get(redis_key, function (err, save_game) {
                 //console.log(save_game);
                 io.sockets.emit('loadGameSuccess', {
                     username: data.username,
@@ -339,77 +355,82 @@ module.exports = function (io) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (doc.start_time != '-1') {
-                        return;
-                    }
-                    let TIME = util.getNowFormatDate();
-                    // set start_time for all players
-                    for (let p of doc.players) {
-                        let operation = {
-                            $set: {
-                                "records.$.start_time": TIME
-                            }
-                        };
-                        UserModel.update({ username: p.player_name, "records.round_id": data.round_id }, operation, function (err) {
-                            if (err) {
-                                console.log(err);
-                            }
-                        });
-                    }
-                    // set start time for round
-                    let operation = {
-                        $set: {
-                            start_time: TIME,
-                            players_num: doc.players.length
+                    if (doc) {
+                        if (doc.start_time != '-1') {
+                            return;
                         }
-                    };
-                    RoundModel.update(condition, operation, function (err, doc) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            RoundModel.findOne(condition, function (err, doc) {
+                        let TIME = util.getNowFormatDate();
+                        // set start_time for all players
+                        for (let p of doc.players) {
+                            let operation = {
+                                $set: {
+                                    "records.$.start_time": TIME
+                                }
+                            };
+                            UserModel.update({
+                                username: p.player_name,
+                                "records.round_id": data.round_id
+                            }, operation, function (err) {
                                 if (err) {
                                     console.log(err);
-                                } else {
-                                    io.sockets.emit('roundChanged', {
-                                        round: doc,
-                                        username: data.username,
-                                        round_id: data.round_id,
-                                        action: "start",
-                                        title: "StartRound",
-                                        msg: 'You just start round' + data.round_id
-                                    });
                                 }
                             });
-                            console.log(data.username + ' starts Round' + data.round_id);
                         }
-                    });
-                    /*
-                    // run genetic algorithm
-                    console.log('start running python script of GA algorithm for round %d.', doc.round_id);
-                    var path = require('path');
-                    var options = {
-                        mode: 'text',
-                        pythonPath: 'python3',
-                        pythonOptions: ['-u'], // get print results in real-time
-                        scriptPath: path.resolve(__dirname, '../../gaps/bin'),
-                        args: ['--algorithm', 'crowd',
-                            '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
-                            '--size', doc.tileWidth.toString(),
-                            '--cols', doc.tilesPerRow.toString(),
-                            '--rows', doc.tilesPerColumn.toString(),
-                            '--population', '600',
-                            '--generations', '1000000000',
-                            '--roundid', doc.round_id.toString()]
-                    };
-                    PythonShell.run('gaps', options, function (err, results) {
-                        if (err)
-                            console.log(err);
-                        // results is an array consisting of messages collected during execution
-                        // if GA founds a solution, the last element in results is "solved".
-                        console.log('results: %j', results);
-                        console.log('GA algorithm for round %d ends.', doc.round_id);
-                    });*/
+                        // set start time for round
+                        let operation = {
+                            $set: {
+                                start_time: TIME,
+                                players_num: doc.players.length
+                            }
+                        };
+                        RoundModel.update(condition, operation, function (err, doc) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                RoundModel.findOne(condition, function (err, doc) {
+                                    if (err) {
+                                        console.log(err);
+                                    } else {
+                                        io.sockets.emit('roundChanged', {
+                                            round: doc,
+                                            username: data.username,
+                                            round_id: data.round_id,
+                                            action: "start",
+                                            title: "StartRound",
+                                            msg: 'You just start round' + data.round_id
+                                        });
+                                    }
+                                });
+                                console.log(data.username + ' starts Round' + data.round_id);
+                            }
+                        });
+                        /*
+                        // run genetic algorithm
+                        console.log('start running python script of GA algorithm for round %d.', doc.round_id);
+                        var path = require('path');
+                        var options = {
+                            mode: 'text',
+                            pythonPath: 'python3',
+                            pythonOptions: ['-u'], // get print results in real-time
+                            scriptPath: path.resolve(__dirname, '../../gaps/bin'),
+                            args: ['--algorithm', 'crowd',
+                                '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
+                                '--size', doc.tileWidth.toString(),
+                                '--cols', doc.tilesPerRow.toString(),
+                                '--rows', doc.tilesPerColumn.toString(),
+                                '--population', '600',
+                                '--generations', '1000000000',
+                                '--roundid', doc.round_id.toString()]
+                        };
+                        PythonShell.run('gaps', options, function (err, results) {
+                            if (err)
+                                console.log(err);
+                            // results is an array consisting of messages collected during execution
+                            // if GA founds a solution, the last element in results is "solved".
+                            console.log('results: %j', results);
+                            console.log('GA algorithm for round %d ends.', doc.round_id);
+                        });*/
+                    }
                 }
             });
         });
@@ -422,71 +443,71 @@ module.exports = function (io) {
                 if (err) {
                     console.log(err);
                 } else {
-                    let isIn = doc.players.some(function (p) {
-                        return (p.player_name == data.username);
-                    });
-                    if (isIn) {
-                        if (doc.players.length == 1) { // the last player
-                            let operation = {
-                                $pull: {
-                                    players:
-                                    {
-                                        player_name: data.username
-                                    }
-                                },
-                                end_time: util.getNowFormatDate()
-                            };
-                            RoundModel.update(condition, operation, function (err, doc) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    RoundModel.findOne(condition, function (err, doc) {
-                                        if (err) {
-                                            console.log(err);
-                                        } else {
-                                            io.sockets.emit('roundChanged', {
-                                                round: doc,
-                                                username: data.username,
-                                                round_id: data.round_id,
-                                                action: "quit",
-                                                title: "StopRound",
-                                                msg: 'You just stop round' + data.round_id
-                                            });
+                    if (doc) {
+                        let isIn = doc.players.some(function (p) {
+                            return (p.player_name == data.username);
+                        });
+                        if (isIn) {
+                            if (doc.players.length == 1) { // the last player
+                                let operation = {
+                                    $pull: {
+                                        players: {
+                                            player_name: data.username
                                         }
-                                    });
-                                    console.log(data.username + ' stops Round' + data.round_id);
-                                }
-                            });
-                        } else { // online>=2
-                            let operation = {
-                                $pull: { //if exists, give up add
-                                    players:
-                                    {
-                                        player_name: data.username
+                                    },
+                                    end_time: util.getNowFormatDate()
+                                };
+                                RoundModel.update(condition, operation, function (err, doc) {
+                                    if (err) {
+                                        console.log(err);
+                                    } else {
+                                        RoundModel.findOne(condition, function (err, doc) {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                io.sockets.emit('roundChanged', {
+                                                    round: doc,
+                                                    username: data.username,
+                                                    round_id: data.round_id,
+                                                    action: "quit",
+                                                    title: "StopRound",
+                                                    msg: 'You just stop round' + data.round_id
+                                                });
+                                            }
+                                        });
+                                        console.log(data.username + ' stops Round' + data.round_id);
                                     }
-                                }
-                            };
-                            RoundModel.update(condition, operation, function (err, doc) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    RoundModel.findOne(condition, function (err, doc) {
-                                        if (err) {
-                                            console.log(err);
-                                        } else {
-                                            io.sockets.emit('roundChanged', {
-                                                round: doc,
-                                                username: data.username,
-                                                round_id: data.round_id,
-                                                action: "quit",
-                                                title: "QuitRound",
-                                                msg: 'You just quit round' + data.round_id
-                                            });
+                                });
+                            } else { // online>=2
+                                let operation = {
+                                    $pull: { //if exists, give up add
+                                        players: {
+                                            player_name: data.username
                                         }
-                                    });
-                                    console.log(data.username + ' quits Round' + data.round_id);
-                                }
-                            });
+                                    }
+                                };
+                                RoundModel.update(condition, operation, function (err, doc) {
+                                    if (err) {
+                                        console.log(err);
+                                    } else {
+                                        RoundModel.findOne(condition, function (err, doc) {
+                                            if (err) {
+                                                console.log(err);
+                                            } else {
+                                                io.sockets.emit('roundChanged', {
+                                                    round: doc,
+                                                    username: data.username,
+                                                    round_id: data.round_id,
+                                                    action: "quit",
+                                                    title: "QuitRound",
+                                                    msg: 'You just quit round' + data.round_id
+                                                });
+                                            }
+                                        });
+                                        console.log(data.username + ' quits Round' + data.round_id);
+                                    }
+                                });
+                            }
                         }
                     }
                 }
@@ -497,7 +518,9 @@ module.exports = function (io) {
             let operation = {};
             let contri = 0;
             let rating = data.rating;
-            RoundModel.findOne({ round_id: data.round_id }, function (err, doc) {
+            RoundModel.findOne({
+                round_id: data.round_id
+            }, function (err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
@@ -512,8 +535,7 @@ module.exports = function (io) {
                                     "records.$.rating": rating
                                 }
                             };
-                        } 
-                        else {
+                        } else {
                             operation = {
                                 $set: {
                                     "records.$.end_time": "-1",
@@ -530,7 +552,7 @@ module.exports = function (io) {
                             };
 
                             let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
-                            let finishPercent = (data.correctLinks/2) / puzzle_links * 100;
+                            let finishPercent = (data.correctLinks / 2) / puzzle_links * 100;
                             let score = parseFloat(finishPercent.toFixed(3));
                             let redis_key = 'round:' + doc.round_id + ':scoreboard';
                             redis.zadd(redis_key, parseFloat(score), data.player_name);
@@ -589,7 +611,12 @@ module.exports = function (io) {
      * Get the round contribution rank
      */
     router.route('/getRoundRank/:round_id').all(LoginFirst).get(function (req, res, next) {
-        RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, players: 1 }, {}, function (err, doc) {
+        RoundModel.findOne({
+            round_id: req.params.round_id
+        }, {
+            _id: 0,
+            players: 1
+        }, {}, function (err, doc) {
             if (err) {
                 console.log(err);
             } else {
@@ -607,7 +634,9 @@ module.exports = function (io) {
                         });
                     }
                     // res.render('roundrank', { title: 'Round Rank', AllPlayers: JSON.stringify(rankedPlayers), username: req.session.user.username });
-                    res.send({ AllPlayers: rankedPlayers });
+                    res.send({
+                        AllPlayers: rankedPlayers
+                    });
                 }
             }
         });
@@ -646,39 +675,48 @@ module.exports = function (io) {
      */
     function getHRHP(round_id) {
         return new Promise((resolve, reject) => {
-            RoundModel.findOne({ round_id: round_id }, function (err, doc) {
+            RoundModel.findOne({
+                round_id: round_id
+            }, function (err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (doc.winner) {
-                        UserModel.findOne({ username: doc.winner }, { _id: 0, records: 1 }, function (err, d) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                if (d) {
-                                    for (let r of d.records) {
-                                        if (r.round_id == round_id) {
-                                            let hint_ratio = 0;
-                                            let hint_precision = 0;
-                                            if (r.total_links > 0 && r.total_hints > 0) {
-                                                hint_ratio = r.hinted_links / r.total_links;
-                                                hint_precision = r.correct_hints / r.total_hints;
+                    if (doc) {
+                        if (doc.winner) {
+                            UserModel.findOne({
+                                username: doc.winner
+                            }, {
+                                _id: 0,
+                                records: 1
+                            }, function (err, d) {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    if (d) {
+                                        for (let r of d.records) {
+                                            if (r.round_id == round_id) {
+                                                let hint_ratio = 0;
+                                                let hint_precision = 0;
+                                                if (r.total_links > 0 && r.total_hints > 0) {
+                                                    hint_ratio = r.hinted_links / r.total_links;
+                                                    hint_precision = r.correct_hints / r.total_hints;
+                                                }
+                                                resolve({
+                                                    "hint_ratio": hint_ratio,
+                                                    "hint_precision": hint_precision
+                                                });
                                             }
-                                            resolve({
-                                                "hint_ratio": hint_ratio,
-                                                "hint_precision": hint_precision
-                                            });
                                         }
                                     }
                                 }
-                            }
-                        });
-                    } else {
-                        console.log("Winner Empty " + round_id);
-                        resolve({
-                            "hint_ratio": 0,
-                            "hint_precision": 0
-                        });
+                            });
+                        } else {
+                            console.log("Winner Empty " + round_id);
+                            resolve({
+                                "hint_ratio": 0,
+                                "hint_precision": 0
+                            });
+                        }
                     }
                 }
             });
@@ -689,7 +727,9 @@ module.exports = function (io) {
      */
     function getWinnerData(round_id) {
         return new Promise((resolve, reject) => {
-            RoundModel.findOne({ round_id: round_id }, function (err, doc) {
+            RoundModel.findOne({
+                round_id: round_id
+            }, function (err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
