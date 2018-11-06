@@ -361,8 +361,6 @@ function JigsawPuzzle(config) {
 
     this.getHintsArray = new Array();
 
-    this.multiHintsMap = {};
-
     this.hintsLog = {};
 
     $.amaran({
@@ -1428,32 +1426,6 @@ function JigsawPuzzle(config) {
         });
     }
 
-    function computeMultiHintsConflict(sureHints, indexes) {
-        var tilesMap = {};
-        var indexesMap = {};
-        for (var i = 0; i < indexes.length; i++) {
-            indexesMap[indexes[i]] = true;
-        }
-
-        for (var i = 0; i < sureHints.length; i++) {
-            if (indexes.length > 0 && !indexesMap[i]) {
-                continue;
-            }
-            var hintTiles = sureHints[i];
-            for (var j = 0; j < hintTiles.length; j++) {
-                var hintTileIndex = hintTiles[j];
-                if (hintTileIndex >= 0) {
-                    if (!tilesMap[hintTileIndex]) {
-                        tilesMap[hintTileIndex] = [0, 0, 0, 0];
-                    }
-                    tilesMap[hintTileIndex][j] += 1;
-                }
-            }
-        }
-        //console.log(tilesMap);
-        instance.multiHintsMap = tilesMap;
-    }
-
     socket.on("proactiveHints", function (data) {
         console.log(data);
         if (!mousedowned && !instance.hintsShowing && data && data.sureHints) {
@@ -1467,13 +1439,11 @@ function JigsawPuzzle(config) {
             var shouldSave = false;
 
             instance.hintsLog = {
-                type: 'reactive',
-                sure_hints: data.sureHints,
-                unsure_hints: data.unsureHints,
+                type: 'proactive',
+                hints: JSON.stringify(data.sureHints),
                 log: new Array(),
             };
             instance.hintAroundTilesMap = data.sureHints;
-            computeMultiHintsConflict(data.sureHints, []);
 
             var strongHintsNeededTiles = new Array();
             for (var index = 0; index < instance.tiles.length; index++) {
@@ -1722,7 +1692,7 @@ function JigsawPuzzle(config) {
                 round_id: roundID,
                 edges: instance.subGraphData,
                 is_hint: instance.hintsShowing && !instance.gameFinished,
-                logs: instance.hintsLog
+                //logs: instance.hintsLog
             };
             //console.log(param);
             if(players_num > 1){
@@ -2018,12 +1988,10 @@ function JigsawPuzzle(config) {
 
             instance.hintsLog = {
                 type: 'reactive',
-                sure_hints: data.sureHints,
-                unsure_hints: data.unsureHints,
+                hints: JSON.stringify(data.sureHints),
                 log: new Array(),
             };
             instance.hintAroundTilesMap = data.sureHints;
-            computeMultiHintsConflict(data.sureHints, data.indexes);
 
             var strongHintsNeededTiles = new Array();
             for (var i = 0; i < data.indexes.length; i++) {
@@ -2087,18 +2055,6 @@ function JigsawPuzzle(config) {
                     direction: j,
                     success: false,
                     msg: 'hint_tile no exists'
-                });
-                continue;
-            }
-
-            if (instance.multiHintsMap[correctTileIndex] &&
-                instance.multiHintsMap[correctTileIndex][j] > 1) {
-                instance.hintsLog.log.push({
-                    tile: selectedTileIndex,
-                    hint_tile: correctTileIndex,
-                    direction: j,
-                    success: false,
-                    msg: 'hint_tile can also be recommented to other tile'
                 });
                 continue;
             }
