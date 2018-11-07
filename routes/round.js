@@ -206,7 +206,7 @@ module.exports = function (io) {
             });
         });
         socket.on('iSolved', function (data) {
-            console.log('!!!Round ' + data.round_id + ' : ' + data.player_name + ' solves!');
+            console.log('!!!Round ' + data.round_id + ' is solves!');
             let finish_time = getRoundFinishTime(data.startTime);
             let operation = {
                 $set: {
@@ -280,9 +280,6 @@ module.exports = function (io) {
                             let finishPercent = (data.correctLinks / 2) / puzzle_links * 100;
                             let score = parseFloat(finishPercent.toFixed(3));
                             score += parseFloat(3600 / finishTime);
-                            console.log(score, finishTime);
-                            let redis_key = 'round:' + doc.round_id + ':scoreboard';
-                            redis.zadd(redis_key, parseFloat(score), data.player_name);
 
                             let condition = {
                                 username: data.player_name,
@@ -554,8 +551,6 @@ module.exports = function (io) {
                             let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
                             let finishPercent = (data.correctLinks / 2) / puzzle_links * 100;
                             let score = parseFloat(finishPercent.toFixed(3));
-                            let redis_key = 'round:' + doc.round_id + ':scoreboard';
-                            redis.zadd(redis_key, parseFloat(score), data.player_name);
                         }
 
                         let condition = {
