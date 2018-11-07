@@ -2,6 +2,8 @@ var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
+var uploadDelayTime = 5;
+
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
 
@@ -361,9 +363,9 @@ function JigsawPuzzle(config) {
 
     this.getHintsArray = new Array();
 
-    this.multiHintsMap = {};
-
     this.hintsLog = {};
+
+    this.subGraphDataQueue = new Array();
 
     $.amaran({
         'title': 'startRound',
@@ -418,7 +420,7 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             computeSubGraph(tile);
         }
-        uploadGraphData();
+        computeGraphData();
 
         instance.focusToCenter();
 
@@ -656,7 +658,7 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             computeSubGraph(tile);
         }
-        uploadGraphData();
+        computeGraphData();
 
         $('#finish_dialog').modal({
             keyboard: false,
@@ -1350,7 +1352,7 @@ function JigsawPuzzle(config) {
             }
         }
 
-        uploadGraphData();
+        computeGraphData();
 
         if (tilesMoved) {
             instance.steps += 1;
@@ -1428,32 +1430,6 @@ function JigsawPuzzle(config) {
         });
     }
 
-    function computeMultiHintsConflict(sureHints, indexes) {
-        var tilesMap = {};
-        var indexesMap = {};
-        for (var i = 0; i < indexes.length; i++) {
-            indexesMap[indexes[i]] = true;
-        }
-
-        for (var i = 0; i < sureHints.length; i++) {
-            if (indexes.length > 0 && !indexesMap[i]) {
-                continue;
-            }
-            var hintTiles = sureHints[i];
-            for (var j = 0; j < hintTiles.length; j++) {
-                var hintTileIndex = hintTiles[j];
-                if (hintTileIndex >= 0) {
-                    if (!tilesMap[hintTileIndex]) {
-                        tilesMap[hintTileIndex] = [0, 0, 0, 0];
-                    }
-                    tilesMap[hintTileIndex][j] += 1;
-                }
-            }
-        }
-        //console.log(tilesMap);
-        instance.multiHintsMap = tilesMap;
-    }
-
     socket.on("proactiveHints", function (data) {
         console.log(data);
         if (!mousedowned && !instance.hintsShowing && data && data.sureHints) {
@@ -1467,13 +1443,11 @@ function JigsawPuzzle(config) {
             var shouldSave = false;
 
             instance.hintsLog = {
-                type: 'reactive',
-                sure_hints: data.sureHints,
-                unsure_hints: data.unsureHints,
+                type: 'proactive',
+                hints: JSON.stringify(data.sureHints),
                 log: new Array(),
             };
             instance.hintAroundTilesMap = data.sureHints;
-            computeMultiHintsConflict(data.sureHints, []);
 
             var strongHintsNeededTiles = new Array();
             for (var index = 0; index < instance.tiles.length; index++) {
@@ -1492,7 +1466,7 @@ function JigsawPuzzle(config) {
                 saveGame();
             }
 
-            uploadHintedSubGraph();
+            computeHintedSubGraph();
             normalizeTiles();
 
             $("#show_hints_dialog").modal().hide();
@@ -1561,7 +1535,7 @@ function JigsawPuzzle(config) {
                 }
             }
 
-            uploadGraphData();
+            computeGraphData();
 
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps += 1;
@@ -1677,14 +1651,17 @@ function JigsawPuzzle(config) {
         return true;
     }
 
-    function uploadGraphData() {
+    function computeGraphData() {
         instance.subGraphData = instance.removeLinksData.concat(instance.subGraphData);
         //console.log(instance.subGraphData);
         instance.getHintsArray = new Array();
+        var edges = {};
         for (var i = 0; i < instance.subGraphData.length; i++) {
             var linksData = instance.subGraphData[i];
             var xTile = instance.tiles[linksData.x];
             var yTile = instance.tiles[linksData.y];
+            var key = linksData.x + linksData.tag + linksData.y;
+            edges[key] = linksData;
             if (linksData.size < 0) {
                 xTile.subGraphSize = 0;
                 yTile.subGraphSize = 0;
@@ -1720,19 +1697,50 @@ function JigsawPuzzle(config) {
             var param = {
                 player_name: player_name,
                 round_id: roundID,
-                edges: instance.subGraphData,
+                time: time,
+                edges: edges,
                 is_hint: instance.hintsShowing && !instance.gameFinished,
-                logs: instance.hintsLog
+                //logs: instance.hintsLog
             };
-            //console.log(param);
-            if(players_num > 1){
-                socket.emit("upload", param);
-            }
+            instance.subGraphDataQueue.push(param);
+            setTimeout(uploadGraphData, uploadDelayTime * 1000);
         }
+        uploadGraphData();
 
         instance.dfsGraphLinksMap = new Array();
         instance.subGraphData = new Array();
         instance.removeLinksData = new Array();
+    }
+
+    function uploadGraphData(){
+        if(players_num == 1){
+            instance.subGraphDataQueue.length = new Array();
+        }
+        if(instance.subGraphDataQueue.length == 0){
+            return;
+        }
+        var newestGraphData = instance.subGraphDataQueue[instance.subGraphDataQueue.length - 1];
+        for (var j = instance.subGraphDataQueue.length - 2; j >= 0; j--) {
+            var olderGraphData = instance.subGraphDataQueue[j];
+            for (var key in newestGraphData.edges){
+                if (key in olderGraphData.edges){
+                    delete olderGraphData.edges[key];
+                }
+            }
+        }
+        while (instance.subGraphDataQueue.length > 0) {
+            var param = instance.subGraphDataQueue[0];
+            if(instance.gameFinished || time - param.time >= uploadDelayTime){
+                edges_count = Object.getOwnPropertyNames(param.edges).length;
+                if(edges_count > 0){
+                    socket.emit("upload", param);
+                }
+                instance.subGraphDataQueue.shift();
+            }
+            else{
+                break;
+            }
+        }
     }
 
     function hideAllColorBorder() {
@@ -1851,7 +1859,7 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function uploadHintedSubGraph() {
+    function computeHintedSubGraph() {
         for (var i in instance.hintedTilesMap) {
             var tile = instance.tiles[i];
             refreshAroundTiles(tile, true);
@@ -1864,7 +1872,7 @@ function JigsawPuzzle(config) {
             }
         }
 
-        uploadGraphData();
+        computeGraphData();
         instance.hintedTilesMap = new Array();
         instance.hintsLog = {};
     }
@@ -2018,12 +2026,10 @@ function JigsawPuzzle(config) {
 
             instance.hintsLog = {
                 type: 'reactive',
-                sure_hints: data.sureHints,
-                unsure_hints: data.unsureHints,
+                hints: JSON.stringify(data.sureHints),
                 log: new Array(),
             };
             instance.hintAroundTilesMap = data.sureHints;
-            computeMultiHintsConflict(data.sureHints, data.indexes);
 
             var strongHintsNeededTiles = new Array();
             for (var i = 0; i < data.indexes.length; i++) {
@@ -2043,7 +2049,7 @@ function JigsawPuzzle(config) {
                 saveGame();
             }
 
-            uploadHintedSubGraph();
+            computeHintedSubGraph();
             normalizeTiles();
 
             // judge the hint tiles
@@ -2087,18 +2093,6 @@ function JigsawPuzzle(config) {
                     direction: j,
                     success: false,
                     msg: 'hint_tile no exists'
-                });
-                continue;
-            }
-
-            if (instance.multiHintsMap[correctTileIndex] &&
-                instance.multiHintsMap[correctTileIndex][j] > 1) {
-                instance.hintsLog.log.push({
-                    tile: selectedTileIndex,
-                    hint_tile: correctTileIndex,
-                    direction: j,
-                    success: false,
-                    msg: 'hint_tile can also be recommented to other tile'
                 });
                 continue;
             }

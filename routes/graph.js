@@ -121,11 +121,6 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
         "edge": edge,
         "createTime": createTime
     };
-    if(constants.duration == 0 && confidence > nodeLink.maxConfidence){
-        nodeLink.maxConfidence = confidence;
-        nodeLink.createTime = createTime;
-        hints[x][dir] = Number(y);
-    }
 }
 
 function generateHints(nodesAndHints){
@@ -138,11 +133,9 @@ function generateHints(nodesAndHints){
     var dirName = ['up', 'right', 'bottom', 'left'];
     for (var x = 0; x < tilesNum; x++) {
         for(var d = 0; d < 4; d++){
+            hints[x][d] = -1;
             nodes[x][dirName[d]].maxConfidence = 0;
             for(var y in nodes[x][dirName[d]].indexes){
-                if(nowTime - nodes[x][dirName[d]].indexes[y].createTime <= constants.duration){
-                    continue;
-                }
                 var confidence = nodes[x][dirName[d]].indexes[y].confidence;
                 if(confidence > nodes[x][dirName[d]].maxConfidence){
                     nodes[x][dirName[d]].maxConfidence = confidence;
@@ -171,25 +164,9 @@ function updateNodesAndEdges(nodesAndHints, edge){
     var sConfidence = confidence * sLen;
     if(tag == "T-B"){
         if(nodes[x].bottom.indexes[y]) {
-            if(sConfidence < nodes[x].bottom.indexes[y].confidence){
-                if(hints[x][2] == y){
-                    nodes[x].bottom.maxConfidence = sConfidence;
-                }
-                if(hints[y][0] == x){
-                    nodes[y].up.maxConfidence = sConfidence;
-                }
-            }
             if(confidence < constants.phi || sLen < constants.msn){
                 delete nodes[x].bottom.indexes[y];
                 delete nodes[y].up.indexes[x];
-                if(hints[x][2] == y){
-                    hints[x][2] = -1;
-                    nodes[x].bottom.maxConfidence = 0;
-                }
-                if(hints[y][0] == x){
-                    hints[y][0] = -1;
-                    nodes[x].up.maxConfidence = 0;
-                }
             }
         }
         if(confidence >= constants.phi && sLen >= constants.msn){
@@ -199,25 +176,9 @@ function updateNodesAndEdges(nodesAndHints, edge){
     }
     else if(tag == "L-R"){
         if(nodes[x].right.indexes[y]) {
-            if(sConfidence < nodes[x].right.indexes[y].confidence){
-                if(hints[x][1] == y){
-                    nodes[x].right.maxConfidence = sConfidence;
-                }
-                if(hints[y][3] == x){
-                    nodes[y].left.maxConfidence = sConfidence;
-                }
-            }
             if(confidence < constants.phi || sLen < constants.msn){
                 delete nodes[x].right.indexes[y];
                 delete nodes[y].left.indexes[x];
-                if(hints[x][1] == y){
-                    hints[x][1] = -1;
-                    nodes[x].right.maxConfidence = 0;
-                }
-                if(hints[y][3] == x){
-                    hints[y][3] = -1;
-                    nodes[x].right.maxConfidence = 0;
-                }
             }
         }
         if(confidence >= constants.phi && sLen >= constants.msn){
@@ -263,9 +224,6 @@ function checkUnsureHints(nodesAndHints){
             var unsure = false;
             if(hints[x][d] >= 0){
                 for(var y in nodes[x][dirName[d]].indexes){
-                    if(nowTime - nodes[x][dirName[d]].indexes[y].createTime <= constants.duration){
-                        continue;
-                    }
                     var confidence = nodes[x][dirName[d]].indexes[y].confidence;
                     if (hints[x][d] != y && confidence >= (nodes[x][dirName[d]].maxConfidence * (1-constants.epsilon))) {
                         unsure = true;
@@ -277,7 +235,6 @@ function checkUnsureHints(nodesAndHints){
                     let y = hints[x][d];
                     let weight = nodes[x][dirName[d]].indexes[y].weight;
                     updateUnsureHints(unsureHints, x, y, d, weight);
-                    nodes[x][dirName[d]].maxConfidence = d;
                     hints[x][d] = -1;
                 }
             }
@@ -309,7 +266,6 @@ function update(data) {
             console.log(err);
         } else {
             if (doc) {
-                //let updateStartTime = (new Date()).getTime();
                 let roundStartTime = Date.parse(doc.start_time);
                 let time = (new Date()).getTime() - roundStartTime;
                 saveAction(roundID, time, data.player_name, data.edges, data.logs, data.is_hint);
@@ -319,8 +275,8 @@ function update(data) {
 
                     let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, edges_saved);
 
-                    for (let e of data.edges) {
-                        let key = e.x + e.tag + e.y;
+                    for (let key in data.edges) {
+                        let e = data.edges[key];
                         let supporters = {};
                         let opposers = {};
                         let weight = 0;
@@ -332,9 +288,9 @@ function update(data) {
                         edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
                         updateNodesAndEdges(nodesAndHints, edges_saved[key]);
                     }
-                    if(constants.duration > 0){
-                        generateHints(nodesAndHints);
-                    }
+                    
+                    generateHints(nodesAndHints);
+
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
                     RoundModel.update({ round_id: data.round_id }, 
@@ -348,12 +304,12 @@ function update(data) {
                 } else {
                     // get and update the object, then update db once
                     let edges_saved = doc.edges_saved;
-                    for (let e of data.edges) {
-                        let temp = e.x + e.tag + e.y;
+                    for (let key in data.edges) {
+                        let e = data.edges[key];
                         // if the edge exists, update the size
-                        if (edges_saved.hasOwnProperty(temp)) {
-                            let supporters = edges_saved[temp].supporters;
-                            let opposers = edges_saved[temp].opposers;
+                        if (edges_saved.hasOwnProperty(key)) {
+                            let supporters = edges_saved[key].supporters;
+                            let opposers = edges_saved[key].opposers;
                             if (e.size > 0) {
                                 if (supporters.hasOwnProperty(data.player_name)) {
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
@@ -375,7 +331,6 @@ function update(data) {
                             }
                         } else {
                             // if the edge not exists, create the edge
-                            let key = e.x + e.tag + e.y;
                             let supporters = {};
                             let opposers = {};
                             let weight = 0;
@@ -418,10 +373,9 @@ function update(data) {
                     for (let e in edges_saved) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[e]);
                     }
-                    if(constants.duration > 0){
-                        generateHints(nodesAndHints);
-                    }
-                    checkUnsureHints(nodesAndHints);
+
+                    generateHints(nodesAndHints);
+                    //checkUnsureHints(nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
@@ -431,13 +385,6 @@ function update(data) {
                             console.log(err);
                         }
                     });
-                    /*
-                    let updateEndTime = (new Date()).getTime();
-                    let durationTime = updateEndTime - updateStartTime;
-                    averageTime = (averageTime * updateTimes + durationTime) / (updateTimes + 1);
-                    updateTimes += 1;
-                    console.log(durationTime, averageTime);
-                    */
                 }
             }
         }
@@ -620,10 +567,8 @@ module.exports = function (io) {
         socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
             if(roundNodesAndHints[data.round_id]){
-                if(constants.duration > 0){
-                    generateHints(roundNodesAndHints[data.round_id]);
-                    checkUnsureHints(roundNodesAndHints[data.round_id]);
-                }
+                generateHints(roundNodesAndHints[data.round_id]);
+                //checkUnsureHints(roundNodesAndHints[data.round_id]);
                 socket.emit('proactiveHints', { 
                     sureHints: roundNodesAndHints[data.round_id].hints,
                     unsureHints: roundNodesAndHints[data.round_id].unsureHints
@@ -638,10 +583,8 @@ module.exports = function (io) {
             var hints = [];
             var unsureHints = {};
             if(roundNodesAndHints[data.round_id]){
-                if(constants.duration > 0){
-                    generateHints(roundNodesAndHints[data.round_id]);
-                    checkUnsureHints(roundNodesAndHints[data.round_id]);
-                }
+                generateHints(roundNodesAndHints[data.round_id]);
+                //checkUnsureHints(roundNodesAndHints[data.round_id]);
                 hints = roundNodesAndHints[data.round_id].hints;
                 unsureHints = roundNodesAndHints[data.round_id].unsureHints;
             }
