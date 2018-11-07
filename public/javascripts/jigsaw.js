@@ -2,7 +2,7 @@ var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
-var uploadDelayTime = 5;
+var uploadDelayTime = 10;
 
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
@@ -371,6 +371,7 @@ function JigsawPuzzle(config) {
     this.hintsLog = {};
 
     this.subGraphDataQueue = new Array();
+    this.subGraphDataQueue_FIFO = true;
 
     $.amaran({
         'title': 'startRound',
@@ -1707,15 +1708,33 @@ function JigsawPuzzle(config) {
         if(instance.subGraphDataQueue.length == 0){
             return;
         }
-        var newestGraphData = instance.subGraphDataQueue[instance.subGraphDataQueue.length - 1];
-        for (var j = instance.subGraphDataQueue.length - 2; j >= 0; j--) {
-            var olderGraphData = instance.subGraphDataQueue[j];
-            for (var key in newestGraphData.edges){
-                if (key in olderGraphData.edges){
-                    delete olderGraphData.edges[key];
+
+        if(instance.subGraphDataQueue_FIFO){
+            for (var i = 0; i < instance.subGraphDataQueue.length - 1; i++) {
+                var olderGraphData = instance.subGraphDataQueue[i];
+                for (var j = i + 1; j < instance.subGraphDataQueue.length; j++) {
+                    var newerGraphData = instance.subGraphDataQueue[j];
+                    for (var key in olderGraphData.edges){
+                        if (key in newerGraphData.edges){
+                            olderGraphData.edges[key] = newerGraphData.edges[key];
+                            delete newerGraphData.edges[key];
+                        }
+                    }
                 }
             }
         }
+        else{
+            var newestGraphData = instance.subGraphDataQueue[instance.subGraphDataQueue.length - 1];
+            for (var i = 0; i < instance.subGraphDataQueue.length - 1; i++) {
+                var olderGraphData = instance.subGraphDataQueue[i];
+                for (var key in newestGraphData.edges){
+                    if (key in olderGraphData.edges){
+                        delete olderGraphData.edges[key];
+                    }
+                }
+            }
+        }
+        
         while (instance.subGraphDataQueue.length > 0) {
             var param = instance.subGraphDataQueue[0];
             if(instance.gameFinished || time - param.time >= uploadDelayTime){

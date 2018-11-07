@@ -104,23 +104,10 @@ function getNodesAndHints(roundID, tilesNum, edges_saved){
 }
 
 function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime, hints){
-    var createTime = undefined;
-    if(nodeLink.indexes[y]){
-        if(confidence != nodeLink.indexes[y].confidence){
-            createTime = nowTime;
-        }
-        else{
-            createTime = nodeLink.indexes[y].createTime;
-        }
-    }
-    else{
-        createTime = nowTime;
-    }
     nodeLink.indexes[y] = {
         "confidence": confidence,
         "weight": weight,
         "edge": edge,
-        "createTime": createTime
     };
 }
 
@@ -608,8 +595,6 @@ module.exports = function (io) {
         socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
             if(roundNodesAndHints[data.round_id]){
-                generateHints(roundNodesAndHints[data.round_id]);
-                //checkUnsureHints(roundNodesAndHints[data.round_id]);
                 socket.emit('proactiveHints', { 
                     sureHints: roundNodesAndHints[data.round_id].hints,
                     unsureHints: roundNodesAndHints[data.round_id].unsureHints
@@ -624,8 +609,6 @@ module.exports = function (io) {
             var hints = [];
             var unsureHints = {};
             if(roundNodesAndHints[data.round_id]){
-                generateHints(roundNodesAndHints[data.round_id]);
-                //checkUnsureHints(roundNodesAndHints[data.round_id]);
                 hints = roundNodesAndHints[data.round_id].hints;
                 unsureHints = roundNodesAndHints[data.round_id].unsureHints;
             }
