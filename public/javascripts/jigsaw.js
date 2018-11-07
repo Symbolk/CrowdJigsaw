@@ -274,7 +274,12 @@ function JigsawPuzzle(config) {
             $('#submit-button').removeAttr('disabled');
             $('#cancel-button').removeAttr('disabled');
             if(data.action == "quit"){
-                window.location = '/award/' + roundID;
+                if(players_num == 1){
+                    window.location = '/home';
+                }
+                else{
+                    window.location = '/award/' + roundID;
+                }
             }
         }
     });
