@@ -427,8 +427,6 @@ function JigsawPuzzle(config) {
         }
         computeGraphData();
 
-        instance.focusToCenter();
-
         if (!instance.saveTilePositions) {
             saveGame();
         }
@@ -440,6 +438,9 @@ function JigsawPuzzle(config) {
                 }
             }
         }
+
+        normalizeTiles();
+        instance.focusToCenter();
 
         instance.gameStarted = true;
 
@@ -601,25 +602,7 @@ function JigsawPuzzle(config) {
     }
 
     this.focusToCenter = function () {
-        var leftUpPoint = new Point(10000, 10000);
-        var rightBottomPoint = new Point(-10000, -10000);
-        for (var i = 0; i < instance.tiles.length; i++) {
-            var position = instance.tiles[i].position;
-            if (position.x < leftUpPoint.x) {
-                leftUpPoint.x = position.x;
-            }
-            if (position.y < leftUpPoint.y) {
-                leftUpPoint.y = position.y;
-            }
-            if (position.x > rightBottomPoint.x) {
-                rightBottomPoint.x = position.x;
-            }
-            if (position.y > rightBottomPoint.y) {
-                rightBottomPoint.y = position.y;
-            }
-        }
-        var centerPoint = (leftUpPoint + rightBottomPoint) / 2;
-        view.scrollBy(centerPoint - view.center / 1.25);
+        view.scrollBy(instance.centerPoint - view.center / 1.25);
     }
 
     this.calcHintedTile = function () {
@@ -1831,9 +1814,23 @@ function JigsawPuzzle(config) {
     }
 
     function normalizeTiles(forAskHelp) {
+        var leftUpPoint = new Point(10000, 10000);
+        var rightBottomPoint = new Point(-10000, -10000);
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var position = tile.position;
+            if (position.x < leftUpPoint.x) {
+                leftUpPoint.x = position.x;
+            }
+            if (position.y < leftUpPoint.y) {
+                leftUpPoint.y = position.y;
+            }
+            if (position.x > rightBottomPoint.x) {
+                rightBottomPoint.x = position.x;
+            }
+            if (position.y > rightBottomPoint.y) {
+                rightBottomPoint.y = position.y;
+            }
 
             var cellPosition = new Point(
                 Math.round(position.x / instance.tileWidth),//returns int closest to arg
@@ -1851,6 +1848,7 @@ function JigsawPuzzle(config) {
             tile.wantToMoveAway = -1;
             tile.positionMoved = false;
         }
+        instance.centerPoint = (leftUpPoint + rightBottomPoint) / 2;
     }
 
     function checkHints(selectedTileIndex, dir, hintIndex) {
@@ -2186,7 +2184,6 @@ function JigsawPuzzle(config) {
                 }
                 hasConflict = checkConflict(groupTiles, correctCellposition);
             }
-
 
             if (!hasConflict) {
                 checkHints(selectedTileIndex, j, correctTileIndex);

@@ -517,7 +517,7 @@ function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerCo
             if(i < (tilesPerColumn - 1) * tilesPerRow && (i + tilesPerRow) == hint[2]){ //bottom
                 correctHints += 1;
             }
-            if(i % tilesPerRow > 0 && (i - 1) == hint[2]){ //left
+            if(i % tilesPerRow > 0 && (i - 1) == hint[3]){ //left
                 correctHints += 1;
             }
         }
