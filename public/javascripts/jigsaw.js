@@ -2,6 +2,7 @@ var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
+var uploadDelayTime = 10;
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
 
@@ -363,6 +364,8 @@ function JigsawPuzzle(config) {
 
     this.hintsLog = {};
 
+    this.subGraphDataQueue = new Array();
+
     $.amaran({
         'title': 'startRound',
         'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
@@ -416,7 +419,7 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             computeSubGraph(tile);
         }
-        uploadGraphData();
+        computeGraphData();
 
         instance.focusToCenter();
 
@@ -654,7 +657,7 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             computeSubGraph(tile);
         }
-        uploadGraphData();
+        computeGraphData();
 
         $('#finish_dialog').modal({
             keyboard: false,
@@ -1348,7 +1351,7 @@ function JigsawPuzzle(config) {
             }
         }
 
-        uploadGraphData();
+        computeGraphData();
 
         if (tilesMoved) {
             instance.steps += 1;
@@ -1462,7 +1465,7 @@ function JigsawPuzzle(config) {
                 saveGame();
             }
 
-            uploadHintedSubGraph();
+            computeHintedSubGraph();
             normalizeTiles();
 
             $("#show_hints_dialog").modal().hide();
@@ -1531,7 +1534,7 @@ function JigsawPuzzle(config) {
                 }
             }
 
-            uploadGraphData();
+            computeGraphData();
 
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps += 1;
@@ -1647,14 +1650,17 @@ function JigsawPuzzle(config) {
         return true;
     }
 
-    function uploadGraphData() {
+    function computeGraphData() {
         instance.subGraphData = instance.removeLinksData.concat(instance.subGraphData);
         //console.log(instance.subGraphData);
         instance.getHintsArray = new Array();
+        var edges = {};
         for (var i = 0; i < instance.subGraphData.length; i++) {
             var linksData = instance.subGraphData[i];
             var xTile = instance.tiles[linksData.x];
             var yTile = instance.tiles[linksData.y];
+            var key = linksData.x + linksData.tag + linksData.y;
+            edges[key] = linksData;
             if (linksData.size < 0) {
                 xTile.subGraphSize = 0;
                 yTile.subGraphSize = 0;
@@ -1690,19 +1696,61 @@ function JigsawPuzzle(config) {
             var param = {
                 player_name: player_name,
                 round_id: roundID,
-                edges: instance.subGraphData,
+                time: time,
+                edges: edges,
                 is_hint: instance.hintsShowing && !instance.gameFinished,
                 //logs: instance.hintsLog
             };
-            //console.log(param);
-            if(players_num > 1){
-                socket.emit("upload", param);
-            }
+            instance.subGraphDataQueue.push(param);
+            setTimeout(uploadGraphData, uploadDelayTime * 1000);
         }
+        uploadGraphData();
 
         instance.dfsGraphLinksMap = new Array();
         instance.subGraphData = new Array();
         instance.removeLinksData = new Array();
+    }
+
+    function uploadGraphData(){
+        if(players_num == 1){
+            instance.subGraphDataQueue.length = new Array();
+        }
+        if(instance.subGraphDataQueue.length == 0){
+            return;
+        }
+        for (var i = instance.subGraphDataQueue.length - 1; i >= 1; i--) {
+            var newerGraphData = instance.subGraphDataQueue[i];
+            for (var j = i - 1; j >= 0; j--) {
+                var olderGraphData = instance.subGraphDataQueue[j];
+                for (var key in newerGraphData.edges){
+                    if (key in olderGraphData.edges){
+                        var newerEdge = newerGraphData.edges[key];
+                        var olderEdge = olderGraphData.edges[key];
+                        if(newerEdge.size < 0 && olderEdge.size > 0){
+                            delete newerGraphData.edges[key];
+                            delete olderGraphData.edges[key];
+                        }
+                        if(newerEdge.size > 0 && olderEdge.size < 0){
+                            delete olderGraphData.edges[key];
+                        }
+                    }
+                }
+            }
+        }
+        while (instance.subGraphDataQueue.length > 0) {
+            var param = instance.subGraphDataQueue[0];
+            if(time - param.time >= uploadDelayTime){
+                edges_count = Object.getOwnPropertyNames(param.edges).length;
+                if(edges_count > 0){
+                    console.log(param);
+                    socket.emit("upload", param);
+                }
+                instance.subGraphDataQueue.shift();
+            }
+            else{
+                break;
+            }
+        }
     }
 
     function hideAllColorBorder() {
@@ -1821,7 +1869,7 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function uploadHintedSubGraph() {
+    function computeHintedSubGraph() {
         for (var i in instance.hintedTilesMap) {
             var tile = instance.tiles[i];
             refreshAroundTiles(tile, true);
@@ -1834,7 +1882,7 @@ function JigsawPuzzle(config) {
             }
         }
 
-        uploadGraphData();
+        computeGraphData();
         instance.hintedTilesMap = new Array();
         instance.hintsLog = {};
     }
@@ -2011,7 +2059,7 @@ function JigsawPuzzle(config) {
                 saveGame();
             }
 
-            uploadHintedSubGraph();
+            computeHintedSubGraph();
             normalizeTiles();
 
             // judge the hint tiles

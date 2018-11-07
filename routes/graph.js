@@ -136,9 +136,6 @@ function generateHints(nodesAndHints){
             hints[x][d] = -1;
             nodes[x][dirName[d]].maxConfidence = 0;
             for(var y in nodes[x][dirName[d]].indexes){
-                if(nowTime - nodes[x][dirName[d]].indexes[y].createTime <= constants.duration){
-                    continue;
-                }
                 var confidence = nodes[x][dirName[d]].indexes[y].confidence;
                 if(confidence > nodes[x][dirName[d]].maxConfidence){
                     nodes[x][dirName[d]].maxConfidence = confidence;
@@ -227,9 +224,6 @@ function checkUnsureHints(nodesAndHints){
             var unsure = false;
             if(hints[x][d] >= 0){
                 for(var y in nodes[x][dirName[d]].indexes){
-                    if(nowTime - nodes[x][dirName[d]].indexes[y].createTime <= constants.duration){
-                        continue;
-                    }
                     var confidence = nodes[x][dirName[d]].indexes[y].confidence;
                     if (hints[x][d] != y && confidence >= (nodes[x][dirName[d]].maxConfidence * (1-constants.epsilon))) {
                         unsure = true;
@@ -281,8 +275,8 @@ function update(data) {
 
                     let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, edges_saved);
 
-                    for (let e of data.edges) {
-                        let key = e.x + e.tag + e.y;
+                    for (let key in data.edges) {
+                        let e = data.edges[key];
                         let supporters = {};
                         let opposers = {};
                         let weight = 0;
@@ -310,12 +304,12 @@ function update(data) {
                 } else {
                     // get and update the object, then update db once
                     let edges_saved = doc.edges_saved;
-                    for (let e of data.edges) {
-                        let temp = e.x + e.tag + e.y;
+                    for (let key in data.edges) {
+                        let e = data.edges[key];
                         // if the edge exists, update the size
-                        if (edges_saved.hasOwnProperty(temp)) {
-                            let supporters = edges_saved[temp].supporters;
-                            let opposers = edges_saved[temp].opposers;
+                        if (edges_saved.hasOwnProperty(key)) {
+                            let supporters = edges_saved[key].supporters;
+                            let opposers = edges_saved[key].opposers;
                             if (e.size > 0) {
                                 if (supporters.hasOwnProperty(data.player_name)) {
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
@@ -337,7 +331,6 @@ function update(data) {
                             }
                         } else {
                             // if the edge not exists, create the edge
-                            let key = e.x + e.tag + e.y;
                             let supporters = {};
                             let opposers = {};
                             let weight = 0;

@@ -11,5 +11,4 @@ module.exports = {
     epsilon: 0.2, // the gap beteen weight-positive
     phi: 0.618, // the minimal confidence value to be hinted
     msn: 1, // minimal supporter num to be hinted
-    duration: 0
 };
