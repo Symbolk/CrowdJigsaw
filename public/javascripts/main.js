@@ -1,8 +1,15 @@
 const requrl = window.location.protocol + '//' + window.location.host + '/';
 var socket = io.connect(requrl);
 socket.on('connect_error', function(data){
-    console.log(data + ' - connect_error');
-    location.reload()
+    if($('#refresh_modal').get(0)){
+        $('#refresh_modal').modal({
+            keyboard: false,
+            backdrop: false
+        });
+    }
+    else {
+        location.reload();
+    }
 });
 
 function getUrlParams(key) {

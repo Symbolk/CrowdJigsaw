@@ -106,6 +106,11 @@ function genRawImages(srcFolder, dstFolder, min, max) {
 }
 // genThumbs("./public/images/raw/*.jpg");
 
-genRawImages("./public/images/original/run11.jpg", "./public/images/raw/", 4, 10);
+genRawImages("./public/images/original/gta.jpg", "./public/images/raw/", 4, 10);
+genRawImages("./public/images/original/gta2.jpg", "./public/images/raw/", 4, 10);
+genRawImages("./public/images/original/dos.jpg", "./public/images/raw/", 4, 10);
+genRawImages("./public/images/original/dos2.jpg", "./public/images/raw/", 4, 10);
+genRawImages("./public/images/original/mhw.jpg", "./public/images/raw/", 4, 10);
+genRawImages("./public/images/original/mhw2.jpg", "./public/images/raw/", 4, 10);
 
 // checkSizes("./public/images/raw/*.jpg");

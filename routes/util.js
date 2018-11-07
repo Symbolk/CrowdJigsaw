@@ -216,6 +216,7 @@ var ascending = function (prop) {
     } 
 }
 
+exports.roundInMemory={};
 exports.getNowFormatDate=getNowFormatDate;
 exports.descending=descending;
 exports.ascending=ascending;

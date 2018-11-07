@@ -37,6 +37,7 @@ var RoundSchema = new mongoose.Schema({
         }
     ],
     // crowd results
+    solved_players: { type: Number, default: 0 }, // how many players solves the round
     winner: { type: String },  // who solves the round first with the power of the crowd
     winner_time: { type: String, default: "-1" }, // when the round is solved by crowd(the fastest)(-1:unsolved))
     winner_steps: { type: Number, default: -1 }, // steps the round is solved by crowd(the fastest)(-1:unsolved))

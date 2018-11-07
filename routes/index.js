@@ -12,6 +12,8 @@ var RoundModel = require('../models/round').Round;
 var crypto = require('crypto');
 var util = require('./util.js');
 
+const redis = require('redis').createClient();
+
 const SECRET = "CrowdIntel";
 
 /**
@@ -89,30 +91,50 @@ router.route('/login').all(Logined).get(function (req, res) {
  * Log in as a visitor
  */
 router.route('/visitor').get(function (req, res) {
-    UserModel.find({}, function (err, docs) {
-        if (err) {
-            console.log(err);
-        } else {
-            var index = docs.length;
-            let operation = {
-                userid: index,
-                username: 'Visitor#' + index,
-                password: "",
-                last_online_time: util.getNowFormatDate(),
-                register_time: util.getNowFormatDate()
-            };
-            let user = { username: operation.username };
-            UserModel.create(operation, function (err) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    req.session.user = user
-                    req.session.error = 'Welcome! ' + operation.username;
+    if(req.session.user){
+        console.log(req.session.user.username);
+        let selectStr = { username: req.session.user.username };
+        let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
+        UserModel.findOne(selectStr, fields, function (err, doc) {
+            if (err) {
+                console.log(err);
+                req.session.user = null;
+                req.session.error = null;
+                return res.redirect('/visitor');
+            } else {
+                if (doc) {
                     return res.redirect('/home');
                 }
-            });
-        }
-    });
+            }
+        });
+    }
+    else
+    {
+        UserModel.find({}, function (err, docs) {
+            if (err) {
+                console.log(err);
+            } else {
+                var index = docs.length;
+                let operation = {
+                    userid: index,
+                    username: 'Visitor#' + index,
+                    password: "",
+                    last_online_time: util.getNowFormatDate(),
+                    register_time: util.getNowFormatDate()
+                };
+                let user = { username: operation.username };
+                UserModel.create(operation, function (err) {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        req.session.user = user
+                        req.session.error = 'Welcome! ' + operation.username;
+                        return res.redirect('/home');
+                    }
+                });
+            }
+        });
+    }
 
 });
 
@@ -122,6 +144,11 @@ router.route('/register').all(Logined).get(function (req, res) {
     res.render('register', { title: 'Register' });
 }).post(function (req, res) {
     //从前端获取到的用户填写的数据
+    if(req.body.password.replace(/[ ]/g, "").length == 0){
+        req.session.error = 'Passwords must not be empty!';
+        return res.redirect('/register');
+    }
+
     let passwd_enc = encrypt(req.body.password, SECRET);
     let passwd_sec_enc = encrypt(req.body.passwordSec, SECRET);
 
@@ -146,6 +173,10 @@ router.route('/register').all(Logined).get(function (req, res) {
                     console.log(err);
                 } else {
                     if (!doc) {
+                        if(operation.username.replace(/[ ]/g, "").length == 0){
+                            req.session.error = 'Username must not be empty!';
+                            return res.redirect('/register'); 
+                        }
                         if (newUser.password === newUser.passwordSec) {
                             UserModel.create(operation, function (err) {
                                 if (err) {
@@ -186,12 +217,6 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
     });
 });
 
-// Puzzle
-// router.route('/puzzle').all(LoginFirst).get(function (req, res) {
-//     // let selected_level=req.query.level;
-//     req.session.error = 'Game Started!';
-//     res.render('puzzle', { title: 'Puzzle' });
-// });
 
 // Round
 router.route('/playground').all(LoginFirst).get(function (req, res) {
@@ -213,11 +238,10 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     let condition = {
         round_id: parseInt(roundID)
     };
-    RoundModel.findOne(condition, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            var round = doc;
+    var redis_key = 'round:' + condition.round_id;
+    redis.get(redis_key, (err, data) => {
+        if(data){
+            var round = JSON.parse(data);
             res.render('puzzle',
                 {
                     title: 'Puzzle',
@@ -225,6 +249,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                     players_num: round.players_num,
                     level: round.level,
                     roundID: roundID,
+                    solved_players: round.solved_players,
                     image: round.image,
                     tileWidth: round.tileWidth,
                     startTime: round.start_time,
@@ -236,7 +261,37 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                     imageWidth: round.imageWidth,
                     imageHeight: round.imageHeight,
                     shapeArray: round.shapeArray
-                });
+            });
+        }
+        else {
+            RoundModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    var round = doc;
+                    redis.set(redis_key, JSON.stringify(round), (err, data) => {});
+                    res.render('puzzle',
+                        {
+                            title: 'Puzzle',
+                            player_name: req.session.user.username,
+                            players_num: round.players_num,
+                            level: round.level,
+                            roundID: roundID,
+                            solved_players: round.solved_players,
+                            image: round.image,
+                            tileWidth: round.tileWidth,
+                            startTime: round.start_time,
+                            shape: round.shape,
+                            edge: round.edge,
+                            border: round.border,
+                            tilesPerRow: round.tilesPerRow,
+                            tilesPerColumn: round.tilesPerColumn,
+                            imageWidth: round.imageWidth,
+                            imageHeight: round.imageHeight,
+                            shapeArray: round.shapeArray
+                    });
+                }
+            });
         }
     });
 });
@@ -493,98 +548,44 @@ router.route('/statistics').all(LoginFirst).get(function (req, res) {
 // });
 
 router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
-    let condition = { "records.round_id": req.params.round_id };
-    let fields = { _id: 0, username: 1, avatar: 1, records: 1 };
-    RoundModel.findOne({ round_id: req.params.round_id }, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            var round = doc;
-            var roundContribution = round.contribution;
-            var puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
-            UserModel.find(condition, fields, function (err, docs) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (docs) {
-                        let finished = new Array();
-                        let unfinished = new Array();
-                        for (let d of docs) {
-                            for (let r of d.records) {
-                                if (r.round_id == req.params.round_id && r.start_time != "-1" ) {
-                                    let finishPercent = 0;
-                                    if (r.total_links > 0 && r.correct_links != -1) {
-                                        finishPercent = (r.correct_links/2) / puzzle_links * 100;
-                                    }
-                                    if (r.end_time != "-1") {
-                                        finished.push({
-                                            "playername": d.username,
-                                            "avatar": d.avatar,
-                                            "time": r.time,
-                                            "steps": r.steps,
-                                            "finishPercent": finishPercent.toFixed(3),
-                                        });
-                                    } else {
-                                        unfinished.push({
-                                            "playername": d.username,
-                                            "avatar": d.avatar,
-                                            "time": r.time,
-                                            "steps": r.steps,
-                                            "finishPercent": finishPercent.toFixed(3),
-
-                                        });
-                                    }
-                                }
-                            }
+    var redis_key = 'round:' + req.params.round_id;
+    redis.get(redis_key, function (err, data) {
+        if (data){
+            var round = JSON.parse(data);
+            redis_key = 'round:' + req.params.round_id + ':scoreboard';
+            redis.zrevrange(redis_key, 0, -1, 'WITHSCORES', function (err, scoreboard) {
+                if (scoreboard){
+                    //console.log(scoreboard);
+                    var defeat_num = 0;
+                    var player1 = '';
+                    if(scoreboard.length > 0 && parseFloat(scoreboard[1]) >= 100){
+                        player1 = scoreboard[0];
+                        if(req.session.user.username == player1){
+                            defeat_num = round.players_num - 1;
                         }
-                        // sort the players
-                        finished = finished.sort(util.ascending("time"));
-                        unfinished = unfinished.sort(util.descending("finishPercent"));
-                        var unfinishCount = unfinished.length;
-                        var finishCount = finished.length;
-                        let defeat = new Array();
-                        for(var i=0;i<unfinishCount;i++){
-                            defeat.push({
-                                "playername":unfinished[i].playername,
-                                "defeatnum":unfinishCount-i-1,
-                            })
-                        };
-                        for(var i=0;i<finishCount;i++){
-                            defeat.push({
-                                "playername":finished[i].playername,
-                                "defeatnum":finishCount+unfinishCount-i-1,
-                            })
-                        };
-                        if(finishCount==1)
-                        {
-                            var player1=finished[0].playername;
-                            res.render('award', {
-                                title: 'Award', player1: player1, player2:"???", player3:"???",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
-                            });
-                        }
-                        else if(finishCount==2)
-                        {
-                            var player1=finished[0].playername;
-                            var player2=finished[1].playername;
-                            res.render('award', {
-                                title: 'Award', player1: player1, player2:player2, player3:"???",defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
-                            });
-                        }
-                        else if(finishCount>=3)
-                        {
-                            var player1=finished[0].playername;
-                            var player2=finished[1].playername;
-                            var player3=finished[2].playername;
-                            res.render('award', {
-                                title: 'Award', player1: player1, player2:player2, player3:player3,defeat:defeat, username: req.session.user.username, round_id: req.params.round_id
-                            });
-                        }
-                        else
-                        {
-                            console.log("error!");
-                        }
-
                     }
+                    var player2 = '';
+                    if(scoreboard.length > 2 && parseFloat(scoreboard[3]) >= 100){
+                        player2 = scoreboard[2];
+                        if(req.session.user.username == player2){
+                            defeat_num = round.players_num - 2;
+                        }
+                    }
+                    var player3 = '';
+                    if(scoreboard.length > 4 && parseFloat(scoreboard[5]) >= 100){
+                        player3 = scoreboard[4];
+                        if(req.session.user.username == player3){
+                            defeat_num = round.players_num - 3;
+                        }
+                    }
+                    for(var i = 6; i < scoreboard.length; i += 2){
+                        if(req.session.user.username == scoreboard[i]){
+                            defeat_num = round.players_num - 1 - i / 2;
+                        }
+                    }
+                    res.render('award', {
+                        title: 'Award', player1: player1, player2:player2, player3:player3, defeat_num: defeat_num, username: req.session.user.username, round_id: req.params.round_id
+                    });
                 }
             });
         }
