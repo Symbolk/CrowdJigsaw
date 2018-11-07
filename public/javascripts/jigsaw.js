@@ -2,7 +2,8 @@ var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
-var uploadDelayTime = 10;
+var uploadDelayTime = 5;
+
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
 
@@ -1718,31 +1719,20 @@ function JigsawPuzzle(config) {
         if(instance.subGraphDataQueue.length == 0){
             return;
         }
-        for (var i = instance.subGraphDataQueue.length - 1; i >= 1; i--) {
-            var newerGraphData = instance.subGraphDataQueue[i];
-            for (var j = i - 1; j >= 0; j--) {
-                var olderGraphData = instance.subGraphDataQueue[j];
-                for (var key in newerGraphData.edges){
-                    if (key in olderGraphData.edges){
-                        var newerEdge = newerGraphData.edges[key];
-                        var olderEdge = olderGraphData.edges[key];
-                        if(newerEdge.size < 0 && olderEdge.size > 0){
-                            delete newerGraphData.edges[key];
-                            delete olderGraphData.edges[key];
-                        }
-                        if(newerEdge.size > 0 && olderEdge.size < 0){
-                            delete olderGraphData.edges[key];
-                        }
-                    }
+        var newestGraphData = instance.subGraphDataQueue[instance.subGraphDataQueue.length - 1];
+        for (var j = instance.subGraphDataQueue.length - 2; j >= 0; j--) {
+            var olderGraphData = instance.subGraphDataQueue[j];
+            for (var key in newestGraphData.edges){
+                if (key in olderGraphData.edges){
+                    delete olderGraphData.edges[key];
                 }
             }
         }
         while (instance.subGraphDataQueue.length > 0) {
             var param = instance.subGraphDataQueue[0];
-            if(time - param.time >= uploadDelayTime){
+            if(instance.gameFinished || time - param.time >= uploadDelayTime){
                 edges_count = Object.getOwnPropertyNames(param.edges).length;
                 if(edges_count > 0){
-                    console.log(param);
                     socket.emit("upload", param);
                 }
                 instance.subGraphDataQueue.shift();
