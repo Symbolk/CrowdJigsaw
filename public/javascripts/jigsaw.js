@@ -2104,6 +2104,10 @@ function JigsawPuzzle(config) {
 
         var selectedTile = instance.tiles[selectedTileIndex];
 
+        if(selectedTile.nodesCount > tilesPerRow * tilesPerColumn / 2){
+            return false;
+        }
+
         var groupTiles = new Array();
 
         DFSTiles(selectedTile, groupTiles, new Point(0, 0));
@@ -2639,7 +2643,7 @@ function JigsawPuzzle(config) {
     });
 
     $('#quit').click(function (event) {
-        if(instance.forceLeaving){
+        if(puzzle.forceLeaving){
             return;
         }
         $('#quitLabel').text('Are You Sure to Quit?');
@@ -2732,10 +2736,12 @@ $(document).ready(function(e) {
         $(window).on('popstate', function () {
             window.history.pushState('forward', null, '#');
             window.history.forward(1);
-            $('#quitLabel').text('Are You Sure to Quit?');
-            $('#ensure_quit_dialog').modal({
-                keyboard: true
-            });
+            if(!puzzle.forceLeaving){
+                $('#quitLabel').text('Are You Sure to Quit?');
+                $('#ensure_quit_dialog').modal({
+                    keyboard: true
+                });
+            }
         });
     }
  
