@@ -373,6 +373,8 @@ function JigsawPuzzle(config) {
     this.subGraphDataQueue = new Array();
     this.subGraphDataQueue_FIFO = true;
 
+    this.conflictGroupHasBeenMoveAway = false;
+
     $.amaran({
         'title': 'startRound',
         'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
@@ -1992,7 +1994,7 @@ function JigsawPuzzle(config) {
 
     function showStrongAndWeakHints(sureHints, strongHintsNeededTiles){
         var shouldSave = false;
-
+        instance.conflictGroupHasBeenMoveAway = false;
         var bidirectionLinks = countBidirectionLinks(sureHints);
         var weakHintsNeededTiles = new Array();
         while(strongHintsNeededTiles.length > 0){
@@ -2089,6 +2091,78 @@ function JigsawPuzzle(config) {
             instance.hintsShowing = false;
         }
     });
+
+    function moveSelectedTilesAway(selectedTileIndex){
+        if(instance.conflictGroupHasBeenMoveAway){
+            return false;
+        }
+        instance.conflictGroupHasBeenMoveAway = true;
+        
+        var selectedTile = instance.tiles[selectedTileIndex];
+
+        var groupTiles = new Array();
+
+        DFSTiles(selectedTile, groupTiles, new Point(0, 0));
+
+        var leftUpPoint = new Point(10000, 10000);
+        var rightBottomPoint = new Point(-10000, -10000);
+        for (var i = 0; i < groupTiles.length; i++) {
+            var tile = groupTiles[i];
+            var position = tile.position;
+            if (position.x < leftUpPoint.x) {
+                leftUpPoint.x = position.x;
+            }
+            if (position.y < leftUpPoint.y) {
+                leftUpPoint.y = position.y;
+            }
+            if (position.x > rightBottomPoint.x) {
+                rightBottomPoint.x = position.x;
+            }
+            if (position.y > rightBottomPoint.y) {
+                rightBottomPoint.y = position.y;
+            }
+        }
+        var groupCenterPoint = (leftUpPoint + rightBottomPoint)/2;
+
+        var moveDir = groupCenterPoint - instance.centerPoint;
+        if(moveDir.x != 0){
+            moveDir.x = moveDir.x > 0 ? 1: -1;
+        }
+        if(moveDir.y != 0){
+            moveDir.y = moveDir.y > 0 ? 1: -1;
+        }
+
+        var centerCellPosition = new Point(
+            Math.round(groupCenterPoint.x / instance.tileWidth),//returns int closest to arg
+            Math.round(groupCenterPoint.y / instance.tileWidth));
+        var destination = centerCellPosition + moveDir * (tilesPerRow / 2);
+
+        for (var i = 0; i < groupTiles.length; i++) {
+            groupTiles[i].picking = true;
+        }
+
+        var hasConflict = checkConflict(groupTiles, destination);
+        var shouldSave = false;
+        if (!hasConflict) {
+            for (var i = 0; i < groupTiles.length; i++) {
+                var tile = groupTiles[i];
+                placeTile(tile, destination + tile.relativePosition);
+                shouldSave = shouldSave || tile.positionMoved;
+                tile.relativePosition = new Point(0, 0);
+                tile.picking = false;
+            }
+            if(shouldSave){
+                console.log("success move away", moveDir);
+                focusOnTile(selectedTile);
+            }
+            return shouldSave;
+        }
+
+        for (var i = 0; i < groupTiles.length; i++) {
+            groupTiles[i].picking = false;
+        }
+        return shouldSave;
+    }
 
     function showHints(selectedTileIndex, hintTiles, direction) {
         var tile = instance.tiles[selectedTileIndex];
@@ -2236,6 +2310,8 @@ function JigsawPuzzle(config) {
                 hintTilesCount += groupTiles.length;
             }
             else{
+                var moveAwayShouldSave = moveSelectedTilesAway(selectedTileIndex);
+                shouldSave = shouldSave || moveAwayShouldSave;
                 instance.hintsLog.log.push({
                     tile: selectedTileIndex,
                     hint_tile: correctTileIndex,
@@ -2249,7 +2325,7 @@ function JigsawPuzzle(config) {
             tile.alreadyHinted = true;
         }
 
-        return shouldSave;
+        return moveAwayShouldSave;
     }
 
     function getTileAtCellPosition(cellPosition) {
