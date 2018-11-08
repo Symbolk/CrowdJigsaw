@@ -655,21 +655,21 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                     var defeat_num = 0;
                     var player1 = '';
                     if (scoreboard.length > 0) {
-                        player1 = scoreboard[0];
+                        player1 = scoreboard[0] + ':' + scoreboard[1];
                         if (req.session.user.username == player1) {
                             defeat_num = round.players_num - 1;
                         }
                     }
                     var player2 = '';
                     if (scoreboard.length > 2) {
-                        player2 = scoreboard[2];
+                        player2 = scoreboard[2] + ':' + scoreboard[3];
                         if (req.session.user.username == player2) {
                             defeat_num = round.players_num - 2;
                         }
                     }
                     var player3 = '';
                     if (scoreboard.length > 4) {
-                        player3 = scoreboard[4];
+                        player3 = scoreboard[4] + ':' + scoreboard[5];
                         if (req.session.user.username == player3) {
                             defeat_num = round.players_num - 3;
                         }

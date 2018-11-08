@@ -104,23 +104,10 @@ function getNodesAndHints(roundID, tilesNum, edges_saved){
 }
 
 function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime, hints){
-    var createTime = undefined;
-    if(nodeLink.indexes[y]){
-        if(confidence != nodeLink.indexes[y].confidence){
-            createTime = nowTime;
-        }
-        else{
-            createTime = nodeLink.indexes[y].createTime;
-        }
-    }
-    else{
-        createTime = nowTime;
-    }
     nodeLink.indexes[y] = {
         "confidence": confidence,
         "weight": weight,
         "edge": edge,
-        "createTime": createTime
     };
 }
 
@@ -608,8 +595,6 @@ module.exports = function (io) {
         socket.on('fetchHints', function (data) {
             // console.log(data.player_name + " is asking for help...");
             if(roundNodesAndHints[data.round_id]){
-                generateHints(roundNodesAndHints[data.round_id]);
-                //checkUnsureHints(roundNodesAndHints[data.round_id]);
                 socket.emit('proactiveHints', { 
                     sureHints: roundNodesAndHints[data.round_id].hints,
                     unsureHints: roundNodesAndHints[data.round_id].unsureHints
@@ -624,8 +609,6 @@ module.exports = function (io) {
             var hints = [];
             var unsureHints = {};
             if(roundNodesAndHints[data.round_id]){
-                generateHints(roundNodesAndHints[data.round_id]);
-                //checkUnsureHints(roundNodesAndHints[data.round_id]);
                 hints = roundNodesAndHints[data.round_id].hints;
                 unsureHints = roundNodesAndHints[data.round_id].unsureHints;
             }
@@ -638,210 +621,6 @@ module.exports = function (io) {
             });
         });
     });
-
-    /**
-     * Get hints from the current graph data
-     * @return If sure: an array of recommended index, in 4 directions of the tile
-     * @return If unsure: the latest tile that requires more information(highlight in the client to collect votes)
-     */
-    var strategy = constants.strategy;
-    var unsure_gap = constants.unsure_gap;
-    router.route('/getHints/:round_id/:selected').all(LoginFirst).get(function (req, res) {
-        // router.route('/getHints/:round_id/:selected').get(function (req, res) { // 4 Test
-        // query the 4 dirs of the selected tile
-        let condition = {
-            round_id: req.params.round_id,
-            index: req.params.selected
-        };
-        // find the most-supported one of every dir
-        var hintIndexes = new Array();
-
-        if (strategy == "conservative") {
-            // Stratey1: conservative
-            // get the players_num of the round
-            RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, players_num: 1 }, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (doc) {
-                        let players_num = doc.players_num;
-                        NodeModel.findOne(condition, function (err, doc) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                if (!doc) {
-                                    res.send({ msg: "No hints." });
-                                } else {
-                                    for (let d = 0; d < 4; d++) {
-                                        let alternatives = doc[dirs[d]];
-                                        if (alternatives.length == 0) {
-                                            hintIndexes.push(-1);
-                                        } else {
-                                            let most_sup = alternatives[0];
-                                            for (let a of alternatives) {
-                                                if (a.sup_num > most_sup.sup_num) {
-                                                    most_sup = a;
-                                                }
-                                            }
-                                            // to guarantee zero sup nodes won't be hinted
-                                            // 1/5 of the crowd have supported
-                                            if (most_sup.sup_num > (players_num / 5)) {
-                                                hintIndexes.push(most_sup.index);
-                                            } else {
-                                                hintIndexes.push(-1);
-                                            }
-                                        }
-                                    }
-                                    res.send(JSON.stringify(hintIndexes));
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-        } else if (strategy == "aggressive") {
-            // Strategy 2: aggressive
-            NodeModel.findOne(condition, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (!doc) {
-                        res.send({ msg: "No hints." });
-                    } else {
-                        for (let d = 0; d < 4; d++) {
-                            let alternatives = doc[dirs[d]];
-                            if (alternatives.length == 0) {
-                                hintIndexes.push(-1);
-                            } else {
-                                let most_sup = alternatives[0];
-                                for (let a of alternatives) {
-                                    if (a.sup_num > most_sup.sup_num) {
-                                        most_sup = a;
-                                    }
-                                }
-                                if (most_sup.sup_num > 0) {
-                                    hintIndexes.push(most_sup.index);
-                                } else {
-                                    hintIndexes.push(-1);
-                                }
-                            }
-                        }
-                        res.send(JSON.stringify(hintIndexes));
-                    }
-                }
-            });
-        } else if (strategy == "considerate") {
-            // Strategy 3: considerate
-            var unsureLinks = new Array([], [], [], []);
-            NodeModel.findOne(condition, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (!doc) {
-                        res.send({ msg: "No hints." });
-                    } else {
-                        for (let d = 0; d < 4; d++) {
-                            let alternatives = doc[dirs[d]];
-                            if (alternatives.length == 0) {
-                                hintIndexes.push(-1);
-                            } else {
-                                let best = alternatives[0];
-                                let best_score = best.sup_num - best.opp_num;
-                                for (let a of alternatives) {
-                                    let score = a.sup_num - a.opp_num;
-                                    if (score > 0 && score > best_score) {
-                                        best = a;
-                                        best_score = score;
-                                    }
-                                }
-                                for (let a of alternatives) {
-                                    let score = a.sup_num - a.opp_num;
-                                    if (score > 0) {
-                                        if (score == best_score || score == best_score - unsure_gap) {
-                                            unsureLinks[d].push(a.index);
-                                        }
-                                    }
-                                }
-                                // if only one best and no best-1
-                                if (unsureLinks[d].length == 1) {
-                                    hintIndexes.push(unsureLinks[d][0]);
-                                    unsureLinks[d] = new Array();
-                                } else {
-                                    // -2 means multiple choices available
-                                    hintIndexes.push(-2);
-                                }
-                            }
-                        }
-                        res.send({
-                            "sure": JSON.stringify(hintIndexes),
-                            "unsure": JSON.stringify(unsureLinks)
-                        });
-                    }
-                }
-            });
-        } else if (strategy == "contribution") {
-            // Strategy 4: Contribution as confidence
-            // get the players's contribution in this moment
-            RoundModel.findOne({ round_id: req.params.round_id }, { _id: 0, players: 1 }, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (doc && doc.players.length > 0) {
-                        // doc.players.$.contribution
-                        let players = doc.players;
-                        NodeModel.findOne(condition, function (err, doc) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                if (!doc) {
-                                    res.send({ msg: "No hints." });
-                                } else {
-                                    for (let d = 0; d < 4; d++) {
-                                        let alternatives = doc[dirs[d]];
-                                        if (alternatives.length == 0) {
-                                            hintIndexes.push(-1);
-                                        } else if (alternatives.length == 1) {
-                                            hintIndexes.push(alternatives[0].index);
-                                        } else {
-                                            // use the first one as the temporary hint
-                                            let best = alternatives[0];
-                                            let best_confidence = 0;
-
-                                            // compare with others
-                                            for (let alt of alternatives) {
-                                                let alt_confidence = 0;
-                                                // compute the confidence and keep the highest one                                              
-                                                for (let supporter of alt.supporters) {
-                                                    for (let player of players) {
-                                                        if (supporter.player_name == player.player_name) {
-                                                            alt_confidence += player.contribution;
-                                                        }
-                                                    }
-                                                }
-                                                for (let opposer of alt.opposers) {
-                                                    for (let player of players) {
-                                                        if (opposer.player_name == player.player_name) {
-                                                            alt_confidence -= player.contribution;
-                                                        }
-                                                    }
-                                                }
-                                                if (alt_confidence > best_confidence) {
-                                                    best = alt;
-                                                }
-                                            }
-                                            hintIndexes.push(best.index);
-                                        }
-                                    }
-                                    res.send(JSON.stringify(hintIndexes));
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-        }
-    });
-
 
     function LoginFirst(req, res, next) {
         if (!req.session.user) {
