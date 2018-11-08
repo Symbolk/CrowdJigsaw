@@ -228,6 +228,9 @@ module.exports = function (io) {
                         console.log(err);
                     } else {
                         if (doc) {
+                            doc.solved_players = 1;
+                            var redis_key = 'round:' + data.round_id;
+                            redis.set(redis_key, JSON.stringify(doc));
                             if (doc.solved_players == 0) {
                                 // only remember the first winner of the round
                                 RoundModel.update({
