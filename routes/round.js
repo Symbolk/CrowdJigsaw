@@ -228,6 +228,9 @@ module.exports = function (io) {
                         console.log(err);
                     } else {
                         if (doc) {
+                            doc.solved_players = 1;
+                            var redis_key = 'round:' + data.round_id;
+                            redis.set(redis_key, JSON.stringify(doc));
                             if (doc.solved_players == 0) {
                                 // only remember the first winner of the round
                                 RoundModel.update({
@@ -235,6 +238,11 @@ module.exports = function (io) {
                                 }, operation, function (err) {
                                     if (err) {
                                         console.log(err);
+                                    }
+                                    else{
+                                        socket.broadcast.emit('forceLeave', {
+                                            round_id: data.round_id
+                                        });
                                     }
                                 });
                             } else {
@@ -247,11 +255,9 @@ module.exports = function (io) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        if (solved_players >= 2) {
-                                            socket.broadcast.emit('forceLeave', {
-                                                round_id: data.round_id
-                                            });
-                                        }
+                                        socket.broadcast.emit('forceLeave', {
+                                            round_id: data.round_id
+                                        });
                                     }
                                 });
                             }

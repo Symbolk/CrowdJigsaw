@@ -225,7 +225,7 @@ function getOriginImage(config) {
 }
 
 function JigsawPuzzle(config) {
-
+    var instance = this; // the current object(which calls the function)
     socket.on('someoneSolved', function (data) {
         if (data.round_id == roundID) {
             $.amaran({
@@ -241,8 +241,10 @@ function JigsawPuzzle(config) {
         }
     });
 
-    this.forceLeace = function(text)
+    this.forceLeaving = false;
+    this.forceLeave = function(text)
     {
+        instance.forceLeaving = true;
         $('#cancel-button').attr('disabled',"true");
 
         $('#quitLabel').text(text);
@@ -254,7 +256,7 @@ function JigsawPuzzle(config) {
     ////
     socket.on('forceLeave', function (data) {
         if (data.round_id == roundID) {
-            instance.forceLeace('Three Players Have Finished the Puzzle. Please Quit.');
+            instance.forceLeave('Someone Have Finished the Puzzle. Please Quit.');
         }
     });
 
@@ -282,8 +284,6 @@ function JigsawPuzzle(config) {
             }
         }
     });
-
-    var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
     this.level = config.level;
 
@@ -650,10 +650,12 @@ function JigsawPuzzle(config) {
         }
         computeGraphData();
 
-        $('#finish_dialog').modal({
-            keyboard: false,
-            backdrop: false
-        });
+        if(!instance.forceLeaving){
+            $('#finish_dialog').modal({
+                keyboard: false,
+                backdrop: false
+            });
+        }
 
         /**          
          * Once one person solves the puzzle, the round is over          
@@ -1400,6 +1402,9 @@ function JigsawPuzzle(config) {
         if(players_num == 1){
             return;
         }
+        if (instance.gameFinished || instance.forceLeaving) {
+            return;
+        }
 
         console.log("Asking for help...");
         clearTimeout(instance.askHelpTimeout);
@@ -2099,6 +2104,10 @@ function JigsawPuzzle(config) {
 
         var selectedTile = instance.tiles[selectedTileIndex];
 
+        if(selectedTile.nodesCount > tilesPerRow * tilesPerColumn / 2){
+            return false;
+        }
+
         var groupTiles = new Array();
 
         DFSTiles(selectedTile, groupTiles, new Point(0, 0));
@@ -2634,6 +2643,9 @@ function JigsawPuzzle(config) {
     });
 
     $('#quit').click(function (event) {
+        if(puzzle.forceLeaving){
+            return;
+        }
         $('#quitLabel').text('Are You Sure to Quit?');
         $('#ensure_quit_dialog').modal({
             keyboard: true
@@ -2713,8 +2725,8 @@ function quitRound(roundID) {
     }
 }
 
-if(solved_players >= 3){
-    puzzle.forceLeace('Three Players Have Finished the Puzzle. Please Quit.');
+if(solved_players >= 1){
+    puzzle.forceLeave('Someone Have Finished the Puzzle. Please Quit.');
 }
 
 
@@ -2724,10 +2736,12 @@ $(document).ready(function(e) {
         $(window).on('popstate', function () {
             window.history.pushState('forward', null, '#');
             window.history.forward(1);
-            $('#quitLabel').text('Are You Sure to Quit?');
-            $('#ensure_quit_dialog').modal({
-                keyboard: true
-            });
+            if(!puzzle.forceLeaving){
+                $('#quitLabel').text('Are You Sure to Quit?');
+                $('#ensure_quit_dialog').modal({
+                    keyboard: true
+                });
+            }
         });
     }
  
