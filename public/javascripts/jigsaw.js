@@ -267,7 +267,6 @@ function JigsawPuzzle(config) {
     });
 
     socket.on('roundChanged', function (data) {
-        console.log(data);
         if (data.username == player_name && data.round_id == roundID) {
             $('.rating-body').css('display', 'inline');
             $('#apply-button').removeAttr('disabled');
@@ -2097,7 +2096,7 @@ function JigsawPuzzle(config) {
             return false;
         }
         instance.conflictGroupHasBeenMoveAway = true;
-        
+
         var selectedTile = instance.tiles[selectedTileIndex];
 
         var groupTiles = new Array();
