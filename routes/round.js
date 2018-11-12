@@ -80,27 +80,27 @@ function isCreator(req, res, next) {
 
 function startGA(round_id){
     // run genetic algorithm
-    console.log('start running python script of GA algorithm for round %d.', doc.round_id);
+    console.log('start running python script of GA algorithm for round %d.', round_id);
     var path = require('path');
     var options = {
         mode: 'text',
         pythonPath: 'python3',
         pythonOptions: ['-u'], // get print results in real-time
-        scriptPath: path.resolve(__dirname, '../../gaps/bin'),
-            args: ['--fitness', 'rank-based',
-                '--hide_detail', '--measure_weight',
-                '--online', '--roundid', round_id.toString()
-            ]
-        };
-        PythonShell.run('gaps', options, function (err, results) {
-            if (err){
-                console.log(err);
-            }
-            // results is an array consisting of messages collected during execution
-            // if GA founds a solution, the last element in results is "solved".
-            console.log('results: %j', results);
-            console.log('GA algorithm for round %d ends.', round_id);
-        });
+        scriptPath: '/home/weiyuhan/git/gaps/bin',
+        args: ['--fitness', 'rank-based',
+            '--hide_detail', '--measure_weight',
+            '--online', '--roundid', round_id.toString()
+        ]
+    };
+    PythonShell.run('gaps', options, function (err, results) {
+        if (err){
+            console.log(err);
+        }
+        // results is an array consisting of messages collected during execution
+        // if GA founds a solution, the last element in results is "solved".
+        console.log('results: %j', results);
+        console.log('GA algorithm for round %d ends.', round_id);
+    });
 }
 
 module.exports = function (io) {
@@ -427,7 +427,9 @@ module.exports = function (io) {
                                             title: "StartRound",
                                             msg: 'You just start round' + data.round_id
                                         });
-                                        startGA(data.round_id);
+                                        if(doc.players_num > 1){
+                                            startGA(data.round_id);
+                                        }
                                     }
                                 });
                                 console.log(data.username + ' starts Round' + data.round_id);
