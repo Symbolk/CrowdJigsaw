@@ -34,7 +34,8 @@ function decrypt(str, secret) {
 
 
 // Get Home Page
-router.get('/', function (req, res, next) {
+router.route('/').get(function (req, res, next) {
+	#return res.redirect('/visitor');
     req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
     res.render('index', {
         title: 'Crowd Jigsaw Puzzle'
@@ -43,9 +44,8 @@ router.get('/', function (req, res, next) {
 
 // Login
 router.route('/login').all(Logined).get(function (req, res) {
-    res.render('login', {
-        title: 'Login'
-    });
+	#return res.redirect('/visitor');
+    res.render('login', { title: 'Login' });
 }).post(function (req, res) {
 
     let passwd_enc = encrypt(req.body.password, SECRET);
