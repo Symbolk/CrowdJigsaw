@@ -78,6 +78,31 @@ function isCreator(req, res, next) {
     });
 }
 
+function startGA(round_id){
+    // run genetic algorithm
+    console.log('start running python script of GA algorithm for round %d.', doc.round_id);
+    var path = require('path');
+    var options = {
+        mode: 'text',
+        pythonPath: 'python3',
+        pythonOptions: ['-u'], // get print results in real-time
+        scriptPath: path.resolve(__dirname, '../../gaps/bin'),
+            args: ['--fitness', 'rank-based',
+                '--hide_detail', '--measure_weight',
+                '--online', '--roundid', round_id.toString()
+            ]
+        };
+        PythonShell.run('gaps', options, function (err, results) {
+            if (err){
+                console.log(err);
+            }
+            // results is an array consisting of messages collected during execution
+            // if GA founds a solution, the last element in results is "solved".
+            console.log('results: %j', results);
+            console.log('GA algorithm for round %d ends.', round_id);
+        });
+}
+
 module.exports = function (io) {
 
     io.on('connection', function (socket) {
@@ -236,6 +261,11 @@ module.exports = function (io) {
                                     if (err) {
                                         console.log(err);
                                     }
+                                    else{
+                                        socket.broadcast.emit('forceLeave', {
+                                            round_id: data.round_id
+                                        });
+                                    }
                                 });
                             } else {
                                 var solved_players = doc.solved_players;
@@ -247,14 +277,15 @@ module.exports = function (io) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        if (solved_players >= 2) {
-                                            socket.broadcast.emit('forceLeave', {
-                                                round_id: data.round_id
-                                            });
-                                        }
+                                        socket.broadcast.emit('forceLeave', {
+                                            round_id: data.round_id
+                                        });
                                     }
                                 });
                             }
+                            doc.solved_players += 1;
+                            var redis_key = 'round:' + data.round_id;
+                            redis.set(redis_key, JSON.stringify(doc));
 
                             let contri = 0;
                             if (doc.contribution && doc.contribution.hasOwnProperty(data.player_name)) {
@@ -396,37 +427,12 @@ module.exports = function (io) {
                                             title: "StartRound",
                                             msg: 'You just start round' + data.round_id
                                         });
+                                        startGA(data.round_id);
                                     }
                                 });
                                 console.log(data.username + ' starts Round' + data.round_id);
                             }
                         });
-                        /*
-                        // run genetic algorithm
-                        console.log('start running python script of GA algorithm for round %d.', doc.round_id);
-                        var path = require('path');
-                        var options = {
-                            mode: 'text',
-                            pythonPath: 'python3',
-                            pythonOptions: ['-u'], // get print results in real-time
-                            scriptPath: path.resolve(__dirname, '../../gaps/bin'),
-                            args: ['--algorithm', 'crowd',
-                                '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
-                                '--size', doc.tileWidth.toString(),
-                                '--cols', doc.tilesPerRow.toString(),
-                                '--rows', doc.tilesPerColumn.toString(),
-                                '--population', '600',
-                                '--generations', '1000000000',
-                                '--roundid', doc.round_id.toString()]
-                        };
-                        PythonShell.run('gaps', options, function (err, results) {
-                            if (err)
-                                console.log(err);
-                            // results is an array consisting of messages collected during execution
-                            // if GA founds a solution, the last element in results is "solved".
-                            console.log('results: %j', results);
-                            console.log('GA algorithm for round %d ends.', doc.round_id);
-                        });*/
                     }
                 }
             });
