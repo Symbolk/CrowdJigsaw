@@ -171,6 +171,8 @@ module.exports = function (io) {
                                 title: "CreateRound",
                                 msg: 'You just create and join round' + doc.round_id
                             });
+                            let redis_key = 'round:' + doc.round_id;
+                            redis.set(redis_key, JSON.stringify(doc));
                         }
                     });
                 }
@@ -217,6 +219,8 @@ module.exports = function (io) {
                                                     title: "JoinRound",
                                                     msg: 'You just join round' + data.round_id
                                                 });
+                                                let redis_key = 'round:' + doc.round_id;
+                                                redis.set(redis_key, JSON.stringify(doc));
                                             }
                                         });
                                         console.log(data.username + ' joins Round' + condition.round_id);
@@ -284,7 +288,7 @@ module.exports = function (io) {
                                 });
                             }
                             doc.solved_players += 1;
-                            var redis_key = 'round:' + data.round_id;
+                            let redis_key = 'round:' + data.round_id;
                             redis.set(redis_key, JSON.stringify(doc));
 
                             let contri = 0;
@@ -427,6 +431,8 @@ module.exports = function (io) {
                                             title: "StartRound",
                                             msg: 'You just start round' + data.round_id
                                         });
+                                        let redis_key = 'round:' + doc.round_id;
+                                        redis.set(redis_key, JSON.stringify(doc));
                                         if(doc.players_num > 1){
                                             startGA(data.round_id);
                                         }
@@ -478,6 +484,8 @@ module.exports = function (io) {
                                                     title: "StopRound",
                                                     msg: 'You just stop round' + data.round_id
                                                 });
+                                                let redis_key = 'round:' + doc.round_id;
+                                                redis.set(redis_key, JSON.stringify(doc));
                                             }
                                         });
                                         console.log(data.username + ' stops Round' + data.round_id);
@@ -507,6 +515,8 @@ module.exports = function (io) {
                                                     title: "QuitRound",
                                                     msg: 'You just quit round' + data.round_id
                                                 });
+                                                let redis_key = 'round:' + doc.round_id;
+                                                redis.set(redis_key, JSON.stringify(doc));
                                             }
                                         });
                                         console.log(data.username + ' quits Round' + data.round_id);

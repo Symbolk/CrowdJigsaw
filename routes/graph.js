@@ -111,7 +111,33 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
     };
 }
 
-function generateHints(nodesAndHints){
+function getGAEdges(roundID, nodesAndHints){
+    let redis_key = 'round:' + roundID + ':GA_edges';
+    redis.get(redis_key, function(err, doc){
+        if(doc){
+            let GA_edges = JSON.parse(doc);
+            nodesAndHints.GA_edges = GA_edges;
+
+            var hints = nodesAndHints.hints;
+            for(var edge of GA_edges){
+                var sp = edge.split('-');
+                var x = parseInt(sp[0].substr(0, sp[0].length - 1));
+                var y = parseInt(sp[1].substr(1));
+                var tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
+                if(tag == 'L-R'){
+                    hints[x][1] = y;
+                    hints[y][3] = x;
+                }
+                else{
+                    hints[x][2] = y;
+                    hints[y][0] = x;
+                }
+            }
+        }
+    });
+}
+
+function generateHints(roundID, nodesAndHints){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
 
@@ -309,7 +335,8 @@ function update(data) {
                         computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, doc.tilesPerRow, data.player_name);
                     }
                     
-                    generateHints(nodesAndHints);
+                    generateHints(roundID, nodesAndHints);
+                    getGAEdges(roundID, nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
@@ -402,7 +429,8 @@ function update(data) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[e]);
                     }
 
-                    generateHints(nodesAndHints);
+                    generateHints(roundID, nodesAndHints);
+                    getGAEdges(roundID, nodesAndHints);
                     //checkUnsureHints(nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
