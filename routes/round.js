@@ -377,6 +377,7 @@ module.exports = function (io) {
             });
         });
 
+        var round_starting = {};
         socket.on('startRound', function (data) {
             let condition = {
                 round_id: data.round_id,
@@ -391,6 +392,11 @@ module.exports = function (io) {
                         if (doc.start_time != '-1') {
                             return;
                         }
+                        if(data.round_id in round_starting && round_starting[data.round_id]){
+                            return;
+                        }
+                        round_starting[data.round_id] = true;
+
                         let TIME = util.getNowFormatDate();
                         // set start_time for all players
                         for (let p of doc.players) {
@@ -436,6 +442,7 @@ module.exports = function (io) {
                                         if(doc.players_num > 1){
                                             startGA(data.round_id);
                                         }
+                                        round_starting[data.round_id] = false;
                                     }
                                 });
                                 console.log(data.username + ' starts Round' + data.round_id);

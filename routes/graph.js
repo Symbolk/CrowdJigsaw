@@ -544,6 +544,7 @@ function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerCo
             correctHints: correctHints,
             completeLinks: completeLinks,
             totalLinks: totalLinks,
+            ga_edges: nodesAndHints.GA_edges,
             nodes: nodesAndHints.nodes,
             hints: nodesAndHints.hints,
             edges_saved: brief_edges_saved,
