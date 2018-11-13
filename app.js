@@ -14,7 +14,6 @@ var config; // the global config for dev/pro env
 require('./db');
 var FileStreamRotator = require('file-stream-rotator');
 
-// 应用级中间件绑定到 app 对象 使用 app.use() 和 app.METHOD()
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -28,7 +27,6 @@ app.all('*', function (req, res, next) {
     next();
 });
 
-// 没有挂载路径的中间件，应用的每个请求都会执行该中间件
 // config session
 app.use(session({
     secret: 'secret',
@@ -41,7 +39,6 @@ app.use(function (req, res, next) {
     res.locals.user = req.session.user;
     var err = req.session.error;
     delete req.session.error;
-    // res.locals对象保存在一次请求范围内的响应体中的本地变量值。
     res.locals.message = '';
     if (err) {
         res.locals.message = '' + err;
@@ -86,12 +83,12 @@ app.use(logger('short', { skip: function (req, res) { return (res.statusCode == 
 //Node.js body parsing middleware. req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-// 加载用于解析 cookie 的第三方中间件
+
 app.use(cookieParser());
-// Express 唯一内置的中间件。它基于 serve-static，负责在 Express 应用中提托管静态资源。
+
 // set the static folder as the public
 app.use(express.static(path.join(__dirname, 'public')));
-// 定义应用级路由
+
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/user'));
 app.use('/graph', require('./routes/graph')(io));
