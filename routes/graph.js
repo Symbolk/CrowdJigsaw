@@ -336,7 +336,6 @@ function update(data) {
                     }
                     
                     generateHints(roundID, nodesAndHints);
-                    getGAEdges(roundID, nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
@@ -430,7 +429,6 @@ function update(data) {
                     }
 
                     generateHints(roundID, nodesAndHints);
-                    getGAEdges(roundID, nodesAndHints);
                     //checkUnsureHints(nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
@@ -622,32 +620,76 @@ module.exports = function (io) {
         });
         // request global hints
         socket.on('fetchHints', function (data) {
-            // console.log(data.player_name + " is asking for help...");
-            if(roundNodesAndHints[data.round_id]){
-                socket.emit('proactiveHints', { 
-                    sureHints: roundNodesAndHints[data.round_id].hints,
-                    unsureHints: roundNodesAndHints[data.round_id].unsureHints
+            var hints = [];
+            var unsureHints = {};
+            var nodesAndHints = roundNodesAndHints[data.round_id];
+            if(nodesAndHints){
+                hints = nodesAndHints.hints;
+                unsureHints = nodesAndHints.unsureHints;
+                let redis_key = 'round:' + data.round_id + ':GA_edges';
+                redis.get(redis_key, function(err, doc){
+                    if(doc){
+                        let GA_edges = JSON.parse(doc);
+                        nodesAndHints.GA_edges = GA_edges;
+                        for(var edge of GA_edges){
+                            var sp = edge.split('-');
+                            var x = parseInt(sp[0].substr(0, sp[0].length - 1));
+                            var y = parseInt(sp[1].substr(1));
+                            var tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
+                            if(tag == 'L-R'){
+                                hints[x][1] = y;
+                                hints[y][3] = x;
+                            }
+                            else{
+                                hints[x][2] = y;
+                                hints[y][0] = x;
+                            }
+                        }
+                    }
+                    socket.emit('proactiveHints', {
+                        sureHints: hints,
+                        unsureHints: unsureHints
+                    });
                 });
-            }
-            else{ 
-                socket.emit('proactiveHints', {});
             }
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
             var hints = [];
             var unsureHints = {};
-            if(roundNodesAndHints[data.round_id]){
-                hints = roundNodesAndHints[data.round_id].hints;
-                unsureHints = roundNodesAndHints[data.round_id].unsureHints;
+            var nodesAndHints = roundNodesAndHints[data.round_id];
+            if(nodesAndHints){
+                hints = nodesAndHints.hints;
+                unsureHints = nodesAndHints.unsureHints;
+                let redis_key = 'round:' + data.round_id + ':GA_edges';
+                redis.get(redis_key, function(err, doc){
+                    if(doc){
+                        let GA_edges = JSON.parse(doc);
+                        nodesAndHints.GA_edges = GA_edges;
+                        for(var edge of GA_edges){
+                            var sp = edge.split('-');
+                            var x = parseInt(sp[0].substr(0, sp[0].length - 1));
+                            var y = parseInt(sp[1].substr(1));
+                            var tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
+                            if(tag == 'L-R'){
+                                hints[x][1] = y;
+                                hints[y][3] = x;
+                            }
+                            else{
+                                hints[x][2] = y;
+                                hints[y][0] = x;
+                            }
+                        }
+                    }
+                    socket.emit('reactiveHints', {
+                        indexes: data.indexes,
+                        selectedTileIndexes: data.selectedTileIndexes,
+                        currentStep: data.currentStep,
+                        sureHints: hints,
+                        unsureHints: unsureHints
+                    });
+                });
             }
-            socket.emit('reactiveHints', {
-                indexes: data.indexes,
-                selectedTileIndexes: data.selectedTileIndexes,
-                currentStep: data.currentStep,
-                sureHints: hints,
-                unsureHints: unsureHints
-            });
         });
     });
 
