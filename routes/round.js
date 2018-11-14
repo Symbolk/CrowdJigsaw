@@ -5,6 +5,7 @@ var RoundModel = require('../models/round').Round;
 var UserModel = require('../models/user').User;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
+var dev = require('../config/dev');
 var images = require("images");
 var PythonShell = require('python-shell');
 
@@ -79,28 +80,38 @@ function isCreator(req, res, next) {
 }
 
 function startGA(round_id){
-    // run genetic algorithm
-    console.log('start running python script of GA algorithm for round %d.', round_id);
-    var path = require('path');
-    var options = {
-        mode: 'text',
-        pythonPath: 'python3',
-        pythonOptions: ['-u'], // get print results in real-time
-        scriptPath: '/home/weiyuhan/git/gaps/bin',
-        args: ['--fitness', 'rank-based',
-            '--hide_detail', '--measure_weight',
-            '--online', '--roundid', round_id.toString()
-        ]
-    };
-    PythonShell.run('gaps', options, function (err, results) {
-        if (err){
-            console.log(err);
-        }
-        // results is an array consisting of messages collected during execution
-        // if GA founds a solution, the last element in results is "solved".
-        console.log('results: %j', results);
-        console.log('GA algorithm for round %d ends.', round_id);
-    });
+    var http = require('http');  
+  
+    var qs = require('querystring');  
+      
+    var data = {  
+        roundID: round_id,  
+        dataServer: '162.105.89.88'
+    };//这是需要提交的数据  
+      
+      
+    var content = qs.stringify(data);  
+      
+    var options = {  
+        hostname: dev.GA_server,  
+        path: '/ga?' + content,  
+        method: 'GET'  
+    };  
+      
+    var req = http.request(options, function (res) {  
+        console.log('STATUS: ' + res.statusCode);  
+        console.log('HEADERS: ' + JSON.stringify(res.headers));  
+        res.setEncoding('utf8');  
+        res.on('data', function (chunk) {  
+            console.log('BODY: ' + chunk);  
+        });  
+    });  
+      
+    req.on('error', function (e) {  
+        console.log('problem with request: ' + e.message);  
+    });  
+      
+    req.end();  
 }
 
 module.exports = function (io) {

@@ -5,6 +5,7 @@ var router = express.Router();
 const mongoose = require('mongoose');
 var UserModel = require('../models/user').User;
 var RoundModel = require('../models/round').Round;
+var dev = require('../config/dev');
 var crypto = require('crypto');
 var util = require('./util.js');
 
@@ -243,34 +244,10 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
                 res.render('playground', {
                     title: 'Home',
                     username: doc.username,
-                    admin: doc.admin
-                });
-            }
-        }
-    });
-});
-
-
-// Round
-router.route('/playground').all(LoginFirst).get(function (req, res) {
-    let selectStr = {
-        username: req.session.user.username
-    };
-    let fields = {
-        _id: 0,
-        username: 1,
-        avatar: 1,
-        admin: 1
-    };
-    UserModel.findOne(selectStr, fields, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (doc) {
-                res.render('playground', {
-                    title: 'Playground',
-                    username: doc.username,
-                    admin: doc.admin
+                    admin: doc.admin,
+                    multiPlayer: dev.multiPlayer,
+                    multiPlayerServer: dev.multiPlayerServer,
+                    singlePlayerServer: dev.singlePlayerServer,
                 });
             }
         }
@@ -339,6 +316,33 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     });
 });
 
+router.route('/ga').all(LoginFirst).get(function (req, res) {
+    let roundID = req.query.roundID;
+    let dataServer = req.query.dataServer;
+    // run genetic algorithm
+    console.log('start running python script of GA algorithm for round %d.', round_id);
+    var path = require('path');
+    var options = {
+        mode: 'text',
+        pythonPath: 'python3',
+        pythonOptions: ['-u'], // get print results in real-time
+        scriptPath: '/home/weiyuhan/git/gaps/bin',
+        args: ['--fitness', 'rank-based',
+            '--hide_detail', '--measure_weight',
+            '--online', '--round_id', roundID,
+            '--data_server', dataServer
+        ]
+    };
+    PythonShell.run('gaps', options, function (err, results) {
+        if (err){
+            console.log(err);
+        }
+        // results is an array consisting of messages collected during execution
+        // if GA founds a solution, the last element in results is "solved".
+        console.log('results: %j', results);
+        console.log('GA algorithm for round %d ends.', round_id);
+    });
+});
 
 // Reset Password
 router.route('/reset').get(function (req, res) {
