@@ -1,4 +1,11 @@
 <% include header2.html %>
+    <script>
+        var username = "<%=username%>";
+        var admin = "<%=admin%>";
+        var multiPlayer = "<%=multiPlayer%>";
+        var multiPlayerServer = "<%=multiPlayerServer%>";
+        var singlePlayerServer = "<%=singlePlayerServer%>";
+    </script>
     <!-- Content W  rapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
@@ -6,7 +13,12 @@
             <h1>
                 Playground
                 <small>Here you can find all joinable rounds, or create your own one.</small>
-                <a href="http://162.105.89.243:3000/home">Multi Player Game</a>
+            <% if(multiPlayer==true){%>
+                <a href="<%=singlePlayerServer%>/home">Single Player Game</a>
+            <%}
+            else{%>
+                <a href="<%=multiPlayerServer%>/home">Multi Player Game</a>
+            <%} %>
             </h1>
             <ol class="breadcrumb">
                 <li>
@@ -19,10 +31,6 @@
 
         <!-- Main content -->
         <section class="content">
-            <script>
-                var username = "<%=username%>";
-                var admin = "<%=admin%>";
-            </script>
 
             <div class="row col-lg-4" id="round_list"></div>
             <div class="row">
@@ -75,8 +83,13 @@
                         </div>
                     </div>
                     <%}
-      else{%>
-                        <div class="col-md-4 col-sm-6 col-xs-12 random-game-card">
+      else{%>           
+                    <% if(multiPlayer==true){%>
+                        <div class="col-md-4 col-sm-6 col-xs-12 random-game-card" style="display: none;">
+                    <%}
+                    else{%>
+                        <div class="col-md-4 col-sm-6 col-xs-12 random-game-card" >
+                    <%} %>
                             <!-- Widget: user widget style 1 -->
                             <div class="box box-widget widget-user">
                                 <!-- Add the bg color to the header using any of the bg-* classes -->
