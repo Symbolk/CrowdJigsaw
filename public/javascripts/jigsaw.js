@@ -2328,7 +2328,7 @@ function JigsawPuzzle(config) {
 
                 hintTilesCount += groupTiles.length;
             }
-            else if(!hasHintConflict){
+            else {
                 var moveAwayShouldSave = moveSelectedTilesAway(selectedTileIndex);
                 shouldSave = shouldSave || moveAwayShouldSave;
                 instance.hintsLog.log.push({
