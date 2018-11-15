@@ -111,7 +111,33 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
     };
 }
 
-function generateHints(nodesAndHints){
+function getGAEdges(roundID, nodesAndHints){
+    let redis_key = 'round:' + roundID + ':GA_edges';
+    redis.get(redis_key, function(err, doc){
+        if(doc){
+            let GA_edges = JSON.parse(doc);
+            nodesAndHints.GA_edges = GA_edges;
+
+            var hints = nodesAndHints.hints;
+            for(var edge of GA_edges){
+                var sp = edge.split('-');
+                var x = parseInt(sp[0].substr(0, sp[0].length - 1));
+                var y = parseInt(sp[1].substr(1));
+                var tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
+                if(tag == 'L-R'){
+                    hints[x][1] = y;
+                    hints[y][3] = x;
+                }
+                else{
+                    hints[x][2] = y;
+                    hints[y][0] = x;
+                }
+            }
+        }
+    });
+}
+
+function generateHints(roundID, nodesAndHints){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
 
@@ -259,18 +285,23 @@ function computeScore(round_id, round_finish, x, y, tag, size, size_before, beHi
     var score = 0;
     if(!beHinted && correct && size > 0 && size_before <= 0){
         score = constants.create_correct_link_score;
+        redis.zincrby(redis_key + ':create_correct_link', 1, player_name);
     }
     if(!beHinted && correct && size < 0 && size_before >= 0){
         score = constants.remove_correct_link_score;
+        redis.zincrby(redis_key + ':remove_correct_link', 1, player_name);
     }
     if(!beHinted && !correct && size > 0 && size_before <= 0){
         score = constants.create_wrong_link_score;
+        redis.zincrby(redis_key + ':create_wrong_link', 1, player_name);
     }
     if(!beHinted && !correct && size < 0 && size_before >= 0){
         score = constants.remove_wrong_link_score;
+        redis.zincrby(redis_key + ':remove_wrong_link', 1, player_name);
     }
     if(beHinted && !correct && size < 0 && size_before >= 0){
         score = constants.remove_hinted_wrong_link_score;
+        redis.zincrby(redis_key + ':remove_hinted_wrong_link', 1, player_name);
     }
     redis.zincrby(redis_key, score, player_name);
 }
@@ -309,7 +340,7 @@ function update(data) {
                         computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, doc.tilesPerRow, data.player_name);
                     }
                     
-                    generateHints(nodesAndHints);
+                    generateHints(roundID, nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
@@ -402,7 +433,7 @@ function update(data) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[e]);
                     }
 
-                    generateHints(nodesAndHints);
+                    generateHints(roundID, nodesAndHints);
                     //checkUnsureHints(nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
@@ -516,6 +547,7 @@ function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerCo
             correctHints: correctHints,
             completeLinks: completeLinks,
             totalLinks: totalLinks,
+            ga_edges: nodesAndHints.GA_edges,
             nodes: nodesAndHints.nodes,
             hints: nodesAndHints.hints,
             edges_saved: brief_edges_saved,
@@ -593,32 +625,76 @@ module.exports = function (io) {
         });
         // request global hints
         socket.on('fetchHints', function (data) {
-            // console.log(data.player_name + " is asking for help...");
-            if(roundNodesAndHints[data.round_id]){
-                socket.emit('proactiveHints', { 
-                    sureHints: roundNodesAndHints[data.round_id].hints,
-                    unsureHints: roundNodesAndHints[data.round_id].unsureHints
+            var hints = [];
+            var unsureHints = {};
+            var nodesAndHints = roundNodesAndHints[data.round_id];
+            if(nodesAndHints){
+                hints = nodesAndHints.hints;
+                unsureHints = nodesAndHints.unsureHints;
+                let redis_key = 'round:' + data.round_id + ':GA_edges';
+                redis.get(redis_key, function(err, doc){
+                    if(doc){
+                        let GA_edges = JSON.parse(doc);
+                        nodesAndHints.GA_edges = GA_edges;
+                        for(var edge of GA_edges){
+                            var sp = edge.split('-');
+                            var x = parseInt(sp[0].substr(0, sp[0].length - 1));
+                            var y = parseInt(sp[1].substr(1));
+                            var tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
+                            if(tag == 'L-R'){
+                                hints[x][1] = y;
+                                hints[y][3] = x;
+                            }
+                            else{
+                                hints[x][2] = y;
+                                hints[y][0] = x;
+                            }
+                        }
+                    }
+                    socket.emit('proactiveHints', {
+                        sureHints: hints,
+                        unsureHints: unsureHints
+                    });
                 });
-            }
-            else{ 
-                socket.emit('proactiveHints', {});
             }
         });
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
             var hints = [];
             var unsureHints = {};
-            if(roundNodesAndHints[data.round_id]){
-                hints = roundNodesAndHints[data.round_id].hints;
-                unsureHints = roundNodesAndHints[data.round_id].unsureHints;
+            var nodesAndHints = roundNodesAndHints[data.round_id];
+            if(nodesAndHints){
+                hints = nodesAndHints.hints;
+                unsureHints = nodesAndHints.unsureHints;
+                let redis_key = 'round:' + data.round_id + ':GA_edges';
+                redis.get(redis_key, function(err, doc){
+                    if(doc){
+                        let GA_edges = JSON.parse(doc);
+                        nodesAndHints.GA_edges = GA_edges;
+                        for(var edge of GA_edges){
+                            var sp = edge.split('-');
+                            var x = parseInt(sp[0].substr(0, sp[0].length - 1));
+                            var y = parseInt(sp[1].substr(1));
+                            var tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
+                            if(tag == 'L-R'){
+                                hints[x][1] = y;
+                                hints[y][3] = x;
+                            }
+                            else{
+                                hints[x][2] = y;
+                                hints[y][0] = x;
+                            }
+                        }
+                    }
+                    socket.emit('reactiveHints', {
+                        indexes: data.indexes,
+                        selectedTileIndexes: data.selectedTileIndexes,
+                        currentStep: data.currentStep,
+                        sureHints: hints,
+                        unsureHints: unsureHints
+                    });
+                });
             }
-            socket.emit('reactiveHints', {
-                indexes: data.indexes,
-                selectedTileIndexes: data.selectedTileIndexes,
-                currentStep: data.currentStep,
-                sureHints: hints,
-                unsureHints: unsureHints
-            });
         });
     });
 

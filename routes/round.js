@@ -5,8 +5,8 @@ var RoundModel = require('../models/round').Round;
 var UserModel = require('../models/user').User;
 var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
+var dev = require('../config/dev');
 var images = require("images");
-var PythonShell = require('python-shell');
 
 const redis = require('redis').createClient();
 
@@ -78,6 +78,42 @@ function isCreator(req, res, next) {
     });
 }
 
+function startGA(round_id){
+    var http = require('http');  
+  
+    var qs = require('querystring');  
+      
+    var data = {  
+        round_id: round_id,  
+        data_server: '162.105.89.243'
+    };//这是需要提交的数据  
+      
+      
+    var content = qs.stringify(data);  
+      
+    var options = {  
+        hostname: dev.GA_server,  
+        port: 3000,
+        path: '/ga?' + content,  
+        method: 'GET'  
+    };  
+      
+    var req = http.request(options, function (res) {  
+        console.log('STATUS: ' + res.statusCode);  
+        console.log('HEADERS: ' + JSON.stringify(res.headers));  
+        res.setEncoding('utf8');  
+        res.on('data', function (chunk) {  
+            console.log('BODY: ' + chunk);  
+        });  
+    });  
+      
+    req.on('error', function (e) {  
+        console.log('problem with request: ' + e.message);  
+    });  
+      
+    req.end();  
+}
+
 module.exports = function (io) {
 
     io.on('connection', function (socket) {
@@ -146,6 +182,8 @@ module.exports = function (io) {
                                 title: "CreateRound",
                                 msg: 'You just create and join round' + doc.round_id
                             });
+                            let redis_key = 'round:' + doc.round_id;
+                            redis.set(redis_key, JSON.stringify(doc));
                         }
                     });
                 }
@@ -192,6 +230,8 @@ module.exports = function (io) {
                                                     title: "JoinRound",
                                                     msg: 'You just join round' + data.round_id
                                                 });
+                                                let redis_key = 'round:' + doc.round_id;
+                                                redis.set(redis_key, JSON.stringify(doc));
                                             }
                                         });
                                         console.log(data.username + ' joins Round' + condition.round_id);
@@ -228,9 +268,6 @@ module.exports = function (io) {
                         console.log(err);
                     } else {
                         if (doc) {
-                            doc.solved_players = 1;
-                            var redis_key = 'round:' + data.round_id;
-                            redis.set(redis_key, JSON.stringify(doc));
                             if (doc.solved_players == 0) {
                                 // only remember the first winner of the round
                                 RoundModel.update({
@@ -261,6 +298,9 @@ module.exports = function (io) {
                                     }
                                 });
                             }
+                            doc.solved_players += 1;
+                            let redis_key = 'round:' + data.round_id;
+                            redis.set(redis_key, JSON.stringify(doc));
 
                             let contri = 0;
                             if (doc.contribution && doc.contribution.hasOwnProperty(data.player_name)) {
@@ -348,6 +388,7 @@ module.exports = function (io) {
             });
         });
 
+        var round_starting = {};
         socket.on('startRound', function (data) {
             let condition = {
                 round_id: data.round_id,
@@ -362,6 +403,11 @@ module.exports = function (io) {
                         if (doc.start_time != '-1') {
                             return;
                         }
+                        if(data.round_id in round_starting && round_starting[data.round_id]){
+                            return;
+                        }
+                        round_starting[data.round_id] = true;
+
                         let TIME = util.getNowFormatDate();
                         // set start_time for all players
                         for (let p of doc.players) {
@@ -402,37 +448,18 @@ module.exports = function (io) {
                                             title: "StartRound",
                                             msg: 'You just start round' + data.round_id
                                         });
+                                        let redis_key = 'round:' + doc.round_id;
+                                        redis.set(redis_key, JSON.stringify(doc));
+                                        /*
+                                        if(doc.players_num > 1){
+                                            startGA(data.round_id);
+                                        }*/
+                                        round_starting[data.round_id] = false;
                                     }
                                 });
                                 console.log(data.username + ' starts Round' + data.round_id);
                             }
                         });
-                        /*
-                        // run genetic algorithm
-                        console.log('start running python script of GA algorithm for round %d.', doc.round_id);
-                        var path = require('path');
-                        var options = {
-                            mode: 'text',
-                            pythonPath: 'python3',
-                            pythonOptions: ['-u'], // get print results in real-time
-                            scriptPath: path.resolve(__dirname, '../../gaps/bin'),
-                            args: ['--algorithm', 'crowd',
-                                '--image', path.resolve(__dirname, '../public') + '/' + doc.image,
-                                '--size', doc.tileWidth.toString(),
-                                '--cols', doc.tilesPerRow.toString(),
-                                '--rows', doc.tilesPerColumn.toString(),
-                                '--population', '600',
-                                '--generations', '1000000000',
-                                '--roundid', doc.round_id.toString()]
-                        };
-                        PythonShell.run('gaps', options, function (err, results) {
-                            if (err)
-                                console.log(err);
-                            // results is an array consisting of messages collected during execution
-                            // if GA founds a solution, the last element in results is "solved".
-                            console.log('results: %j', results);
-                            console.log('GA algorithm for round %d ends.', doc.round_id);
-                        });*/
                     }
                 }
             });
@@ -476,6 +503,8 @@ module.exports = function (io) {
                                                     title: "StopRound",
                                                     msg: 'You just stop round' + data.round_id
                                                 });
+                                                let redis_key = 'round:' + doc.round_id;
+                                                redis.set(redis_key, JSON.stringify(doc));
                                             }
                                         });
                                         console.log(data.username + ' stops Round' + data.round_id);
@@ -505,6 +534,8 @@ module.exports = function (io) {
                                                     title: "QuitRound",
                                                     msg: 'You just quit round' + data.round_id
                                                 });
+                                                let redis_key = 'round:' + doc.round_id;
+                                                redis.set(redis_key, JSON.stringify(doc));
                                             }
                                         });
                                         console.log(data.username + ' quits Round' + data.round_id);

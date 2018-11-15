@@ -5,8 +5,10 @@ var router = express.Router();
 const mongoose = require('mongoose');
 var UserModel = require('../models/user').User;
 var RoundModel = require('../models/round').Round;
+var dev = require('../config/dev');
 var crypto = require('crypto');
 var util = require('./util.js');
+var PythonShell = require('python-shell');
 
 const redis = require('redis').createClient();
 
@@ -34,7 +36,10 @@ function decrypt(str, secret) {
 
 
 // Get Home Page
-router.get('/', function (req, res, next) {
+router.route('/').get(function (req, res, next) {
+    if(!dev.multiPlayer){
+	   return res.redirect('/visitor');
+    }
     req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
     res.render('index', {
         title: 'Crowd Jigsaw Puzzle'
@@ -43,9 +48,10 @@ router.get('/', function (req, res, next) {
 
 // Login
 router.route('/login').all(Logined).get(function (req, res) {
-    res.render('login', {
-        title: 'Login'
-    });
+	if(!dev.multiPlayer){
+       return res.redirect('/visitor');
+    }
+    res.render('login', { title: 'Login' });
 }).post(function (req, res) {
 
     let passwd_enc = encrypt(req.body.password, SECRET);
@@ -243,34 +249,10 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
                 res.render('playground', {
                     title: 'Home',
                     username: doc.username,
-                    admin: doc.admin
-                });
-            }
-        }
-    });
-});
-
-
-// Round
-router.route('/playground').all(LoginFirst).get(function (req, res) {
-    let selectStr = {
-        username: req.session.user.username
-    };
-    let fields = {
-        _id: 0,
-        username: 1,
-        avatar: 1,
-        admin: 1
-    };
-    UserModel.findOne(selectStr, fields, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (doc) {
-                res.render('playground', {
-                    title: 'Playground',
-                    username: doc.username,
-                    admin: doc.admin
+                    admin: doc.admin,
+                    multiPlayer: dev.multiPlayer,
+                    multiPlayerServer: dev.multiPlayerServer,
+                    singlePlayerServer: dev.singlePlayerServer,
                 });
             }
         }
@@ -339,6 +321,34 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     });
 });
 
+router.route('/ga').get(function (req, res) {
+    let round_id = req.query.round_id;
+    let data_server = req.query.data_server;
+    // run genetic algorithm
+    res.send('start running python script of GA algorithm for round ' + round_id);
+    console.log('start running python script of GA algorithm for round %d.', round_id);
+    var path = require('path');
+    var options = {
+        mode: 'text',
+        pythonPath: 'python3',
+        pythonOptions: ['-u'], // get print results in real-time
+        scriptPath: '/home/weiyuhan/git/gaps/bin',
+        args: ['--fitness', 'rank-based',
+            '--hide_detail', '--measure_weight',
+            '--online', '--round_id', round_id,
+            '--data_server', data_server
+        ]
+    };
+    PythonShell.run('gaps', options, function (err, results) {
+        if (err){
+            console.log(err);
+        }
+        // results is an array consisting of messages collected during execution
+        // if GA founds a solution, the last element in results is "solved".
+        console.log('results: %j', results);
+        console.log('GA algorithm for round %d ends.', round_id);
+    });
+});
 
 // Reset Password
 router.route('/reset').get(function (req, res) {
@@ -653,30 +663,23 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                 if (scoreboard) {
                     //console.log(scoreboard);
                     var defeat_num = 0;
+                    var my_score = 0;
                     var player1 = '';
                     if (scoreboard.length > 0) {
                         player1 = scoreboard[0] + ':' + scoreboard[1];
-                        if (req.session.user.username == scoreboard[0]) {
-                            defeat_num = round.players_num - 1;
-                        }
                     }
                     var player2 = '';
                     if (scoreboard.length > 2) {
                         player2 = scoreboard[2] + ':' + scoreboard[3];
-                        if (req.session.user.username == scoreboard[2]) {
-                            defeat_num = round.players_num - 2;
-                        }
                     }
                     var player3 = '';
                     if (scoreboard.length > 4) {
                         player3 = scoreboard[4] + ':' + scoreboard[5];
-                        if (req.session.user.username == scoreboard[4]) {
-                            defeat_num = round.players_num - 3;
-                        }
                     }
-                    for (var i = 6; i < scoreboard.length; i += 2) {
+                    for (var i = 0; i < scoreboard.length; i += 2) {
                         if (req.session.user.username == scoreboard[i]) {
                             defeat_num = round.players_num - 1 - i / 2;
+                            my_score = scoreboard[i+1]
                         }
                     }
                     res.render('award', {
@@ -685,6 +688,7 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                         player2: player2,
                         player3: player3,
                         defeat_num: defeat_num,
+                        my_score: my_score,
                         username: req.session.user.username,
                         round_id: req.params.round_id
                     });
