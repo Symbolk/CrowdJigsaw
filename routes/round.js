@@ -85,7 +85,7 @@ function startGA(round_id){
       
     var data = {  
         round_id: round_id,  
-        data_server: '162.105.89.88'
+        data_server: '162.105.89.243'
     };//这是需要提交的数据  
       
       
@@ -450,9 +450,10 @@ module.exports = function (io) {
                                         });
                                         let redis_key = 'round:' + doc.round_id;
                                         redis.set(redis_key, JSON.stringify(doc));
+                                        /*
                                         if(doc.players_num > 1){
                                             startGA(data.round_id);
-                                        }
+                                        }*/
                                         round_starting[data.round_id] = false;
                                     }
                                 });

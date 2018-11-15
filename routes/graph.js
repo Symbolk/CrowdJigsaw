@@ -285,18 +285,23 @@ function computeScore(round_id, round_finish, x, y, tag, size, size_before, beHi
     var score = 0;
     if(!beHinted && correct && size > 0 && size_before <= 0){
         score = constants.create_correct_link_score;
+        redis.zincrby(redis_key + ':create_correct_link', 1, player_name);
     }
     if(!beHinted && correct && size < 0 && size_before >= 0){
         score = constants.remove_correct_link_score;
+        redis.zincrby(redis_key + ':remove_correct_link', 1, player_name);
     }
     if(!beHinted && !correct && size > 0 && size_before <= 0){
         score = constants.create_wrong_link_score;
+        redis.zincrby(redis_key + ':create_wrong_link', 1, player_name);
     }
     if(!beHinted && !correct && size < 0 && size_before >= 0){
         score = constants.remove_wrong_link_score;
+        redis.zincrby(redis_key + ':remove_wrong_link', 1, player_name);
     }
     if(beHinted && !correct && size < 0 && size_before >= 0){
         score = constants.remove_hinted_wrong_link_score;
+        redis.zincrby(redis_key + ':remove_hinted_wrong_link', 1, player_name);
     }
     redis.zincrby(redis_key, score, player_name);
 }

@@ -321,7 +321,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     });
 });
 
-router.route('/ga').all(LoginFirst).get(function (req, res) {
+router.route('/ga').get(function (req, res) {
     let round_id = req.query.round_id;
     let data_server = req.query.data_server;
     // run genetic algorithm
@@ -663,30 +663,23 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                 if (scoreboard) {
                     //console.log(scoreboard);
                     var defeat_num = 0;
+                    var my_score = 0;
                     var player1 = '';
                     if (scoreboard.length > 0) {
                         player1 = scoreboard[0] + ':' + scoreboard[1];
-                        if (req.session.user.username == scoreboard[0]) {
-                            defeat_num = round.players_num - 1;
-                        }
                     }
                     var player2 = '';
                     if (scoreboard.length > 2) {
                         player2 = scoreboard[2] + ':' + scoreboard[3];
-                        if (req.session.user.username == scoreboard[2]) {
-                            defeat_num = round.players_num - 2;
-                        }
                     }
                     var player3 = '';
                     if (scoreboard.length > 4) {
                         player3 = scoreboard[4] + ':' + scoreboard[5];
-                        if (req.session.user.username == scoreboard[4]) {
-                            defeat_num = round.players_num - 3;
-                        }
                     }
-                    for (var i = 6; i < scoreboard.length; i += 2) {
+                    for (var i = 0; i < scoreboard.length; i += 2) {
                         if (req.session.user.username == scoreboard[i]) {
                             defeat_num = round.players_num - 1 - i / 2;
+                            my_score = scoreboard[i+1]
                         }
                     }
                     res.render('award', {
@@ -695,6 +688,7 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                         player2: player2,
                         player3: player3,
                         defeat_num: defeat_num,
+                        my_score: my_score,
                         username: req.session.user.username,
                         round_id: req.params.round_id
                     });
