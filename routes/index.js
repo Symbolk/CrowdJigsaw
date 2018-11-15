@@ -8,6 +8,7 @@ var RoundModel = require('../models/round').Round;
 var dev = require('../config/dev');
 var crypto = require('crypto');
 var util = require('./util.js');
+var PythonShell = require('python-shell');
 
 const redis = require('redis').createClient();
 
@@ -321,9 +322,10 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
 });
 
 router.route('/ga').all(LoginFirst).get(function (req, res) {
-    let roundID = req.query.roundID;
-    let dataServer = req.query.dataServer;
+    let round_id = req.query.round_id;
+    let data_server = req.query.data_server;
     // run genetic algorithm
+    res.send('start running python script of GA algorithm for round ' + round_id);
     console.log('start running python script of GA algorithm for round %d.', round_id);
     var path = require('path');
     var options = {
@@ -333,8 +335,8 @@ router.route('/ga').all(LoginFirst).get(function (req, res) {
         scriptPath: '/home/weiyuhan/git/gaps/bin',
         args: ['--fitness', 'rank-based',
             '--hide_detail', '--measure_weight',
-            '--online', '--round_id', roundID,
-            '--data_server', dataServer
+            '--online', '--round_id', round_id,
+            '--data_server', data_server
         ]
     };
     PythonShell.run('gaps', options, function (err, results) {

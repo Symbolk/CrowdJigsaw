@@ -7,7 +7,6 @@ var ActionModel = require('../models/action').Action;
 var util = require('./util.js');
 var dev = require('../config/dev');
 var images = require("images");
-var PythonShell = require('python-shell');
 
 const redis = require('redis').createClient();
 
@@ -85,8 +84,8 @@ function startGA(round_id){
     var qs = require('querystring');  
       
     var data = {  
-        roundID: round_id,  
-        dataServer: '162.105.89.88'
+        round_id: round_id,  
+        data_server: '162.105.89.88'
     };//这是需要提交的数据  
       
       
@@ -94,6 +93,7 @@ function startGA(round_id){
       
     var options = {  
         hostname: dev.GA_server,  
+        port: 3000,
         path: '/ga?' + content,  
         method: 'GET'  
     };  
