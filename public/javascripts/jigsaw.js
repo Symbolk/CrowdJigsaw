@@ -1243,7 +1243,7 @@ function JigsawPuzzle(config) {
                 }
                 if(topTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (getTileIndex(selectedGroupTiles[i]) == topTile) {
+                        if (selectedGroupTiles[i] == topTile) {
                             needToMove = false;
                             break;
                         }
@@ -1263,7 +1263,7 @@ function JigsawPuzzle(config) {
                 }
                 if(rightTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (getTileIndex(selectedGroupTiles[i]) == rightTile) {
+                        if (selectedGroupTiles[i] == rightTile) {
                             needToMove = false;
                             break;
                         }
@@ -1283,7 +1283,7 @@ function JigsawPuzzle(config) {
                 }
                 if(bottomTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (getTileIndex(selectedGroupTiles[i]) == bottomTile) {
+                        if (selectedGroupTiles[i] == bottomTile) {
                             needToMove = false;
                             break;
                         }
@@ -1303,7 +1303,7 @@ function JigsawPuzzle(config) {
                 }
                 if(leftTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (getTileIndex(selectedGroupTiles[i]) == leftTile) {
+                        if (selectedGroupTiles[i] == leftTile) {
                             needToMove = false;
                             break;
                         }
@@ -2312,6 +2312,7 @@ function JigsawPuzzle(config) {
 
             var hasConflicts = checkConflict(groupTiles, correctCellposition, selectedGroupTiles);
             var hasConflict = hasConflicts[0];
+            var needToMove = hasConflicts[1];
             if (hasConflict && correctTile.allLinksHinted) {
                 for (var i = 0; i < groupTiles.length; i++) {
                     groupTiles[i].picking = false;
@@ -2324,7 +2325,7 @@ function JigsawPuzzle(config) {
                 }
                 hasConflicts = checkConflict(groupTiles, correctCellposition);
                 hasConflict = hasConflicts[0];
-                var needToMove = hasConflicts[1];
+                needToMove = hasConflicts[1];
             }
 
             if (!hasConflict) {
