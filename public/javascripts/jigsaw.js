@@ -1211,6 +1211,8 @@ function JigsawPuzzle(config) {
             return hasConflict;
         var onlyOneTile = (tiles.length == 1);
         for (var i = 0; i < tiles.length; i++) {
+            if(hasConflict && !needToMove)
+                break;
             var tile = tiles[i];
             var tileIndex = getTileIndex(tile);
 
@@ -1218,6 +1220,16 @@ function JigsawPuzzle(config) {
             var roundPosition = cellPosition * instance.tileWidth;
 
             var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
+
+            if(alreadyPlacedTile && (typeof selectedGroupTiles !== 'undefined')){
+                var theTile = getTileAtCellPosition(cellPosition);
+                for (var j = 0; j < selectedGroupTiles.length; j++) {
+                    if (selectedGroupTiles[j] == theTile) {
+                        needToMove = false;
+                        break;
+                    }
+                }
+            }
             hasConflict = hasConflict || alreadyPlacedTile;
             if (!hasConflict && instance.tileShape != "voronoi") {
                 var topTile = getTileAtCellPosition(cellPosition + new Point(0, -1));
@@ -1242,8 +1254,8 @@ function JigsawPuzzle(config) {
                     }
                 }
                 if(topTileConflict && (typeof selectedGroupTiles !== 'undefined')){
-                    for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (selectedGroupTiles[i] == topTile) {
+                    for (var j = 0; j < selectedGroupTiles.length; j++) {
+                        if (selectedGroupTiles[j] == topTile) {
                             needToMove = false;
                             break;
                         }
@@ -1262,8 +1274,8 @@ function JigsawPuzzle(config) {
                     }
                 }
                 if(rightTileConflict && (typeof selectedGroupTiles !== 'undefined')){
-                    for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (selectedGroupTiles[i] == rightTile) {
+                    for (var j = 0; j < selectedGroupTiles.length; j++) {
+                        if (selectedGroupTiles[j] == rightTile) {
                             needToMove = false;
                             break;
                         }
@@ -1282,8 +1294,8 @@ function JigsawPuzzle(config) {
                     }
                 }
                 if(bottomTileConflict && (typeof selectedGroupTiles !== 'undefined')){
-                    for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (selectedGroupTiles[i] == bottomTile) {
+                    for (var j = 0; j < selectedGroupTiles.length; j++) {
+                        if (selectedGroupTiles[j] == bottomTile) {
                             needToMove = false;
                             break;
                         }
@@ -1302,8 +1314,8 @@ function JigsawPuzzle(config) {
                     }
                 }
                 if(leftTileConflict && (typeof selectedGroupTiles !== 'undefined')){
-                    for (var i = 0; i < selectedGroupTiles.length; i++) {
-                        if (selectedGroupTiles[i] == leftTile) {
+                    for (var j = 0; j < selectedGroupTiles.length; j++) {
+                        if (selectedGroupTiles[j] == leftTile) {
                             needToMove = false;
                             break;
                         }
@@ -2313,6 +2325,15 @@ function JigsawPuzzle(config) {
             var hasConflicts = checkConflict(groupTiles, correctCellposition, selectedGroupTiles);
             var hasConflict = hasConflicts[0];
             var needToMove = hasConflicts[1];
+            if(hasConflict && needToMove){
+                var moveAwayShouldSave = moveSelectedTilesAway(selectedTileIndex);
+                shouldSave = shouldSave || moveAwayShouldSave;
+                cellPosition = instance.tiles[selectedTileIndex].cellPosition;
+                correctCellposition = cellPosition + directions[j];
+                hasConflicts = checkConflict(groupTiles, correctCellposition, selectedGroupTiles);
+                hasConflict = hasConflicts[0];
+                needToMove = hasConflicts[1];
+            }
             if (hasConflict && correctTile.allLinksHinted) {
                 for (var i = 0; i < groupTiles.length; i++) {
                     groupTiles[i].picking = false;
@@ -2358,17 +2379,6 @@ function JigsawPuzzle(config) {
                 });
 
                 hintTilesCount += groupTiles.length;
-            }
-            else if(needToMove){
-                var moveAwayShouldSave = moveSelectedTilesAway(selectedTileIndex);
-                shouldSave = shouldSave || moveAwayShouldSave;
-                instance.hintsLog.log.push({
-                    tile: selectedTileIndex,
-                    hint_tile: correctTileIndex,
-                    direction: j,
-                    success: false,
-                    msg: "cannot put hint_tile because of other tiles's position"
-                });
             }
         }
         if (hintTilesCount) {
