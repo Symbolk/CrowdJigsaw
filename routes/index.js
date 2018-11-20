@@ -8,7 +8,7 @@ var RoundModel = require('../models/round').Round;
 var dev = require('../config/dev');
 var crypto = require('crypto');
 var util = require('./util.js');
-var PythonShell = require('python-shell');
+var PythonShell = require('python-shell')
 
 const redis = require('redis').createClient();
 
@@ -333,20 +333,21 @@ router.route('/ga').get(function (req, res) {
         pythonPath: 'python3',
         pythonOptions: ['-u'], // get print results in real-time
         scriptPath: '/home/weiyuhan/git/gaps/bin',
-        args: ['--fitness', 'rank-based',
-            '--hide_detail', '--measure_weight',
+        args: ['--hide_detail', '--measure_weight',
             '--online', '--round_id', round_id,
             '--data_server', data_server
         ]
     };
-    PythonShell.run('gaps', options, function (err, results) {
+    let pyshell = new PythonShell('gaps', options);
+    pyshell.on('message', function (message) {
+        // received a message sent from the Python script (a simple "print" statement)
+        console.log(message);
+    });
+    // end the input stream and allow the process to exit
+    pyshell.end(function (err,code,signal) {
         if (err){
             console.log(err);
         }
-        // results is an array consisting of messages collected during execution
-        // if GA founds a solution, the last element in results is "solved".
-        console.log('results: %j', results);
-        console.log('GA algorithm for round %d ends.', round_id);
     });
 });
 

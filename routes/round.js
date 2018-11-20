@@ -80,38 +80,19 @@ function isCreator(req, res, next) {
 
 function startGA(round_id){
     var http = require('http');  
-  
-    var qs = require('querystring');  
-      
-    var data = {  
-        round_id: round_id,  
-        data_server: '162.105.89.243'
-    };//这是需要提交的数据  
-      
-      
-    var content = qs.stringify(data);  
-      
-    var options = {  
-        hostname: dev.GA_server,  
-        port: 3000,
-        path: '/ga?' + content,  
-        method: 'GET'  
-    };  
-      
-    var req = http.request(options, function (res) {  
-        console.log('STATUS: ' + res.statusCode);  
-        console.log('HEADERS: ' + JSON.stringify(res.headers));  
-        res.setEncoding('utf8');  
-        res.on('data', function (chunk) {  
-            console.log('BODY: ' + chunk);  
-        });  
-    });  
-      
-    req.on('error', function (e) {  
-        console.log('problem with request: ' + e.message);  
-    });  
-      
-    req.end();  
+    http.get(dev.GA_server + '/ga?data_server=localhost&round_id=' + round_id, (resp) => {
+        let data = '';
+        // A chunk of data has been recieved.
+        resp.on('data', (chunk) => {
+            data += chunk;
+        });
+        // The whole response has been received. Print out the result.
+        resp.on('end', () => {
+            console.log(data);
+        });
+    }).on("error", (err) => {
+        console.log("Error: " + err.message);
+    });
 }
 
 module.exports = function (io) {
@@ -450,10 +431,10 @@ module.exports = function (io) {
                                         });
                                         let redis_key = 'round:' + doc.round_id;
                                         redis.set(redis_key, JSON.stringify(doc));
-                                        /*
+                                        
                                         if(doc.players_num > 1){
                                             startGA(data.round_id);
-                                        }*/
+                                        }
                                         round_starting[data.round_id] = false;
                                     }
                                 });
