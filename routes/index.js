@@ -8,7 +8,7 @@ var RoundModel = require('../models/round').Round;
 var dev = require('../config/dev');
 var crypto = require('crypto');
 var util = require('./util.js');
-var PythonShell = require('python-shell')
+var PythonShell = require('python-shell');
 
 const redis = require('redis').createClient();
 
