@@ -230,7 +230,7 @@ function JigsawPuzzle(config) {
         if (data.round_id == roundID) {
             $.amaran({
                 'title': 'someoneSolved',
-                'message': data.player_name + ' has solved the puzzle!',
+                'message': 'Someone has solved the puzzle!',
                 'inEffect': 'slideRight',
                 'cssanimationOut': 'zoomOutUp',
                 'position': "top right",

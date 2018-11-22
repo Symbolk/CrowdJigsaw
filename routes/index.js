@@ -333,20 +333,21 @@ router.route('/ga').get(function (req, res) {
         pythonPath: 'python3',
         pythonOptions: ['-u'], // get print results in real-time
         scriptPath: '/home/weiyuhan/git/gaps/bin',
-        args: ['--fitness', 'rank-based',
-            '--hide_detail', '--measure_weight',
+        args: ['--hide_detail', '--measure_weight',
             '--online', '--round_id', round_id,
             '--data_server', data_server
         ]
     };
-    PythonShell.run('gaps', options, function (err, results) {
+    let pyshell = new PythonShell('gaps', options);
+    pyshell.on('message', function (message) {
+        // received a message sent from the Python script (a simple "print" statement)
+        console.log(message);
+    });
+    // end the input stream and allow the process to exit
+    pyshell.end(function (err,code,signal) {
         if (err){
             console.log(err);
         }
-        // results is an array consisting of messages collected during execution
-        // if GA founds a solution, the last element in results is "solved".
-        console.log('results: %j', results);
-        console.log('GA algorithm for round %d ends.', round_id);
     });
 });
 
@@ -662,8 +663,43 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
             redis.zrevrange(redis_key, 0, -1, 'WITHSCORES', function (err, scoreboard) {
                 if (scoreboard) {
                     //console.log(scoreboard);
+                    var class_score = {
+                        '051': { 'name': '18103051', 'num': 0, 'sum': 0 },
+                        '052': { 'name': '18103052', 'num': 0, 'sum': 0 },
+                        '053': { 'name': '18103053', 'num': 0, 'sum': 0 },
+                        '224': { 'name': '18101224', 'num': 0, 'sum': 0 },
+                        '225': { 'name': '18101225', 'num': 0, 'sum': 0 },
+                    }
                     var defeat_num = 0;
                     var my_score = 0;
+                    for (var i = 0; i < scoreboard.length; i += 2) {
+                        if (req.session.user.username == scoreboard[i]) {
+                            defeat_num = round.players_num - 1 - i / 2;
+                            my_score = scoreboard[i+1]
+                        }
+                        if(scoreboard[i].length >= 10){
+                            if(scoreboard[i].substring(0,2) == '18'){
+                                var class_name = scoreboard[i].substring(5,8);
+                                if(class_score[class_name].num < 10){
+                                    class_score[class_name].num += 1;
+                                    class_score[class_name].sum += parseInt(scoreboard[i+1]);
+                                }
+                            }
+                            else{
+                                if(class_score['225'].num < 10){
+                                    class_score['225'].num += 1;
+                                    class_score['225'].sum += parseInt(scoreboard[i+1]);
+                                }
+                            }
+                        }
+                    }
+                    var cmpClassScore = function(c1, c2){
+                        return c2.sum - c1.sum;
+                    };
+                    var class_score_array = [class_score['051'], class_score['052'], 
+                        class_score['053'], class_score['224'], class_score['225']];
+                    class_score_array.sort(cmpClassScore);
+                    /*
                     var player1 = '';
                     if (scoreboard.length > 0) {
                         player1 = scoreboard[0] + ':' + scoreboard[1];
@@ -675,18 +711,19 @@ router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
                     var player3 = '';
                     if (scoreboard.length > 4) {
                         player3 = scoreboard[4] + ':' + scoreboard[5];
-                    }
-                    for (var i = 0; i < scoreboard.length; i += 2) {
-                        if (req.session.user.username == scoreboard[i]) {
-                            defeat_num = round.players_num - 1 - i / 2;
-                            my_score = scoreboard[i+1]
-                        }
-                    }
+                    }*/
+                    var player1 = class_score_array[0]['name'] + ':' + class_score_array[0]['sum']
+                    var player2 = class_score_array[1]['name'] + ':' + class_score_array[1]['sum']
+                    var player3 = class_score_array[2]['name'] + ':' + class_score_array[2]['sum']
+                    var player4 = class_score_array[3]['name'] + ':' + class_score_array[3]['sum']
+                    var player5 = class_score_array[4]['name'] + ':' + class_score_array[4]['sum']
                     res.render('award', {
                         title: 'Award',
                         player1: player1,
                         player2: player2,
                         player3: player3,
+                        player4: player4,
+                        player5: player5,
                         defeat_num: defeat_num,
                         my_score: my_score,
                         username: req.session.user.username,
