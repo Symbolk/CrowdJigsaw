@@ -352,6 +352,8 @@ function update(data) {
                             console.log("First blood!");
                         }
                     });
+                    var redis_key = 'round:' + data.round_id + ':edges_saved';
+                    redis.set(redis_key, JSON.stringify(edges_saved));
                 } else {
                     // get and update the object, then update db once
                     let edges_saved = doc.edges_saved;
@@ -444,6 +446,8 @@ function update(data) {
                             console.log(err);
                         }
                     });
+                    var redis_key = 'round:' + data.round_id + ':edges_saved';
+                    redis.set(redis_key, JSON.stringify(edges_saved));
                 }
             }
         }
