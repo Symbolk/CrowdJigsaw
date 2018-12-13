@@ -1743,6 +1743,7 @@ function JigsawPuzzle(config) {
                 is_hint: instance.hintsShowing && !instance.gameFinished,
                 //logs: instance.hintsLog
             };
+            socket.emit("uploadForGA", param);
             instance.subGraphDataQueue.push(param);
             setTimeout(uploadGraphData, uploadDelayTime * 1000);
         }

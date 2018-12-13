@@ -332,7 +332,7 @@ router.route('/ga').get(function (req, res) {
         mode: 'text',
         pythonPath: 'python3',
         pythonOptions: ['-u'], // get print results in real-time
-        scriptPath: '/home/weiyuhan/git/gaps/bin',
+        scriptPath: '/Users/weiyuhan/git/gaps/bin',
         args: ['--hide_detail', '--measure_weight',
             '--online', '--round_id', round_id,
             '--data_server', data_server
