@@ -7,7 +7,7 @@ var COGSchema=new mongoose.Schema({
         correctHints: { type: Number},
         completeLinks: { type: Number, required: true },
         totalLinks: { type: Number, required: true },
-        ga_egdes: { type: Object},
+        ga_edges: { type: Object},
         hints: { type: Object},
         nodes: { type: Object},
         edges_saved: { type: Object, required: true },

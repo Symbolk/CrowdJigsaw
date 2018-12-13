@@ -5,7 +5,7 @@ import redis
 data_ip = "162.105.89.243"
 r = redis.Redis(host=data_ip)
 
-users = list(r.zrange('round:82:scoreboard', 0, -1, withscores=True))
+users = list(r.zrange('round:97:scoreboard', 0, -1, withscores=True))
 
 class_players_num = {
 	b'051': [],
