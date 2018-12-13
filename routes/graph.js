@@ -111,32 +111,6 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
     };
 }
 
-function getGAEdges(roundID, nodesAndHints){
-    let redis_key = 'round:' + roundID + ':GA_edges';
-    redis.get(redis_key, function(err, doc){
-        if(doc){
-            let GA_edges = JSON.parse(doc);
-            nodesAndHints.GA_edges = GA_edges;
-
-            var hints = nodesAndHints.hints;
-            for(var edge of GA_edges){
-                var sp = edge.split('-');
-                var x = parseInt(sp[0].substr(0, sp[0].length - 1));
-                var y = parseInt(sp[1].substr(1));
-                var tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
-                if(tag == 'L-R'){
-                    hints[x][1] = y;
-                    hints[y][3] = x;
-                }
-                else{
-                    hints[x][2] = y;
-                    hints[y][0] = x;
-                }
-            }
-        }
-    });
-}
-
 function generateHints(roundID, nodesAndHints){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
@@ -706,7 +680,25 @@ function computeContribution(nodesAndHints){
     return contibutionMap;
 }
 
-function createDiff(round_id, time, ga_edges, hints){
+function createDiff(round_id, time, ga_json, nodesAndHints){
+    let hints = nodesAndHints.hints;
+    let hints_json = JSON.stringify(hints);
+    DiffModel.create({
+        round_id: round_id,
+        time: time,
+        ga_edges: ga_json,
+        hints: hints_json
+    }, function (err) {
+        if (err) {
+            console.log(err);
+            return false;
+        }
+        else {
+            return true;
+        }
+    });
+    let ga_edges = JSON.parse(ga_json);
+    nodesAndHints.GA_edges = ga_edges;
     for(let edge of ga_edges){
         let sp = edge.split('-');
         let x = parseInt(sp[0].substr(0, sp[0].length - 1));
@@ -721,20 +713,6 @@ function createDiff(round_id, time, ga_edges, hints){
             hints[y][0] = x;
         }
     }
-    DiffModel.create({
-        round_id: round_id,
-        time: time,
-        ga_edges: JSON.stringify(ga_edges),
-        hints: JSON.stringify(hints)
-    }, function (err) {
-        if (err) {
-            console.log(err);
-            return false;
-        }
-        else {
-            return true;
-        }
-    });
 }
 
 module.exports = function (io) {
@@ -756,9 +734,7 @@ module.exports = function (io) {
                 let redis_key = 'round:' + data.round_id + ':GA_edges';
                 redis.get(redis_key, function(err, doc){
                     if(doc){
-                        let GA_edges = JSON.parse(doc);
-                        createDiff(data.round_id, Date.now(), GA_edges, hints)
-                        nodesAndHints.GA_edges = GA_edges;
+                        createDiff(data.round_id, Date.now(), doc, nodesAndHints)
                     }
                     socket.emit('proactiveHints', {
                         sureHints: hints,
@@ -778,9 +754,7 @@ module.exports = function (io) {
                 let redis_key = 'round:' + data.round_id + ':GA_edges';
                 redis.get(redis_key, function(err, doc){
                     if(doc){
-                        let GA_edges = JSON.parse(doc);
-                        createDiff(data.round_id, Date.now(), GA_edges, hints)
-                        nodesAndHints.GA_edges = GA_edges;
+                        createDiff(data.round_id, Date.now(), doc, nodesAndHints)
                     }
                     socket.emit('reactiveHints', {
                         indexes: data.indexes,
