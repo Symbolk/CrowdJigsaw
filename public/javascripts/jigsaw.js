@@ -1464,9 +1464,9 @@ function JigsawPuzzle(config) {
         }).show();
 
         socket.emit("fetchHints", {
-            round_id: roundID,
-            player_name: player_name,
-            tilesNum: instance.tilesNum
+            "round_id": roundID,
+            "player_name": player_name,
+            "tilesNum": instance.tilesNum
         });
     }
 
@@ -1970,6 +1970,7 @@ function JigsawPuzzle(config) {
                 "selectedTileIndexes": selectedTileIndexes,
                 "indexes": getHintsIndex,
                 "currentStep": currentStep,
+                "tilesNum": instance.tilesNum
             });
         }
     }
