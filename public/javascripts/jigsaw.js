@@ -2103,7 +2103,6 @@ function JigsawPuzzle(config) {
                     break;
                 }
             }
-            console.log(i, tile.hasCorrectLinks);
         }
     }
 
