@@ -297,8 +297,8 @@ function JigsawPuzzle(config) {
     this.imgWidth = imageWidth;
     this.imgHeight = imageHeight;
     this.tilesPerRow = tilesPerRow;
-    this.tilesPerColumn = tilesPerColumn,
-        this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
+    this.tilesPerColumn = tilesPerColumn;
+    this.puzzleImage = this.originImage.getSubRaster(new Rectangle(0, 0, this.tilesPerRow * this.tileWidth, this.tilesPerColumn * this.tileWidth));
     this.puzzleImage.size *= Math.max((this.tileWidth / 2) / this.puzzleImage.size.width,
         (this.tileWidth / 2) / this.puzzleImage.size.height) + 1
     this.puzzleImage.position = view.center;
@@ -1464,9 +1464,9 @@ function JigsawPuzzle(config) {
         }).show();
 
         socket.emit("fetchHints", {
-            round_id: roundID,
-            player_name: player_name,
-            tilesNum: instance.tilesNum
+            "round_id": roundID,
+            "player_name": player_name,
+            "tilesNum": instance.tilesNum
         });
     }
 
@@ -1488,6 +1488,8 @@ function JigsawPuzzle(config) {
                 log: new Array(),
             };
             instance.hintAroundTilesMap = data.sureHints;
+
+            checkCorrectHints(instance.tiles, instance.hintAroundTilesMap);
 
             var strongHintsNeededTiles = new Array();
             for (var index = 0; index < instance.tiles.length; index++) {
@@ -1968,6 +1970,7 @@ function JigsawPuzzle(config) {
                 "selectedTileIndexes": selectedTileIndexes,
                 "indexes": getHintsIndex,
                 "currentStep": currentStep,
+                "tilesNum": instance.tilesNum
             });
         }
     }
@@ -2090,6 +2093,19 @@ function JigsawPuzzle(config) {
         return shouldSave;
     }
 
+    function checkCorrectHints(tiles, hints){
+        for (var i = 0; i < tiles.length; i++) {
+            var tile = tiles[i];
+            tile.hasCorrectLinks = false;
+            for (var j = 0; j < tile.aroundTiles.length; j++) {
+                if (tile.aroundTiles[j] >= 0 && tile.aroundTiles[j] == hints[i][j]) {
+                    tile.hasCorrectLinks = true;
+                    break;
+                }
+            }
+        }
+    }
+
     socket.on("reactiveHints", function (data) {
         console.log("hints:", data);
         if (data.sureHints.length == 0) {
@@ -2105,6 +2121,8 @@ function JigsawPuzzle(config) {
                 log: new Array(),
             };
             instance.hintAroundTilesMap = data.sureHints;
+
+            checkCorrectHints(instance.tiles, instance.hintAroundTilesMap);
 
             var strongHintsNeededTiles = new Array();
             for (var i = 0; i < data.indexes.length; i++) {
@@ -2335,7 +2353,7 @@ function JigsawPuzzle(config) {
                 hasConflict = hasConflicts[0];
                 needToMove = hasConflicts[1];
             }
-            if (hasConflict && correctTile.allLinksHinted) {
+            if (hasConflict && correctTile.allLinksHinted && !correctTile.hasCorrectLinks) {
                 for (var i = 0; i < groupTiles.length; i++) {
                     groupTiles[i].picking = false;
                 }

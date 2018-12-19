@@ -5,7 +5,7 @@ import redis
 data_ip = "162.105.89.243"
 r = redis.Redis(host=data_ip)
 
-users = list(r.zrange('round:97:scoreboard', 0, -1, withscores=True))
+users = list(r.zrange('round:108:scoreboard', 0, -1, withscores=True))
 
 class_players_num = {
 	b'051': [],
@@ -25,10 +25,14 @@ for u in users:
 		else:
 			class_players_num[b'others'].append(u)
 
-for k, v in class_players_num.items():
-	v.sort(key=lambda x:x[1])
-	v.reverse()
-	print(k, len(v), v[:(len(v) if len(v) <= 10 else 10)])
+with open('round_108_class_num.csv', 'w') as f:
+	f.write('class,players_num,' + ','.join([str(i) for i in range(1, 11)]) + '\n')
+	for k, v in class_players_num.items():
+		v.sort(key=lambda x:x[1])
+		v.reverse()
+		f.write("%s,%d," % (k.decode(), len(v)) + ','.join(str(x[1]) for x in v[:(len(v) if len(v) <= 10 else 10)]) + '\n')
+		f.write(' , ,' + ','.join(x[0].decode() for x in v[:(len(v) if len(v) <= 10 else 10)]) + '\n')
+		print(k, len(v), v[:(len(v) if len(v) <= 10 else 10)])
 
 
 

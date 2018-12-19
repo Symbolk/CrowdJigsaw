@@ -705,12 +705,28 @@ function createDiff(round_id, time, ga_json, nodesAndHints){
         let y = parseInt(sp[1].substr(1));
         let tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
         if(tag == 'L-R'){
-            hints[x][1] = y;
-            hints[y][3] = x;
+            if (hints[x][1] == y || hints[y][3] == x) {
+                hints[x][1] = y;
+                hints[y][3] = x;
+            }
+            if (hints[x][1] < 0) {
+                hints[x][1] = y;
+            }
+            if (hints[y][3] < 0) {
+                hints[y][3] = x;
+            }
         }
-        else{
-            hints[x][2] = y;
-            hints[y][0] = x;
+        else {
+            if (hints[x][2] == y || hints[y][0] == x) {
+                hints[x][2] = y;
+                hints[y][0] = x;
+            }
+            if (hints[x][2] < 0) {
+                hints[x][2] = y;
+            }
+            if (hints[y][0] < 0) {
+                hints[y][0] = x;
+            }
         }
     }
 }
@@ -727,14 +743,16 @@ module.exports = function (io) {
         socket.on('fetchHints', function (data) {
             var hints = [];
             var unsureHints = {};
-            var nodesAndHints = roundNodesAndHints[data.round_id];
+            var roundID = data.round_id;
+            var tilesNum = data.tilesNum;
+            var nodesAndHints = getNodesAndHints(roundID, tilesNum, {});
             if(nodesAndHints){
                 hints = nodesAndHints.hints;
                 unsureHints = nodesAndHints.unsureHints;
-                let redis_key = 'round:' + data.round_id + ':GA_edges';
+                let redis_key = 'round:' + roundID + ':GA_edges';
                 redis.get(redis_key, function(err, doc){
                     if(doc){
-                        createDiff(data.round_id, Date.now(), doc, nodesAndHints)
+                        createDiff(roundID, Date.now(), doc, nodesAndHints)
                     }
                     socket.emit('proactiveHints', {
                         sureHints: hints,
@@ -747,14 +765,16 @@ module.exports = function (io) {
         socket.on('getHintsAround', function (data) {
             var hints = [];
             var unsureHints = {};
-            var nodesAndHints = roundNodesAndHints[data.round_id];
+            var roundID = data.round_id;
+            var tilesNum = data.tilesNum;
+            var nodesAndHints = getNodesAndHints(roundID, tilesNum, {});
             if(nodesAndHints){
                 hints = nodesAndHints.hints;
                 unsureHints = nodesAndHints.unsureHints;
-                let redis_key = 'round:' + data.round_id + ':GA_edges';
+                let redis_key = 'round:' + roundID + ':GA_edges';
                 redis.get(redis_key, function(err, doc){
                     if(doc){
-                        createDiff(data.round_id, Date.now(), doc, nodesAndHints)
+                        createDiff(roundID, Date.now(), doc, nodesAndHints)
                     }
                     socket.emit('reactiveHints', {
                         indexes: data.indexes,
