@@ -531,6 +531,10 @@ function JigsawPuzzle(config) {
             if (tile.aroundTiles[i] != aroundTiles[i]) {
                 aroundTilesChanged = true;
 
+                if (aroundTiles[i] >= 0) {
+                    instance.createSomeLinks = true;
+                }
+
                 if (beHinted) {
                     tile.hintedLinks[i] = aroundTiles[i];
                 }
@@ -1567,6 +1571,7 @@ function JigsawPuzzle(config) {
                 }
             }
 
+            instance.createSomeLinks = false;
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 refreshAroundTiles(instance.selectedTile[i], false);
             }
@@ -1589,7 +1594,7 @@ function JigsawPuzzle(config) {
                 saveGame();
             }
 
-            if (!hasConflict && instance.showHints) {
+            if (!hasConflict && instance.showHints && instance.createSomeLinks) {
                 var selectedTileIndexes = new Array();
                 for (var i = 0; i < instance.selectedTile.length; i++) {
                     selectedTileIndexes.push(getTileIndex(instance.selectedTile[i]));
@@ -1721,6 +1726,10 @@ function JigsawPuzzle(config) {
                 }
                 if (!yTile.allAroundByTiles) {
                     instance.getHintsArray[linksData.y] = true;
+                }
+                if (instance.gameFinished) {
+                    var puzzleSize = tilesPerRow * tilesPerColumn;
+                    linksData.size = puzzleSize * puzzleSize * puzzleSize;
                 }
             }
         }
@@ -2796,10 +2805,11 @@ function quitRound(roundID) {
     }
 }
 
+/*
 if(solved_players >= 1){
     puzzle.forceLeave('Someone Have Finished the Puzzle. Please Quit.');
 }
-
+*/
 
 $(document).ready(function(e) { 
     var counter = 0;
