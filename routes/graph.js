@@ -680,7 +680,7 @@ function computeContribution(nodesAndHints){
     return contibutionMap;
 }
 
-function createDiff(round_id, time, ga_json, nodesAndHints){
+function mergyGA(round_id, time, ga_json, nodesAndHints){
     let hints = nodesAndHints.hints;
     let hints_json = JSON.stringify(hints);
     DiffModel.create({
@@ -699,36 +699,41 @@ function createDiff(round_id, time, ga_json, nodesAndHints){
     });
     let ga_edges = JSON.parse(ga_json);
     nodesAndHints.GA_edges = ga_edges;
+    let mergedHints = new Array(hints.length);
+    for (var i = 0; i < hints.length; i++) {
+        mergedHints[i] = [-1, -1, -1, -1];
+    }
     for(let edge of ga_edges){
         let sp = edge.split('-');
         let x = parseInt(sp[0].substr(0, sp[0].length - 1));
         let y = parseInt(sp[1].substr(1));
         let tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
         if(tag == 'L-R'){
-            if (hints[x][1] == y || hints[y][3] == x) {
-                hints[x][1] = y;
-                hints[y][3] = x;
-            }
             if (hints[x][1] < 0) {
                 hints[x][1] = y;
             }
             if (hints[y][3] < 0) {
                 hints[y][3] = x;
             }
+            if (hints[x][1] == y && hints[y][3] == x) {
+                mergedHints[x][1] = y;
+                mergedHints[y][3] = x;
+            }
         }
         else {
-            if (hints[x][2] == y || hints[y][0] == x) {
-                hints[x][2] = y;
-                hints[y][0] = x;
-            }
             if (hints[x][2] < 0) {
                 hints[x][2] = y;
             }
             if (hints[y][0] < 0) {
                 hints[y][0] = x;
             }
+            if (hints[x][2] == y && hints[y][0] == x) {
+                mergedHints[x][2] = y;
+                mergedHints[y][0] = x;
+            }
         }
     }
+    return mergedHints;
 }
 
 module.exports = function (io) {
@@ -752,7 +757,7 @@ module.exports = function (io) {
                 let redis_key = 'round:' + roundID + ':GA_edges';
                 redis.get(redis_key, function(err, doc){
                     if(doc){
-                        createDiff(roundID, Date.now(), doc, nodesAndHints)
+                        hints = mergyGA(roundID, Date.now(), doc, nodesAndHints)
                     }
                     socket.emit('proactiveHints', {
                         sureHints: hints,
@@ -774,7 +779,7 @@ module.exports = function (io) {
                 let redis_key = 'round:' + roundID + ':GA_edges';
                 redis.get(redis_key, function(err, doc){
                     if(doc){
-                        createDiff(roundID, Date.now(), doc, nodesAndHints)
+                        hints = mergyGA(roundID, Date.now(), doc, nodesAndHints)
                     }
                     socket.emit('reactiveHints', {
                         indexes: data.indexes,
