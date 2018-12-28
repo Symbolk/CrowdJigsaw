@@ -175,6 +175,7 @@ function onMouseUp(event) {
     if (timeoutFunction) {
         clearTimeout(timeoutFunction);
     }
+
     if(!event.event.ctrlKey || puzzle.ctrlDrag) {
         puzzle.releaseTile();
     }
@@ -1174,6 +1175,49 @@ function JigsawPuzzle(config) {
         return -1;
     }
 
+    this.removeSelectedTile = function(point) {
+        if (!instance.draging || !tile.picking) {
+            return;
+        }
+        var hitResult = project.hitTest(point);
+        if (!hitResult || hitResult.type != "pixel") {
+            return;
+        }
+        var img = hitResult.item;
+        var tile = img.parent.parent;
+        if (tile && tile.picking && tile.name) {
+            var index = -1;
+            for (var i = 0; i < instance.selectedTile.length; i++) {
+                if (tile == instance.selectedTile[i]) {
+                    index = i;
+                }
+            }
+
+            tile.picking = false;
+            tile.position = tile.cellPosition * instance.tileWidth;
+            tile.opacity = 1;
+            tile.relativePosition = new Point(0, 0);
+
+            if (index >= 0) {
+                instance.selectedTile.splice(index, 1);
+                if(instance.selectedTile.length == 0) {
+                    instance.draging = false;
+                    instance.selectedTile = null;
+                }
+                if (index == 0 && instance.selectedTile) {
+                    for (var i = 0; i < instance.selectedTile.length; i++) {
+                        if (i == 0) {
+                            instance.selectedTile[i].relativePosition = new Point(0, 0);
+                        }
+                        else {
+                            instance.selectedTile[i].relativePosition = instance.selectedTile[i].cellPosition - instance.selectedTile[0].cellPosition;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     this.pickTileFromTo = function (from, to) {
         var lx = from.x < to.x ? from.x : to.x;
         var rx = from.x > to.x ? from.x : to.x;
@@ -1212,6 +1256,9 @@ function JigsawPuzzle(config) {
                 tile.opacity = 0.5;
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
                 tile.originPosition = tile.cellPosition;
+                tile.onDoubleClick = function(event) {
+                    instance.removeSelectedTile(event.point);
+                };
             }
         }
     }
@@ -1253,6 +1300,9 @@ function JigsawPuzzle(config) {
                 }
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
                 tile.originPosition = tile.cellPosition;
+                tile.onDoubleClick = function(event) {
+                    instance.removeSelectedTile(event.point);
+                };
             }
             return instance.selectedTile.length;
         }
