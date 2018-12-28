@@ -553,12 +553,12 @@ function JigsawPuzzle(config) {
 
                 instance.lastStepTime = instance.thisStepTime;
                 instance.thisStepTime = time;
-                clearTimeout(instance.askHelpTimeout);
+                //clearTimeout(instance.askHelpTimeout);
                 var delta = Number(instance.thisStepTime - instance.lastStepTime);
                 if (delta >= 2 && instance.linksChangedCount >= 0) {
                     console.log("Delta", delta);
                     instance.linksChangedCount = 0;
-                    instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
+                    //instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
                 }
                 
                 instance.realStepsCounted = true;
@@ -1484,6 +1484,8 @@ function JigsawPuzzle(config) {
                 return;
             }
 
+            instance.hintsShowingType = 'proactive';
+
             var shouldSave = false;
 
             instance.hintsLog = {
@@ -1524,10 +1526,12 @@ function JigsawPuzzle(config) {
                     finishGame();
                 }
             }
-
+            /*
             if (!shouldSave){
                 processUnsureHints(data.unsureHints);
             }
+            */
+            instance.hintsShowingType = undefined;
             instance.hintsShowing = false;
         }
         else {
@@ -1613,7 +1617,7 @@ function JigsawPuzzle(config) {
                 var errors = checkTiles();
                 if (errors == 0) {
                     finishGame();
-                    clearTimeout(instance.askHelpTimeout);
+                    //clearTimeout(instance.askHelpTimeout);
                 }
             }
             $('html,body').css('cursor', 'default');
@@ -2009,9 +2013,9 @@ function JigsawPuzzle(config) {
                         if (unsureHint.aroundTiles[d].length > 0 &&
                             instance.tiles[index].aroundTiles[d] < 0) {
                             showUnsureHintColor(index, unsureHint.aroundTiles[d], d, colorIndex);
-                            if (colorIndex == 0) {
+                            /*if (colorIndex == 0) {
                                 focusOnTile(instance.tiles[index]);
-                            }
+                            }*/
                             colorIndex += 1;
                             if (colorIndex >= instance.unsureHintsColor.length) {
                                 break;
@@ -2024,6 +2028,7 @@ function JigsawPuzzle(config) {
                 break;
             }
         }
+        /*
         if (colorIndex > 0) {
             for (var i = 0; i < instance.tiles.length; i++) {
                 var tile = instance.tiles[i];
@@ -2031,7 +2036,7 @@ function JigsawPuzzle(config) {
                     tile.opacity = 0.25;
                 }
             }
-        }
+        }*/
     }
 
     function countBidirectionLinks(sureHints){
@@ -2123,7 +2128,7 @@ function JigsawPuzzle(config) {
         var currentStep = data.currentStep;
         if (!mousedowned && currentStep == instance.steps) {
             instance.hintsShowing = true;
-
+            instance.hintsShowingType = 'reactive';
             instance.hintsLog = {
                 type: 'reactive',
                 hints: JSON.stringify(data.sureHints),
@@ -2165,7 +2170,7 @@ function JigsawPuzzle(config) {
             if (!shouldSave){
                 processUnsureHints(data.unsureHints, data.selectedTileIndexes);
             }
-
+            instance.hintsShowingType = 'reactive';
             instance.hintsShowing = false;
         }
     });
@@ -2353,7 +2358,7 @@ function JigsawPuzzle(config) {
             var hasConflicts = checkConflict(groupTiles, correctCellposition, selectedGroupTiles);
             var hasConflict = hasConflicts[0];
             var needToMove = hasConflicts[1];
-            if(hasConflict && needToMove){
+            if(hasConflict && needToMove && instance.hintsShowingType == 'reactive'){
                 var moveAwayShouldSave = moveSelectedTilesAway(selectedTileIndex);
                 shouldSave = shouldSave || moveAwayShouldSave;
                 cellPosition = instance.tiles[selectedTileIndex].cellPosition;
