@@ -708,12 +708,10 @@ function JigsawPuzzle(config) {
         }
         computeGraphData();
 
-        if(!instance.forceLeaving){
-            $('#finish_dialog').modal({
-                keyboard: false,
-                backdrop: false
-            });
-        }
+        $('#finish_dialog').modal({
+            keyboard: false,
+            backdrop: false
+        });
 
         /**          
          * Once one person solves the puzzle, the round is over          
@@ -1554,7 +1552,7 @@ function JigsawPuzzle(config) {
         if(players_num == 1){
             return;
         }
-        if (ctrlDown || mousedowned || instance.gameFinished || instance.forceLeaving) {
+        if (ctrlDown || mousedowned || instance.gameFinished) {
             return;
         }
 
@@ -2894,9 +2892,6 @@ function JigsawPuzzle(config) {
     });
 
     $('#quit').click(function (event) {
-        if(puzzle.forceLeaving){
-            return;
-        }
         $('#quitLabel').text('Are You Sure to Quit?');
         $('#ensure_quit_dialog').modal({
             keyboard: true
@@ -2992,12 +2987,10 @@ $(document).ready(function(e) {
         $(window).on('popstate', function () {
             window.history.pushState('forward', null, '#');
             window.history.forward(1);
-            if(!puzzle.forceLeaving){
-                $('#quitLabel').text('Are You Sure to Quit?');
-                $('#ensure_quit_dialog').modal({
-                    keyboard: true
-                });
-            }
+            $('#quitLabel').text('Are You Sure to Quit?');
+            $('#ensure_quit_dialog').modal({
+                keyboard: true
+            });
         });
     }
  
