@@ -257,12 +257,12 @@ module.exports = function (io) {
                                     if (err) {
                                         console.log(err);
                                     }
-                                    /*
+                                    
                                     else{
                                         socket.broadcast.emit('forceLeave', {
                                             round_id: data.round_id
                                         });
-                                    }*/
+                                    }
                                 });
                             } else {
                                 var solved_players = doc.solved_players;
@@ -274,12 +274,12 @@ module.exports = function (io) {
                                     if (err) {
                                         console.log(err);
                                     } 
-                                    /*
+                                    
                                     else {
                                         socket.broadcast.emit('forceLeave', {
                                             round_id: data.round_id
                                         });
-                                    }*/
+                                    }
                                 });
                             }
                             doc.solved_players += 1;

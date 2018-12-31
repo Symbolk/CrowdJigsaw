@@ -293,6 +293,7 @@ function JigsawPuzzle(config) {
     this.forceLeaving = false;
     this.forceLeave = function(text)
     {
+        /*
         instance.forceLeaving = true;
         $('#cancel-button').attr('disabled',"true");
 
@@ -300,12 +301,13 @@ function JigsawPuzzle(config) {
         $('#ensure_quit_dialog').modal({
             keyboard: false,
             backdrop: false
-        });
+        });*/
+        sendRecord(false, 5);
     }
-    ////
+
     socket.on('forceLeave', function (data) {
         if (data.round_id == roundID) {
-            instance.forceLeave('Someone Have Finished the Puzzle. Please Quit.');
+            instance.forceLeave('Someone Have Finished the Puzzle. Send record.');
         }
     });
 
@@ -2947,7 +2949,6 @@ function JigsawPuzzle(config) {
     $('#submit-button').click(function (event) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
-
         sendRecord(true, rating);
         quitRound(roundID);
     });
@@ -2964,8 +2965,6 @@ function JigsawPuzzle(config) {
 
     $('#apply-button').click(function (event) {
         var rating = $("#rating").val();
-        puzzle.calcHintedTile();
-
         sendRecord(false, rating);
         quitRound(roundID);
     });
@@ -3006,6 +3005,7 @@ $('.returnCenter').click(function () {
  * Send personal records to the server at the end of one game
  */
 function sendRecord(finished, rating) {
+    puzzle.calcHintedTile();
     var params = {
         round_id: roundID,
         player_name: player_name,
@@ -3040,11 +3040,11 @@ function quitRound(roundID) {
     }
 }
 
-/*
+
 if(solved_players >= 1){
-    puzzle.forceLeave('Someone Have Finished the Puzzle. Please Quit.');
+    puzzle.forceLeave('Someone Have Finished the Puzzle. Send record.');
 }
-*/
+
 
 $(document).ready(function(e) { 
     var counter = 0;
