@@ -108,17 +108,21 @@ canvas[resize]{
     width:100px;
 }
 
-#undo_button{
+#undo_help{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+#undo_help img{
     background-color: rgba(200, 200, 200, 0);
     height: 10%;
     width: height;
-    position: absolute;
-    top: 20px;
-    right: 20px;
     border-style: dashed;
     border-width: thick;
     border-color: rgba(200, 200, 200, 0.5);
 }
+
 
 .demo-layout-transparent .mdl-layout__drawer-button {
   color: black;
