@@ -408,7 +408,7 @@ function update(data) {
                     }
 
                     generateHints(roundID, nodesAndHints);
-                    //checkUnsureHints(nodesAndHints);
+                    checkUnsureHints(nodesAndHints);
 
                     var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
 
@@ -709,24 +709,12 @@ function mergyGA(round_id, time, ga_json, nodesAndHints){
         let y = parseInt(sp[1].substr(1));
         let tag = sp[1][0] == 'R' ? 'L-R' : 'T-B';
         if(tag == 'L-R'){
-            if (hints[x][1] < 0) {
-                hints[x][1] = y;
-            }
-            if (hints[y][3] < 0) {
-                hints[y][3] = x;
-            }
             if (hints[x][1] == y && hints[y][3] == x) {
                 mergedHints[x][1] = y;
                 mergedHints[y][3] = x;
             }
         }
         else {
-            if (hints[x][2] < 0) {
-                hints[x][2] = y;
-            }
-            if (hints[y][0] < 0) {
-                hints[y][0] = x;
-            }
             if (hints[x][2] == y && hints[y][0] == x) {
                 mergedHints[x][2] = y;
                 mergedHints[y][0] = x;

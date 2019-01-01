@@ -146,14 +146,24 @@ var movePath = false;
 
 $('.puzzle-image').css('margin', '-' + imgHeight / 2 + 'px 0 0 -' + imgWidth / 2 + 'px');
 
+
+var ctrlFrame, ctrlFrameFrom, ctrlFrameTo;
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var mousedowned = false;
 var timeoutFunction;
 function onMouseDown(event) {
     mousedowned = true;
-    var tilesCount = puzzle.pickTile(event.point);
-    if (tilesCount > 0) {
+    var tilesCount = puzzle.pickTile(event.point, event.event.ctrlKey);
+    if (tilesCount > 0 && !event.event.ctrlKey) {
         timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
+    }
+    if (ctrlFrame) {
+        ctrlFrame.remove();
+        ctrlFrame = null;
+    }
+    if(tilesCount == 0 && event.event.ctrlKey){
+        ctrlFrameFrom = event.point;
+        ctrlFrameTo = event.point;
     }
 }
 
@@ -166,19 +176,38 @@ function onMouseUp(event) {
     if (timeoutFunction) {
         clearTimeout(timeoutFunction);
     }
-    puzzle.releaseTile();
+
+    if(!event.event.ctrlKey || puzzle.ctrlDrag) {
+        puzzle.releaseTile();
+    }
     mousedowned = false;
+    if (ctrlFrame) {
+        if(ctrlFrameFrom && ctrlFrameTo && event.event.ctrlKey && !puzzle.ctrlDrag) {
+            puzzle.pickTileFromTo(ctrlFrameFrom, ctrlFrameTo);
+        }
+        ctrlFrame.remove();
+        ctrlFrame = null;
+        ctrlFrameFrom = null;
+        ctrlFrameTo = null;
+    }
 }
 
 
 function onMouseDrag(event) {
-    var ca = document.getElementById("canvas");
-    ca.getContext("2d").clearRect(0, 0, ca.width, ca.height);
     mousedowned = true;
     if (timeoutFunction) {
         clearTimeout(timeoutFunction);
     }
-    puzzle.dragTile(event.delta);
+    puzzle.dragTile(event.delta, event.event.ctrlKey);
+    if (ctrlFrame) {
+        ctrlFrame.remove();
+        ctrlFrame = null;
+    }
+    if (!puzzle.ctrlDrag && ctrlFrameTo && event.event.ctrlKey) {
+        ctrlFrameTo += event.delta;
+        ctrlFrame = new Shape.Rectangle(ctrlFrameFrom, ctrlFrameTo);
+        ctrlFrame.strokeColor = 'black';
+    }
 }
 
 $(window).bind('mousewheel', function (e) {
@@ -190,22 +219,42 @@ $(window).bind('mousewheel', function (e) {
     }
 });
 
+var ctrlDown = false;
 function onKeyDown(event) {
-    if (event.event.ctrlKey && event.key == "z") {
-        // undo a step
-        if (puzzle.steps != undoStep) {
-            puzzle.undoNextStep();
-        }
+    switch (event.key) {
+        case 'z':
+            if (event.event.ctrlKey) {
+                // undo a step
+                if (puzzle.steps != undoStep) {
+                    puzzle.undoNextStep();
+                }
+            }
+            break;
+        case 'control':
+            ctrlDown = true;
+            break;
     }
 }
 
 function onKeyUp(event) {
     switch (event.key) {
         case 'z':
-            puzzle.zoom(.1);
+            if (!event.event.ctrlKey) {
+                puzzle.zoom(.1);
+            }
             break;
         case 'x':
             puzzle.zoom(-.1);
+            break;
+        case 'control':
+            if (ctrlFrame) {
+                ctrlFrame.remove();
+                ctrlFrame = null;
+            }
+            if (puzzle.selectedTile) {
+                puzzle.releaseTile();
+            }
+            ctrlDown = false;
             break;
     }
 }
@@ -244,6 +293,12 @@ function JigsawPuzzle(config) {
     this.forceLeaving = false;
     this.forceLeave = function(text)
     {
+        if (!instance.forceLeaving) {
+            sendRecord(false, 5);
+            console.log(text);
+        }
+        instance.forceLeaving = true;
+        /*
         instance.forceLeaving = true;
         $('#cancel-button').attr('disabled',"true");
 
@@ -251,12 +306,12 @@ function JigsawPuzzle(config) {
         $('#ensure_quit_dialog').modal({
             keyboard: false,
             backdrop: false
-        });
+        });*/
     }
-    ////
+
     socket.on('forceLeave', function (data) {
         if (data.round_id == roundID) {
-            instance.forceLeave('Someone Have Finished the Puzzle. Please Quit.');
+            instance.forceLeave('Someone Have Finished the Puzzle. Send record.');
         }
     });
 
@@ -318,7 +373,7 @@ function JigsawPuzzle(config) {
     else {
         this.tileMarginWidth = this.tileWidth * ((100 / this.tileWidth - 1) / 2);
     }
-    this.selectedTile = undefined;
+    this.selectedTile = null;
     this.selectedGroup = undefined;
 
     this.saveShapeArray = shapeArray;
@@ -413,7 +468,6 @@ function JigsawPuzzle(config) {
             }
             instance.groups[i] = i;
             instance.sizes[i] = 0;
-            tile.wantToMoveAway = -1;
         }
 
         if (instance.saveHintedLinks) {
@@ -553,12 +607,12 @@ function JigsawPuzzle(config) {
 
                 instance.lastStepTime = instance.thisStepTime;
                 instance.thisStepTime = time;
-                clearTimeout(instance.askHelpTimeout);
+                //clearTimeout(instance.askHelpTimeout);
                 var delta = Number(instance.thisStepTime - instance.lastStepTime);
                 if (delta >= 2 && instance.linksChangedCount >= 0) {
                     console.log("Delta", delta);
                     instance.linksChangedCount = 0;
-                    instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
+                    //instance.askHelpTimeout = setTimeout(askHelp, 5000 * delta);
                 }
                 
                 instance.realStepsCounted = true;
@@ -654,12 +708,10 @@ function JigsawPuzzle(config) {
         }
         computeGraphData();
 
-        if(!instance.forceLeaving){
-            $('#finish_dialog').modal({
-                keyboard: false,
-                backdrop: false
-            });
-        }
+        $('#finish_dialog').modal({
+            keyboard: false,
+            backdrop: false
+        });
 
         /**          
          * Once one person solves the puzzle, the round is over          
@@ -1144,21 +1196,115 @@ function JigsawPuzzle(config) {
         return -1;
     }
 
-    this.pickTile = function (point) {
+    this.removeSelectedTile = function(point) {
+        if (!instance.draging) {
+            return;
+        }
+        var hitResult = project.hitTest(point);
+        if (!hitResult || hitResult.type != "pixel") {
+            return;
+        }
+        var img = hitResult.item;
+        var tile = img.parent.parent;
+        if (tile && tile.picking && tile.name) {
+            var index = -1;
+            for (var i = 0; i < instance.selectedTile.length; i++) {
+                if (tile == instance.selectedTile[i]) {
+                    index = i;
+                }
+            }
+
+            tile.picking = false;
+            tile.position = tile.cellPosition * instance.tileWidth;
+            tile.opacity = 1;
+            tile.relativePosition = new Point(0, 0);
+
+            if (index >= 0) {
+                instance.selectedTile.splice(index, 1);
+                if(instance.selectedTile.length == 0) {
+                    instance.draging = false;
+                    instance.selectedTile = null;
+                }
+                if (index == 0 && instance.selectedTile) {
+                    for (var i = 0; i < instance.selectedTile.length; i++) {
+                        if (i == 0) {
+                            instance.selectedTile[i].relativePosition = new Point(0, 0);
+                        }
+                        else {
+                            instance.selectedTile[i].relativePosition = instance.selectedTile[i].cellPosition - instance.selectedTile[0].cellPosition;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    this.pickTileFromTo = function (from, to) {
+        var lx = from.x < to.x ? from.x : to.x;
+        var rx = from.x > to.x ? from.x : to.x;
+        var ly = from.y < to.y ? from.y : to.y;
+        var ry = from.y > to.y ? from.y : to.y;
+
+        if (instance.selectedTile == null) {
+            instance.ctrlDrag = false;
+            instance.selectedTile = new Array();
+        }
+
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            if (tile.picking) {
+                continue;
+            }
+            var x = tile.position.x;
+            var y = tile.position.y;
+            if (lx <= x && x <= rx && ly <= y && y <= ry) {
+                if (instance.selectedTile.length == 0) {
+                    tile.relativePosition = new Point(0, 0);
+                }
+                else{
+                    tile.relativePosition = tile.cellPosition - instance.selectedTile[0].cellPosition;
+                }
+                instance.selectedTile.push(tile);
+            }
+        }
+
+        if (instance.selectedTile.length > 0) {
+            instance.draging = true;
+            var pos = new Point(instance.selectedTile[0].position.x, instance.selectedTile[0].position.y);
+            for (var i = 0; i < instance.selectedTile.length; i++) {
+                var tile = instance.selectedTile[i];
+                tile.picking = true;
+                tile.opacity = 0.5;
+                tile.position = pos + tile.relativePosition * instance.tileWidth;
+                tile.originPosition = tile.cellPosition;
+                tile.onDoubleClick = function(event) {
+                    instance.removeSelectedTile(event.point);
+                };
+            }
+        }
+    }
+
+    this.pickTile = function (point, ctrl) {
         if (instance.hintsShowing) {
             return;
         }
-        findSelectTile(point);
-        if (instance.selectedTile) {
+        if (instance.selectedTile == null) {
+            instance.ctrlDrag = false;
+            instance.selectedTile = new Array();
+        }
+        if (!instance.ctrlDrag) {
+            findSelectTile(point, instance.selectedTile);
+        }
+        if (instance.selectedTile && instance.selectedTile.length > 0) {
             $('html,body').css('cursor', 'move');
-            if (!instance.selectedTile[0].picking) {
+            if (ctrl && !instance.ctrlDrag || !instance.selectedTile[0].picking) {
                 for (var i = 0; i < instance.selectedTile.length; i++) {
                     instance.selectedTile[i].picking = true;
                 }
             }
             else {
                 instance.releaseTile();
-                return;
+                return 0;
             }
 
             instance.draging = true;
@@ -1167,42 +1313,24 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
                 tile.opacity = 0.5;
+                if (i > 0) {
+                    tile.relativePosition = tile.cellPosition - instance.selectedTile[0].cellPosition;
+                }
+                else {
+                    tile.relativePosition = new Point(0, 0);
+                }
                 tile.position = pos + tile.relativePosition * instance.tileWidth;
                 tile.originPosition = tile.cellPosition;
+                tile.onDoubleClick = function(event) {
+                    instance.removeSelectedTile(event.point);
+                };
             }
             return instance.selectedTile.length;
         }
+        else if(!ctrl) {
+            instance.selectedTile = null;
+        }
         return 0;
-    }
-
-    function moveAwayDelay(tile, d) {
-        if ((tile.wantToMoveAway >= 0 && tile.wantToMoveAway != d) || !tile.noAroundTiles) {
-            return false;
-        }
-        tile.wantToMoveAway = d;
-        var cellPositionAfter = tile.cellPosition + directions[d];
-
-        for (var i = 0; i < 4; i++) {
-            var neighborTile = getTileAtCellPosition(cellPositionAfter + directions[i]);
-            if (neighborTile != undefined && tile != neighborTile) {
-                var canMoveAway = moveAwayDelay(neighborTile, d);
-                if (!canMoveAway) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    function allMoveAway() {
-        for (var i = 0; i < instance.tiles.length; i++) {
-            var tile = instance.tiles[i];
-            if (tile.wantToMoveAway >= 0 && tile.noAroundTiles) {
-                placeTile(tile, tile.cellPosition + directions[tile.wantToMoveAway]);
-                tile.wantToMoveAway = -1;
-            }
-        }
     }
 
     function checkConflict(tiles, centerCellPosition, selectedGroupTiles) {
@@ -1250,12 +1378,6 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && topTile.shape.bottomTab == 0 && tile.shape.topTab == 0));
                 if (hintAroundTiles) {
                     topTileConflict = topTileConflict || (topTile != undefined) && (getTileIndex(topTile) != hintAroundTiles[0]);
-                    if (topTileConflict && tile.aroundTiles[0] < 0 && onlyOneTile) {
-                        var canMoveAway = false;//moveAwayDelay(topTile, 0);
-                        if (canMoveAway) {
-                            topTileConflict = false;
-                        }
-                    }
                 }
                 if(topTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -1270,12 +1392,6 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && rightTile.shape.leftTab == 0 && tile.shape.rightTab == 0));
                 if (hintAroundTiles) {
                     rightTileConflict = rightTileConflict || (rightTile != undefined) && (getTileIndex(rightTile) != hintAroundTiles[1]);
-                    if (rightTileConflict && tile.aroundTiles[1] < 0 && onlyOneTile) {
-                        var canMoveAway = false;//moveAwayDelay(rightTile, 1);
-                        if (canMoveAway) {
-                            rightTileConflict = false;
-                        }
-                    }
                 }
                 if(rightTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -1290,12 +1406,6 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && bottomTile.shape.topTab == 0 && tile.shape.bottomTab == 0));
                 if (hintAroundTiles) {
                     bottomTileConflict = bottomTileConflict || (bottomTile != undefined) && (getTileIndex(bottomTile) != hintAroundTiles[2]);
-                    if (bottomTileConflict && tile.aroundTiles[2] < 0 && onlyOneTile) {
-                        var canMoveAway = false;//moveAwayDelay(bottomTile, 2);
-                        if (canMoveAway) {
-                            bottomTileConflict = false;
-                        }
-                    }
                 }
                 if(bottomTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -1310,12 +1420,6 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && leftTile.shape.rightTab == 0 && tile.shape.leftTab == 0));
                 if (hintAroundTiles) {
                     leftTileConflict = leftTileConflict || (leftTile != undefined) && (getTileIndex(leftTile) != hintAroundTiles[3]);
-                    if (leftTileConflict && tile.aroundTiles[3] < 0 && onlyOneTile) {
-                        var canMoveAway = false;//moveAwayDelay(leftTile, 3);
-                        if (canMoveAway) {
-                            leftTileConflict = false;
-                        }
-                    }
                 }
                 if(leftTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -1329,9 +1433,6 @@ function JigsawPuzzle(config) {
                 var aroundConflict = topTileConflict || bottomTileConflict || rightTileConflict || leftTileConflict;
                 var hasConflict = aroundConflict || hasConflict;
             }
-        }
-        if (!hasConflict) {
-            allMoveAway();
         }
         return [hasConflict,needToMove];
     }
@@ -1447,16 +1548,31 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function askHelp() {
+    this.askHelp = function() {
         if(players_num == 1){
             return;
         }
-        if (instance.gameFinished || instance.forceLeaving) {
+        if (ctrlDown || mousedowned || instance.gameFinished) {
             return;
         }
 
+        if (instance.lastAskHelpStep == instance.steps){
+            $.amaran({
+                'title': 'Warning',
+                'message': 'Too frequent!',
+                'inEffect': 'slideRight',
+                'cssanimationOut': 'zoomOutUp',
+                'position': "top right",
+                'delay': 2000,
+                'closeOnClick': true,
+                'closeButton': true
+            });
+            return;
+        }
+        instance.lastAskHelpStep = instance.steps;
+
         console.log("Asking for help...");
-        clearTimeout(instance.askHelpTimeout);
+        //clearTimeout(instance.askHelpTimeout);
 
         if (mousedowned || instance.hintsShowing) {
             return;
@@ -1475,8 +1591,7 @@ function JigsawPuzzle(config) {
     }
 
     socket.on("proactiveHints", function (data) {
-        console.log(data);
-        if (!mousedowned && !instance.hintsShowing && data && data.sureHints) {
+        if (!ctrlDown && !mousedowned && !instance.hintsShowing && data && data.sureHints) {
             if (!instance.hintsShowing) {
                 instance.hintsShowing = true;
             }
@@ -1484,7 +1599,7 @@ function JigsawPuzzle(config) {
                 return;
             }
 
-            var shouldSave = false;
+            instance.hintsShowingType = 'proactive';
 
             instance.hintsLog = {
                 type: 'proactive',
@@ -1498,6 +1613,9 @@ function JigsawPuzzle(config) {
             var strongHintsNeededTiles = new Array();
             for (var index = 0; index < instance.tiles.length; index++) {
                 var tile = instance.tiles[index];
+                if (tile.subGraphSize != instance.maxSubGraphSize) {
+                    continue;
+                }
                 for (var j = 0; j < 4; j++) {
                     if (tile.aroundTiles[j] < 0 && data.sureHints[index][j] > -1) {
                         strongHintsNeededTiles.push(index);
@@ -1506,8 +1624,19 @@ function JigsawPuzzle(config) {
                 }
             }
 
-            var shouldSave = showStrongAndWeakHints(data.sureHints, strongHintsNeededTiles);
+            if (strongHintsNeededTiles.length == 0) {
+                for (var index = 0; index < instance.tiles.length; index++) {
+                    var tile = instance.tiles[index];
+                    for (var j = 0; j < 4; j++) {
+                        if (tile.aroundTiles[j] < 0 && data.sureHints[index][j] > -1) {
+                            strongHintsNeededTiles.push(index);
+                            break;
+                        }
+                    }
+                }
+            }
 
+            var shouldSave = showStrongAndWeakHints(data.sureHints, strongHintsNeededTiles);
             if (shouldSave) {
                 saveGame();
             }
@@ -1524,10 +1653,12 @@ function JigsawPuzzle(config) {
                     finishGame();
                 }
             }
-
+            
             if (!shouldSave){
                 processUnsureHints(data.unsureHints);
             }
+            
+            instance.hintsShowingType = undefined;
             instance.hintsShowing = false;
         }
         else {
@@ -1537,13 +1668,16 @@ function JigsawPuzzle(config) {
 
     this.releaseTile = function () {
         if (instance.draging) {
+            if (!instance.selectedTile || instance.selectedTile.length == 0) {
+                instance.draging = false;
+                instance.selectedTile = null;
+            }
             var centerCellPosition = new Point(
                 Math.round(instance.selectedTile[0].position.x / instance.tileWidth),
                 Math.round(instance.selectedTile[0].position.y / instance.tileWidth));
 
             var originCenterCellPostion = instance.selectedTile[0].originPosition;
 
-            // console.log("releaseTile cellPosition : x : " + centerCellPosition.x + " y : " + centerCellPosition.y);
             var hasConflicts = checkConflict(instance.selectedTile, centerCellPosition);
             var hasConflict = hasConflicts[0];
             for (var i = 0; i < instance.selectedTile.length; i++) {
@@ -1613,11 +1747,13 @@ function JigsawPuzzle(config) {
                 var errors = checkTiles();
                 if (errors == 0) {
                     finishGame();
-                    clearTimeout(instance.askHelpTimeout);
+                    //clearTimeout(instance.askHelpTimeout);
                 }
             }
             $('html,body').css('cursor', 'default');
             normalizeTiles();
+
+            instance.ctrlDrag = false;
         }
     }
 
@@ -1928,7 +2064,6 @@ function JigsawPuzzle(config) {
             if (!forAskHelp) {
                 tile.aroundTilesChanged = false;
             }
-            tile.wantToMoveAway = -1;
             tile.positionMoved = false;
         }
         instance.centerPoint = (leftUpPoint + rightBottomPoint) / 2;
@@ -1984,10 +2119,6 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function focusOnTile(tile) {
-        view.scrollBy(tile.position - view.center);
-    }
-
     function processUnsureHints(unsureHints, indexes) {
         if (!unsureHints) {
             return;
@@ -2009,9 +2140,6 @@ function JigsawPuzzle(config) {
                         if (unsureHint.aroundTiles[d].length > 0 &&
                             instance.tiles[index].aroundTiles[d] < 0) {
                             showUnsureHintColor(index, unsureHint.aroundTiles[d], d, colorIndex);
-                            if (colorIndex == 0) {
-                                focusOnTile(instance.tiles[index]);
-                            }
                             colorIndex += 1;
                             if (colorIndex >= instance.unsureHintsColor.length) {
                                 break;
@@ -2024,6 +2152,7 @@ function JigsawPuzzle(config) {
                 break;
             }
         }
+        /*
         if (colorIndex > 0) {
             for (var i = 0; i < instance.tiles.length; i++) {
                 var tile = instance.tiles[i];
@@ -2031,7 +2160,7 @@ function JigsawPuzzle(config) {
                     tile.opacity = 0.25;
                 }
             }
-        }
+        }*/
     }
 
     function countBidirectionLinks(sureHints){
@@ -2055,11 +2184,21 @@ function JigsawPuzzle(config) {
         return bidirectionLinks;
     }
 
+    function sortTile(t1, t2) {
+        var tile1 = instance.tiles[t1];
+        var tile2 = instance.tiles[t2];
+        return tile2.subGraphSize - tile1.subGraphSize;
+    }
+
     function showStrongAndWeakHints(sureHints, strongHintsNeededTiles){
         var shouldSave = false;
+        if (strongHintsNeededTiles.length == 0) {
+            return shouldSave;
+        }
         instance.conflictGroupHasBeenMoveAway = false;
         var bidirectionLinks = countBidirectionLinks(sureHints);
         var weakHintsNeededTiles = new Array();
+        strongHintsNeededTiles.sort(sortTile);
         while(strongHintsNeededTiles.length > 0){
             var index = strongHintsNeededTiles.shift();
             var tile = instance.tiles[index];
@@ -2070,6 +2209,9 @@ function JigsawPuzzle(config) {
                 var hintTileIndex = sureHints[index][j];
                 if (hintTileIndex > -1) {
                     var hintTile = instance.tiles[hintTileIndex];
+                    if (hintTile.hasShowHint) {
+                        continue;
+                    }
                     if(bidirectionLinks[index].aroundTiles[j] && hintTile.noAroundTiles){
                         var shouldSaveThis = showHints(index, sureHints[index], j);
                         normalizeTiles(true);
@@ -2084,7 +2226,7 @@ function JigsawPuzzle(config) {
                 }
             }
         }
- 
+        weakHintsNeededTiles.sort(sortTile);
         for (var i = 0; i < weakHintsNeededTiles.length; i++) {
             var index = weakHintsNeededTiles[i];
             var tile = instance.tiles[index];
@@ -2092,7 +2234,12 @@ function JigsawPuzzle(config) {
                 if(tile.aroundTiles[j] >= 0){
                     continue;
                 }
-                if (sureHints[index][j] > -1 && bidirectionLinks[index].aroundTiles[j]) {
+                var hintTileIndex = sureHints[index][j];
+                if (hintTileIndex > -1 && bidirectionLinks[index].aroundTiles[j]) {
+                    var hintTile = instance.tiles[hintTileIndex];
+                    if (hintTile.hasShowHint) {
+                        continue;
+                    }
                     var shouldSaveThis = showHints(index, sureHints[index], j);
                     normalizeTiles(true);
                     shouldSave = shouldSave || shouldSaveThis;
@@ -2105,6 +2252,7 @@ function JigsawPuzzle(config) {
     function checkCorrectHints(tiles, hints){
         for (var i = 0; i < tiles.length; i++) {
             var tile = tiles[i];
+            tile.hasShowHint = false;
             tile.hasCorrectLinks = false;
             for (var j = 0; j < tile.aroundTiles.length; j++) {
                 if (tile.aroundTiles[j] >= 0 && tile.aroundTiles[j] == hints[i][j]) {
@@ -2116,14 +2264,13 @@ function JigsawPuzzle(config) {
     }
 
     socket.on("reactiveHints", function (data) {
-        console.log("hints:", data);
-        if (data.sureHints.length == 0) {
+        if (ctrlDown || data.sureHints.length == 0) {
             return;
         }
         var currentStep = data.currentStep;
         if (!mousedowned && currentStep == instance.steps) {
             instance.hintsShowing = true;
-
+            instance.hintsShowingType = 'reactive';
             instance.hintsLog = {
                 type: 'reactive',
                 hints: JSON.stringify(data.sureHints),
@@ -2165,7 +2312,7 @@ function JigsawPuzzle(config) {
             if (!shouldSave){
                 processUnsureHints(data.unsureHints, data.selectedTileIndexes);
             }
-
+            instance.hintsShowingType = 'reactive';
             instance.hintsShowing = false;
         }
     });
@@ -2236,7 +2383,9 @@ function JigsawPuzzle(config) {
             }
             if(shouldSave){
                 console.log("success move away", moveDir);
-                focusOnTile(selectedTile);
+                var delta = moveDir * (tilesPerRow / 2) * instance.tileWidth;
+                var currentScroll = view.currentScroll + delta * instance.currentZoom;
+                view.scrollBy(currentScroll);
             }
             return shouldSave;
         }
@@ -2248,6 +2397,9 @@ function JigsawPuzzle(config) {
     }
 
     function showHints(selectedTileIndex, hintTiles, direction) {
+        if (mousedowned || ctrlDown) {
+            return false;
+        }
         var tile = instance.tiles[selectedTileIndex];
         var selectedGroupTiles = new Array();
         DFSTiles(tile, selectedGroupTiles, new Point(0, 0));
@@ -2257,7 +2409,7 @@ function JigsawPuzzle(config) {
         var cellPosition = tile.cellPosition;
 
         if (!hintTiles) {
-            return;
+            return false;
         }
 
         var hintTilesCount = 0;
@@ -2310,6 +2462,17 @@ function JigsawPuzzle(config) {
                     direction: j,
                     success: false,
                     msg: 'hint_tile is picking by player'
+                });
+                continue;
+            }
+
+            if (correctTile.hasShowHint) {
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: 'hint_tile is shown to others'
                 });
                 continue;
             }
@@ -2397,6 +2560,7 @@ function JigsawPuzzle(config) {
                     var hintTile = groupTiles[i];
                     refreshAroundTiles(hintTile, true);
                     hintTile.picking = false;
+                    hintTile.hasShowHint = true;
                 }
                 instance.hintsLog.log.push({
                     tile: selectedTileIndex,
@@ -2413,7 +2577,7 @@ function JigsawPuzzle(config) {
             tile.alreadyHinted = true;
         }
 
-        return moveAwayShouldSave;
+        return shouldSave;
     }
 
     function getTileAtCellPosition(cellPosition) {
@@ -2485,8 +2649,8 @@ function JigsawPuzzle(config) {
         // }
     }
 
-    this.dragTile = function (delta) {
-        if (instance.draging) {
+    this.dragTile = function (delta, ctrl) {
+        if (instance.draging && instance.selectedTile && instance.selectedTile.length > 0) {
             var centerPosition = instance.selectedTile[0].position;
             if (instance.selectedTile[0].differentColor.length > 0) {
                 hideColorBorder(getTileIndex(instance.selectedTile[0]));
@@ -2499,8 +2663,9 @@ function JigsawPuzzle(config) {
                 tile.opacity = 1;
                 tile.position = centerPosition + tile.relativePosition * instance.tileWidth + delta;
             }
+            instance.ctrlDrag = ctrl;
         }
-        else {
+        else if(!ctrl) {
             var currentScroll = view.currentScroll - delta * instance.currentZoom;
             view.scrollBy(currentScroll);
             view.currentScroll = currentScroll;
@@ -2524,34 +2689,39 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function findSelectTile(point) {
+    function findSelectTile(point, selectedTile) {
         var cellPosition = new Point(
             Math.round(point.x / instance.tileWidth),//returns int closest to arg
             Math.round(point.y / instance.tileWidth));
         var hitResult = project.hitTest(point);
+        var finded = false;
         if (!hitResult || hitResult.type != "pixel") {
-            instance.selectedTile = null;
-            return;
+            return finded;
         }
         var img = hitResult.item;
         var tile = img.parent.parent;
         // console.log(tile.name);
-        if (tile.picking) {
-            instance.selectedTile = null;
-            return;
-        }
         if (tile && tile.name) {
-            instance.selectedTile = new Array();
-            if (instance.dragMode == "tile-First") {
-                instance.selectedTile.push(tile);
-            }
-            else {
-                DFSTiles(tile, instance.selectedTile, new Point(0, 0));
+            if (!tile.picking) {
+                finded = true;
+                if (instance.dragMode == "tile-First") {
+                    if (selectedTile.length == 0) {
+                        tile.relativePosition = new Point(0, 0);
+                    }
+                    else{
+                        tile.relativePosition = tile.cellPosition - selectedTile[0].cellPosition;
+                    }
+                    selectedTile.push(tile);
+                }
+                else {
+                    if (!tile.relativePosition) {
+                        tile.relativePosition = new Point(0, 0);
+                    }
+                    DFSTiles(tile, selectedTile, tile.relativePosition);
+                }
             }
         }
-        else {
-            instance.selectedTile = null;
-        }
+        return finded;
     }
 
     this.dragTileOrTiles = function () {
@@ -2717,15 +2887,11 @@ function JigsawPuzzle(config) {
     $('#submit-button').click(function (event) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
-
         sendRecord(true, rating);
         quitRound(roundID);
     });
 
     $('#quit').click(function (event) {
-        if(puzzle.forceLeaving){
-            return;
-        }
         $('#quitLabel').text('Are You Sure to Quit?');
         $('#ensure_quit_dialog').modal({
             keyboard: true
@@ -2734,8 +2900,6 @@ function JigsawPuzzle(config) {
 
     $('#apply-button').click(function (event) {
         var rating = $("#rating").val();
-        puzzle.calcHintedTile();
-
         sendRecord(false, rating);
         quitRound(roundID);
     });
@@ -2747,20 +2911,25 @@ $('#undo_button').on('click', function (event) {
     }
 });
 
-$('#undo_button').mousedown(function () {
-    $('#undo_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+
+$('#help_button').on('click', function (event) {
+    puzzle.askHelp();
 });
 
-$('#undo_button').mouseup(function () {
-    $('#undo_button').css("background-color", "rgba(200, 200, 200, 0)")
+$('#undo_help img').mousedown(function () {
+    $(this).css("background-color", "rgba(200, 200, 200, 0.9)")
 });
 
-$('#undo_button').mouseover(function () {
-    $('#undo_button').css("background-color", "rgba(200, 200, 200, 0.9)")
+$('#undo_help img').mouseup(function () {
+    $(this).css("background-color", "rgba(200, 200, 200, 0)")
 });
 
-$('#undo_button').mouseout(function () {
-    $('#undo_button').css("background-color", "rgba(200, 200, 200, 0)")
+$('#undo_help img').mouseover(function () {
+    $(this).css("background-color", "rgba(200, 200, 200, 0.9)")
+});
+
+$('#undo_help img').mouseout(function () {
+    $(this).css("background-color", "rgba(200, 200, 200, 0)")
 });
 
 $('.returnCenter').click(function () {
@@ -2771,6 +2940,7 @@ $('.returnCenter').click(function () {
  * Send personal records to the server at the end of one game
  */
 function sendRecord(finished, rating) {
+    puzzle.calcHintedTile();
     var params = {
         round_id: roundID,
         player_name: player_name,
@@ -2805,11 +2975,11 @@ function quitRound(roundID) {
     }
 }
 
-/*
+
 if(solved_players >= 1){
-    puzzle.forceLeave('Someone Have Finished the Puzzle. Please Quit.');
+    puzzle.forceLeave('Someone Have Finished the Puzzle. Send record.');
 }
-*/
+
 
 $(document).ready(function(e) { 
     var counter = 0;
@@ -2817,12 +2987,10 @@ $(document).ready(function(e) {
         $(window).on('popstate', function () {
             window.history.pushState('forward', null, '#');
             window.history.forward(1);
-            if(!puzzle.forceLeaving){
-                $('#quitLabel').text('Are You Sure to Quit?');
-                $('#ensure_quit_dialog').modal({
-                    keyboard: true
-                });
-            }
+            $('#quitLabel').text('Are You Sure to Quit?');
+            $('#ensure_quit_dialog').modal({
+                keyboard: true
+            });
         });
     }
  

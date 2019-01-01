@@ -321,8 +321,15 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     });
 });
 
+
+var ga_started = new Array();
 router.route('/ga').get(function (req, res) {
     let round_id = req.query.round_id;
+    if (ga_started[round_id]) {
+        res.send('GA algorithm for round ' + round_id + ' has already been started.');
+        console.log('GA algorithm for round %d has already been started.', round_id);
+        return;
+    }
     let data_server = req.query.data_server;
     // run genetic algorithm
     res.send('start running python script of GA algorithm for round ' + round_id);
@@ -348,6 +355,7 @@ router.route('/ga').get(function (req, res) {
         if (err){
             console.log(err);
         }
+        ga_started[round_id] = false;
     });
 });
 
