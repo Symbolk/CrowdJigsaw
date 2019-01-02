@@ -2954,12 +2954,17 @@ function sendRecord(finished, rating) {
         correctHintsNum: correctHintsNum,
         rating: rating
     };
-    var randomTime = Math.random() * 1000;
-    console.log("saveRecord in " + randomTime + "ms");
-    setTimeout(function(){
-        console.log("saveRecord");
+    if (!finished) {
+        var randomTime = Math.random() * 1000;
+        console.log("saveRecord in " + randomTime + "ms");
+        setTimeout(function(){
+            console.log("saveRecord");
+            socket.emit('saveRecord', params);
+        }, randomTime);
+    }
+    else {
         socket.emit('saveRecord', params);
-    }, randomTime);
+    }
 }
 
 function quitRound(roundID) {
