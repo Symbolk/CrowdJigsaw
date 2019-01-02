@@ -2954,7 +2954,12 @@ function sendRecord(finished, rating) {
         correctHintsNum: correctHintsNum,
         rating: rating
     };
-    socket.emit('saveRecord', params);
+    var randomTime = Math.random() * 1000;
+    console.log("saveRecord in " + randomTime + "ms");
+    setTimeout(function(){
+        console.log("saveRecord");
+        socket.emit('saveRecord', params);
+    }, randomTime);
 }
 
 function quitRound(roundID) {
@@ -2962,16 +2967,13 @@ function quitRound(roundID) {
         socket.emit('quitRound', {round_id:roundID, username: player_name});
     }
     else{
-        var randomTime = Math.random() * 1000;
         $('#quitLabel').text('Quiting...');
         $('#msgLabel').text('Quiting...');
         $('.rating-body').css('display', 'none');
         $('#apply-button').attr('disabled',"true");
         $('#submit-button').attr('disabled',"true");
         $('#cancel-button').attr('disabled',"true");
-        setTimeout(function(){ 
-            socket.emit('quitRound', {round_id:roundID, username: player_name});
-        }, randomTime);
+        socket.emit('quitRound', {round_id:roundID, username: player_name});
     }
 }
 
