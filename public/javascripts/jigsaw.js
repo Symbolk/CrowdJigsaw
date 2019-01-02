@@ -1556,7 +1556,7 @@ function JigsawPuzzle(config) {
             return;
         }
 
-        if (instance.lastAskHelpStep == instance.steps){
+        if (instance.lastAskHelpStep == instance.realSteps){
             $.amaran({
                 'title': 'Warning',
                 'message': 'Too frequent!',
@@ -1569,7 +1569,7 @@ function JigsawPuzzle(config) {
             });
             return;
         }
-        instance.lastAskHelpStep = instance.steps;
+        instance.lastAskHelpStep = instance.realSteps;
 
         console.log("Asking for help...");
         //clearTimeout(instance.askHelpTimeout);
