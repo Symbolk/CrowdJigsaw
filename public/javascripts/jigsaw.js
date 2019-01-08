@@ -1547,7 +1547,6 @@ function JigsawPuzzle(config) {
             instance.subGraphData[i].nodes = nodes;
         }
     }
-
     this.askHelp = function() {
         if(players_num == 1){
             return;
@@ -1577,12 +1576,12 @@ function JigsawPuzzle(config) {
         if (mousedowned || instance.hintsShowing) {
             return;
         }
-
+        /*
         $('#show_hints_dialog').modal({
             keyboard: false,
             backdrop: false
         }).show();
-
+        */
         socket.emit("fetchHints", {
             "round_id": roundID,
             "player_name": player_name,
@@ -1598,7 +1597,6 @@ function JigsawPuzzle(config) {
             else {
                 return;
             }
-
             instance.hintsShowingType = 'proactive';
 
             instance.hintsLog = {
@@ -1639,12 +1637,23 @@ function JigsawPuzzle(config) {
             var shouldSave = showStrongAndWeakHints(data.sureHints, strongHintsNeededTiles);
             if (shouldSave) {
                 saveGame();
+            } else {
+                $.amaran({
+                    'title': 'Warning',
+                    'message': 'No hints!',
+                    'inEffect': 'slideRight',
+                    'cssanimationOut': 'zoomOutUp',
+                    'position': "top right",
+                    'delay': 2000,
+                    'closeOnClick': true,
+                    'closeButton': true
+                });
             }
 
             computeHintedSubGraph();
             normalizeTiles();
 
-            $("#show_hints_dialog").modal().hide();
+            //$("#show_hints_dialog").modal().hide();
 
             // judge the hint tiles
             if (!instance.gameFinished) {
@@ -1662,7 +1671,7 @@ function JigsawPuzzle(config) {
             instance.hintsShowing = false;
         }
         else {
-            $("#show_hints_dialog").modal().hide();
+            //$("#show_hints_dialog").modal().hide();
         }
     });
 
