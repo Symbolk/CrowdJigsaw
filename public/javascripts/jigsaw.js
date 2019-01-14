@@ -379,6 +379,7 @@ function JigsawPuzzle(config) {
     this.saveShapeArray = shapeArray;
     this.saveTilePositions = undefined;
     this.saveHintedLinks = undefined;
+    this.saveIsHintedLinks = undefined;
     this.shapeArray = undefined;
     this.tiles = undefined;
     this.edgesKept = undefined;
@@ -474,6 +475,13 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < instance.saveHintedLinks.length; i++) {
                 var tile = instance.tiles[i];
                 tile.hintedLinks = instance.saveHintedLinks[i];
+            }
+        }
+
+        if (instance.saveIsHintedLinks) {
+            for (var i = 0; i < instance.saveIsHintedLinks.length; i++) {
+                var tile = instance.tiles[i];
+                tile.isHintedLinks = instance.saveIsHintedLinks[i];
             }
         }
 
@@ -2824,6 +2832,7 @@ function JigsawPuzzle(config) {
     function saveGame() {
         var tilePositions = new Array();
         var tileHintedLinks = new Array();
+        var tileIsHintedLinks = new Array();
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var tilePos = {
@@ -2835,6 +2844,7 @@ function JigsawPuzzle(config) {
             };
             tilePositions.push(tilePos);
             tileHintedLinks.push(tile.hintedLinks);
+            tileIsHintedLinks.push(tile.isHintedLinks);
         }
 
         socket.emit('saveGame', {
@@ -2846,6 +2856,7 @@ function JigsawPuzzle(config) {
             maxSubGraphSize: instance.maxSubGraphSize,
             tiles: JSON.stringify(tilePositions),
             tileHintedLinks: JSON.stringify(tileHintedLinks),
+            tileIsHintedLinks: JSON.stringify(tileIsHintedLinks),
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
@@ -2877,6 +2888,7 @@ function JigsawPuzzle(config) {
                 document.getElementById("steps").innerHTML = instance.realSteps;
                 instance.saveTilePositions = JSON.parse(gameData.tiles);
                 instance.saveHintedLinks = JSON.parse(gameData.tileHintedLinks);
+                instance.saveIsHintedLinks = JSON.parse(gameData.tileIsHintedLinks);
                 totalHintsNum = gameData.totalHintsNum;
                 correctHintsNum = gameData.correctHintsNum;
             }

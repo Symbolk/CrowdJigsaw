@@ -340,6 +340,7 @@ module.exports = function (io) {
                 maxSubGraphSize: data.maxSubGraphSize,
                 tiles: data.tiles,
                 tileHintedLinks: data.tileHintedLinks,
+                tileIsHintedLinks: data.tileIsHintedLinks,
                 totalHintsNum: data.totalHintsNum,
                 correctHintsNum: data.correctHintsNum
             };
