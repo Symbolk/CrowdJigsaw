@@ -300,6 +300,8 @@ module.exports = function (io) {
                                     "records.$.total_links": data.totalLinks,
                                     "records.$.hinted_links": data.hintedLinks,
                                     "records.$.correct_links": data.correctLinks,
+                                    "records.$.total_tiles": data.totalTiles,
+                                    "records.$.hinted_tiles": data.hintedTiles,
                                     "records.$.total_hints": data.totalHintsNum,
                                     "records.$.correct_hints": data.correctHintsNum
                                 }
@@ -338,6 +340,7 @@ module.exports = function (io) {
                 maxSubGraphSize: data.maxSubGraphSize,
                 tiles: data.tiles,
                 tileHintedLinks: data.tileHintedLinks,
+                tileIsHintedLinks: data.tileIsHintedLinks,
                 totalHintsNum: data.totalHintsNum,
                 correctHintsNum: data.correctHintsNum
             };
@@ -563,6 +566,8 @@ module.exports = function (io) {
                                     "records.$.total_links": data.totalLinks,
                                     "records.$.hinted_links": data.hintedLinks,
                                     "records.$.correct_links": data.correctLinks,
+                                    "records.$.total_tiles": data.totalTiles,
+                                    "records.$.hinted_tiles": data.hintedTiles,
                                     "records.$.total_hints": data.totalHintsNum,
                                     "records.$.correct_hints": data.correctHintsNum,
                                     "records.$.rating": rating

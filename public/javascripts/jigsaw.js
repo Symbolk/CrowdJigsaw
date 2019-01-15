@@ -379,6 +379,7 @@ function JigsawPuzzle(config) {
     this.saveShapeArray = shapeArray;
     this.saveTilePositions = undefined;
     this.saveHintedLinks = undefined;
+    this.saveIsHintedLinks = undefined;
     this.shapeArray = undefined;
     this.tiles = undefined;
     this.edgesKept = undefined;
@@ -474,6 +475,13 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < instance.saveHintedLinks.length; i++) {
                 var tile = instance.tiles[i];
                 tile.hintedLinks = instance.saveHintedLinks[i];
+            }
+        }
+
+        if (instance.saveIsHintedLinks) {
+            for (var i = 0; i < instance.saveIsHintedLinks.length; i++) {
+                var tile = instance.tiles[i];
+                tile.isHintedLinks = instance.saveIsHintedLinks[i];
             }
         }
 
@@ -640,6 +648,9 @@ function JigsawPuzzle(config) {
                         refreshAroundTiles(neighborTile, beHinted);
                     }
                     if (tile.aroundTiles[i] >= 0) {
+                        if (tile.positionMoved) {
+                            tile.isHintedLinks[i] = tile.aroundTiles[i];
+                        }
                         var neighborTile = instance.tiles[tile.aroundTiles[i]];
                         refreshAroundTiles(neighborTile, beHinted);
                     }
@@ -670,26 +681,40 @@ function JigsawPuzzle(config) {
             totalLinks: 0,
             normalLinks: 0,
             hintedLinks: 0,
-            correctLinks: 0
+            correctLinks: 0,
+            totalTiles: 0,
+            hintedTiles: 0
         };
         if(!instance.tiles){
             return;
         }
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
+            var isConnected = false;
+            var isHinted = false;
             for (var j = 0; j < tile.hintedLinks.length; j++) {
                 if (tile.aroundTiles[j] >= 0) {
+                    isConnected = true;
                     var correctIndex = i + directions[j].x + directions[j].y * instance.tilesPerRow;
                     if(tile.aroundTiles[j] == correctIndex){
                         hintedLinksNum.correctLinks += 1;
                     }
                     if (tile.hintedLinks[j] >= 0 && Math.floor(tile.hintedLinks[j]) == tile.aroundTiles[j]) {
                         hintedLinksNum.hintedLinks += 1;
+                        if (tile.isHintedLinks[j] == tile.aroundTiles[j]) {
+                            isHinted = true;
+                        }
                     }
                     else {
                         hintedLinksNum.normalLinks += 1;
                     }
                     hintedLinksNum.totalLinks += 1;
+                }
+            }
+            if (isConnected) {
+                hintedLinksNum.totalTiles += 1;
+                if (isHinted) {
+                    hintedLinksNum.hintedTiles += 1;
                 }
             }
         }
@@ -727,6 +752,8 @@ function JigsawPuzzle(config) {
             totalLinks: hintedLinksNum.totalLinks,
             hintedLinks: hintedLinksNum.hintedLinks,
             correctLinks: hintedLinksNum.correctLinks,
+            hintedTiles: hintedLinksNum.hintedTiles,
+            totalTiles: hintedLinksNum.totalTiles,
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
@@ -747,6 +774,7 @@ function JigsawPuzzle(config) {
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
                 tile.hintedLinks = new Array(-1, -1, -1, -1);
+                tile.isHintedLinks = new Array(-1, -1, -1, -1);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -778,6 +806,7 @@ function JigsawPuzzle(config) {
                 tile.noAroundTiles = true;
                 tile.aroundTiles = new Array(-1, -1, -1, -1);
                 tile.hintedLinks = new Array(-1, -1, -1, -1);
+                tile.isHintedLinks = new Array(-1, -1, -1, -1);
                 tile.conflictTiles = new Array();
                 tile.positionMoved = false;
             }
@@ -2803,6 +2832,7 @@ function JigsawPuzzle(config) {
     function saveGame() {
         var tilePositions = new Array();
         var tileHintedLinks = new Array();
+        var tileIsHintedLinks = new Array();
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var tilePos = {
@@ -2814,6 +2844,7 @@ function JigsawPuzzle(config) {
             };
             tilePositions.push(tilePos);
             tileHintedLinks.push(tile.hintedLinks);
+            tileIsHintedLinks.push(tile.isHintedLinks);
         }
 
         socket.emit('saveGame', {
@@ -2825,6 +2856,7 @@ function JigsawPuzzle(config) {
             maxSubGraphSize: instance.maxSubGraphSize,
             tiles: JSON.stringify(tilePositions),
             tileHintedLinks: JSON.stringify(tileHintedLinks),
+            tileIsHintedLinks: JSON.stringify(tileIsHintedLinks),
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
@@ -2856,6 +2888,7 @@ function JigsawPuzzle(config) {
                 document.getElementById("steps").innerHTML = instance.realSteps;
                 instance.saveTilePositions = JSON.parse(gameData.tiles);
                 instance.saveHintedLinks = JSON.parse(gameData.tileHintedLinks);
+                instance.saveIsHintedLinks = JSON.parse(gameData.tileIsHintedLinks);
                 totalHintsNum = gameData.totalHintsNum;
                 correctHintsNum = gameData.correctHintsNum;
             }
@@ -2959,6 +2992,8 @@ function sendRecord(finished, rating) {
         totalLinks: hintedLinksNum.totalLinks,
         hintedLinks: hintedLinksNum.hintedLinks,
         correctLinks: hintedLinksNum.correctLinks,
+        hintedTiles: hintedLinksNum.hintedTiles,
+        totalTiles: hintedLinksNum.totalTiles,
         totalHintsNum: totalHintsNum,
         correctHintsNum: correctHintsNum,
         rating: rating
