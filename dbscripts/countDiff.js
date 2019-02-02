@@ -8,7 +8,6 @@ mongo_ip = "162.105.89.243"
 mongo_port = 27017
 
 client =  MongoClient(mongo_ip, mongo_port)
-client.admin.authenticate("symbol", "Saw@PKU_1726")
 db = client.CrowdJigsaw
 
 round = list(db['rounds'].find({'round_id':133}))[-1]
@@ -42,25 +41,6 @@ with open('diff_result_133.csv', 'w') as f:
 				if hints[x][1] == y and hints[y][3] == x:
 					edges_in_both += 2
 					correct_in_both += 2 if e_correct else 0
-				'''
-				flag = False
-				if (hints[x][1] == y and hints[y][3] != x) or (hints[y][3] == x and hints[x][1] != y):
-					hints[x][1] = y
-					hints[y][3] = x
-					correct += 2 if e_correct else 0
-					wrong += 2 if not e_correct else 0
-				if hints[x][1] < 0:
-					flag = True
-					create += 1
-					hints[x][1] = y
-				if hints[y][3] < 0:
-					flag = True
-					create += 1
-					hints[y][3] = x
-				if flag and hints[x][1] == y and hints[y][3] == x:
-					correct += 2 if e_correct else 0
-					wrong += 2 if not e_correct else 0
-				'''
 			else:
 				e_correct = (x + cols == y)
 				correct_in_ga += 2 if e_correct else 0
@@ -68,25 +48,6 @@ with open('diff_result_133.csv', 'w') as f:
 				if hints[x][2] == y and hints[y][0] == x:
 					edges_in_both += 2
 					correct_in_both += 2 if e_correct else 0
-				'''
-				flag = False
-				if (hints[x][2] == y and hints[y][0] != x) or (hints[y][0] == x and hints[x][2] != y):
-					hints[x][2] = y
-					hints[y][0] = x
-					correct += 2 if e_correct else 0
-					wrong += 2 if not e_correct else 0
-				if hints[x][2] < 0:
-					flag = True
-					create += 1
-					hints[x][2] = y
-				if hints[y][0] < 0:
-					flag = True
-					create += 1
-					hints[y][0] = x
-				if flag and hints[x][2] == y and hints[y][0] == x:
-					correct += 2 if e_correct else 0
-					wrong += 2 if not e_correct else 0
-				'''
 		f.write('%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%4f,%4f,%4f\n' % (time-startTime, edges_in_ga, correct_in_ga, edges_in_cog, correct_in_cog, edges_in_both, correct_in_both, create, correct, wrong, (float(correct_in_ga)/float(edges_in_ga)) if edges_in_ga else 0, (float(correct_in_cog)/float(edges_in_cog)) if edges_in_cog else 0, (float(correct_in_both)/float(edges_in_both)) if edges_in_both else 0))
 		print(time, edges_in_ga, correct_in_ga, edges_in_cog, correct_in_cog, edges_in_both, correct_in_both, create, correct, wrong)
 
