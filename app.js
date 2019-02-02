@@ -14,6 +14,9 @@ var config; // the global config for dev/pro env
 require('./db');
 var FileStreamRotator = require('file-stream-rotator');
 
+var Promise = require("bluebird");
+Promise.promisifyAll(require("redis"));
+
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);

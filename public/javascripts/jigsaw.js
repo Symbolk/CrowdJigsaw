@@ -2,7 +2,7 @@ var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
-var uploadDelayTime = 10;
+var uploadDelayTime = 1;
 
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
@@ -339,6 +339,25 @@ function JigsawPuzzle(config) {
             }
         }
     });
+
+    socket.on('roundPlayersChanged', function (data) {
+        if (data.username == player_name && data.round_id == roundID) {
+            $('.rating-body').css('display', 'inline');
+            $('#apply-button').removeAttr('disabled');
+            $('#submit-button').removeAttr('disabled');
+            $('#cancel-button').removeAttr('disabled');
+            if(data.action == "quit"){
+                if(players_num == 1){
+                    window.location = '/home';
+                }
+                else{
+                    window.location = '/award/' + roundID;
+                }
+            }
+        }
+    });
+
+
     this.tileShape = config.tileShape;
     this.level = config.level;
 
@@ -599,6 +618,11 @@ function JigsawPuzzle(config) {
 
                 if (beHinted) {
                     tile.hintedLinks[i] = aroundTiles[i];
+                    var neighborTile = instance.tiles[aroundTiles[i]];
+                    if (tile.nodesCount <= neighborTile.nodesCount) {
+                        console.log(tile.name, neighborTile.name);
+                        tile.isHintedLinks[i] = aroundTiles[i];
+                    }
                 }
                 else {
                     instance.linksChangedCount += 1;
@@ -648,9 +672,6 @@ function JigsawPuzzle(config) {
                         refreshAroundTiles(neighborTile, beHinted);
                     }
                     if (tile.aroundTiles[i] >= 0) {
-                        if (tile.positionMoved) {
-                            tile.isHintedLinks[i] = tile.aroundTiles[i];
-                        }
                         var neighborTile = instance.tiles[tile.aroundTiles[i]];
                         refreshAroundTiles(neighborTile, beHinted);
                     }

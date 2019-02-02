@@ -23,41 +23,12 @@ var RoundSchema = new mongoose.Schema({
     start_time: { type: String, default: "-1" },  // when the round starts, formatted time, e.g. 2017-10-31 14:00:20
     end_time: { type: String, default: "-1" },  // when the round dies, formatted time, e.g. 2017-10-31 14:00:20
     players_num: { type: Number, required: true, default: 1 }, // set by creator
-    online_players: [ // online playing users in this round
-        {
-            player_name: { type: String },
-            join_time: { type: String } // formatted time, e.g. 2017-10-31 14:00:20                        
-        }
-    ], 
-    players: [ 
-        {
-            player_name: { type: String },
-            join_time: { type: String }, // formatted time, e.g. 2017-10-31 14:00:20
-            contribution: { type: Number, default:0 }// the real time contribution of the player
-        }
-    ],
     // crowd results
     solved_players: { type: Number, default: 0 }, // how many players solves the round
     winner: { type: String },  // who solves the round first with the power of the crowd
-    winner_time: { type: String, default: "-1" }, // when the round is solved by crowd(the fastest)(-1:unsolved))
-    winner_steps: { type: Number, default: -1 }, // steps the round is solved by crowd(the fastest)(-1:unsolved))
-    total_links: { type: String, default: "-1" }, // # of total links in the jigsaw puzzle
-    hinted_links: { type: String, default: "-1" }, // # of hinted links for the winner
-    total_hints: { type: String, default: "-1" }, // # of total hinted links for the winner
-    correct_hints: { type: String, default: "-1" }, // # of correct hinted links for the winner
-    // solver results
-    // solver_time: { type: String, default: "-1" }, // when the round is solved by the crowd-based solver(-1:unsolved)
-    // solver_gen: { type: Number, default: -1}, // in which generation the round is solved(-1:unsolved)
-    // solver_best_fitness: { type: Number, default: -1}, // the fitness of the correct individual in the solver(-1:unsolved)
-    // persistent edges data
-    edges_saved: { type: Object },
-    contribution: { type: Object },
-    COG: { type: Object }, // [{time, correctLinks, completeLinks, totalLinks}]
 }, { collection: 'rounds' });
 
 
 // var Round = mongoose.model('Round', RoundSchema, 'rounds');
 console.log('[OK] Round Schema Created.');
-
-
 exports.Round = mongoose.model('Round', RoundSchema);
