@@ -2,7 +2,7 @@ var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
-var uploadDelayTime = 1;
+var uploadDelayTime = 10;
 
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
@@ -334,7 +334,7 @@ function JigsawPuzzle(config) {
                     window.location = '/home';
                 }
                 else{
-                    window.location = '/award/' + roundID;
+                    window.location = '/roundrank/' + roundID;
                 }
             }
         }
@@ -351,7 +351,7 @@ function JigsawPuzzle(config) {
                     window.location = '/home';
                 }
                 else{
-                    window.location = '/award/' + roundID;
+                    window.location = '/roundrank/' + roundID;
                 }
             }
         }
@@ -620,7 +620,6 @@ function JigsawPuzzle(config) {
                     tile.hintedLinks[i] = aroundTiles[i];
                     var neighborTile = instance.tiles[aroundTiles[i]];
                     if (tile.nodesCount <= neighborTile.nodesCount) {
-                        console.log(tile.name, neighborTile.name);
                         tile.isHintedLinks[i] = aroundTiles[i];
                     }
                 }

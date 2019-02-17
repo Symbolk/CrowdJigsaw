@@ -469,6 +469,7 @@ function renderRoundList(data) {
         roundCardJoin.attr('id', roundID);
         roundCardJoin.click(function () {
             var roundID = $(this).attr('id');
+            joinRound(roundID);
             renderRoundDetail(roundsList[roundID]);
         });
 
