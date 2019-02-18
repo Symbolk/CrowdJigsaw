@@ -153,15 +153,15 @@ var mousedowned = false;
 var timeoutFunction;
 function onMouseDown(event) {
     mousedowned = true;
-    var tilesCount = puzzle.pickTile(event.point, event.event.ctrlKey);
-    if (tilesCount > 0 && !event.event.ctrlKey) {
+    var tilesCount = puzzle.pickTile(event.point, (event.event.ctrlKey || event.event.metaKey));
+    if (tilesCount > 0 && !(event.event.ctrlKey || event.event.metaKey)) {
         timeoutFunction = setTimeout(puzzle.dragTileOrTiles, 500);
     }
     if (ctrlFrame) {
         ctrlFrame.remove();
         ctrlFrame = null;
     }
-    if(tilesCount == 0 && event.event.ctrlKey){
+    if(tilesCount == 0 && (event.event.ctrlKey || event.event.metaKey)){
         ctrlFrameFrom = event.point;
         ctrlFrameTo = event.point;
     }
@@ -177,12 +177,12 @@ function onMouseUp(event) {
         clearTimeout(timeoutFunction);
     }
 
-    if(!event.event.ctrlKey || puzzle.ctrlDrag) {
+    if(!(event.event.ctrlKey || event.event.metaKey) || puzzle.ctrlDrag) {
         puzzle.releaseTile();
     }
     mousedowned = false;
     if (ctrlFrame) {
-        if(ctrlFrameFrom && ctrlFrameTo && event.event.ctrlKey && !puzzle.ctrlDrag) {
+        if(ctrlFrameFrom && ctrlFrameTo && (event.event.ctrlKey || event.event.metaKey) && !puzzle.ctrlDrag) {
             puzzle.pickTileFromTo(ctrlFrameFrom, ctrlFrameTo);
         }
         ctrlFrame.remove();
@@ -198,12 +198,12 @@ function onMouseDrag(event) {
     if (timeoutFunction) {
         clearTimeout(timeoutFunction);
     }
-    puzzle.dragTile(event.delta, event.event.ctrlKey);
+    puzzle.dragTile(event.delta, (event.event.ctrlKey || event.event.metaKey));
     if (ctrlFrame) {
         ctrlFrame.remove();
         ctrlFrame = null;
     }
-    if (!puzzle.ctrlDrag && ctrlFrameTo && event.event.ctrlKey) {
+    if (!puzzle.ctrlDrag && ctrlFrameTo && (event.event.ctrlKey || event.event.metaKey)) {
         ctrlFrameTo += event.delta;
         ctrlFrame = new Shape.Rectangle(ctrlFrameFrom, ctrlFrameTo);
         ctrlFrame.strokeColor = 'black';
@@ -223,7 +223,7 @@ var ctrlDown = false;
 function onKeyDown(event) {
     switch (event.key) {
         case 'z':
-            if (event.event.ctrlKey) {
+            if ((event.event.ctrlKey || event.event.metaKey)) {
                 // undo a step
                 if (puzzle.steps != undoStep) {
                     puzzle.undoNextStep();
@@ -239,7 +239,7 @@ function onKeyDown(event) {
 function onKeyUp(event) {
     switch (event.key) {
         case 'z':
-            if (!event.event.ctrlKey) {
+            if (!(event.event.ctrlKey || event.event.metaKey)) {
                 puzzle.zoom(.1);
             }
             break;
@@ -334,11 +334,30 @@ function JigsawPuzzle(config) {
                     window.location = '/home';
                 }
                 else{
-                    window.location = '/award/' + roundID;
+                    window.location = '/roundrank/' + roundID;
                 }
             }
         }
     });
+
+    socket.on('roundPlayersChanged', function (data) {
+        if (data.username == player_name && data.round_id == roundID) {
+            $('.rating-body').css('display', 'inline');
+            $('#apply-button').removeAttr('disabled');
+            $('#submit-button').removeAttr('disabled');
+            $('#cancel-button').removeAttr('disabled');
+            if(data.action == "quit"){
+                if(players_num == 1){
+                    window.location = '/home';
+                }
+                else{
+                    window.location = '/roundrank/' + roundID;
+                }
+            }
+        }
+    });
+
+
     this.tileShape = config.tileShape;
     this.level = config.level;
 
@@ -599,6 +618,10 @@ function JigsawPuzzle(config) {
 
                 if (beHinted) {
                     tile.hintedLinks[i] = aroundTiles[i];
+                    var neighborTile = instance.tiles[aroundTiles[i]];
+                    if (tile.nodesCount <= neighborTile.nodesCount) {
+                        tile.isHintedLinks[i] = aroundTiles[i];
+                    }
                 }
                 else {
                     instance.linksChangedCount += 1;
@@ -648,9 +671,6 @@ function JigsawPuzzle(config) {
                         refreshAroundTiles(neighborTile, beHinted);
                     }
                     if (tile.aroundTiles[i] >= 0) {
-                        if (tile.positionMoved) {
-                            tile.isHintedLinks[i] = tile.aroundTiles[i];
-                        }
                         var neighborTile = instance.tiles[tile.aroundTiles[i]];
                         refreshAroundTiles(neighborTile, beHinted);
                     }

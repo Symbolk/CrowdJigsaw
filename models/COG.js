@@ -1,6 +1,6 @@
 const mongoose=require("mongoose");
 
-var COGSchema=new mongoose.Schema({
+var CogSchema=new mongoose.Schema({
         round_id: { type: Number,required: true, index:true },  
         time: { type: Number,required: true, index:true }, // time from roundStart
         correctLinks: { type: Number, required: true },
@@ -13,6 +13,6 @@ var COGSchema=new mongoose.Schema({
         edges_saved: { type: Object, required: true },
 });
 
-console.log('[OK] COG Schema Created.');
+console.log('[OK] Cog Schema Created.');
 
-exports.COG = mongoose.model('COG', COGSchema);
+exports.Cog = mongoose.model('Cog', CogSchema);

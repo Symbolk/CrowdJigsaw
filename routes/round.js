@@ -4,11 +4,64 @@ var router = express.Router();
 var RoundModel = require('../models/round').Round;
 var UserModel = require('../models/user').User;
 var ActionModel = require('../models/action').Action;
+var RecordModel = require('../models/record').Record;
 var util = require('./util.js');
 var dev = require('../config/dev');
 var images = require("images");
-
 const redis = require('redis').createClient();
+const Promise = require('bluebird');
+
+function saveScore(round_id) {
+    let redis_key = 'round:' + round_id + ':scoreboard';
+    Promise.join(
+        redis.zrevrangeAsync(redis_key, 0, -1, 'WITHSCORES'),
+        redis.zrevrangeAsync(redis_key + ':create_correct_link', 0, -1, 'WITHSCORES'),
+        redis.zrevrangeAsync(redis_key + ':remove_correct_link', 0, -1, 'WITHSCORES'),
+        redis.zrevrangeAsync(redis_key + ':create_wrong_link', 0, -1, 'WITHSCORES'),
+        redis.zrevrangeAsync(redis_key + ':remove_wrong_link', 0, -1, 'WITHSCORES'),
+        redis.zrevrangeAsync(redis_key + ':remove_hinted_wrong_link', 0, -1, 'WITHSCORES')
+    ).then(function(results) {
+        let fields_name = ['score', 'create_correct_link', 'remove_correct_link',
+            'create_wrong_link', 'remove_wrong_link', 'remove_hinted_wrong_link'];
+        let scoremap = {};
+        for (var j = 0; j < results.length; j++) {
+            let field = results[j];
+            if (field) {
+                for (var i = 0; i < field.length; i += 2) {
+                    let username = field[i];
+                    let score = parseInt(field[i+1]);
+                    if (!(username in scoremap)) {
+                        scoremap[username] = {
+                            score: 0,
+                            create_correct_link: 0,
+                            remove_correct_link: 0,
+                            create_wrong_link: 0,
+                            remove_wrong_link: 0,
+                            remove_hinted_wrong_link: 0
+                        };
+                    }
+                    scoremap[username][fields_name[j]] = score;
+                }
+            }
+        }
+        for(let username in scoremap){
+            let condition = {
+                round_id: round_id,
+                username: username
+            };
+            let operation = {
+                $set: scoremap[username]
+            };
+            RecordModel.update(condition, operation, function(err) {
+                if (err) {
+                    console.log(err);
+                }
+            });
+        }
+    }).catch(function(err) {
+        console.log(err);
+    });
+}
 
 function getRoundFinishTime(startTime) {
     let finishTime = Math.floor(((new Date()).getTime() - startTime) / 1000);
@@ -28,18 +81,12 @@ function getRoundFinishTime(startTime) {
 }
 
 function createRecord(player_name, round_id, join_time) {
-    let condition = {
-        username: player_name
-    };
-    let operation = {
-        $push: {
-            records: {
-                round_id: round_id,
-                join_time: join_time
-            }
-        }
-    };
-    UserModel.findOneAndUpdate(condition, operation, function (err) {
+    let record = {
+        username: player_name,
+        round_id: round_id,
+        join_time: join_time
+    }
+    RecordModel.create(record, function (err) {
         if (err) {
             console.log(err);
         }
@@ -52,30 +99,6 @@ function LoginFirst(req, res, next) {
         return res.redirect('/login');
     }
     next();
-}
-
-function isCreator(req, res, next) {
-    RoundModel.findOne({
-        round_id: req.params.round_id
-    }, {
-        _id: 0,
-        creator: 1
-    }, function (err, doc) {
-        if (err) {
-            console.log(err);
-        } else {
-            if (doc) {
-                if (!req.session.user) {
-                    req.session.error = 'Please Login First!';
-                    return res.redirect('/login');
-                }
-                if (doc.creator != req.session.user.username) {
-                    req.session.error = "You are not the Boss!";
-                }
-                next();
-            }
-        }
-    });
 }
 
 function startGA(round_id){
@@ -127,10 +150,6 @@ module.exports = function (io) {
                         border: data.border,
                         create_time: TIME,
                         players_num: data.players_num,
-                        players: [{
-                            player_name: data.username,
-                            join_time: TIME
-                        }],
                         imageWidth: imageWidth,
                         imageHeight: imageHeight,
                         tileWidth: tileWidth,
@@ -142,10 +161,7 @@ module.exports = function (io) {
                     };
 
                     if (data.players_num == 1) {
-                        operation.players = [{
-                            player_name: data.username,
-                            join_time: TIME
-                        }]
+                        operation.start_time = TIME;
                     }
 
                     createRecord(data.username, operation.round_id, TIME);
@@ -155,8 +171,10 @@ module.exports = function (io) {
                             console.log(err);
                         } else {
                             console.log(data.username + ' creates Round' + index);
+                            let players = [data.username];
                             io.sockets.emit('roundChanged', {
                                 round: doc,
+                                players: players,
                                 username: data.username,
                                 round_id: doc.round_id,
                                 action: "create",
@@ -165,6 +183,8 @@ module.exports = function (io) {
                             });
                             let redis_key = 'round:' + doc.round_id;
                             redis.set(redis_key, JSON.stringify(doc));
+                            redis_key = 'round:' + doc.round_id + ':players';
+                            redis.sadd(redis_key, data.username);
                         }
                     });
                 }
@@ -172,78 +192,83 @@ module.exports = function (io) {
         });
 
         socket.on('joinRound', function (data) {
-            let condition = {
-                round_id: data.round_id
-            };
-            // check if joinable
-            RoundModel.findOne(condition, function (err, doc) {
+            var TIME = util.getNowFormatDate();
+            createRecord(data.username, data.round_id, TIME);
+            let redis_key = 'round:' + data.round_id + ':players';
+            redis.sadd(redis_key, data.username);
+            redis.smembers(redis_key, function(err, players){
                 if (err) {
                     console.log(err);
                 } else {
-                    if (doc) {
-                        if (doc.players.length < doc.players_num) {
-                            let isIn = doc.players.some(function (p) {
-                                return (p.player_name == data.username);
-                            });
-                            let TIME = util.getNowFormatDate();
-                            if (!isIn) {
-                                let operation = {
-                                    $addToSet: { //if exists, give up add
-                                        players: {
-                                            player_name: data.username,
-                                            join_time: TIME
-                                        }
-                                    }
-                                };
-                                RoundModel.update(condition, operation, function (err, doc) {
+                    io.sockets.emit('roundPlayersChanged', {
+                        players: players,
+                        username: data.username,
+                        round_id: data.round_id,
+                        action: "join",
+                        title: "JoinRound",
+                        msg: 'You just join round' + data.round_id
+                    });
+                }
+            });
+        });
+
+        socket.on('quitRound', function (data) {
+            let condition = {
+                round_id: data.round_id
+            };
+            let redis_key = 'round:' + data.round_id + ':players';
+            redis.srem(redis_key, data.username);
+
+            redis.smembers(redis_key, function(err, players){
+                if(err){
+                    console.log(err);
+                } else {
+                    if(players.length == 0){
+                        let operation = {
+                            end_time: util.getNowFormatDate()
+                        };
+                        RoundModel.update(condition, operation, function (err, doc) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                RoundModel.findOne(condition, function (err, doc) {
                                     if (err) {
                                         console.log(err);
                                     } else {
-                                        RoundModel.findOne(condition, function (err, doc) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                io.sockets.emit('roundChanged', {
-                                                    round: doc,
-                                                    username: data.username,
-                                                    round_id: data.round_id,
-                                                    action: "join",
-                                                    title: "JoinRound",
-                                                    msg: 'You just join round' + data.round_id
-                                                });
-                                                let redis_key = 'round:' + doc.round_id;
-                                                redis.set(redis_key, JSON.stringify(doc));
-                                            }
+                                        io.sockets.emit('roundChanged', {
+                                            round: doc,
+                                            players: players,
+                                            username: data.username,
+                                            round_id: data.round_id,
+                                            action: "quit",
+                                            title: "StopRound",
+                                            msg: 'You just stop round' + data.round_id
                                         });
-                                        console.log(data.username + ' joins Round' + condition.round_id);
-                                        createRecord(data.username, data.round_id, TIME);
+                                        let redis_key = 'round:' + data.round_id;
+                                        redis.set(redis_key, JSON.stringify(doc));
                                     }
                                 });
-
+                                console.log(data.username + ' stops Round' + data.round_id);
                             }
-                        }
+                        });
+                    } else {
+                        io.sockets.emit('roundPlayersChanged', {
+                            players: players,
+                            username: data.username,
+                            round_id: data.round_id,
+                            action: "quit",
+                            title: "QuitRound",
+                            msg: 'You just quit round' + data.round_id
+                        });
                     }
                 }
             });
         });
+
         socket.on('iSolved', function (data) {
             console.log('!!!Round ' + data.round_id + ' is solves!');
             let finish_time = getRoundFinishTime(data.startTime);
-            let operation = {
-                $set: {
-                    "winner": data.player_name,
-                    "solved_players": 1,
-                    "winner_time": finish_time,
-                    "winner_steps": data.steps,
-                    "total_links": data.totalLinks,
-                    "hinted_links": data.hintedLinks,
-                    "total_hints": data.totalHintsNum,
-                    "correct_hints": data.correctHintsNum
-                }
-            };
-            RoundModel.findOne({
-                    round_id: data.round_id
-                },
+            RoundModel.findOne({round_id: data.round_id},
                 function (err, doc) {
                     if (err) {
                         console.log(err);
@@ -253,28 +278,34 @@ module.exports = function (io) {
                                 // only remember the first winner of the round
                                 RoundModel.update({
                                     round_id: data.round_id
-                                }, operation, function (err) {
+                                }, {
+                                    $set: {
+                                        "winner": data.player_name,
+                                        "solved_players": 1
+                                    }
+                                }, function (err) {
                                     if (err) {
                                         console.log(err);
                                     }
-                                    
                                     else{
                                         socket.broadcast.emit('forceLeave', {
                                             round_id: data.round_id
                                         });
                                     }
                                 });
+                                saveScore(data.round_id);
                             } else {
                                 var solved_players = doc.solved_players;
                                 RoundModel.update({
                                     round_id: data.round_id
                                 }, {
-                                    "solved_players": solved_players + 1
+                                    $set: {
+                                        "solved_players": solved_players + 1
+                                    }
                                 }, function (err) {
                                     if (err) {
                                         console.log(err);
                                     } 
-                                    
                                     else {
                                         socket.broadcast.emit('forceLeave', {
                                             round_id: data.round_id
@@ -286,43 +317,32 @@ module.exports = function (io) {
                             let redis_key = 'round:' + data.round_id;
                             redis.set(redis_key, JSON.stringify(doc));
 
-                            let contri = 0;
-                            if (doc.contribution && doc.contribution.hasOwnProperty(data.player_name)) {
-                                contri = doc.contribution[data.player_name];
-                            }
                             let TIME = util.getNowFormatDate();
-                            operation = {
+                            let operation = {
                                 $set: {
-                                    "records.$.end_time": TIME,
-                                    "records.$.steps": data.steps,
-                                    "records.$.time": finish_time,
-                                    "records.$.contribution": contri.toFixed(3),
-                                    "records.$.total_links": data.totalLinks,
-                                    "records.$.hinted_links": data.hintedLinks,
-                                    "records.$.correct_links": data.correctLinks,
-                                    "records.$.total_tiles": data.totalTiles,
-                                    "records.$.hinted_tiles": data.hintedTiles,
-                                    "records.$.total_hints": data.totalHintsNum,
-                                    "records.$.correct_hints": data.correctHintsNum
+                                    "end_time": TIME,
+                                    "steps": data.steps,
+                                    "time": finish_time,
+                                    "total_links": data.totalLinks,
+                                    "hinted_links": data.hintedLinks,
+                                    "correct_links": data.correctLinks,
+                                    "total_tiles": data.totalTiles,
+                                    "hinted_tiles": data.hintedTiles,
+                                    "total_hints": data.totalHintsNum,
+                                    "correct_hints": data.correctHintsNum
                                 }
                             };
 
-                            let finishTime = Math.floor(((new Date()).getTime() - data.startTime) / 1000);
-                            let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
-                            let finishPercent = (data.correctLinks / 2) / puzzle_links * 100;
-                            let score = parseFloat(finishPercent.toFixed(3));
-                            score += parseFloat(3600 / finishTime);
-
                             let condition = {
                                 username: data.player_name,
-                                "records.round_id": data.round_id
+                                "round_id": data.round_id
                             };
 
-                            UserModel.update(condition, operation, function (err, doc) {
+                            RecordModel.update(condition, operation, function (err, doc) {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
+                                    console.log(data.player_name + ' saves his record');
                                 }
                             });
 
@@ -394,142 +414,47 @@ module.exports = function (io) {
                             return;
                         }
                         round_starting[data.round_id] = true;
+                        let redis_key = 'round:' + doc.round_id + ':players';
+                        redis.smembers(redis_key, function(err, players){
+                            let TIME = util.getNowFormatDate();
 
-                        let TIME = util.getNowFormatDate();
-                        // set start_time for all players
-                        for (let p of doc.players) {
+                            // set start time for round
                             let operation = {
                                 $set: {
-                                    "records.$.start_time": TIME
+                                    start_time: TIME,
+                                    players_num: players.length
                                 }
                             };
-                            UserModel.update({
-                                username: p.player_name,
-                                "records.round_id": data.round_id
-                            }, operation, function (err) {
+                            RoundModel.update(condition, operation, function (err, doc) {
                                 if (err) {
                                     console.log(err);
+                                } else {
+                                    RoundModel.findOne(condition, function (err, doc) {
+                                        if (err) {
+                                            console.log(err);
+                                        } else {
+                                            io.sockets.emit('roundChanged', {
+                                                round: doc,
+                                                players: players,
+                                                username: data.username,
+                                                round_id: data.round_id,
+                                                action: "start",
+                                                title: "StartRound",
+                                                msg: 'You just start round' + data.round_id
+                                            });
+                                            let redis_key = 'round:' + doc.round_id;
+                                            redis.set(redis_key, JSON.stringify(doc));
+                                                
+                                            if(doc.players_num > 1){
+                                                //startGA(data.round_id);
+                                            }
+                                            console.log(data.username + ' starts Round' + data.round_id);
+                                            round_starting[data.round_id] = false;
+                                        }
+                                    });
                                 }
                             });
-                        }
-                        // set start time for round
-                        let operation = {
-                            $set: {
-                                start_time: TIME,
-                                players_num: doc.players.length
-                            }
-                        };
-                        RoundModel.update(condition, operation, function (err, doc) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                RoundModel.findOne(condition, function (err, doc) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        io.sockets.emit('roundChanged', {
-                                            round: doc,
-                                            username: data.username,
-                                            round_id: data.round_id,
-                                            action: "start",
-                                            title: "StartRound",
-                                            msg: 'You just start round' + data.round_id
-                                        });
-                                        let redis_key = 'round:' + doc.round_id;
-                                        redis.set(redis_key, JSON.stringify(doc));
-                                        
-                                        if(doc.players_num > 1){
-                                            startGA(data.round_id);
-                                        }
-                                        round_starting[data.round_id] = false;
-                                    }
-                                });
-                                console.log(data.username + ' starts Round' + data.round_id);
-                            }
                         });
-                    }
-                }
-            });
-        });
-
-        socket.on('quitRound', function (data) {
-            let condition = {
-                round_id: data.round_id
-            };
-            RoundModel.findOne(condition, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (doc) {
-                        let isIn = doc.players.some(function (p) {
-                            return (p.player_name == data.username);
-                        });
-                        if (isIn) {
-                            if (doc.players.length == 1) { // the last player
-                                let operation = {
-                                    $pull: {
-                                        players: {
-                                            player_name: data.username
-                                        }
-                                    },
-                                    end_time: util.getNowFormatDate()
-                                };
-                                RoundModel.update(condition, operation, function (err, doc) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        RoundModel.findOne(condition, function (err, doc) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                io.sockets.emit('roundChanged', {
-                                                    round: doc,
-                                                    username: data.username,
-                                                    round_id: data.round_id,
-                                                    action: "quit",
-                                                    title: "StopRound",
-                                                    msg: 'You just stop round' + data.round_id
-                                                });
-                                                let redis_key = 'round:' + doc.round_id;
-                                                redis.set(redis_key, JSON.stringify(doc));
-                                            }
-                                        });
-                                        console.log(data.username + ' stops Round' + data.round_id);
-                                    }
-                                });
-                            } else { // online>=2
-                                let operation = {
-                                    $pull: { //if exists, give up add
-                                        players: {
-                                            player_name: data.username
-                                        }
-                                    }
-                                };
-                                RoundModel.update(condition, operation, function (err, doc) {
-                                    if (err) {
-                                        console.log(err);
-                                    } else {
-                                        RoundModel.findOne(condition, function (err, doc) {
-                                            if (err) {
-                                                console.log(err);
-                                            } else {
-                                                io.sockets.emit('roundChanged', {
-                                                    round: doc,
-                                                    username: data.username,
-                                                    round_id: data.round_id,
-                                                    action: "quit",
-                                                    title: "QuitRound",
-                                                    msg: 'You just quit round' + data.round_id
-                                                });
-                                                let redis_key = 'round:' + doc.round_id;
-                                                redis.set(redis_key, JSON.stringify(doc));
-                                            }
-                                        });
-                                        console.log(data.username + ' quits Round' + data.round_id);
-                                    }
-                                });
-                            }
-                        }
                     }
                 }
             });
@@ -539,59 +464,41 @@ module.exports = function (io) {
             let operation = {};
             let contri = 0;
             let rating = data.rating;
-            RoundModel.findOne({
-                round_id: data.round_id
-            }, function (err, doc) {
+            if (data.finished) {
+                operation = {
+                    $set: {
+                        "rating": rating
+                    }
+                };
+            } else {
+                operation = {
+                    $set: {
+                        "end_time": "-1",
+                        "steps": data.steps,
+                        "time": getRoundFinishTime(data.startTime),
+                        "contribution": contri.toFixed(3),
+                        "total_links": data.totalLinks,
+                        "hinted_links": data.hintedLinks,
+                        "correct_links": data.correctLinks,
+                        "total_tiles": data.totalTiles,
+                        "hinted_tiles": data.hintedTiles,
+                        "total_hints": data.totalHintsNum,
+                        "correct_hints": data.correctHintsNum,
+                        "rating": rating
+                    }
+                };
+            }
+
+            let condition = {
+                username: data.player_name,
+                "round_id": data.round_id
+            };
+
+            RecordModel.update(condition, operation, function (err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (doc) {
-                        if (doc.contribution && doc.contribution.hasOwnProperty(data.player_name)) {
-                            contri = doc.contribution[data.player_name];
-                        }
-                        if (data.finished) {
-                            let TIME = util.getNowFormatDate();
-                            operation = {
-                                $set: {
-                                    "records.$.rating": rating
-                                }
-                            };
-                        } else {
-                            operation = {
-                                $set: {
-                                    "records.$.end_time": "-1",
-                                    "records.$.steps": data.steps,
-                                    "records.$.time": getRoundFinishTime(data.startTime),
-                                    "records.$.contribution": contri.toFixed(3),
-                                    "records.$.total_links": data.totalLinks,
-                                    "records.$.hinted_links": data.hintedLinks,
-                                    "records.$.correct_links": data.correctLinks,
-                                    "records.$.total_tiles": data.totalTiles,
-                                    "records.$.hinted_tiles": data.hintedTiles,
-                                    "records.$.total_hints": data.totalHintsNum,
-                                    "records.$.correct_hints": data.correctHintsNum,
-                                    "records.$.rating": rating
-                                }
-                            };
-
-                            let puzzle_links = 2 * doc.tilesPerColumn * doc.tilesPerRow - doc.tilesPerColumn - doc.tilesPerRow;
-                            let finishPercent = (data.correctLinks / 2) / puzzle_links * 100;
-                            let score = parseFloat(finishPercent.toFixed(3));
-                        }
-
-                        let condition = {
-                            username: data.player_name,
-                            "records.round_id": data.round_id
-                        };
-
-                        UserModel.update(condition, operation, function (err, doc) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
-                            }
-                        });
-                    }
+                    console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
                 }
             });
         });
@@ -617,50 +524,20 @@ module.exports = function (io) {
             if (err) {
                 console.log(err);
             } else {
-                // let temp=new Array();
-                // for(let d of docs){
-                //     if(d.players.length < d.player_name){
-                //         temp.push(d);
-                //     }
-                // }
                 res.send(JSON.stringify(docs));
             }
         });
     });
 
-    /**
-     * Get the round contribution rank
-     */
-    router.route('/getRoundRank/:round_id').all(LoginFirst).get(function (req, res, next) {
-        RoundModel.findOne({
-            round_id: req.params.round_id
-        }, {
-            _id: 0,
-            players: 1
-        }, {}, function (err, doc) {
+    router.route('/getRoundPlayers/:round_id').all(LoginFirst).get(function (req, res, next) {
+        let redis_key = 'round:' + req.params.round_id + ':players';
+        redis.smembers(redis_key, function(err, players){
             if (err) {
                 console.log(err);
             } else {
-                if (doc) {
-                    let rankedPlayers = new Array();
-                    let temp = doc.players;
-                    temp = temp.sort(util.descending("contribution"));
-                    for (let i = 0; i < temp.length; i++) {
-                        let t = temp[i];
-                        rankedPlayers.push({
-                            "rank": i + 1,
-                            "player_name": t.player_name,
-                            "contribution": t.contribution.toFixed(3)
-                            //Math.round(t.contribution*1000)/1000
-                        });
-                    }
-                    // res.render('roundrank', { title: 'Round Rank', AllPlayers: JSON.stringify(rankedPlayers), username: req.session.user.username });
-                    res.send({
-                        AllPlayers: rankedPlayers
-                    });
-                }
+                res.send(JSON.stringify(players));
             }
-        });
+        })
     });
 
     /**
@@ -674,6 +551,7 @@ module.exports = function (io) {
             _id: 0,
             creator: 1,
             // image: 1,
+            start_time: 1,
             shape: 1,
             level: 1,
             edge: 1,
@@ -690,62 +568,6 @@ module.exports = function (io) {
         });
     });
 
-
-    /**
-     * Get hint ration&precision in a dirty way
-     */
-    function getHRHP(round_id) {
-        return new Promise((resolve, reject) => {
-            RoundModel.findOne({
-                round_id: round_id
-            }, function (err, doc) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (doc) {
-                        if (doc.winner) {
-                            UserModel.findOne({
-                                username: doc.winner
-                            }, {
-                                _id: 0,
-                                records: 1
-                            }, function (err, d) {
-                                if (err) {
-                                    console.log(err);
-                                } else {
-                                    if (d) {
-                                        for (let r of d.records) {
-                                            if (r.round_id == round_id) {
-                                                let hint_ratio = 0;
-                                                let hint_precision = 0;
-                                                if (r.total_links > 0 && r.total_hints > 0) {
-                                                    hint_ratio = r.hinted_links / r.total_links;
-                                                    hint_precision = r.correct_hints / r.total_hints;
-                                                }
-                                                resolve({
-                                                    "hint_ratio": hint_ratio,
-                                                    "hint_precision": hint_precision
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        } else {
-                            console.log("Winner Empty " + round_id);
-                            resolve({
-                                "hint_ratio": 0,
-                                "hint_precision": 0
-                            });
-                        }
-                    }
-                }
-            });
-        });
-    }
-    /**
-     * Get the data required by statistics
-     */
     function getWinnerData(round_id) {
         return new Promise((resolve, reject) => {
             RoundModel.findOne({
@@ -753,21 +575,32 @@ module.exports = function (io) {
             }, function (err, doc) {
                 if (err) {
                     console.log(err);
-                } else {
-                    if (doc) {
-                        if (doc.winner_time != "-1" && doc.winner_steps != -1) {
-                            let time = doc.winner_time.split(":");
+                } else if (doc && doc.winner) {
+                    RecordModel.findOne({
+                        round_id: round_id,
+                        username: doc.winner
+                    }, function(err, winner) {
+                        if (err) {
+                            console.log(err);
+                        } else if (winner) {
+                            let time = winner.time.split(":");
                             let h = parseInt(time[0]);
                             let m = parseInt(time[1]);
                             let s = parseInt(time[2]);
+                            let hint_ratio = 0;
+                            let hint_precision = 0;
+                            if (winner.total_tiles > 0 && winner.total_hints > 0) {
+                                hint_ratio = r.hinted_tiles / r.total_tiles;
+                                hint_precision = r.correct_hints / r.total_hints;
+                            }
                             resolve({
                                 "time": h * 3600 + m * 60 + s,
-                                "steps": doc.winner_steps
+                                "steps": winner.steps,
+                                "hint_ratio": hint_ratio,
+                                "hint_precision": hint_precision
                             });
-                        } else {
-                            console.log("Empty: " + round_id);
                         }
-                    }
+                    })
                 }
             });
         });
@@ -892,7 +725,6 @@ module.exports = function (io) {
                     let data = await getWinnerData(round_id);
                     average_time += data.time;
                     average_steps += data.steps;
-                    data = await getHRHP(round_id);
                     average_hint_ratio += data.hint_ratio;
                     average_hint_precision += data.hint_precision;
                 }

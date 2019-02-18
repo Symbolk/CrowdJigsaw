@@ -2,10 +2,9 @@
 
 var express = require('express');
 var router = express.Router();
-var NodeModel = require('../models/node').Node;
 var RoundModel = require('../models/round').Round;
 var ActionModel = require('../models/action').Action;
-var COGModel = require('../models/COG').COG;
+var CogModel = require('../models/cog').Cog;
 var DiffModel = require('../models/diff').Diff;
 var util = require('./util.js');
 var constants = require('../config/constants');
@@ -285,50 +284,24 @@ var updateTimes = 0;
 function update(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
-    RoundModel.findOne({ round_id: roundID }, function (err, doc) {
+    let redis_key = 'round:' + roundID;
+    redis.get(redis_key, function(err, round_json) {
         if (err) {
             console.log(err);
-        } else {
-            if (doc) {
-                let roundStartTime = Date.parse(doc.start_time);
-                let time = (new Date()).getTime() - roundStartTime;
-                saveAction(roundID, time, data.player_name, data.edges, data.logs, data.is_hint);
-                if (doc.edges_saved == undefined || JSON.stringify(doc.edges_saved) == "{}") {
-                    // create the edges object & update db directly
-                    let edges_saved = {};
-
-                    let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, edges_saved);
-
-                    for (let key in data.edges) {
-                        let e = data.edges[key];
-                        let supporters = {};
-                        let opposers = {};
-                        let weight = 0;
-                        if (e.size > 0) {
-                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                            weight += supporters[data.player_name];
-                        }
-                        let confidence = 1;
-                        edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
-                        updateNodesAndEdges(nodesAndHints, edges_saved[key]);
-                        computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, doc.tilesPerRow, data.player_name);
-                    }
-                    
-                    generateHints(roundID, nodesAndHints);
-
-                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
-
-                    RoundModel.update({ round_id: data.round_id }, 
-                        { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG  }}, function (err) {
-                        if (err) {
-                            console.log(err);
-                        } else {
-                            console.log("First blood!");
-                        }
-                    });
+        } else if (round_json) {
+            let round = JSON.parse(round_json);
+            let redis_key = 'round:' + roundID + ':edges';
+            redis.get(redis_key, function (err, edges_json) {
+                if (err) {
+                    console.log(err);
                 } else {
-                    // get and update the object, then update db once
-                    let edges_saved = doc.edges_saved;
+                    let edges_saved = {};
+                    if (edges_json) {
+                        edges_saved = JSON.parse(edges_json);
+                    }
+                    let time = (new Date()).getTime();
+                    saveAction(roundID, time, data.player_name, data.edges, data.logs, data.is_hint);
+
                     for (let key in data.edges) {
                         let e = data.edges[key];
                         // if the edge exists, update the size
@@ -337,26 +310,26 @@ function update(data) {
                             let opposers = edges_saved[key].opposers;
                             if (e.size > 0) {
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, doc.tilesPerRow, data.player_name);
+                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, opposers[data.player_name], e.beHinted, doc.tilesPerRow, data.player_name);
+                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                     delete opposers[data.player_name];
                                 } else {
-                                    computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, doc.tilesPerRow, data.player_name);
+                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 }
                             } else { // e.size<0(e.size==0?)
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, doc.tilesPerRow, data.player_name);
+                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                     delete supporters[data.player_name];
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, opposers[data.player_name], e.beHinted, doc.tilesPerRow, data.player_name);
+                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 } else {
-                                    computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, doc.tilesPerRow, data.player_name);
+                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 }
                             }
@@ -366,11 +339,11 @@ function update(data) {
                             let opposers = {};
                             let weight = 0;
                             if (e.size > 0) {
-                                computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, doc.tilesPerRow, data.player_name);
+                                computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name);
                                 supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 weight += supporters[data.player_name];
                             } else {
-                                computeScore(roundID, (doc.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, doc.tilesPerRow, data.player_name);
+                                computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name);
                                 opposers[data.player_name] = e.size * (e.size / e.nodes);
                             }
                             let confidence = 1;
@@ -378,7 +351,7 @@ function update(data) {
                         }
                     }
 
-                    let nodesAndHints = getNodesAndHints(roundID, doc.tile_num, edges_saved);
+                    let nodesAndHints = getNodesAndHints(roundID, round.tile_num, edges_saved);
 
                     // update the confidence of every saved edge
                     for (let e in edges_saved) {
@@ -406,20 +379,13 @@ function update(data) {
                     for (let e in edges_saved) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[e]);
                     }
-
                     generateHints(roundID, nodesAndHints);
                     checkUnsureHints(nodesAndHints);
-
-                    var COG = computeCOG(roundID, doc.COG, edges_saved, time, doc.tilesPerRow, doc.tilesPerColumn, nodesAndHints);
-
-                    RoundModel.update({ round_id: data.round_id }, 
-                        { $set: { edges_saved: edges_saved, contribution: computeContribution(nodesAndHints), COG: COG } }, function (err) {
-                        if (err) {
-                            console.log(err);
-                        }
-                    });
+                    computeCog(roundID, edges_saved, time, round.tilesPerRow, round.tilesPerColumn, nodesAndHints);
+                    
+                    redis.set(redis_key, JSON.stringify(edges_saved));
                 }
-            }
+            });
         }
     });
 }
@@ -427,107 +393,83 @@ function update(data) {
 function updateForGA(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
-    let redis_key = 'round:' + roundID + ':edges_saved';
+    let redis_key = 'round:' + roundID + ':edges:ga';
     redis.get(redis_key, function (err, doc) {
         if (err) {
             console.log(err);
         } else {
+            let edges_saved = {};
             if (doc) {
-                let edges_saved = JSON.parse(doc);
-                    for (let key in data.edges) {
-                        let e = data.edges[key];
-                        // if the edge exists, update the size
-                        if (edges_saved.hasOwnProperty(key)) {
-                            let supporters = edges_saved[key].supporters;
-                            let opposers = edges_saved[key].opposers;
-                            if (e.size > 0) {
-                                if (supporters.hasOwnProperty(data.player_name)) {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                    delete opposers[data.player_name];
-                                } else {
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                }
-                            } else { // e.size<0(e.size==0?)
-                                if (supporters.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
-                                    delete supporters[data.player_name];
-                                } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
-                                } else {
-                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
-                                }
-                            }
+                edges_saved = JSON.parse(doc);
+            }
+            for (let key in data.edges) {
+                let e = data.edges[key];
+                // if the edge exists, update the size
+                if (edges_saved.hasOwnProperty(key)) {
+                    let supporters = edges_saved[key].supporters;
+                    let opposers = edges_saved[key].opposers;
+                    if (e.size > 0) {
+                        if (supporters.hasOwnProperty(data.player_name)) {
+                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                        } else if (opposers.hasOwnProperty(data.player_name)) {
+                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                            delete opposers[data.player_name];
                         } else {
-                            // if the edge not exists, create the edge
-                            let supporters = {};
-                            let opposers = {};
-                            let weight = 0;
-                            if (e.size > 0) {
-                                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                weight += supporters[data.player_name];
-                            } else {
-                                opposers[data.player_name] = e.size * (e.size / e.nodes);
-                            }
-                            let confidence = 1;
-                            edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
+                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                        }
+                    } else { // e.size<0(e.size==0?)
+                        if (supporters.hasOwnProperty(data.player_name)) {
+                            opposers[data.player_name] = e.size * (e.size / e.nodes);
+                            delete supporters[data.player_name];
+                        } else if (opposers.hasOwnProperty(data.player_name)) {
+                            opposers[data.player_name] = e.size * (e.size / e.nodes);
+                        } else {
+                            opposers[data.player_name] = e.size * (e.size / e.nodes);
                         }
                     }
-                    // update the confidence of every saved edge
-                    for (let e in edges_saved) {
-                        let oldConfidence = edges_saved[e].confidence;
-                        let oldWeight = edges_saved[e].weight;
-                        let supporters = edges_saved[e].supporters;
-                        let opposers = edges_saved[e].opposers;
-                        let wp = 0;
-                        let wn = 0;
-                        for (let s in supporters) {
-                            wp += supporters[s];
-                        }
-                        for (let o in opposers) {
-                            wn += opposers[o];
-                        }
-                        edges_saved[e].weight = wp;
-                        if (wp + wn != 0) {
-                            edges_saved[e].confidence = wp / (wp + wn);
-                        }
-                    }
-                    let redis_key = 'round:' + data.round_id + ':edges_saved';
-                    redis.set(redis_key, JSON.stringify(edges_saved));
-            } else {
-                let edges_saved = {};
-                for (let key in data.edges) {
-                    let e = data.edges[key];
+                } else {
+                    // if the edge not exists, create the edge
                     let supporters = {};
                     let opposers = {};
                     let weight = 0;
                     if (e.size > 0) {
                         supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                         weight += supporters[data.player_name];
+                    } else {
+                        opposers[data.player_name] = e.size * (e.size / e.nodes);
                     }
                     let confidence = 1;
                     edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
                 }
-                let redis_key = 'round:' + data.round_id + ':edges_saved';
-                redis.set(redis_key, JSON.stringify(edges_saved));    
             }
+            // update the confidence of every saved edge
+            for (let e in edges_saved) {
+                let oldConfidence = edges_saved[e].confidence;
+                let oldWeight = edges_saved[e].weight;
+                let supporters = edges_saved[e].supporters;
+                let opposers = edges_saved[e].opposers;
+                let wp = 0;
+                let wn = 0;
+                for (let s in supporters) {
+                    wp += supporters[s];
+                }
+                for (let o in opposers) {
+                    wn += opposers[o];
+                }
+                edges_saved[e].weight = wp;
+                if (wp + wn != 0) {
+                    edges_saved[e].confidence = wp / (wp + wn);
+                }
+            }
+            redis.set(redis_key, JSON.stringify(edges_saved));
         }
     });
 }
 
-function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
-    if(!COGList){
-        COGList = new Array();
-    }
-
+function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
     var totalLinks = 2 * tilesPerRow * tilesPerColumn - tilesPerRow -tilesPerColumn;
-
     var completeLinks = Object.getOwnPropertyNames(edges_saved).length;
-
     var correctLinks = 0;
-
-
     for (e in edges_saved) {
         edge = edges_saved[e];
         if(edge.tag == 'L-R'){
@@ -539,16 +481,6 @@ function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerCo
             if(edge.x + tilesPerColumn == edge.y){
                 correctLinks += 1;
             }
-        }
-    }
-
-    var COGchanged = true;
-    var preTime = 0;
-    if(COGList.length > 0){
-        var preCOG = COGList[COGList.length - 1];
-        preTime = preCOG.time;
-        if(preCOG.correctLinks == correctLinks && preCOG.completeLinks == completeLinks){
-            COGchanged = false;
         }
     }
 
@@ -580,55 +512,43 @@ function computeCOG(roundID, COGList, edges_saved, time, tilesPerRow, tilesPerCo
         }
     }
 
-    if(COGchanged){
-        var currentCOG = {
-            time: time,
-            correctLinks: correctLinks,
-            completeLinks: completeLinks,
-            totalLinks: totalLinks,
-        };
-        COGList.push(currentCOG);
-
-        var correctHints = 0;
-        for (var i = 0; i < nodesAndHints.hints.length; i++) {
-            var hint = nodesAndHints.hints[i];
-            if(i >= tilesPerRow && (i - tilesPerRow) == hint[0]){ //up
-                correctHints += 1;
-            }
-            if(i % tilesPerRow < tilesPerRow - 1 && (i + 1) == hint[1]){ //right
-                correctHints += 1;
-            }
-            if(i < (tilesPerColumn - 1) * tilesPerRow && (i + tilesPerRow) == hint[2]){ //bottom
-                correctHints += 1;
-            }
-            if(i % tilesPerRow > 0 && (i - 1) == hint[3]){ //left
-                correctHints += 1;
-            }
+    var correctHints = 0;
+    for (var i = 0; i < nodesAndHints.hints.length; i++) {
+        var hint = nodesAndHints.hints[i];
+        if(i >= tilesPerRow && (i - tilesPerRow) == hint[0]){ //up
+            correctHints += 1;
         }
-
-        var COG = {
-            round_id: roundID,
-            time: time,
-            correctLinks: correctLinks,
-            correctHints: correctHints,
-            completeLinks: completeLinks,
-            totalLinks: totalLinks,
-            ga_edges: nodesAndHints.GA_edges,
-            nodes: nodesAndHints.nodes,
-            hints: nodesAndHints.hints,
-            edges_saved: brief_edges_saved,
+        if(i % tilesPerRow < tilesPerRow - 1 && (i + 1) == hint[1]){ //right
+            correctHints += 1;
         }
-        COGModel.create(COG, function (err) {
-            if (err) {
-                console.log(err);
-                return false;
-            } else {
-                return true;
-            }
-        });
-        //console.log(COGList.length, COGList);
+        if(i < (tilesPerColumn - 1) * tilesPerRow && (i + tilesPerRow) == hint[2]){ //bottom
+            correctHints += 1;
+        }
+        if(i % tilesPerRow > 0 && (i - 1) == hint[3]){ //left
+            correctHints += 1;
+        }
     }
-    return COGList;
+
+    var Cog = {
+        round_id: roundID,
+        time: time,
+        correctLinks: correctLinks,
+        correctHints: correctHints,
+        completeLinks: completeLinks,
+        totalLinks: totalLinks,
+        ga_edges: nodesAndHints.GA_edges,
+        nodes: nodesAndHints.nodes,
+        hints: nodesAndHints.hints,
+        edges_saved: brief_edges_saved,
+    }
+    CogModel.create(Cog, function (err) {
+        if (err) {
+            console.log(err);
+            return false;
+        } else {
+            return true;
+        }
+    });
 }
 
 function computeContribution(nodesAndHints){

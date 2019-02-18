@@ -25,10 +25,9 @@
                                         <thead>
                                                 <tr>
                                                         <th data-field="round_id" data-halign="center" data-align="center">Round ID</th>
-                                                        <th data-field="when" data-halign="center" data-align="center" data-sortable="true">When</th>
                                                         <th data-field="steps" data-halign="center" data-align="center" data-sortable="true">Steps</th>
                                                         <th data-field="time" data-halign="center" data-align="center" data-sortable="true">Time</th>
-                                                        <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Contribution</th>
+                                                        <th data-field="contribution" data-halign="center" data-align="center" data-sortable="true">Score</th>
                                                 </tr>
                                         </thead>
                                         <tbody>
@@ -38,16 +37,13 @@
                                                                         <%- r.round_id %>
                                                                 </td>
                                                                 <td>
-                                                                        <%- r.start_time %>
-                                                                </td>
-                                                                <td>
                                                                         <%- r.steps %>
                                                                 </td>
                                                                 <td>
                                                                         <%- r.time %>
                                                                 </td>
                                                                 <td>
-                                                                        <%- r.contribution %>
+                                                                        <%- r.score %>
                                                                 </td>
                                                         </tr>
                                                         <% }) %>
