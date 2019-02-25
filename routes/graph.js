@@ -281,6 +281,26 @@ function computeScore(round_id, round_finish, x, y, tag, size, size_before, beHi
 
 var averageTime = 0.0;
 var updateTimes = 0;
+
+function distributed_update(data) {
+    let redis_players_key = 'round:' + data.round_id + ':distributed:players';
+    redis.sadd(redis_players_key, data.player_name, function(err) {
+        if (err) {
+            console.log(err);
+        } else {
+            let redis_key = 'round:' + data.round_id + ':distributed:edges:' + data.player_name;
+            for (let key in data.edges) {
+                let e = data.edges[key];
+                if (e.size > 0) {
+                    redis.sadd(redis_key, key);
+                } else {
+                    redis.srem(redis_key, key);
+                }
+            }
+        }
+    });
+}
+
 function update(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
@@ -650,8 +670,35 @@ module.exports = function (io) {
             updateForGA(data);
         });
         socket.on('upload', function (data) {
+            distributed_update(data);
             update(data);
         });
+
+        socket.on('distributed_fetchHints', function(data) {
+            let redis_players_key = 'round:' + data.round_id + ':distributed:players';
+            redis.srandmember(redis_players_key, 2, function(err, players) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (players.length > 1) {
+                        let player = players[0] == data.player_name ? players[1]: players[0];
+                        let redis_key = 'round:' + data.round_id + ':distributed:edges:' + player;
+                        redis.smembers(redis_key, function(err, edges) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                socket.emit('distributed_proactiveHints', {
+                                    from: player,
+                                    
+                                    edges: edges
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
         // request global hints
         socket.on('fetchHints', function (data) {
             var hints = [];
@@ -674,6 +721,34 @@ module.exports = function (io) {
                 });
             }
         });
+
+        socket.on('distributed_getHintsAround', function(data) {
+            let redis_players_key = 'round:' + data.round_id + ':distributed:players';
+            redis.srandmember(redis_players_key, 2, function(err, players) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (players.length > 1) {
+                        let player = players[0] == data.player_name ? players[1]: players[0];
+                        let redis_key = 'round:' + data.round_id + ':distributed:edges:' + player;
+                        redis.smembers(redis_key, function(err, edges) {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                socket.emit('distributed_reactiveHints', {
+                                    indexes: data.indexes,
+                                    selectedTileIndexes: data.selectedTileIndexes,
+                                    currentStep: data.currentStep,
+                                    from: player,
+                                    edges: edges
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
         // request localhints(around the selected tile)
         socket.on('getHintsAround', function (data) {
             var hints = [];
