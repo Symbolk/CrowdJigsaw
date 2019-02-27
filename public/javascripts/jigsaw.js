@@ -617,10 +617,12 @@ function JigsawPuzzle(config) {
                 }
 
                 if (beHinted) {
-                    tile.hintedLinks[i] = aroundTiles[i];
-                    var neighborTile = instance.tiles[aroundTiles[i]];
-                    if (tile.nodesCount <= neighborTile.nodesCount) {
-                        tile.isHintedLinks[i] = aroundTiles[i];
+                    if (aroundTiles[i] >= 0) {
+                        tile.hintedLinks[i] = aroundTiles[i];
+                        var neighborTile = instance.tiles[aroundTiles[i]];
+                        if (tile.nodesCount <= neighborTile.nodesCount) {
+                            tile.isHintedLinks[i] = aroundTiles[i];
+                        }
                     }
                 }
                 else {
