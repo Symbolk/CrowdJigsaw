@@ -334,8 +334,9 @@ module.exports = function (io) {
                             };
 
                             let condition = {
-                                username: data.player_name,
-                                "round_id": data.round_id
+                                "username": data.player_name,
+                                "round_id": data.round_id,
+                                "end_time": "-1"
                             };
 
                             RecordModel.update(condition, operation, function (err, doc) {
@@ -464,6 +465,11 @@ module.exports = function (io) {
             let operation = {};
             let contri = 0;
             let rating = data.rating;
+            let condition = {
+                "username": data.player_name,
+                "round_id": data.round_id
+            };
+
             if (data.finished) {
                 operation = {
                     $set: {
@@ -471,9 +477,9 @@ module.exports = function (io) {
                     }
                 };
             } else {
+                condition["end_time"] = "-1";
                 operation = {
                     $set: {
-                        "end_time": "-1",
                         "steps": data.steps,
                         "time": getRoundFinishTime(data.startTime),
                         "contribution": contri.toFixed(3),
@@ -488,11 +494,6 @@ module.exports = function (io) {
                     }
                 };
             }
-
-            let condition = {
-                username: data.player_name,
-                "round_id": data.round_id
-            };
 
             RecordModel.update(condition, operation, function (err, doc) {
                 if (err) {

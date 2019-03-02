@@ -293,10 +293,11 @@ function JigsawPuzzle(config) {
     this.forceLeaving = false;
     this.forceLeave = function(text)
     {
+        /*
         if (!instance.forceLeaving) {
             sendRecord(false, 5);
             console.log(text);
-        }
+        }*/
         instance.forceLeaving = true;
         /*
         instance.forceLeaving = true;
@@ -649,6 +650,10 @@ function JigsawPuzzle(config) {
                 }
                 
                 instance.realStepsCounted = true;
+
+                if (!instance.gameFinished && instance.realSteps % 5 == 0) {
+                    sendRecord(false, 5);
+                }
             }
 
             tile.oldAroundTiles = tile.aroundTiles;
