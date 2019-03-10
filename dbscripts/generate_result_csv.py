@@ -9,7 +9,7 @@ mongo_ip = "162.105.89.243"
 mongo_port = 27017
 
 client =  MongoClient(mongo_ip, mongo_port)
-client.admin.authenticate('symbol', 'Saw@PKU_1726')
+client.admin.authenticate('xxx', 'xxx')
 db = client.CrowdJigsaw
 
 Rounds = db['rounds'].find({'players_num':{'$gte':10}, 'tilesPerRow':{'$gte':7}})

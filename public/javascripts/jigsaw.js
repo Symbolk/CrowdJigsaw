@@ -642,10 +642,6 @@ function JigsawPuzzle(config) {
                 }
                 
                 instance.realStepsCounted = true;
-
-                if (!instance.gameFinished && instance.realSteps % 5 == 0) {
-                    sendRecord(false, 5);
-                }
             }
 
             tile.oldAroundTiles = tile.aroundTiles;
@@ -1777,6 +1773,10 @@ function JigsawPuzzle(config) {
             if (tilesMoved && !instance.gameFinished) {
                 instance.steps += 1;
                 instance.realStepsCounted = false;
+
+                if (instance.realSteps > 0 && instance.realSteps % 5 == 0) {
+                    sendRecord(false, 5);
+                }
 
                 document.getElementById("steps").innerHTML = instance.realSteps;
                 $('#undo_button').css('display', 'inline');
