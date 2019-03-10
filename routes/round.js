@@ -326,8 +326,8 @@ module.exports = function (io) {
                                     "total_links": data.totalLinks,
                                     "hinted_links": data.hintedLinks,
                                     "correct_links": data.correctLinks,
-                                    "total_tiles": data.totalTiles,
-                                    "hinted_tiles": data.hintedTiles,
+                                    "total_steps": data.totalSteps,
+                                    "hinted_steps": data.hintedSteps,
                                     "total_hints": data.totalHintsNum,
                                     "correct_hints": data.correctHintsNum
                                 }
@@ -361,7 +361,7 @@ module.exports = function (io) {
                 maxSubGraphSize: data.maxSubGraphSize,
                 tiles: data.tiles,
                 tileHintedLinks: data.tileHintedLinks,
-                tileIsHintedLinks: data.tileIsHintedLinks,
+                tileLinkSteps: data.tileLinkSteps,
                 totalHintsNum: data.totalHintsNum,
                 correctHintsNum: data.correctHintsNum
             };
@@ -486,8 +486,8 @@ module.exports = function (io) {
                         "total_links": data.totalLinks,
                         "hinted_links": data.hintedLinks,
                         "correct_links": data.correctLinks,
-                        "total_tiles": data.totalTiles,
-                        "hinted_tiles": data.hintedTiles,
+                        "total_steps": data.totalSteps,
+                        "hinted_steps": data.hintedSteps,
                         "total_hints": data.totalHintsNum,
                         "correct_hints": data.correctHintsNum,
                         "rating": rating
@@ -590,8 +590,8 @@ module.exports = function (io) {
                             let s = parseInt(time[2]);
                             let hint_ratio = 0;
                             let hint_precision = 0;
-                            if (winner.total_tiles > 0 && winner.total_hints > 0) {
-                                hint_ratio = r.hinted_tiles / r.total_tiles;
+                            if (winner.total_steps > 0 && winner.total_hints > 0) {
+                                hint_ratio = r.hinted_steps / r.total_steps;
                                 hint_precision = r.correct_hints / r.total_hints;
                             }
                             resolve({

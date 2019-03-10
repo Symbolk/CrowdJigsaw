@@ -1,10 +1,30 @@
 from pymongo import MongoClient
 
-mongo_ip = "162.105.89.243"
+class UnionFind:
+	def __init__(self, tiles):
+		self.tiles = tiles
+		self.father = [i for i in range(len(tiles))]
+		for i, t in enumerate(tiles):
+			for neibor in t['aroundTiles']:
+				if neibor < 0:
+					continue
+				self.union(i, neibor)
+
+	def find(self, n):
+		if self.father[n] != n:
+			self.father[n] = self.find(self.father[n])
+		return self.father[n]
+
+	def union(self, n1, n2):
+		f1, f2 = self.find(n1), self.find(n2)
+		self.father[f2] = f1
+
+
+mongo_ip = "162.105.89.173"
 mongo_port = 27017
 
 client =  MongoClient(mongo_ip, mongo_port)
-client.admin.authenticate('xxx', 'xxx')
+#client.admin.authenticate('xxx', 'xxx')
 db = client.CrowdJigsaw
 
 records = db["records"].find()
@@ -14,10 +34,11 @@ for r in records:
 	Round = db['rounds'].find_one({'round_id': round_id})
 
 	if 'winner_time' not in Round or Round['winner_time'] == '-1':
-		continue
-	print(round_id, Round['winner_time'])
-	HH, MM, SS = map(int, Round['winner_time'].split(':'))
-	winner_time = (HH * 3600 + MM * 60 + SS + 1) * 1000
+		winner_time = 10000000000
+	else:
+		print(round_id, Round['winner_time'])
+		HH, MM, SS = map(int, Round['winner_time'].split(':'))
+		winner_time = (HH * 3600 + MM * 60 + SS + 1) * 1000
 
 	tile_num = Round['tile_num']
 	tilesPerRow = Round['tilesPerRow']
@@ -31,7 +52,7 @@ for r in records:
 		'nodes': 1,
 		'aroundTiles': [-1, -1, -1, -1],
 		'hintedTiles': [-1, -1, -1, -1],
-		'beHintedTiles': [-1, -1, -1, -1]
+		'linkSteps': [-1, -1, -1, -1]
 	} for _ in range(tile_num)]
 
 	score = 0
@@ -42,6 +63,7 @@ for r in records:
 	remove_hinted_wrong_links = 0
 
 	e_map = dict()
+	step = 0
 	for a in actions:
 		if type(a['links_size']) == dict:
 			edge_list = [(k, v) for k, v in a['links_size'].items()]
@@ -80,20 +102,26 @@ for r in records:
 							else:
 								remove_wrong_links += 1 
 
+		uf = UnionFind(tiles)
+
+		for edge, data in edge_list:
+			x, tag, y = data['x'], data['tag'], data['y']
+			beHinted, nodes, size = data['beHinted'], data['nodes'], data['size']
 			if size > 0:
 				e_map[edge] = (x, y, tag, beHinted)
 				if tag == "T-B" and (tiles[x]['aroundTiles'][2] != y 
 					or tiles[y]['aroundTiles'][0] != x):
+					if uf.find(x) != uf.find(y):
+						step += 1
+						uf.union(x, y)
 					#print(x, tag, y, tiles[x]['aroundTiles'][2], tiles[y]['aroundTiles'][0])
 					tiles[x]['aroundTiles'][2] = y
 					tiles[y]['aroundTiles'][0] = x
+					tiles[x]['linkSteps'][2] = step
+					tiles[y]['linkSteps'][0] = step
 					if beHinted:
 						tiles[x]['hintedTiles'][2] = y
 						tiles[y]['hintedTiles'][0] = x
-						if tiles[x]['nodes'] < tiles[y]['nodes']:
-							tiles[x]['beHintedTiles'][2] = y
-						if tiles[y]['nodes'] < tiles[x]['nodes']:
-							tiles[y]['beHintedTiles'][0] = x
 					else:
 						if int(a['time']) < winner_time:
 							if x + tilesPerRow == y:
@@ -103,15 +131,16 @@ for r in records:
 				if tag == "L-R" and (tiles[x]['aroundTiles'][1] != y 
 					or tiles[y]['aroundTiles'][3] != x):
 					#print(x, tag, y, tiles[x]['aroundTiles'][1], tiles[y]['aroundTiles'][3])
+					if uf.find(x) != uf.find(y):
+						step += 1
+						uf.union(x, y)
 					tiles[x]['aroundTiles'][1] = y
 					tiles[y]['aroundTiles'][3] = x
+					tiles[x]['linkSteps'][1] = step
+					tiles[y]['linkSteps'][3] = step
 					if beHinted:
 						tiles[x]['hintedTiles'][1] = y
 						tiles[y]['hintedTiles'][3] = x
-						if tiles[x]['nodes'] <= tiles[y]['nodes']:
-							tiles[x]['beHintedTiles'][1] = y
-						if tiles[y]['nodes'] <= tiles[x]['nodes']:
-							tiles[y]['beHintedTiles'][3] = x
 					else:
 						if int(a['time']) < winner_time:
 							if x + 1 == y and y % tilesPerRow != 0:
@@ -128,28 +157,24 @@ for r in records:
 		3 * remove_wrong_links + 6 * remove_hinted_wrong_links)
 
 	total_tiles, hinted_tiles = 0, 0
+	total_steps_set, hinted_steps_set = set(), set()
 	for tile in tiles:
-		linked_tile = False
 		beHinted_tile = False
 		for i in range(4):
-			if tile['aroundTiles'][i] >= 0:
-				linked_tile = True
-				if (tile['hintedTiles'][i] == tile['aroundTiles'][i] and 
-					tile['beHintedTiles'][i] == tile['aroundTiles'][i]):
-					beHinted_tile = True
-		if linked_tile:
-			total_tiles += 1
-			if beHinted_tile:
-				hinted_tiles += 1
-	hint_ratio = hinted_tiles / total_tiles if total_tiles else 0
-	if 'hinted_tiles' in r:
-		print("not save", r['hinted_tiles'], r['total_tiles'], hint_ratio, hinted_tiles, total_tiles)
-	if 'hinted_tiles' not in r or not r['hinted_tiles'] or int(r['hinted_tiles']) < hinted_tiles:
-		print('update', username, round_id, hinted_tiles, total_tiles)
+			if tile['aroundTiles'][i] >= 0 and tile['linkSteps'][i] >= 0:
+				if (tile['hintedTiles'][i] == tile['aroundTiles'][i]):
+					hinted_steps_set.add(tile['linkSteps'][i])
+				total_steps_set.add(tile['linkSteps'][i])
+	total_steps, hinted_steps = len(total_steps_set), len(hinted_steps_set)
+	hint_ratio = hinted_steps / total_steps if total_steps else 0
+	if 'hinted_steps' in r:
+		print("not save", r['round_id'], r['hinted_steps'], r['total_steps'], hint_ratio, hinted_steps, total_steps)
+	if 'hinted_steps' not in r or not r['hinted_steps'] or int(r['hinted_steps']) < hinted_steps:
+		print('update', username, round_id, hinted_steps, total_steps)
 		db['records'].update_one({'username': username, 'round_id': round_id}, {
 			'$set': {
-				'hinted_tiles': str(hinted_tiles),
-				'total_tiles': str(total_tiles)
+				'hinted_steps': str(hinted_steps),
+				'total_steps': str(total_steps)
 			}
 		})
 

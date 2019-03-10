@@ -9,21 +9,21 @@ mongo_ip = "162.105.89.243"
 mongo_port = 27017
 
 client =  MongoClient(mongo_ip, mongo_port)
-client.admin.authenticate('symbol', 'Saw@PKU_1726')
+client.admin.authenticate('xxx', 'xxx')
 db = client.CrowdJigsaw
 
-Rounds = db['rounds'].find({'players_num':{'$gte':10}, 'tilesPerRow':{'$gte':10}})
+Rounds = db['rounds'].find({'players_num':{'$gte':10}, 'tilesPerRow':{'$gte':7}})
 
 user_records = defaultdict(list)
 
 for R in Rounds:
-	if 'winner' not in R or len(R['winner']) != 10 or 'winner_time' not in R:
-		continue
-	if R['round_id'] == 121 or R['round_id'] == 37:
+	if R['round_id'] in (38, 130, 133, 143):
 		continue
 	r_total_links = R['tilesPerRow'] * (R['tilesPerRow'] - 1) * 2
-	print(R['round_id'], R['winner'], R['tilesPerRow'], R['winner_time'], r_total_links)
-	_, mm, ss = R['winner_time'].split(':')
+	if 'winner_time' in R and R['winner_time'] != "-1":
+		_, mm, ss = R['winner_time'].split(':')
+	else:
+		mm, ss = 'null', 'null'
 	file_name = 'round_%s_%s_%s_%s.csv' % (R['round_id'], R['tilesPerRow'], mm, ss)
 	print('write to', file_name)
 	sorted_round = []
@@ -55,8 +55,6 @@ for R in Rounds:
 	sorted_round.sort(key=lambda x: (-x[1], x[2], x[5]))
 	for rank, ur in enumerate(sorted_round):
 		username = ur[0]
-		if len(username) < 10 or username[0] != '1':
-			continue
 		user_records[username].append((rank + 1, R['round_id']) + ur)
 
 for username, data in user_records.items():

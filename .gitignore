@@ -8,6 +8,9 @@ yarn-error.log*
 # csv files
 *.csv
 
+#pic
+*.jpg
+
 # Runtime data
 pids
 *.pid

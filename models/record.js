@@ -11,8 +11,8 @@ var RecordSchema = new mongoose.Schema({
     contribution: { type: Number, default: -1 }, // a contribution score, calculated when one round end
     total_links: { type: String, default: "-1" }, // # of total links in this puzzle
     hinted_links: { type: String, default: "-1" }, // # of hinted links the player got
-    total_tiles: { type: String, default: "-1" }, // # of total links in this puzzle
-    hinted_tiles: { type: String, default: "-1" }, // # of hinted links the player got
+    total_steps: { type: String, default: "-1" }, // # of total links in this puzzle
+    hinted_steps: { type: String, default: "-1" }, // # of hinted links the player got
     correct_links: { type: String, default: "-1" },
     total_hints: { type: String, default: "-1" }, // # of total hints the player got
     correct_hints: { type: String, default: "-1" }, // # of correct hints the player got
