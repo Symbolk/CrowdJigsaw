@@ -1421,7 +1421,7 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && topTile.shape.bottomTab == 0 && tile.shape.topTab == 0));
                 if (hintAroundTiles) {
                     topTileConflict = topTileConflict || (topTile != undefined
-                        && hintAroundTiles[0] >= 0 && getTileIndex(topTile) != hintAroundTiles[0]);
+                        && getTileIndex(topTile) != hintAroundTiles[0]);
                 }
                 if(topTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -1436,7 +1436,7 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && rightTile.shape.leftTab == 0 && tile.shape.rightTab == 0));
                 if (hintAroundTiles) {
                     rightTileConflict = rightTileConflict || (rightTile != undefined 
-                        && hintAroundTiles[1] >= 0 && getTileIndex(rightTile) != hintAroundTiles[1]);
+                        && getTileIndex(rightTile) != hintAroundTiles[1]);
                 }
                 if(rightTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -1451,7 +1451,7 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && bottomTile.shape.topTab == 0 && tile.shape.bottomTab == 0));
                 if (hintAroundTiles) {
                     bottomTileConflict = bottomTileConflict || (bottomTile != undefined
-                     && hintAroundTiles[2] >= 0 && getTileIndex(bottomTile) != hintAroundTiles[2]);
+                        && getTileIndex(bottomTile) != hintAroundTiles[2]);
                 }
                 if(bottomTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -1466,7 +1466,7 @@ function JigsawPuzzle(config) {
                     (instance.tileShape == 'curved' && leftTile.shape.rightTab == 0 && tile.shape.leftTab == 0));
                 if (hintAroundTiles) {
                     leftTileConflict = leftTileConflict || (leftTile != undefined
-                     && hintAroundTiles[3] >= 0 && getTileIndex(leftTile) != hintAroundTiles[3]);
+                        && getTileIndex(leftTile) != hintAroundTiles[3]);
                 }
                 if(leftTileConflict && (typeof selectedGroupTiles !== 'undefined')){
                     for (var j = 0; j < selectedGroupTiles.length; j++) {
@@ -2630,6 +2630,8 @@ function JigsawPuzzle(config) {
                 hasConflict = hasConflicts[0];
                 needToMove = hasConflicts[1];
             }
+
+            /*
             if (hasConflict && correctTile.allLinksHinted && !correctTile.hasCorrectLinks) {
                 for (var i = 0; i < groupTiles.length; i++) {
                     groupTiles[i].picking = false;
@@ -2644,6 +2646,7 @@ function JigsawPuzzle(config) {
                 hasConflict = hasConflicts[0];
                 needToMove = hasConflicts[1];
             }
+            */
 
             if (!hasConflict) {
                 checkHints(selectedTileIndex, j, correctTileIndex);
