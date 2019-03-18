@@ -9,7 +9,7 @@ var DiffModel = require('../models/diff').Diff;
 var util = require('./util.js');
 var constants = require('../config/constants');
 var dirs = ['top', 'right', 'bottom', 'left'];
-
+const Promise = require('bluebird');
 const redis = require('redis').createClient();
 var roundNodesAndHints = {};
 
@@ -288,13 +288,26 @@ function distributed_update(data) {
         if (err) {
             console.log(err);
         } else {
-            let redis_key = 'round:' + data.round_id + ':distributed:edges:' + data.player_name;
+            let sup_key = 'round:' + data.round_id + ':distributed:sup_edges:' + data.player_name;
+            let opp_key = 'round:' + data.round_id + ':distributed:opp_edges:' + data.player_name;
             for (let key in data.edges) {
                 let e = data.edges[key];
                 if (e.size > 0) {
-                    redis.sadd(redis_key, key);
+                    redis.sadd(sup_key, key, function(err, count) {
+                        if (count == 1 && e.beHinted && e.from != data.player_name) {
+                            let redis_key = 'round:' + data.round_id + ':distributed:hint_sup';
+                            redis.zincrby(redis_key, 1, e.from);
+                        }
+                    });
+                    redis.srem(opp_key, key);
                 } else {
-                    redis.srem(redis_key, key);
+                    redis.srem(sup_key, key, function(err, count) {
+                        if (count == 1 && e.beHinted && e.from != data.player_name) {
+                            let redis_key = 'round:' + data.round_id + ':distributed:hint_opp';
+                            redis.zincrby(redis_key, 1, e.from);
+                        }
+                    });
+                    redis.sadd(opp_key, key);
                 }
             }
         }
@@ -680,19 +693,34 @@ module.exports = function (io) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (players.length > 1) {
-                        let player = players[0] == data.player_name ? players[1]: players[0];
-                        let redis_key = 'round:' + data.round_id + ':distributed:edges:' + player;
-                        redis.smembers(redis_key, function(err, edges) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                socket.emit('distributed_proactiveHints', {
-                                    from: player,
-                                    
+                    if (players.length == 2) {
+                        Promise.join(
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[0]),
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[0]),
+                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[0]),
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[1]),
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[1]),
+                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1])
+                        ).then(function(results){
+                            let playersData = new Array();
+                            for (var i = 0; i < results.length; i += 3) {
+                                let player = players[i/3];
+                                if (player == data.player_name) {
+                                    continue;
+                                }
+                                let sup = results[i] ? parseInt(results[i]): 0;
+                                let opp = results[i+1] ? parseInt(results[i+1]): 0;
+                                let edges = results[i+2] ? results[i+2]: [];
+                                playersData.push({
+                                    from: player, 
+                                    sup: sup,
+                                    opp: opp,
                                     edges: edges
                                 });
                             }
+                            socket.emit('distributed_proactiveHints', {
+                                players: playersData,
+                            });
                         });
                     }
                 }
@@ -728,21 +756,37 @@ module.exports = function (io) {
                 if (err) {
                     console.log(err);
                 } else {
-                    if (players.length > 1) {
-                        let player = players[0] == data.player_name ? players[1]: players[0];
-                        let redis_key = 'round:' + data.round_id + ':distributed:edges:' + player;
-                        redis.smembers(redis_key, function(err, edges) {
-                            if (err) {
-                                console.log(err);
-                            } else {
-                                socket.emit('distributed_reactiveHints', {
-                                    indexes: data.indexes,
-                                    selectedTileIndexes: data.selectedTileIndexes,
-                                    currentStep: data.currentStep,
-                                    from: player,
+                    if (players.length == 2) {
+                        Promise.join(
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[0]),
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[0]),
+                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[0]),
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[1]),
+                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[1]),
+                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1])
+                        ).then(function(results){
+                            let playersData = new Array();
+                            for (var i = 0; i < results.length; i += 3) {
+                                let player = players[i/3];
+                                if (player == data.player_name) {
+                                    continue;
+                                }
+                                let sup = results[i] ? parseInt(results[i]): 0;
+                                let opp = results[i+1] ? parseInt(results[i+1]): 0;
+                                let edges = results[i+2] ? results[i+2]: [];
+                                playersData.push({
+                                    from: player, 
+                                    sup: sup,
+                                    opp: opp,
                                     edges: edges
                                 });
                             }
+                            socket.emit('distributed_reactiveHints', {
+                                players: playersData,
+                                indexes: data.indexes,
+                                selectedTileIndexes: data.selectedTileIndexes,
+                                currentStep: data.currentStep
+                            });
                         });
                     }
                 }

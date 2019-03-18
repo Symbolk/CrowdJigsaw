@@ -362,6 +362,7 @@ module.exports = function (io) {
                 tiles: data.tiles,
                 tileHintedLinks: data.tileHintedLinks,
                 tileLinkSteps: data.tileLinkSteps,
+                tileLinksFrom: data.tileLinksFrom,
                 totalHintsNum: data.totalHintsNum,
                 correctHintsNum: data.correctHintsNum
             };
