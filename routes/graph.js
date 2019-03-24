@@ -307,8 +307,8 @@ function distributed_update(data) {
             if (e.size > 0) {
                 redis.sadd(sup_key, key, function(err, count) {
                     if (count == 1 && e.beHinted && e.from != data.player_name) {
-                        let redis_key = 'round:' + data.round_id + ':distributed:hint_sup';
-                        redis.zincrby(redis_key, 1, e.from);
+                        redis.zincrby('round:' + data.round_id + ':distributed:hint_sup', 1, e.from);
+                        redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', 1, key);
                     }
                     if (count == 1 && !round_finish) {
                         computeScore(data.round_id, e, tilesPerRow, data.player_name);
@@ -318,8 +318,8 @@ function distributed_update(data) {
             } else {
                 redis.srem(sup_key, key, function(err, count) {
                     if (count == 1 && e.beHinted && e.from != data.player_name) {
-                        let redis_key = 'round:' + data.round_id + ':distributed:hint_opp';
-                        redis.zincrby(redis_key, 1, e.from);
+                        redis.zincrby('round:' + data.round_id + ':distributed:hint_opp', 1, e.from);
+                        redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', 1, key);
                     }
                     if (count == 1 && !round_finish) {
                         computeScore(data.round_id, e, tilesPerRow, data.player_name);
@@ -717,10 +717,12 @@ module.exports = function (io) {
                             redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[0]),
                             redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[1]),
                             redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[1]),
-                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1])
+                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1]),
+                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_sup', 0, -1, 'WITHSCORES'),
+                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_opp', 0, -1, 'WITHSCORES')
                         ).then(function(results){
                             let playersData = new Array();
-                            for (var i = 0; i < results.length; i += 3) {
+                            for (var i = 0; i < results.length - 2; i += 3) {
                                 let player = players[i/3];
                                 if (player == data.player_name) {
                                     continue;
@@ -737,6 +739,8 @@ module.exports = function (io) {
                             }
                             socket.emit('distributed_proactiveHints', {
                                 players: playersData,
+                                edge_sup: results[results.length - 2],
+                                edge_opp: results[results.length - 1]
                             });
                         });
                     }
@@ -780,10 +784,12 @@ module.exports = function (io) {
                             redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[0]),
                             redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[1]),
                             redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[1]),
-                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1])
+                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1]),
+                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_sup', 0, -1, 'WITHSCORES'),
+                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_opp', 0, -1, 'WITHSCORES')
                         ).then(function(results){
                             let playersData = new Array();
-                            for (var i = 0; i < results.length; i += 3) {
+                            for (var i = 0; i < results.length - 2; i += 3) {
                                 let player = players[i/3];
                                 if (player == data.player_name) {
                                     continue;
@@ -802,7 +808,9 @@ module.exports = function (io) {
                                 players: playersData,
                                 indexes: data.indexes,
                                 selectedTileIndexes: data.selectedTileIndexes,
-                                currentStep: data.currentStep
+                                currentStep: data.currentStep,
+                                edge_sup: results[results.length - 2],
+                                edge_opp: results[results.length - 1]
                             });
                         });
                     }

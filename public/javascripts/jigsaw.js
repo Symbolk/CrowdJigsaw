@@ -2372,13 +2372,52 @@ function JigsawPuzzle(config) {
         }
     }
 
-    function edgesToHints(edges) {
+    function computeEdgeProbability(edge_sup, edge_opp) {
+        var edgeMap = {}
+        if (edge_sup) {
+            for (var i = 0; i < edge_sup.length; i += 2) {
+                var edge = edge_sup[i];
+                var val = edge_sup[i+1];
+                edgeMap[edge] = {
+                    sup: val,
+                    opp: 0,
+                    pro: 1
+                }
+            }
+        }
+        if (edge_opp) {
+            for (var i = 0; i < edge_opp.length; i += 2) {
+                var edge = edge_opp[i];
+                var val = edge_opp[i+1];
+                if(!edgeMap[edge]) {
+                    edgeMap[edge] = {
+                        sup: 0,
+                        opp: val,
+                        pro: 0
+                    }
+                } else {
+                    edgeMap[edge].opp = val;
+                    if (edgeMap[edge].opp + edgeMap[edge].sup > 0) {
+                        edgeMap[edge].pro = edgeMap[edge].sup / (edgeMap[edge].opp + edgeMap[edge].sup);
+                    }
+                }
+            }
+        }
+        console.log(edgeMap);
+        return edgeMap;
+    }
+
+    function edgesToHints(edges, edgeMap) {
         var hints = new Array();
         for (var i = 0; i < instance.tilesNum; i++) {
             hints.push(new Array(-1, -1, -1, -1));
         }
         for (var i = 0; i < edges.length; i++) {
             var e = edges[i];
+            console.log(e, edgeMap[e]);
+            if (edgeMap[e] && Math.random() > edgeMap[e].pro) {
+                continue;
+            }
             var splited = e.split('-');
             var x = parseInt(splited[0].slice(0, -1))
             var y = parseInt(splited[1].slice(1)) 
@@ -2400,6 +2439,7 @@ function JigsawPuzzle(config) {
 
     socket.on('distributed_proactiveHints', function(data) {
         console.log(data);
+        var edgeMap = computeEdgeProbability(data.edge_sup, data.edge_opp);
         if (data.players && data.players.length > 0) {
             for (var i = 0; i < data.players.length; i++) {
                 var sup = data.players[i].sup;
@@ -2413,7 +2453,7 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < data.players.length; i++) {
                 console.log(data.players[i].quality);
                 instance.hintedFrom = data.players[i].from;
-                var hints = edgesToHints(data.players[i].edges);
+                var hints = edgesToHints(data.players[i].edges, edgeMap);
                 data.sureHints = hints;
                 processProactiveHints(data);
                 instance.hintedFrom = undefined;
@@ -2423,6 +2463,7 @@ function JigsawPuzzle(config) {
 
     socket.on('distributed_reactiveHints', function(data) {
         console.log(data);
+        var edgeMap = computeEdgeProbability(data.edge_sup, data.edge_opp);
         if (data.players && data.players.length > 0) {
             for (var i = 0; i < data.players.length; i++) {
                 var sup = data.players[i].sup;
@@ -2436,7 +2477,7 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < data.players.length; i++) {
                 console.log(data.players[i].quality);
                 instance.hintedFrom = data.players[i].from;
-                var hints = edgesToHints(data.players[i].edges);
+                var hints = edgesToHints(data.players[i].edges, edgeMap);
                 data.sureHints = hints;
                 processReactiveHints(data);
                 instance.hintedFrom = undefined;
