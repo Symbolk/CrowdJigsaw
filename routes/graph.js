@@ -243,11 +243,13 @@ function generateEdgeObject(x, y, tag, supporters, opposers, confidence, weight)
     };
 }
 
-function computeScore(round_id, round_finish, x, y, tag, size, size_before, beHinted, tilesPerRow, player_name, from){
-    if(round_finish){
-        return;
-    }
-    var correct = false;
+function computeScore(round_id, edge, tilesPerRow, player_name){
+    let correct = false;
+    let tag = edge.tag;
+    let x = edge.x;
+    let y = edge.y;
+    let size = edge.size;
+    let beHinted = edge.beHinted;
     if(tag == 'L-R' && x + 1 == y && y % tilesPerRow != 0){
         correct = true;
     }
@@ -255,24 +257,24 @@ function computeScore(round_id, round_finish, x, y, tag, size, size_before, beHi
         correct = true;
     }
     let redis_key = 'round:' + round_id + ':scoreboard';
-    var score = 0;
-    if(!beHinted && correct && size > 0 && size_before <= 0){
+    let score = 0;
+    if(!beHinted && correct && size > 0){
         score = constants.create_correct_link_score;
         redis.zincrby(redis_key + ':create_correct_link', 1, player_name);
     }
-    if(!beHinted && correct && size < 0 && size_before >= 0){
+    if(!beHinted && correct && size < 0){
         score = constants.remove_correct_link_score;
         redis.zincrby(redis_key + ':remove_correct_link', 1, player_name);
     }
-    if(!beHinted && !correct && size > 0 && size_before <= 0){
+    if(!beHinted && !correct && size > 0){
         score = constants.create_wrong_link_score;
         redis.zincrby(redis_key + ':create_wrong_link', 1, player_name);
     }
-    if(!beHinted && !correct && size < 0 && size_before >= 0 && player_name != e.from){
+    if(!beHinted && !correct && size < 0){
         score = constants.remove_wrong_link_score;
         redis.zincrby(redis_key + ':remove_wrong_link', 1, player_name);
     }
-    if(beHinted && !correct && size < 0 && size_before >= 0){
+    if(beHinted && !correct && size < 0){
         score = constants.remove_hinted_wrong_link_score;
         redis.zincrby(redis_key + ':remove_hinted_wrong_link', 1, player_name);
     }
@@ -283,32 +285,47 @@ var averageTime = 0.0;
 var updateTimes = 0;
 
 function distributed_update(data) {
+    let time = (new Date()).getTime();
+    saveAction(data.round_id, time, data.player_name, data.edges, data.logs, data.is_hint);
     let redis_players_key = 'round:' + data.round_id + ':distributed:players';
-    redis.sadd(redis_players_key, data.player_name, function(err) {
-        if (err) {
-            console.log(err);
-        } else {
-            let sup_key = 'round:' + data.round_id + ':distributed:sup_edges:' + data.player_name;
-            let opp_key = 'round:' + data.round_id + ':distributed:opp_edges:' + data.player_name;
-            for (let key in data.edges) {
-                let e = data.edges[key];
-                if (e.size > 0) {
-                    redis.sadd(sup_key, key, function(err, count) {
-                        if (count == 1 && e.beHinted && e.from != data.player_name) {
-                            let redis_key = 'round:' + data.round_id + ':distributed:hint_sup';
-                            redis.zincrby(redis_key, 1, e.from);
-                        }
-                    });
-                    redis.srem(opp_key, key);
-                } else {
-                    redis.srem(sup_key, key, function(err, count) {
-                        if (count == 1 && e.beHinted && e.from != data.player_name) {
-                            let redis_key = 'round:' + data.round_id + ':distributed:hint_opp';
-                            redis.zincrby(redis_key, 1, e.from);
-                        }
-                    });
-                    redis.sadd(opp_key, key);
-                }
+    Promise.join(
+        redis.saddAsync('round:' + data.round_id + ':distributed:players', data.player_name),
+        redis.getAsync('round:' + data.round_id)
+    ).then(function(results) {
+        let round_finish = false;
+        let tilesPerRow = 10;
+        if (results.length == 2) {
+            let round = JSON.parse(results[1]);
+            round_finish = round.solved_players > 0;
+            tilesPerRow = round.tilesPerRow;
+        }
+
+        let sup_key = 'round:' + data.round_id + ':distributed:sup_edges:' + data.player_name;
+        let opp_key = 'round:' + data.round_id + ':distributed:opp_edges:' + data.player_name;
+        for (let key in data.edges) {
+            let e = data.edges[key];
+            if (e.size > 0) {
+                redis.sadd(sup_key, key, function(err, count) {
+                    if (count == 1 && e.beHinted && e.from != data.player_name) {
+                        let redis_key = 'round:' + data.round_id + ':distributed:hint_sup';
+                        redis.zincrby(redis_key, 1, e.from);
+                    }
+                    if (count == 1 && !round_finish) {
+                        computeScore(data.round_id, e, tilesPerRow, data.player_name);
+                    }
+                });
+                redis.srem(opp_key, key);
+            } else {
+                redis.srem(sup_key, key, function(err, count) {
+                    if (count == 1 && e.beHinted && e.from != data.player_name) {
+                        let redis_key = 'round:' + data.round_id + ':distributed:hint_opp';
+                        redis.zincrby(redis_key, 1, e.from);
+                    }
+                    if (count == 1 && !round_finish) {
+                        computeScore(data.round_id, e, tilesPerRow, data.player_name);
+                    }
+                });
+                redis.sadd(opp_key, key);
             }
         }
     });
@@ -343,26 +360,26 @@ function update(data) {
                             let opposers = edges_saved[key].opposers;
                             if (e.size > 0) {
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                     delete opposers[data.player_name];
                                 } else {
-                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 }
                             } else { // e.size<0(e.size==0?)
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                     delete supporters[data.player_name];
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 } else {
-                                    computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 }
                             }
@@ -372,11 +389,11 @@ function update(data) {
                             let opposers = {};
                             let weight = 0;
                             if (e.size > 0) {
-                                computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                 supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 weight += supporters[data.player_name];
                             } else {
-                                computeScore(roundID, (round.solved_players > 0), e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
                                 opposers[data.player_name] = e.size * (e.size / e.nodes);
                             }
                             let confidence = 1;
@@ -684,7 +701,7 @@ module.exports = function (io) {
         });
         socket.on('upload', function (data) {
             distributed_update(data);
-            update(data);
+            //update(data);
         });
 
         socket.on('distributed_fetchHints', function(data) {

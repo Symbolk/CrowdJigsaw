@@ -11,7 +11,7 @@ function renderScore(data) {
     // 指定图表的配置项和数据
     var option = {
         title: {
-            text: 'score detail',
+            text: 'score detail of ' + data.username,
             left: 'center'
         },
         tooltip : {
@@ -89,7 +89,7 @@ function renderLinks(data) {
     // 指定图表的配置项和数据
     var option = {
         title: {
-            text: 'links detail',
+            text: 'links detail of '+ data.username,
             left: 'center'
         },
         xAxis: {
