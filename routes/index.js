@@ -602,6 +602,7 @@ router.route('/statistics').all(LoginFirst).get(function (req, res) {
         username: req.session.user.username
     });
 });
+
 // router.route('/award').all(LoginFirst).get(function (req, res) {
 //     res.render('award', {title: 'Award',username: req.session.user.username});
 // });
