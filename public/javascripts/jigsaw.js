@@ -2675,20 +2675,13 @@ function JigsawPuzzle(config) {
             }
 
             if (sameGroup) {
-                if (correctTile.allLinksHinted) {
-                    groupTiles = new Array();
-                    groupTiles.push(correctTile);
-                }
-                else {
-                    instance.hintsLog.log.push({
-                        tile: selectedTileIndex,
-                        hint_tile: correctTileIndex,
-                        direction: j,
-                        success: false,
-                        msg: 'tile and hint_tile are in the same group'
-                    });
-                    continue;
-                }
+                instance.hintsLog.log.push({
+                    tile: selectedTileIndex,
+                    hint_tile: correctTileIndex,
+                    direction: j,
+                    success: false,
+                    msg: 'tile and hint_tile are in the same group'
+                });
             }
 
             for (var i = 0; i < groupTiles.length; i++) {
