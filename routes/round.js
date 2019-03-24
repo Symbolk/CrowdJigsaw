@@ -474,7 +474,8 @@ module.exports = function (io) {
             if (data.finished) {
                 operation = {
                     $set: {
-                        "rating": rating
+                        "rating": rating,
+                        "edges": data.edges
                     }
                 };
             } else {
@@ -482,8 +483,8 @@ module.exports = function (io) {
                 operation = {
                     $set: {
                         "steps": data.steps,
+                        "start_time": data.startTime,
                         "time": getRoundFinishTime(data.startTime),
-                        "contribution": contri.toFixed(3),
                         "total_links": data.totalLinks,
                         "hinted_links": data.hintedLinks,
                         "correct_links": data.correctLinks,
@@ -491,7 +492,8 @@ module.exports = function (io) {
                         "hinted_steps": data.hintedSteps,
                         "total_hints": data.totalHintsNum,
                         "correct_hints": data.correctHintsNum,
-                        "rating": rating
+                        "rating": rating,
+                        "edges": data.edges
                     }
                 };
             }
@@ -527,6 +529,21 @@ module.exports = function (io) {
                 console.log(err);
             } else {
                 res.send(JSON.stringify(docs));
+            }
+        });
+    });
+
+    router.route('/detail/:round_id/:username').all(LoginFirst).get(function (req, res, next) {
+        var round_id = req.params.round_id;
+        var username = req.params.username;
+        RecordModel.findOne({
+            round_id: round_id,
+            username: username
+        }, function(err, record) {
+            if (err) {
+                res.send("");
+            } else if (record) {
+                res.send(JSON.stringify(record));          
             }
         });
     });
@@ -602,7 +619,7 @@ module.exports = function (io) {
                                 "hint_precision": hint_precision
                             });
                         }
-                    })
+                    });
                 }
             });
         });

@@ -22,7 +22,8 @@ var RecordSchema = new mongoose.Schema({
     remove_correct_link: { type: Number, default: 0 },
     create_wrong_link: { type: Number, default: 0 },
     remove_wrong_link: { type: Number, default: 0 },
-    remove_hinted_wrong_link: { type: Number, default: 0 }
+    remove_hinted_wrong_link: { type: Number, default: 0 },
+    edges: { type: Object},
 }, { collection: 'records' });
 
 console.log('[OK] Record Schema Created.');

@@ -1829,6 +1829,29 @@ function JigsawPuzzle(config) {
         }
     }
 
+    this.generateEdges = function() {
+        var edges = new Array();
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            for (var j = 1; j < 3; j++) {
+                if (tile.aroundTiles[j] >= 0) {
+                    var tag = j == 1 ? "L-R" : "T-B";
+                    var x = i;
+                    var y = tile.aroundTiles[j];
+                    var edgeName = x + tag + y;
+                    var beHinted = Math.floor(tile.hintedLinks[j]) == y;
+                    var linksFrom = tile.linksFrom[j];
+                    edges.push({
+                        edge: edgeName,
+                        hinted: beHinted,
+                        from: linksFrom
+                    });
+                }
+            }
+        }
+        return edges;
+    }
+
     /**
      *  Update links in the background graph
      *  Check which case it is in the 4 cases, and call the corrosponding method:
@@ -2449,9 +2472,7 @@ function JigsawPuzzle(config) {
                     }
                 }
             }
-
             var shouldSave = showStrongAndWeakHints(data.sureHints, strongHintsNeededTiles, data.indexes);
-
             if (shouldSave) {
                 instance.realStepsCounted = false;
                 saveGame();
@@ -3113,6 +3134,7 @@ $('.returnCenter').click(function () {
  */
 function sendRecord(finished, rating) {
     puzzle.calcHintedTile();
+    var edges = puzzle.generateEdges();
     var params = {
         round_id: roundID,
         player_name: player_name,
@@ -3126,7 +3148,8 @@ function sendRecord(finished, rating) {
         totalSteps: hintedLinksNum.totalSteps,
         totalHintsNum: totalHintsNum,
         correctHintsNum: correctHintsNum,
-        rating: rating
+        rating: rating,
+        edges: edges
     };
     if (!finished) {
         var randomTime = Math.random() * 1000;

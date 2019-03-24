@@ -1,4 +1,11 @@
 <% include header2.html %>
+<script type="text/javascript">
+    var round_id = '<%-round_id-%>';
+</script>
+<script src="/javascripts/jquery.min.js"></script>
+<script src="/javascripts/bootstrap-table.min.js"></script>
+<script src="/javascripts/echarts.common.min.js"></script>
+<script src="/javascripts/roundrank.js"></script>
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
@@ -8,19 +15,13 @@
                 <%= round_id %>
                     <small>Here you can see the rank of the round you just played in.</small>
             </h1>
-            <ol class="breadcrumb">
-                <li>
-                    <a href="#">
-                        <i class="fa fa-dashboard"></i> CJP </a>
-                </li>
-                <li class="active">Round Rank</li>
-            </ol>
         </section>
+
+        <div id="score" style="width:100%;height:400px;display:none;"></div>
+        <div id="links" style="width:100%;height:400px;display:none;"></div>
 
         <!-- Main content -->
         <section class="content container-fluid">
-            <script src="/javascripts/jquery.min.js"></script>
-            <script src="/javascripts/bootstrap-table.min.js"></script>
 
             <table id="round_rank_table" data-toggle="table" data-search="true" data-show-refresh="true" data-show-toggle="true" data-show-columns="true">
                 <thead>
@@ -35,11 +36,7 @@
                         <th data-field="correct_hint_percent" data-halign="center" data-align="center" data-sortable="true">Hint Precision</th>
                         <th data-field="rating" data-halign="center" data-align="center" data-sortable="true">Rating</th>
                         <th data-field="score" data-halign="center" data-align="center" data-sortable="true">Score</th>
-                        <th data-field="create_correct_link" data-halign="center" data-align="center" data-sortable="true">Create_Correct_Link</th>
-                        <th data-field="remove_correct_link" data-halign="center" data-align="center" data-sortable="true">Remove_Correct_Link</th>
-                        <th data-field="create_wrong_link" data-halign="center" data-align="center" data-sortable="true">Create_Wrong_Link</th>
-                        <th data-field="remove_wrong_link" data-halign="center" data-align="center" data-sortable="true">Remove_Wrong_Link</th>
-                        <th data-field="remove_hinted_wrong_link" data-halign="center" data-align="center" data-sortable="true">Remove_Hinted_Wrong_Link</th>
+                        <th data-halign="center" data-align="center" data-sortable="true">Detail</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -159,64 +156,7 @@
                                                 <%} %>
                                     </td>
                                     <td>
-                                        <% if(u.playername===user.username){%>
-                                            <span style="color:#3c3;">
-                                                <%- u.create_correct_link %>
-                                            </span>
-                                            <%}
-                                                    else{%>
-                                                <span>
-                                                    <%- u.create_correct_link %>
-                                                </span>
-                                                <%} %>
-                                    </td>
-                                    <td>
-                                        <% if(u.playername===user.username){%>
-                                            <span style="color:#3c3;">
-                                                <%- u.remove_correct_link %>
-                                            </span>
-                                            <%}
-                                                    else{%>
-                                                <span>
-                                                    <%- u.remove_correct_link %>
-                                                </span>
-                                                <%} %>
-                                    </td>
-                                    <td>
-                                        <% if(u.playername===user.username){%>
-                                            <span style="color:#3c3;">
-                                                <%- u.create_wrong_link %>
-                                            </span>
-                                            <%}
-                                                    else{%>
-                                                <span>
-                                                    <%- u.create_wrong_link %>
-                                                </span>
-                                                <%} %>
-                                    </td>
-                                    <td>
-                                        <% if(u.playername===user.username){%>
-                                            <span style="color:#3c3;">
-                                                <%- u.remove_wrong_link %>
-                                            </span>
-                                            <%}
-                                                    else{%>
-                                                <span>
-                                                    <%- u.remove_wrong_link %>
-                                                </span>
-                                                <%} %>
-                                    </td>
-                                    <td>
-                                        <% if(u.playername===user.username){%>
-                                            <span style="color:#3c3;">
-                                                <%- u.remove_hinted_wrong_link %>
-                                            </span>
-                                            <%}
-                                                    else{%>
-                                                <span>
-                                                    <%- u.remove_hinted_wrong_link %>
-                                                </span>
-                                                <%} %>
+                                        <a onclick="renderDetail('<%-u.playername-%>')">detail</a>
                                     </td>
                             </tr>
                             <% }) %>
@@ -335,64 +275,7 @@
                                                     <%} %>
                                         </td>
                                         <td>
-                                            <% if(u.playername===user.username){%>
-                                                <span style="color:#3c3;">
-                                                    <%- u.create_correct_link %>
-                                                </span>
-                                                <%}
-                                                        else{%>
-                                                    <span>
-                                                        <%- u.create_correct_link %>
-                                                    </span>
-                                                    <%} %>
-                                        </td>
-                                        <td>
-                                            <% if(u.playername===user.username){%>
-                                                <span style="color:#3c3;">
-                                                    <%- u.remove_correct_link %>
-                                                </span>
-                                                <%}
-                                                        else{%>
-                                                    <span>
-                                                        <%- u.remove_correct_link %>
-                                                    </span>
-                                                    <%} %>
-                                        </td>
-                                        <td>
-                                            <% if(u.playername===user.username){%>
-                                                <span style="color:#3c3;">
-                                                    <%- u.create_wrong_link %>
-                                                </span>
-                                                <%}
-                                                        else{%>
-                                                    <span>
-                                                        <%- u.create_wrong_link %>
-                                                    </span>
-                                                    <%} %>
-                                        </td>
-                                        <td>
-                                            <% if(u.playername===user.username){%>
-                                                <span style="color:#3c3;">
-                                                    <%- u.remove_wrong_link %>
-                                                </span>
-                                                <%}
-                                                        else{%>
-                                                    <span>
-                                                        <%- u.remove_wrong_link %>
-                                                    </span>
-                                                    <%} %>
-                                        </td>
-                                        <td>
-                                            <% if(u.playername===user.username){%>
-                                                <span style="color:#3c3;">
-                                                    <%- u.remove_hinted_wrong_link %>
-                                                </span>
-                                                <%}
-                                                        else{%>
-                                                    <span>
-                                                        <%- u.remove_hinted_wrong_link %>
-                                                    </span>
-                                                    <%} %>
+                                            <a onclick="renderDetail('<%-u.playername-%>')">detail</a>
                                         </td>
                                     </tr>
                                     <% }) %>
