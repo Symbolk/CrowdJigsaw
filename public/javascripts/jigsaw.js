@@ -2377,7 +2377,7 @@ function JigsawPuzzle(config) {
         if (edge_sup) {
             for (var i = 0; i < edge_sup.length; i += 2) {
                 var edge = edge_sup[i];
-                var val = edge_sup[i+1];
+                var val = parseInt(edge_sup[i+1]);
                 edgeMap[edge] = {
                     sup: val,
                     opp: 0,
@@ -2388,7 +2388,7 @@ function JigsawPuzzle(config) {
         if (edge_opp) {
             for (var i = 0; i < edge_opp.length; i += 2) {
                 var edge = edge_opp[i];
-                var val = edge_opp[i+1];
+                var val = parseInt(edge_opp[i+1]);
                 if(!edgeMap[edge]) {
                     edgeMap[edge] = {
                         sup: 0,
