@@ -306,9 +306,11 @@ function distributed_update(data) {
             let e = data.edges[key];
             if (e.size > 0) {
                 redis.sadd(sup_key, key, function(err, count) {
+                    if (count == 1) {
+                        redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', 1, key);
+                    }
                     if (count == 1 && e.beHinted && e.from != data.player_name) {
                         redis.zincrby('round:' + data.round_id + ':distributed:hint_sup', 1, e.from);
-                        redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', 1, key);
                     }
                     if (count == 1 && !round_finish) {
                         computeScore(data.round_id, e, tilesPerRow, data.player_name);
@@ -317,9 +319,11 @@ function distributed_update(data) {
                 redis.srem(opp_key, key);
             } else {
                 redis.srem(sup_key, key, function(err, count) {
+                    if (count == 1) {
+                        redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', 1, key);
+                    }
                     if (count == 1 && e.beHinted && e.from != data.player_name) {
                         redis.zincrby('round:' + data.round_id + ':distributed:hint_opp', 1, e.from);
-                        redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', 1, key);
                     }
                     if (count == 1 && !round_finish) {
                         computeScore(data.round_id, e, tilesPerRow, data.player_name);
