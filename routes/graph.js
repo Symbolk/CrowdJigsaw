@@ -319,10 +319,8 @@ function distributed_update(data) {
                 redis.srem(opp_key, key);
             } else {
                 redis.srem(sup_key, key, function(err, count) {
-                    if (count == 1) {
-                        redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', 1, key);
-                    }
-                    if (count == 1 && e.beHinted && e.from != data.player_name) {
+                    redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', 1, key);
+                    if (e.beHinted && e.from != data.player_name) {
                         redis.zincrby('round:' + data.round_id + ':distributed:hint_opp', 1, e.from);
                     }
                     if (count == 1 && !round_finish) {
