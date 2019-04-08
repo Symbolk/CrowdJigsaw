@@ -919,7 +919,7 @@ function JigsawPuzzle(config) {
     }
 
     function showUnsureHintColor(tileIndex, hintTilesIndexs, direction, colorIndex) {
-        showColorBorder(tileIndex, direction, colorIndex, true);
+        showColorBorder(tileIndex, direction, colorIndex, true, instance.colorBorderWidth);
         for (var i = 0; i < hintTilesIndexs.length; i++) {
             var reverseDirection = 4;
             if (direction % 2 == 0) {
@@ -928,8 +928,31 @@ function JigsawPuzzle(config) {
             else {
                 reverseDirection = 4 - direction;
             }
-            showColorBorder(hintTilesIndexs[i], reverseDirection, colorIndex, true);
+            showColorBorder(hintTilesIndexs[i], reverseDirection, colorIndex, true, instance.colorBorderWidth);
         }
+    }
+
+    function showUnsureHintColorWidth(x, y, direction, colorIndex, pushToArray) {
+        var width = instance.colorBorderWidth;
+        if (instance.edgeMap) {
+            var tag = direction % 2 == 0 ? 'T-B': 'L-R';
+            var edge = direction == 1 || direction == 2 ? x + tag + y : y + tag + x;
+            if (instance.edgeMap[edge]) {
+                width = (1 - instance.edgeMap[edge].pro) * width;
+            }
+            if (width == 0) {
+                return;
+            }
+        }
+        showColorBorder(x, direction, colorIndex, pushToArray, width);
+        var reverseDirection = 4;
+        if (direction % 2 == 0) {
+            reverseDirection = 2 - direction;
+        }
+        else {
+            reverseDirection = 4 - direction;
+        }
+        showColorBorder(y, reverseDirection, colorIndex, pushToArray, width);
     }
 
     function getRandomShapes(width, height) {
@@ -1764,13 +1787,6 @@ function JigsawPuzzle(config) {
                 }
                 placeTile(tile, cellPosition);
                 tilesMoved = tilesMoved || tile.positionMoved;
-
-                if (tile.differentColor.length > 0) {
-                    var tileIndex = getTileIndex(tile);
-                    for (var j = 0; j < tile.differentColor.length; j++) {
-                        showColorBorder(tileIndex, tile.differentColor[j], tile.colorDirection[j], false);
-                    }
-                }
             }
 
             instance.createSomeLinks = false;
@@ -2063,12 +2079,27 @@ function JigsawPuzzle(config) {
     }
 
     function hideColorBorder(index) {
+        if (index < 0) {
+            return;
+        }
         var tile = instance.tiles[index];
         if (tile.differentColor.length > 0) {
-            tile.topEdge.visible = false;
-            tile.rightEdge.visible = false;
-            tile.bottomEdge.visible = false;
-            tile.leftEdge.visible = false;
+            if (tile.topEdge.visible) {
+                tile.topEdge.visible = false;
+                hideColorBorder(tile.aroundTiles[0]);
+            }
+            if (tile.rightEdge.visible) {
+                tile.rightEdge.visible = false;
+                hideColorBorder(tile.aroundTiles[1]);
+            }
+            if (tile.bottomEdge.visible) {
+                tile.bottomEdge.visible = false;
+                hideColorBorder(tile.aroundTiles[2]);
+            }
+            if (tile.leftEdge.visible) {
+                tile.leftEdge.visible = false;
+                hideColorBorder(tile.aroundTiles[3]);
+            }
             tile.colorBorder.visible = false;
         }
         for (var i = 0; i < instance.tiles.length; i++) {
@@ -2090,26 +2121,31 @@ function JigsawPuzzle(config) {
         };
     }
 
-    function showColorBorder(index, direction, colorIndex, pushToArray) {
+    function showColorBorder(index, direction, colorIndex, pushToArray, width) {
         var tile = instance.tiles[index];
         switch (direction) {
             case 0:
+                tile.topEdge.strokeWidth = width;
                 tile.topEdge.visible = true;
                 setGradientStrockColor(tile.topEdge, instance.unsureHintsColor[colorIndex]);
                 break;
             case 1:
+                tile.rightEdge.strokeWidth = width;
                 tile.rightEdge.visible = true;
                 setGradientStrockColor(tile.rightEdge, instance.unsureHintsColor[colorIndex]);
                 break;
             case 2:
+                tile.bottomEdge.strokeWidth = width;
                 tile.bottomEdge.visible = true;
                 setGradientStrockColor(tile.bottomEdge, instance.unsureHintsColor[colorIndex]);
                 break;
             case 3:
+                tile.leftEdge.strokeWidth = width;
                 tile.leftEdge.visible = true;
                 setGradientStrockColor(tile.leftEdge, instance.unsureHintsColor[colorIndex]);
                 break;
             default:
+                tile.colorBorder.strokeWidth = width;
                 tile.colorBorder.visible = true;
                 setGradientStrockColor(tile.colorBorder, instance.unsureHintsColor[colorIndex]);
                 break;
@@ -2372,12 +2408,34 @@ function JigsawPuzzle(config) {
         }
     }
 
+    function showVulnerableEdges() {
+        if (!instance.edgeMap) {
+            return;
+        }
+        hideAllColorBorder();
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            if (tile.aroundTiles[1] >= 0) {
+                var edge = i + 'L-R' + tile.aroundTiles[1];
+                if (instance.edgeMap[edge] && instance.edgeMap[edge].pro < 1) {
+                    showUnsureHintColorWidth(i, tile.aroundTiles[1], 1, 0, true);
+                }
+            }
+            if (tile.aroundTiles[2] >= 0) {
+                var edge = i + 'T-B' + tile.aroundTiles[2];
+                if (instance.edgeMap[edge] && instance.edgeMap[edge].pro < 1) {
+                    showUnsureHintColorWidth(i, tile.aroundTiles[2], 2, 0, true);
+                }
+            }
+        }
+    }
+
     function computeEdgeProbability(edge_sup, edge_opp) {
         var edgeMap = {}
         if (edge_sup) {
             for (var i = 0; i < edge_sup.length; i += 2) {
                 var edge = edge_sup[i];
-                var val = edge_sup[i+1];
+                var val = parseInt(edge_sup[i+1]);
                 edgeMap[edge] = {
                     sup: val,
                     opp: 0,
@@ -2388,7 +2446,7 @@ function JigsawPuzzle(config) {
         if (edge_opp) {
             for (var i = 0; i < edge_opp.length; i += 2) {
                 var edge = edge_opp[i];
-                var val = edge_opp[i+1];
+                var val = parseInt(edge_opp[i+1]);
                 if(!edgeMap[edge]) {
                     edgeMap[edge] = {
                         sup: 0,
@@ -2407,15 +2465,15 @@ function JigsawPuzzle(config) {
         return edgeMap;
     }
 
-    function edgesToHints(edges, edgeMap) {
+    function edgesToHints(edges) {
         var hints = new Array();
         for (var i = 0; i < instance.tilesNum; i++) {
             hints.push(new Array(-1, -1, -1, -1));
         }
         for (var i = 0; i < edges.length; i++) {
             var e = edges[i];
-            console.log(e, edgeMap[e]);
-            if (edgeMap[e] && Math.random() > edgeMap[e].pro) {
+            console.log(e, instance.edgeMap[e]);
+            if (instance.edgeMap[e] && Math.random() > instance.edgeMap[e].pro) {
                 continue;
             }
             var splited = e.split('-');
@@ -2439,7 +2497,7 @@ function JigsawPuzzle(config) {
 
     socket.on('distributed_proactiveHints', function(data) {
         console.log(data);
-        var edgeMap = computeEdgeProbability(data.edge_sup, data.edge_opp);
+        instance.edgeMap = computeEdgeProbability(data.edge_sup, data.edge_opp);
         if (data.players && data.players.length > 0) {
             for (var i = 0; i < data.players.length; i++) {
                 var sup = data.players[i].sup;
@@ -2453,17 +2511,18 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < data.players.length; i++) {
                 console.log(data.players[i].quality);
                 instance.hintedFrom = data.players[i].from;
-                var hints = edgesToHints(data.players[i].edges, edgeMap);
+                var hints = edgesToHints(data.players[i].edges);
                 data.sureHints = hints;
                 processProactiveHints(data);
                 instance.hintedFrom = undefined;
             }
         }
+        showVulnerableEdges();
     });
 
     socket.on('distributed_reactiveHints', function(data) {
         console.log(data);
-        var edgeMap = computeEdgeProbability(data.edge_sup, data.edge_opp);
+        instance.edgeMap = computeEdgeProbability(data.edge_sup, data.edge_opp);
         if (data.players && data.players.length > 0) {
             for (var i = 0; i < data.players.length; i++) {
                 var sup = data.players[i].sup;
@@ -2477,12 +2536,13 @@ function JigsawPuzzle(config) {
             for (var i = 0; i < data.players.length; i++) {
                 console.log(data.players[i].quality);
                 instance.hintedFrom = data.players[i].from;
-                var hints = edgesToHints(data.players[i].edges, edgeMap);
+                var hints = edgesToHints(data.players[i].edges);
                 data.sureHints = hints;
                 processReactiveHints(data);
                 instance.hintedFrom = undefined;
             }
         }
+        showVulnerableEdges();
     });
 
     function processReactiveHints(data) {
@@ -2723,6 +2783,7 @@ function JigsawPuzzle(config) {
                     success: false,
                     msg: 'tile and hint_tile are in the same group'
                 });
+                continue;
             }
 
             for (var i = 0; i < groupTiles.length; i++) {
@@ -2835,37 +2896,37 @@ function JigsawPuzzle(config) {
                 }
             }
         }
-
-        // for (var i = 0; i < instance.tiles.length; i++) {
-        //     var tile = instance.tiles[i];
-        //     if (tile.differentColor.length > 0) {
-        //         for (var j = 0; j < tile.differentColor.length; j++) {
-        //             var edgeIndex = tile.differentColor[j];
-        //             switch (edgeIndex) {
-        //                 case 0:
-        //                     //tile.topEdge.strokeColor.hue += 1;
-        //                     changeOpacity(tile.topEdge);
-        //                     break;
-        //                 case 1:
-        //                     //tile.rightEdge.strokeColor.hue += 1;
-        //                     changeOpacity(tile.rightEdge);
-        //                     break;
-        //                 case 2:
-        //                     //tile.bottomEdge.strokeColor.hue += 1;
-        //                     changeOpacity(tile.bottomEdge);
-        //                     break;
-        //                 case 3:
-        //                     //tile.leftEdge.strokeColor.hue += 1;
-        //                     changeOpacity(tile.leftEdge);
-        //                     break;
-        //                 default:
-        //                     //tile.colorBorder.strokeColor.hue += 1;
-        //                     changeOpacity(tile.colorBorder);
-        //                     break;
-        //             }
-        //         }
-        //     }
-        // }
+        /*
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            if (tile.differentColor.length > 0) {
+                for (var j = 0; j < tile.differentColor.length; j++) {
+                    var edgeIndex = tile.differentColor[j];
+                    switch (edgeIndex) {
+                        case 0:
+                            //tile.topEdge.strokeColor.hue += 1;
+                            changeOpacity(tile.topEdge);
+                            break;
+                        case 1:
+                            //tile.rightEdge.strokeColor.hue += 1;
+                           changeOpacity(tile.rightEdge);
+                           break;
+                        case 2:
+                            //tile.bottomEdge.strokeColor.hue += 1;
+                           changeOpacity(tile.bottomEdge);
+                           break;
+                        case 3:
+                            //tile.leftEdge.strokeColor.hue += 1;
+                            changeOpacity(tile.leftEdge);
+                            break;
+                        default:
+                            //tile.colorBorder.strokeColor.hue += 1;
+                            changeOpacity(tile.colorBorder);
+                            break;
+                    }
+                }
+            }
+        }*/ 
     }
 
     this.dragTile = function (delta, ctrl) {
