@@ -113,7 +113,6 @@ mySlider2.slider().on('change',function (event) {
     pageCount=0;
     imgReadyCount=0;
     socket.emit('puzzle_size_update', { puzzle_size: selected_puzzle_size });
-    newRoundCreateButton.attr('disabled',"true");
     $('#newround_image').removeAttr('src');
     $('#newround_image_wrap').css('display', 'none');
 
@@ -150,7 +149,6 @@ function getSelectorImage() {
     $('.selector-image').click(function () {
         var imgSrc = $(this).attr('src');
         $('#newround_image').attr('src', imgSrc);
-        newRoundCreateButton.removeAttr('disabled');
         //$('#newround_blank').css('display', 'inline');
         selectImageDialog.close();
     });
@@ -206,7 +204,6 @@ function initRandomRoundDialog() {
     });
 
     newRoundCreateButton.click(function () {
-
         var imgSrc = Array.from(simpleImageSrcSet)[Math.floor((Math.random() * (simpleImageSrcSet.size - 1)))];
         var playersNum = 1;
         var shape = 'jagged';
@@ -227,8 +224,7 @@ function initRandomRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
-
-        postNewRound(imgSrc, level, playersNum, shape, edge, border);
+        postNewRound(imgSrc, 0, level, playersNum, shape, edge, border);
     });
 
     $('#player_num_div').css('display', 'none');
@@ -237,7 +233,6 @@ function initRandomRoundDialog() {
 
     mySlider.slider('setValue', 1);
     $('#randomround_button').click(function () {
-        newRoundCreateButton.removeAttr('disabled');
         //$('#newround_blank').css('display', 'inline');
         $('#newround_image').attr('src', '/images/logo.png')
 
@@ -260,6 +255,7 @@ function initNewRoundDialog() {
     newRoundCreateButton.click(function () {
         var imgSrc = $('#newround_image').attr('src');
         var playersNum = mySlider.slider('getValue');
+        var size = mySlider2.slider('getValue');
         var shape = 'jagged';
         var level = 1;
         var edge = false;
@@ -279,7 +275,7 @@ function initNewRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
-        postNewRound(imgSrc, level, playersNum, shape, edge, border);
+        postNewRound(imgSrc, size, level, playersNum, shape, edge, border);
     });
 
     mySlider.slider({
@@ -294,7 +290,6 @@ function initNewRoundDialog() {
     });
 
     $('#newround_button').click(function () {
-        newRoundCreateButton.attr('disabled', 'true');
         $('#newround_image_wrap').css('display', 'none');
         $('#newround_image').removeAttr('src');
     });
@@ -375,12 +370,15 @@ function renderRoundDetail(round) {
     var roundDetailProgress = $('#rounddetail_progress');
 
     var roundDetailLevel = $('#rounddetail_level');
-
+    var img = new Image();
+    img.src = round.image;
+    /*
     if (admin == "true") {
         roundDetailImage.attr('src', round.image);
     } else {
         roundDetailImage.attr('src', '/images/logo.png');
-    }
+    }*/
+    roundDetailImage.attr('src', '/images/logo.png');
     roundDetailID.text(round.round_id);
     roundDetailCreator.text(round.creator);
     roundDetailCreateTime.text(round.create_time);
@@ -472,7 +470,7 @@ function renderRoundList(data) {
             joinRound(roundID);
             renderRoundDetail(roundsList[roundID]);
         });
-
+        /*
         if (admin == "true") {
             // roundCardImage.attr('src', round.image);
             var bg = 'url(\'/' + round.image + '\') center center';
@@ -481,7 +479,8 @@ function renderRoundList(data) {
         } else {
             roundCardImage.css("background", "url('/images/hide.jpg') center center");
             // roundCardImage.attr('src', '/images/logo.png');            
-        }
+        }*/
+        roundCardImage.css("background", "url('/images/hide.jpg') center center");
         roundCardTitle.text('Round ' + roundID);
         roundCard.find('.roundcard-level').text(round.level);
     }
@@ -551,17 +550,20 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, level, playersNum, shape, edge, border) {
-    var img = new Image();
-    var thumbStr = '_thumb';
-    var thumbIndex = imgSrc.indexOf(thumbStr);
-    if (thumbIndex >= 0) {
-        imgSrc = imgSrc.substring(0, thumbIndex) + imgSrc.substring(thumbIndex + thumbStr.length);
+function postNewRound(imgSrc, size, level, playersNum, shape, edge, border) {
+    if (imgSrc) {
+        var img = new Image();
+        var thumbStr = '_thumb';
+        var thumbIndex = imgSrc.indexOf(thumbStr);
+        if (thumbIndex >= 0) {
+            imgSrc = imgSrc.substring(0, thumbIndex) + imgSrc.substring(thumbIndex + thumbStr.length);
+        }
+        img.src = imgSrc;
     }
-    img.src = imgSrc;
     var param = {
         username: username,
         imageURL: imgSrc,
+        imageSize: size,
         level: level,
         edge: edge,
         shape: shape,
