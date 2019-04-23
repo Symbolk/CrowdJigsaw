@@ -2417,13 +2417,13 @@ function JigsawPuzzle(config) {
             var tile = instance.tiles[i];
             if (tile.aroundTiles[1] >= 0) {
                 var edge = i + 'L-R' + tile.aroundTiles[1];
-                if (instance.edgeMap[edge] && instance.edgeMap[edge].pro < 1) {
+                if (instance.edgeMap[edge] && instance.edgeMap[edge].pro < 0.8) {
                     showUnsureHintColorWidth(i, tile.aroundTiles[1], 1, 0, true);
                 }
             }
             if (tile.aroundTiles[2] >= 0) {
                 var edge = i + 'T-B' + tile.aroundTiles[2];
-                if (instance.edgeMap[edge] && instance.edgeMap[edge].pro < 1) {
+                if (instance.edgeMap[edge] && instance.edgeMap[edge].pro < 0.8) {
                     showUnsureHintColorWidth(i, tile.aroundTiles[2], 2, 0, true);
                 }
             }

@@ -4,7 +4,9 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var redis = require("redis")
 const session = require('express-session');
+var RedisStore = require('connect-redis')(session);
 const ejs = require('ejs');
 var fs = require('fs');
 const glob = require('glob');
@@ -15,8 +17,8 @@ require('./db');
 var FileStreamRotator = require('file-stream-rotator');
 
 var Promise = require("bluebird");
-Promise.promisifyAll(require("redis"));
-
+Promise.promisifyAll(redis);
+const redisClient = require('redis').createClient();
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -35,7 +37,12 @@ app.use(session({
     secret: 'secret',
     cookie: { maxAge: 1000 * 60 * 30 },
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new RedisStore({
+        host: "127.0.0.1",
+        port: 6379,
+        db: 1
+    })
 }));
 
 app.use(function (req, res, next) {
@@ -139,6 +146,9 @@ var ImagesModel = require('./models/images').Images;
 if (server) {
     // update the image paths to database: "images/raw/starter_thumb.png"
     // empty the last database and save the latest
+    for (var i = 1; i < 11; i++) {
+        redisClient.del('image:' + i);   
+    }
     ImagesModel.remove({}, function (err) {
         if (err) {
             console.log(err);
@@ -159,6 +169,9 @@ if (server) {
                             }, function (err) {
                                 if (err) {
                                     console.log(err);
+                                } else if (num <= 10) {
+                                    real_path = item.split('_')[0] + '_' + num + 'x' + num + '.jpg';
+                                    redisClient.sadd('image:' + num, real_path);
                                 }
                             });
                         }

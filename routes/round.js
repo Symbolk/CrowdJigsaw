@@ -118,6 +118,17 @@ function startGA(round_id){
     });
 }
 
+function getRandomImage(size) {
+    return new Promise((resolve, reject) => {
+        redis.srandmember('image:' + size, 1, (err, url) => {
+            // body...
+            resolve({
+                url: url
+            });
+        });
+    });
+}
+
 module.exports = function (io) {
 
     io.on('connection', function (socket) {
@@ -125,13 +136,21 @@ module.exports = function (io) {
          * Create a new round
          */
         socket.on('newRound', function (data) {
-            RoundModel.count({}, function (err, docs_size) {
+            RoundModel.count({}, async function (err, docs_size) {
                 if (err) {
                     console.log(err);
                 } else {
+                    let imageSrc = data.imageURL;
+                    if (!imageSrc && data.imageSize > 0) {
+                        let randomUrl = await redis.srandmemberAsync('image:' + data.imageSize, 1);
+                        if (randomUrl.length <= 0) {
+                            return;
+                        }
+                        imageSrc = randomUrl[0];
+                        console.log(imageSrc);
+                    }
                     let index = docs_size;
                     let TIME = util.getNowFormatDate();
-                    let imageSrc = data.imageURL;
                     let image = images('public/' + imageSrc);
                     let size = image.size();
                     let imageWidth = size.width;
