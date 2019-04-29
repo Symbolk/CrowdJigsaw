@@ -2339,7 +2339,7 @@ function JigsawPuzzle(config) {
         if (strongHintsNeededTiles.length == 0) {
             return shouldSave;
         }
-        instance.hintsConflict = new Set();
+        instance.hintsConflict.clear();
         instance.conflictGroupHasBeenMoveAway = false;
         var bidirectionLinks = countBidirectionLinks(sureHints);
         var weakHintsNeededTiles = new Array();
@@ -2556,7 +2556,7 @@ function JigsawPuzzle(config) {
                 instance.hintedFrom = data.players[i].from;
                 var hints = edgesToHints(data.players[i].edges);
                 data.sureHints = hints;
-                processReactiveHints(data);
+                processProactiveHints(data);
                 instance.hintedFrom = undefined;
             }
         }
@@ -3176,6 +3176,141 @@ function JigsawPuzzle(config) {
     function loadGame() {
         socket.emit('loadGame', {username: player_name});
     }
+
+    function findDestination(groupsArray, idx) {
+        if (idx == 0) {
+            return new Point(0, 0);
+        }
+        var group_p = groupsArray[idx];
+        var img_width = instance.puzzleImage.size.width;
+        var img_height = instance.puzzleImage.size.height;
+        var last_idx = idx - 1;
+        var des = new Point(groupsArray[last_idx].offset);
+        des.x += groupsArray[last_idx].width + 1;
+        if ((des.x + group_p.width) * instance.tileWidth > img_width * 2) {
+            des.x = 0;
+            for (var j = 0; j < idx; j++) {
+                var t_group = groupsArray[j];
+                des.y = Math.max(des.y, groupsArray[j].offset.y + 1 + groupsArray[j].height);
+            }
+        }
+        //console.log(des);
+        return des;
+    }
+
+    this.resetPlace = function () {
+        //console.log('reset');
+        var groupsArray = new Array();
+        var singleArray = new Array()
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            if (tile.picking) {
+                continue;
+            }
+            var groupTiles = new Array();
+            DFSTiles(tile, groupTiles, new Point(0, 0));
+            var links = 0;
+            var leftTopPoint = new Point(groupTiles[0].cellPosition.x, 
+                groupTiles[0].cellPosition.y);
+            var rightBottomPoint = new Point(groupTiles[0].cellPosition.x, 
+                groupTiles[0].cellPosition.y);
+            for (var j = 0; j < groupTiles.length; j++) {
+                var gt = groupTiles[j]; 
+                gt.picking = true;
+                leftTopPoint.x = Math.min(leftTopPoint.x, gt.cellPosition.x);
+                leftTopPoint.y = Math.min(leftTopPoint.y, gt.cellPosition.y);
+                rightBottomPoint.x = Math.max(rightBottomPoint.x, gt.cellPosition.x);
+                rightBottomPoint.y = Math.max(rightBottomPoint.y, gt.cellPosition.y);
+                for (var d = 0; d < 4; d++) {
+                    if (gt.aroundTiles[d] >= 0) {
+                        links += 1;
+                    }
+                }
+            }
+            if (links == 0) {
+                singleArray.push({
+                    tile: tile,
+                    x: tile.cellPosition.x,
+                    y: tile.cellPosition.y,
+                    index: i
+                });
+                continue;
+            }
+            var nodes = groupTiles.length;
+            links /= 2;
+            groupsArray.push({
+                nodes: nodes,
+                links: links,
+                ratio: links * links / nodes,
+                groupTiles: groupTiles,
+                width: rightBottomPoint.x - leftTopPoint.x + 1, 
+                height: rightBottomPoint.y - leftTopPoint.y + 1,
+                offset: new Point(0, 0)
+            });
+        }
+        if (groupsArray.length == 0) {
+            return;
+        }
+        var originPosition = new Point(groupsArray[0].groupTiles[0].position);
+        groupsArray.sort(function (a, b) {
+            return b.ratio - a.ratio;
+        });
+        singleArray.sort(function (a, b) {
+            if (a.y == b.y) {
+                return a.x - b.x;
+            }
+            return a.y - b.y;
+        });
+        //console.log(groupsArray);
+        var width = instance.puzzleImage.size.width;
+        var height = instance.puzzleImage.size.height;
+        var rootPosition = view.center - new Point(width, height);
+        var rootCellPosition = new Point(0, 0); 
+        //console.log(rootCellPosition);
+        var group_width = 0
+        var group_height = 0;       
+        for (var i = 0; i < groupsArray.length; i++) {
+            var group = groupsArray[i];
+            var destination = findDestination(groupsArray, i);
+            group.offset = destination;
+            group_height = Math.max(destination.y + group.height, group_height);
+            group_width = Math.max(destination.x + group.width, group_width);
+            destination += rootCellPosition;
+            //console.log(destination);
+            for (var j = 0; j < group.groupTiles.length; j++) {
+                var tile = group.groupTiles[j];
+                placeTile(tile, destination + tile.relativePosition);
+                tile.relativePosition = new Point(0, 0);
+                tile.picking = false;
+            }
+        }
+        var afterPosition = new Point(groupsArray[0].groupTiles[0].position);
+        //console.log(singleArray);
+        // randomly select tiles and place them one by one 
+        rootCellPosition.y += group_height + 1;
+        var xTileCount = instance.tilesPerRow;
+        var yTileCount = Math.ceil(singleArray.length / xTileCount);
+        for (var y = 0; y < yTileCount; y++) {
+            for (var x = 0; x < xTileCount; x++) {
+                var idx = y * xTileCount + x;
+                if (idx >= singleArray.length) {
+                    break;
+                }
+                var single = singleArray[idx];
+                var tile = single.tile;
+
+                var cellPosition = new Point(rootCellPosition.x + (x * 2 + ((y % 2))),
+                    rootCellPosition.y + y);
+
+                tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
+                tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
+            }
+        }
+        normalizeTiles();
+        var delta = afterPosition - originPosition;
+        var currentScroll = view.currentScroll + delta * instance.currentZoom;
+        view.scrollBy(currentScroll);
+    }
 }
 
 
@@ -3225,10 +3360,15 @@ function JigsawPuzzle(config) {
     });
 }());
 
+
 $('#undo_button').on('click', function (event) {
     if (puzzle.steps != undoStep) {
         puzzle.undoNextStep();
     }
+});
+
+$('#reset_button').on('click', function (event) {
+    puzzle.resetPlace();
 });
 
 
