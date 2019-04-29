@@ -2246,7 +2246,8 @@ function JigsawPuzzle(config) {
         }
         if (getHintsIndex.length > 0 && players_num > 1) {
             //console.log(instance.getHintsArray, getHintsIndex);
-            socket.emit("distributed_getHintsAround", {
+            //socket.emit("distributed_getHintsAround", {
+            socket.emit("distributed_fetchHints", {
                 "round_id": round_id,
                 "player_name": player_name,
                 "selectedTileIndexes": selectedTileIndexes,
@@ -2556,7 +2557,7 @@ function JigsawPuzzle(config) {
                 instance.hintedFrom = data.players[i].from;
                 var hints = edgesToHints(data.players[i].edges);
                 data.sureHints = hints;
-                processProactiveHints(data);
+                processReactiveHints(data);
                 instance.hintedFrom = undefined;
             }
         }
