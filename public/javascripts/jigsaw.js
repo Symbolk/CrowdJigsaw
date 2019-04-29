@@ -3215,9 +3215,12 @@ function JigsawPuzzle(config) {
                 groupTiles[0].cellPosition.y);
             var rightBottomPoint = new Point(groupTiles[0].cellPosition.x, 
                 groupTiles[0].cellPosition.y);
+            var diff = new Point(0, 0);
             for (var j = 0; j < groupTiles.length; j++) {
                 var gt = groupTiles[j]; 
                 gt.picking = true;
+                diff.x = Math.min(diff.x, gt.relativePosition.x);
+                diff.y = Math.min(diff.y, gt.relativePosition.y);
                 leftTopPoint.x = Math.min(leftTopPoint.x, gt.cellPosition.x);
                 leftTopPoint.y = Math.min(leftTopPoint.y, gt.cellPosition.y);
                 rightBottomPoint.x = Math.max(rightBottomPoint.x, gt.cellPosition.x);
@@ -3246,7 +3249,8 @@ function JigsawPuzzle(config) {
                 groupTiles: groupTiles,
                 width: rightBottomPoint.x - leftTopPoint.x + 1, 
                 height: rightBottomPoint.y - leftTopPoint.y + 1,
-                offset: new Point(0, 0)
+                offset: new Point(0, 0),
+                diff: diff
             });
         }
         if (groupsArray.length == 0) {
@@ -3276,7 +3280,7 @@ function JigsawPuzzle(config) {
             group.offset = destination;
             group_height = Math.max(destination.y + group.height, group_height);
             group_width = Math.max(destination.x + group.width, group_width);
-            destination += rootCellPosition;
+            destination += rootCellPosition - group.diff;
             //console.log(destination);
             for (var j = 0; j < group.groupTiles.length; j++) {
                 var tile = group.groupTiles[j];
