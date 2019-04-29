@@ -308,6 +308,11 @@ function distributed_update(data) {
                 redis.sadd(sup_key, key, function(err, count) {
                     if (count == 1) {
                         redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', 1, key);
+                        redis.sadd('round:' + data.round_id + ':distributed:edges', key, function(err, count) {
+                            if (count == 1) {
+                                redis.sadd('round:' + data.round_id + ':distributed:first_edges:' + data.player_name, key);
+                            }
+                        });
                     }
                     if (count == 1 && e.beHinted && e.from != data.player_name) {
                         redis.zincrby('round:' + data.round_id + ':distributed:hint_sup', 1, e.from);

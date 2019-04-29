@@ -11,56 +11,56 @@ var images = require("images");
 const redis = require('redis').createClient();
 const Promise = require('bluebird');
 
-function saveScore(round_id) {
+async function saveScore(round_id) {
     let redis_key = 'round:' + round_id + ':scoreboard';
-    Promise.join(
+    let results = await Promise.join(
         redis.zrevrangeAsync(redis_key, 0, -1, 'WITHSCORES'),
         redis.zrevrangeAsync(redis_key + ':create_correct_link', 0, -1, 'WITHSCORES'),
         redis.zrevrangeAsync(redis_key + ':remove_correct_link', 0, -1, 'WITHSCORES'),
         redis.zrevrangeAsync(redis_key + ':create_wrong_link', 0, -1, 'WITHSCORES'),
         redis.zrevrangeAsync(redis_key + ':remove_wrong_link', 0, -1, 'WITHSCORES'),
-        redis.zrevrangeAsync(redis_key + ':remove_hinted_wrong_link', 0, -1, 'WITHSCORES')
-    ).then(function(results) {
-        let fields_name = ['score', 'create_correct_link', 'remove_correct_link',
-            'create_wrong_link', 'remove_wrong_link', 'remove_hinted_wrong_link'];
-        let scoremap = {};
-        for (var j = 0; j < results.length; j++) {
-            let field = results[j];
-            if (field) {
-                for (var i = 0; i < field.length; i += 2) {
-                    let username = field[i];
-                    let score = parseInt(field[i+1]);
-                    if (!(username in scoremap)) {
-                        scoremap[username] = {
-                            score: 0,
-                            create_correct_link: 0,
-                            remove_correct_link: 0,
-                            create_wrong_link: 0,
-                            remove_wrong_link: 0,
-                            remove_hinted_wrong_link: 0
-                        };
-                    }
-                    scoremap[username][fields_name[j]] = score;
+        redis.zrevrangeAsync(redis_key + ':remove_hinted_wrong_link', 0, -1, 'WITHSCORES'),
+    );
+    let fields_name = ['score', 'create_correct_link', 'remove_correct_link',
+        'create_wrong_link', 'remove_wrong_link', 'remove_hinted_wrong_link'];
+    let scoremap = {};
+    for (let j = 0; j < results.length; j++) {
+        let field = results[j];
+        if (field) {
+            for (let i = 0; i < field.length; i += 2) {
+                let username = field[i];
+                let score = parseInt(field[i+1]);
+                if (!(username in scoremap)) {
+                    scoremap[username] = {
+                        score: 0,
+                        create_correct_link: 0,
+                        remove_correct_link: 0,
+                        create_wrong_link: 0,
+                        remove_wrong_link: 0,
+                        remove_hinted_wrong_link: 0
+                    };
                 }
+                scoremap[username][fields_name[j]] = score;
             }
         }
-        for(let username in scoremap){
-            let condition = {
-                round_id: round_id,
-                username: username
-            };
-            let operation = {
-                $set: scoremap[username]
-            };
-            RecordModel.update(condition, operation, function(err) {
-                if (err) {
-                    console.log(err);
-                }
-            });
-        }
-    }).catch(function(err) {
-        console.log(err);
-    });
+    }
+    for(let username in scoremap){
+        let first_edges = await redis.smembersAsync('round:' + round_id + ':distributed:first_edges:' + username);
+        console.log('first_edges', username, first_edges);
+        scoremap[username].first_edges = first_edges;
+        let condition = {
+            round_id: round_id,
+            username: username
+        };
+        let operation = {
+            $set: scoremap[username]
+        };
+        RecordModel.update(condition, operation, function(err) {
+            if (err) {
+                console.log(err);
+            }
+        });
+    }
 }
 
 function getRoundFinishTime(startTime) {

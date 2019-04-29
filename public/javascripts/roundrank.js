@@ -43,6 +43,13 @@ function renderScore(data) {
         ]
     };
 
+    var label_value = data.create_correct_link;
+    var label_rate = 100;
+    if (data.first_edges) {
+        label_value = data.first_edges.length;
+        label_rate = new Number(100 * label_value / data.create_correct_link).toFixed(1);
+    }
+
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         var value = getDefaultValue(data, key, 0);
@@ -50,10 +57,68 @@ function renderScore(data) {
             continue;
         }
         option.legend.data.push(key);
-        option.series[0].data.push({
+        var series_data = {
             value: value,
             name: key
-        });
+        };
+        if (i == 0) {
+            series_data.label = {
+                normal: {
+                    formatter: [
+                        '{title|{b}}{abg|}',
+                        '  {valueHead|edges}{rateHead|percent}',
+                        '{hr|}{br|}',
+                        '  {value|'+label_value+'}{rate|'+label_rate+'%}'
+                    ].join('\n'),
+                    backgroundColor: '#eee',
+                    borderColor: '#777',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    rich: {
+                        title: {
+                            color: '#eee',
+                            align: 'center'
+                        },
+                        abg: {
+                            backgroundColor: '#333',
+                            width: '100%',
+                            align: 'right',
+                            height: 25,
+                            borderRadius: [4, 4, 0, 0]
+                        },
+                        hr: {
+                            borderColor: '#777',
+                            width: '100%',
+                            borderWidth: 0.5,
+                            height: 0
+                        },
+                        value: {
+                            width: 20,
+                            padding: [0, 20, 0, 30],
+                            align: 'left'
+                        },
+                        valueHead: {
+                            color: '#333',
+                            width: 20,
+                            padding: [0, 20, 0, 30],
+                            align: 'center'
+                        },
+                        rate: {
+                            width: 40,
+                            align: 'right',
+                            padding: [0, 10, 0, 0]
+                        },
+                        rateHead: {
+                            color: '#333',
+                            width: 40,
+                            align: 'center',
+                            padding: [0, 10, 0, 0]
+                        }
+                    }
+                }
+            }
+        }
+        option.series[0].data.push(series_data);
     }
 
     if (option.legend.data.length == 0) {

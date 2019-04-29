@@ -2480,7 +2480,7 @@ function JigsawPuzzle(config) {
                 }
             }
         }
-        console.log(edgeMap);
+        //console.log(edgeMap);
         return edgeMap;
     }
 
