@@ -35,7 +35,7 @@ app.all('*', function (req, res, next) {
 // config session
 app.use(session({
     secret: 'secret',
-    cookie: { maxAge: 1000 * 60 * 30 },
+    cookie: { maxAge: 1000 * 60 * 60 * 6 },
     resave: false,
     saveUninitialized: false,
     store: new RedisStore({
