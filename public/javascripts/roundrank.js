@@ -71,6 +71,8 @@ function renderLinks(data) {
     if (!data.edges) {
         return;
     }
+    var first_edges_set = new Set(data.first_edges ? data.first_edges : []);
+    var first_edge_count = 0;
     var linksMap = {}
     for (var i = 0; i < data.edges.length; i++) {
         var edgeData = data.edges[i];
@@ -78,42 +80,70 @@ function renderLinks(data) {
         from = from == "" ? data.username : from;
         var num = getDefaultValue(linksMap, from, 0);
         linksMap[from] = num + 1;
+        if (from == data.username && first_edges_set.has(edge)) {
+            first_edge_count += 1;
+        }
     }
     var linksArray = [];
     for (var from in linksMap) {
+        if (from == data.username) {
+            continue;
+        }
         linksArray.push({
             from: from,
             num: linksMap[from]
         });
     }
-    linksArray.sort((a, b) => {return b.num - a.num});
+    linksArray.sort((a, b) => {return a.num - b.num});
     // 指定图表的配置项和数据
     var option = {
+        legend : {
+            data:['edges', 'first'],
+            bottom: 10,
+            left: 'center',
+        },
+        tooltip : {
+            trigger: 'axis',
+            axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+            }
+        },
         title: {
             text: 'links detail of '+ data.username,
             left: 'center'
         },
-        xAxis: {
+        yAxis: {
             type: 'category',
-            boundaryGap: false,
             data: []
         },
-        yAxis: {
+        xAxis: {
             type: 'value'
         },
         series: [{
             data: [],
-            type: 'line',
-            areaStyle: {}
+            type: 'bar',
+            name: 'edges'
         }]
     };
     for (var i = 0; i < linksArray.length; i++) {
-        option.xAxis.data.push(linksArray[i].from);
+        option.yAxis.data.push(linksArray[i].from);
         option.series[0].data.push(linksArray[i].num);
     }
-    if (option.xAxis.data.length == 0) {
+    if (option.yAxis.data.length == 0) {
         return;
     }
+    if (data.first_edges && data.edges) {
+        var first_series = {
+            data: [],
+            type: 'bar',
+            name: 'first'
+        };
+        first_series.data[linksArray.length] = first_edge_count;
+        option.series.push(first_series);
+
+    }
+    option.yAxis.data.push(data.username);
+    option.series[0].data.push(linksMap[data.username]);
     var linksTable = document.getElementById('links');
     linksTable.style.display = "block";
     var myChart = echarts.init(linksTable);
