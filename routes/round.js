@@ -136,6 +136,15 @@ module.exports = function (io) {
          * Create a new round
          */
         socket.on('newRound', function (data) {
+            if (data.players_num > 1 && 
+                data.admin != true && data.key != dev.admin_key) {
+                console.log(data.key, dev.admin_key);
+                socket.emit('create_round_failed', {
+                    username: data.username,
+                    msg: "wrong Admin Key for multiplayer round"
+                });
+                return;
+            }
             RoundModel.count({}, async function (err, docs_size) {
                 if (err) {
                     console.log(err);

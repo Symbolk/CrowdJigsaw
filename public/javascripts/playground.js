@@ -22,6 +22,21 @@ socket.on('thumbnails', function (data) {
     }
 });
 
+socket.on('create_round_failed', function(data) {
+    if (data.username == username) {
+        $.amaran({
+            'title': data.title,
+            'message': data.msg,
+            'inEffect': 'slideRight',
+            'cssanimationOut': 'zoomOutUp',
+            'position': "top right",
+            'delay': 2000,
+            'closeOnClick': true,
+            'closeButton': true
+        });
+    }
+});
+
 socket.on('roundChanged', function (data) {
     var round = data.round;
     round.players = data.players;
@@ -286,6 +301,17 @@ function initNewRoundDialog() {
             return 'Current value: ' + value;
         }
     });
+    if(admin != "true") {
+        mySlider.change(function() {
+            var num = parseInt($(this).val());
+            console.log(num);
+            if(num > 1) {
+                $('#admin_key_div').css('display', 'inline');
+            } else {
+                $('#admin_key_div').css('display', 'none');
+            }
+        });
+    }
     mySlider2.slider({
         formatter: function (value) {
             return 'Current value: ' + value+"*"+value;
@@ -293,6 +319,7 @@ function initNewRoundDialog() {
     });
 
     $('#newround_button').click(function () {
+        //$('#admin_key_div').css('display', 'none');
         $('#newround_image_wrap').css('display', 'none');
         $('#newround_image').removeAttr('src');
     });
@@ -565,6 +592,7 @@ function postNewRound(imgSrc, size, level, playersNum, shape, edge, border) {
     }
     var param = {
         username: username,
+        admin: admin == "true",
         imageURL: imgSrc,
         imageSize: size,
         level: level,
@@ -573,6 +601,9 @@ function postNewRound(imgSrc, size, level, playersNum, shape, edge, border) {
         border: border,
         players_num: playersNum,
     };
+    if (admin != "true") {
+        param.key = $('#newround_key_input').val();
+    }
     socket.emit('newRound', param);
 }
 
