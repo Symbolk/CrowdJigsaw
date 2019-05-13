@@ -106,7 +106,19 @@ function renderLinks(data) {
             trigger: 'axis',
             axisPointer : {            // 坐标轴指示器，坐标轴触发有效
                 type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
-            }
+            },
+            formatter: function (params) {
+                console.log(params);
+                var edges = parseInt(params[0].data);
+                var first = params[1].data ? parseInt(params[1].data) : 0;
+                var ret = 'edges created by ' + params[0].name 
+                    + ': ' + (edges + first);
+                if (first > 0) {
+                    ret += '<br>edges first created by ' 
+                    + params[1].name + ': ' + first;
+                }
+                return ret;
+            },
         },
         title: {
             text: 'links detail of '+ data.username,
@@ -121,6 +133,7 @@ function renderLinks(data) {
         },
         series: [{
             data: [],
+            stack: 'one',
             type: 'bar',
             name: 'edges'
         }]
@@ -135,6 +148,7 @@ function renderLinks(data) {
     if (data.first_edges && data.edges) {
         var first_series = {
             data: [],
+            stack: 'one',
             type: 'bar',
             name: 'first'
         };
@@ -143,7 +157,7 @@ function renderLinks(data) {
 
     }
     option.yAxis.data.push(data.username);
-    option.series[0].data.push(linksMap[data.username]);
+    option.series[0].data.push(linksMap[data.username] - first_edge_count);
     var linksTable = document.getElementById('links');
     linksTable.style.display = "block";
     var myChart = echarts.init(linksTable);
