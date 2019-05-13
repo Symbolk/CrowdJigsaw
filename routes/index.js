@@ -455,80 +455,87 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
 });
 
 // Get the rank of this round
-router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
+router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, res) {
     let condition = {
         "round_id": req.params.round_id
     };
-    RecordModel.find(condition, function (err, records) {
+    RecordModel.find(condition, async function (err, records) {
         if (err) {
             console.log(err);
         } else if (records) {
             let redis_key = 'round:' + req.params.round_id;
-            redis.get(redis_key, function(err, round_json) {
-                if (err) {
-                    console.log(err);
-                } else if (round_json) {
-                    let round = JSON.parse(round_json);
-                    let puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
-                    let finished = new Array();
-                    let unfinished = new Array();
-                    for (let r of records) {
-                        let hintPercent = 0;
-                        let correctPercent = 0;
-                        let finishPercent = 0;
-                        if (r.hinted_steps != -1 && r.total_steps != -1 && r.total_steps > 0 && r.hinted_steps > 0) {
-                            hintPercent = r.hinted_steps / r.total_steps * 100;
-                        }
-                        if (r.total_hints > 0 && r.correct_hints != -1 && hintPercent > 0) {
-                            correctPercent = r.correct_hints / r.total_hints * 100;
-                        }
-                        if (r.total_links > 0 && r.correct_links != -1) {
-                            finishPercent = (r.correct_links / 2) / puzzle_links * 100;
-                        }
-                        if (r.end_time != "-1") {
-                            finished.push({
-                                "playername": r.username,
-                                "time": r.time,
-                                "steps": r.steps,
-                                "hintPercent": hintPercent.toFixed(3),
-                                "finishPercent": finishPercent.toFixed(3),
-                                "correctPercent": correctPercent.toFixed(3),
-                                "rating": r.rating,
-                                "score": r.score,
-                                "create_correct_link": r.create_correct_link,
-                                "remove_correct_link": r.remove_correct_link,
-                                "create_wrong_link": r.create_wrong_link,
-                                "remove_wrong_link": r.remove_wrong_link,
-                                "remove_hinted_wrong_link": r.remove_hinted_wrong_link
-                            });
-                        } else {
-                            unfinished.push({
-                                "playername": r.username,
-                                "time": r.time,
-                                "steps": r.steps,
-                                "hintPercent": hintPercent.toFixed(3),
-                                "finishPercent": finishPercent.toFixed(3),
-                                "correctPercent": correctPercent.toFixed(3),
-                                "rating": r.rating,
-                                "score": r.score,
-                                "create_correct_link": r.create_correct_link,
-                                "remove_correct_link": r.remove_correct_link,
-                                "create_wrong_link": r.create_wrong_link,
-                                "remove_wrong_link": r.remove_wrong_link,
-                                "remove_hinted_wrong_link": r.remove_hinted_wrong_link
-                            });
-                        }
+            let round_json = await redis.getAsync(redis_key);
+            if(!round_json) {
+                RoundModel.findOne(condition, function(err, doc) {
+                    if (err) {
+                        console.log(err);
+                    } else if (doc) {
+                        redis.set(redis_key, JSON.stringify(doc));
+                        res.json({msg: "try again"});
                     }
-                    finished = finished.sort(util.ascending("time"));
-                    unfinished = unfinished.sort(util.descending("finishPercent"));
-                    res.render('roundrank', {
-                        title: 'Round Rank',
-                        Finished: finished,
-                        Unfinished: unfinished,
-                        username: req.session.user.username,
-                        round_id: req.params.round_id
+                });
+                return;
+            }
+            let round = JSON.parse(round_json);
+            //console.log(round, round.tilesPerColumn, round.tilesPerRow);
+            let puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
+            let finished = new Array();
+            let unfinished = new Array();
+            for (let r of records) {
+                let hintPercent = 0;
+                let correctPercent = 0;
+                let finishPercent = 0;
+                if (r.hinted_steps != -1 && r.total_steps != -1 && r.total_steps > 0 && r.hinted_steps > 0) {
+                    hintPercent = r.hinted_steps / r.total_steps * 100;
+                }
+                if (r.total_hints > 0 && r.correct_hints != -1 && hintPercent > 0) {
+                    correctPercent = r.correct_hints / r.total_hints * 100;
+                }
+                if (r.total_links > 0 && r.correct_links != -1) {
+                    finishPercent = (r.correct_links / 2) / puzzle_links * 100;
+                }
+                if (r.end_time != "-1") {
+                    finished.push({
+                        "playername": r.username,
+                        "time": r.time,
+                        "steps": r.steps,
+                        "hintPercent": hintPercent.toFixed(3),
+                        "finishPercent": finishPercent.toFixed(3),
+                        "correctPercent": correctPercent.toFixed(3),
+                        "rating": r.rating,
+                        "score": r.score,
+                        "create_correct_link": r.create_correct_link,
+                        "remove_correct_link": r.remove_correct_link,
+                        "create_wrong_link": r.create_wrong_link,
+                        "remove_wrong_link": r.remove_wrong_link,
+                        "remove_hinted_wrong_link": r.remove_hinted_wrong_link
+                    });
+                } else {
+                    unfinished.push({
+                        "playername": r.username,
+                        "time": r.time,
+                        "steps": r.steps,
+                        "hintPercent": hintPercent.toFixed(3),
+                        "finishPercent": finishPercent.toFixed(3),
+                        "correctPercent": correctPercent.toFixed(3),
+                        "rating": r.rating,
+                        "score": r.score,
+                        "create_correct_link": r.create_correct_link,
+                        "remove_correct_link": r.remove_correct_link,
+                        "create_wrong_link": r.create_wrong_link,
+                        "remove_wrong_link": r.remove_wrong_link,
+                        "remove_hinted_wrong_link": r.remove_hinted_wrong_link
                     });
                 }
+            }
+            finished = finished.sort(util.ascending("time"));
+            unfinished = unfinished.sort(util.descending("finishPercent"));
+            res.render('roundrank', {
+                title: 'Round Rank',
+                Finished: finished,
+                Unfinished: unfinished,
+                username: req.session.user.username,
+                round_id: req.params.round_id
             });
         }
     });
