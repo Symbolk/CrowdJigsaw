@@ -157,11 +157,14 @@ function getSelectorImage() {
 function allImageReadyCallback() {
     initRoundDetailDialog();
     if (admin == "true") {
+    //if (true) {
         initNewRoundDialog();
         initSelectImageDialog();
     }
     else {
-        initRandomRoundDialog();
+        initNewRoundDialog();
+        $('#newround_image_button').attr('disabled', 'true');
+        $('#newround_image_button').text('Random Image');
     }
     getJoinableRounds();
 }
