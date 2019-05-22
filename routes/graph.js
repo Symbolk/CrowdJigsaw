@@ -337,10 +337,11 @@ function distributed_update(data) {
         }
     });
     if (data.conflict) {
-        //console.log(data.conflict);
+        console.log(data.conflict);
         for (let i = 0; i < data.conflict.length; i++) {
-            let key = data.conflict[i];
-            redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', 0.2, key);
+            let key = data.conflict[i].edge;
+            let time = data.conflict[i].time;
+            redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', time * 0.2, key);
         }
     }
 }

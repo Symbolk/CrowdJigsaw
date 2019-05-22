@@ -392,7 +392,8 @@ module.exports = function (io) {
                 tileLinkSteps: data.tileLinkSteps,
                 tileLinksFrom: data.tileLinksFrom,
                 totalHintsNum: data.totalHintsNum,
-                correctHintsNum: data.correctHintsNum
+                correctHintsNum: data.correctHintsNum,
+                conflictEdgesTimesMap: data.conflictEdgesTimesMap
             };
 
             let redis_key = 'user:' + data.player_name + ':savegame';
