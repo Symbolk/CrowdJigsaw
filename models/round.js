@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 var RoundSchema = new mongoose.Schema({
     round_id: { type: Number, required: true, unique: true, index: true }, //inc
     // puzzle info
+    algorithm: { type: String, default: 'distribute'},
     image: { type: String, required: true }, //image url
     imageWidth: { type: Number},
     imageHeight: { type: Number},

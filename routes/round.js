@@ -176,6 +176,7 @@ module.exports = function (io) {
                         shape: data.shape,
                         edge: data.edge,
                         border: data.border,
+                        algorithm: data.algorithm,
                         create_time: TIME,
                         players_num: data.players_num,
                         imageWidth: imageWidth,

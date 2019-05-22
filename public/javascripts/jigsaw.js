@@ -1665,7 +1665,10 @@ function JigsawPuzzle(config) {
             backdrop: false
         }).show();
         */
-        socket.emit("distributed_fetchHints", {
+        var event_name = algorithm == 'distribute' ? 
+            'distributed_fetchHints' : 'fetchHints';
+        console.log(event_name);
+        socket.emit(event_name, {
             "round_id": roundID,
             "player_name": player_name,
             "tilesNum": instance.tilesNum
@@ -1724,9 +1727,6 @@ function JigsawPuzzle(config) {
             computeHintedSubGraph();
             normalizeTiles();
 
-            //$("#show_hints_dialog").modal().hide();
-
-            // judge the hint tiles
             if (!instance.gameFinished) {
                 var errors = checkTiles();
                 if (errors == 0) {
@@ -1743,7 +1743,23 @@ function JigsawPuzzle(config) {
         }
     }
 
-    socket.on("proactiveHints", processProactiveHints);
+    socket.on('proactiveHints', function(data) {
+        console.log(data);
+        instance.singleArray = new Array();
+        processProactiveHints(data);
+        if (instance.singleArray.length > 0) {
+            instance.hintsShowing = true;
+            for (var i = 0; i < instance.singleArray.length; i++) {
+                var single = instance.singleArray[i];
+                if (!single) {
+                    continue;
+                }
+                var single = instance.singleArray[i];
+                var tile = single.tile;
+                tile.position = single.originPosition;
+            }
+        }
+    });
 
     this.releaseTile = function () {
         if (instance.draging) {
@@ -2062,7 +2078,9 @@ function JigsawPuzzle(config) {
             if(instance.gameFinished || time - param.time >= uploadDelayTime){
                 edges_count = Object.getOwnPropertyNames(param.edges).length;
                 if(edges_count > 0){
-                    socket.emit("upload", param);
+                    var event_name = algorithm == 'distribute' ?
+                        'distributed_upload' : 'upload';
+                    socket.emit(event_name, param);
                 }
                 instance.subGraphDataQueue.shift();
             }
@@ -2250,8 +2268,11 @@ function JigsawPuzzle(config) {
             }
         }
         if (getHintsIndex.length > 0 && players_num > 1) {
+            var event_name = algorithm == 'distribute' ? 
+                'distributed_fetchHints' : 'fetchHints';
             //console.log(instance.getHintsArray, getHintsIndex);
-            socket.emit("distributed_getHintsAround", {
+            console.log(event_name);
+            socket.emit(event_name, {
             //socket.emit("distributed_fetchHints", {
                 "round_id": round_id,
                 "player_name": player_name,
@@ -2653,7 +2674,25 @@ function JigsawPuzzle(config) {
         }
     }
 
-    socket.on("reactiveHints", processReactiveHints);
+    //socket.on("reactiveHints", processReactiveHints);
+
+    socket.on('reactiveHints', function(data) {
+        console.log(data);
+        instance.singleArray = new Array();
+        processReactiveHints(data);
+        if (instance.singleArray.length > 0) {
+            instance.hintsShowing = true;
+            for (var i = 0; i < instance.singleArray.length; i++) {
+                var single = instance.singleArray[i];
+                if (!single) {
+                    continue;
+                }
+                var single = instance.singleArray[i];
+                var tile = single.tile;
+                tile.position = single.originPosition;
+            }
+        }
+    });
 
     function moveSelectedTilesAway(selectedTileIndex){
         if(instance.conflictGroupHasBeenMoveAway){

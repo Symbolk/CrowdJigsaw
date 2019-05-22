@@ -228,6 +228,7 @@ function initRandomRoundDialog() {
         var level = 1;
         var edge = false;
         var border = false;
+        var algorithm = 'distribute';
         if ($('.newround-shape-square').prop("checked")) {
             shape = 'square';
             level = 2;
@@ -242,7 +243,10 @@ function initRandomRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
-        postNewRound(imgSrc, 0, level, playersNum, shape, edge, border);
+        if ($('#old_radio').prop("checked")) {
+            algorithm = 'central';
+        }
+        postNewRound(imgSrc, 0, level, playersNum, shape, edge, border, algorithm);
     });
 
     $('#player_num_div').css('display', 'none');
@@ -278,6 +282,7 @@ function initNewRoundDialog() {
         var level = 1;
         var edge = false;
         var border = false;
+        var algorithm = 'distribute';
         if ($('.newround-shape-square').prop("checked")) {
             shape = 'square';
             level = 2;
@@ -293,7 +298,10 @@ function initNewRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
-        postNewRound(imgSrc, size, level, playersNum, shape, edge, border);
+        if ($('#old_radio').prop("checked")) {
+            algorithm = 'central';
+        }
+        postNewRound(imgSrc, size, level, playersNum, shape, edge, border, algorithm);
     });
 
     mySlider.slider({
@@ -580,7 +588,7 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, size, level, playersNum, shape, edge, border) {
+function postNewRound(imgSrc, size, level, playersNum, shape, edge, border, algorithm) {
     if (imgSrc) {
         var img = new Image();
         var thumbStr = '_thumb';
@@ -600,6 +608,7 @@ function postNewRound(imgSrc, size, level, playersNum, shape, edge, border) {
         shape: shape,
         border: border,
         players_num: playersNum,
+        algorithm: algorithm,
     };
     if (admin != "true") {
         param.key = $('#newround_key_input').val();

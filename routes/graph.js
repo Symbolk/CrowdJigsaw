@@ -341,7 +341,11 @@ function distributed_update(data) {
         for (let i = 0; i < data.conflict.length; i++) {
             let key = data.conflict[i].edge;
             let time = data.conflict[i].time;
-            redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', time * 0.2, key);
+            if (time > 0) {
+                redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', time * 0.2, key);
+            } else {
+                redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', -time * 0.2, key);
+            }
         }
     }
 }
@@ -794,9 +798,13 @@ module.exports = function (io) {
         socket.on('uploadForGA', function (data) {
             updateForGA(data);
         });
-        socket.on('upload', function (data) {
+
+        socket.on('distributed_upload', function (data) {
             distributed_update(data);
-            //update(data);
+        });
+
+        socket.on('upload', function (data) {
+            update(data);
         });
 
         socket.on('distributed_fetchHints', async function(data) {
