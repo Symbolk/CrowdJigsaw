@@ -381,6 +381,11 @@ function update(data) {
                     saveAction(roundID, time, data.player_name, data.edges, data.logs, data.is_hint);
 
                     for (let key in data.edges) {
+                        redis.sadd('round:' + data.round_id + ':distributed:edges', key, function(err, count) {
+                            if (count == 1) {
+                                redis.sadd('round:' + data.round_id + ':distributed:first_edges:' + data.player_name, key);
+                            }
+                        });
                         let e = data.edges[key];
                         // if the edge exists, update the size
                         if (edges_saved[key]) {

@@ -77,6 +77,9 @@ function renderLinks(data) {
     for (var i = 0; i < data.edges.length; i++) {
         var edgeData = data.edges[i];
         var {edge, from, hinted} = edgeData;
+        if (hinted && from == "") {
+            from = "crowd";
+        }
         from = from == "" ? data.username : from;
         var num = getDefaultValue(linksMap, from, 0);
         linksMap[from] = num + 1;
