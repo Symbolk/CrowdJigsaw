@@ -341,11 +341,7 @@ function distributed_update(data) {
         for (let i = 0; i < data.conflict.length; i++) {
             let key = data.conflict[i].edge;
             let time = data.conflict[i].time;
-            if (time > 0) {
-                redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', time * 0.2, key);
-            } else {
-                redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', -time * 0.2, key);
-            }
+            redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', time * 0.2, key);
         }
     }
 }

@@ -377,7 +377,6 @@ function JigsawPuzzle(config) {
     this.puzzleImage.size *= Math.max((this.tileWidth / 2) / this.puzzleImage.size.width,
         (this.tileWidth / 2) / this.puzzleImage.size.height) + 1
     this.puzzleImage.position = view.center;
-    this.conflictEdgesTimesMap = undefined;
     this.originImage.visible = false;
     this.puzzleImage.visible = false;
 
@@ -2022,6 +2021,9 @@ function JigsawPuzzle(config) {
                         edge: edge,
                         time: 1
                     });
+                    var conflictTimes = instance.conflictEdgesTimesMap[edge];
+                    conflictTimes = conflictTimes ? conflictTimes + 1 : 1;
+                    instance.conflictEdgesTimesMap[edge] = conflictTimes;
                 }
             }
             if (hintsConflict.length > 0) {
@@ -2359,10 +2361,6 @@ function JigsawPuzzle(config) {
         var tag = d % 2 == 0 ? 'T-B' : 'L-R';
         var edge_name = (d == 0 || d == 3) ? y + tag + x : x + tag + y; 
         instance.hintsConflict.add(edge_name);
-        var conflictTimes = instance.conflictEdgesTimesMap[edge_name];
-        conflictTimes = conflictTimes ? conflictTimes + 1 : 1;
-        //console.log('conflict', edge_name, conflictTimes);
-        instance.conflictEdgesTimesMap[edge_name] = conflictTimes; 
     }
 
     function showStrongAndWeakHints(sureHints, strongHintsNeededTiles, indexes){
@@ -3334,7 +3332,6 @@ function JigsawPuzzle(config) {
 
                 if(gameData.conflictEdgesTimesMap) {
                     instance.conflictEdgesTimesMap = JSON.parse(gameData.conflictEdgesTimesMap);
-                    //console.log('conflictEdgesTimesMap', instance.conflictEdgesTimesMap);
                 }
             }
             createAndPlaceTiles(needIntro);
