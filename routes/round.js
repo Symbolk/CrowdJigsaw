@@ -46,7 +46,6 @@ async function saveScore(round_id) {
     }
     for(let username in scoremap){
         let first_edges = await redis.smembersAsync('round:' + round_id + ':distributed:first_edges:' + username);
-        //console.log('first_edges', username, first_edges);
         scoremap[username].first_edges = first_edges;
         let condition = {
             round_id: round_id,

@@ -375,26 +375,26 @@ function update(data) {
                             let opposers = edges_saved[key].opposers;
                             if (e.size > 0) {
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    //computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                     delete opposers[data.player_name];
                                 } else {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 }
                             } else { // e.size<0(e.size==0?)
                                 if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                     delete supporters[data.player_name];
                                 } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    //computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 } else {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 }
                             }
@@ -404,11 +404,11 @@ function update(data) {
                             let opposers = {};
                             let weight = 0;
                             if (e.size > 0) {
-                                computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                 supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 weight += supporters[data.player_name];
                             } else {
-                                computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
+                                computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                 opposers[data.player_name] = e.size * (e.size / e.nodes);
                             }
                             let confidence = 1;
