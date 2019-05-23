@@ -110,7 +110,7 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
     };
 }
 
-function generateHints(roundID, nodesAndHints){
+function generateHints(nodesAndHints){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
 
@@ -346,6 +346,19 @@ function distributed_update(data) {
     }
 }
 
+function generateEdgeMap(nodesAndHints, edges_saved) {
+    let edgeMap = {};
+    for (let e in edges_saved) {
+        let edge = edges_saved[e];
+        edgeMap[e] = {
+            sup: edge.weight,
+            opp: edge.wn,
+            pro: edge.confidence
+        };
+    }
+    nodesAndHints.edgeMap = edgeMap;
+}
+
 function update(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
@@ -458,6 +471,7 @@ function update(data) {
                             wn += opposers[o];
                         }
                         edges_saved[e].weight = wp;
+                        edges_saved[e].wn = wn;
                         if (wp + wn != 0) {
                             edges_saved[e].confidence = wp / (wp + wn);
                             if(edges_saved[e].confidence < oldConfidence){
@@ -469,8 +483,9 @@ function update(data) {
                     for (let e in edges_saved) {
                         updateNodesAndEdges(nodesAndHints, edges_saved[e]);
                     }
-                    generateHints(roundID, nodesAndHints);
+                    generateHints(nodesAndHints);
                     checkUnsureHints(nodesAndHints);
+                    generateEdgeMap(nodesAndHints, edges_saved);
                     computeCog(roundID, edges_saved, time, round.tilesPerRow, round.tilesPerColumn, nodesAndHints);
                     
                     redis.set(redis_key, JSON.stringify(edges_saved));
@@ -850,7 +865,8 @@ module.exports = function (io) {
                     }
                     socket.emit('proactiveHints', {
                         sureHints: hints,
-                        unsureHints: unsureHints
+                        unsureHints: unsureHints,
+                        edgeMap: nodesAndHints.edgeMap
                     });
                 });
             }
@@ -888,7 +904,8 @@ module.exports = function (io) {
                         selectedTileIndexes: data.selectedTileIndexes,
                         currentStep: data.currentStep,
                         sureHints: hints,
-                        unsureHints: unsureHints
+                        unsureHints: unsureHints,
+                        edgeMap: nodesAndHints.edgeMap
                     });
                 });
             }

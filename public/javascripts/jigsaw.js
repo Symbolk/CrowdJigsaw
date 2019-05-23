@@ -1758,6 +1758,11 @@ function JigsawPuzzle(config) {
                 tile.position = single.originPosition;
             }
         }
+        if (data.edgeMap) {
+            console.log(data.edgeMap);
+            instance.edgeMap = data.edgeMap;
+            showVulnerableEdges();
+        }
     });
 
     this.releaseTile = function () {
@@ -2689,6 +2694,11 @@ function JigsawPuzzle(config) {
                 var tile = single.tile;
                 tile.position = single.originPosition;
             }
+        }
+        if (data.edgeMap) {
+            console.log(data.edgeMap);
+            instance.edgeMap = data.edgeMap;
+            showVulnerableEdges();
         }
     });
 
