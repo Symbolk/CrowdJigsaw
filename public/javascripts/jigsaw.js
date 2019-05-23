@@ -434,7 +434,7 @@ function JigsawPuzzle(config) {
 
     this.maxSubGraphSize = 0;
 
-    this.unsureHintsColor = ["red"];
+    this.unsureHintsColor = ["red", "purple"];
     this.colorBorderWidth = 10;
 
     this.hintedTilesMap = new Array();
@@ -2302,7 +2302,7 @@ function JigsawPuzzle(config) {
                 indexesMap[indexes[i]] = true;
             }
         }
-        var colorIndex = 0;
+        var colorIndex = 1;
         for (var i = 0; i < unsureHints.length; i++) {
             if (unsureHints[i] && colorIndex < instance.unsureHintsColor.length) {
                 var unsureHint = unsureHints[i];
