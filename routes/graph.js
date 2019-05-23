@@ -370,14 +370,14 @@ function update(data) {
                     for (let key in data.edges) {
                         let e = data.edges[key];
                         // if the edge exists, update the size
-                        if (edges_saved.hasOwnProperty(key)) {
+                        if (edges_saved[key]) {
                             let supporters = edges_saved[key].supporters;
                             let opposers = edges_saved[key].opposers;
                             if (e.size > 0) {
-                                if (supporters.hasOwnProperty(data.player_name)) {
+                                if (supporters[data.player_name]) {
                                     //computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                } else if (opposers.hasOwnProperty(data.player_name)) {
+                                } else if (opposers[data.player_name]) {
                                     computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                     delete opposers[data.player_name];
@@ -386,11 +386,11 @@ function update(data) {
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 }
                             } else { // e.size<0(e.size==0?)
-                                if (supporters.hasOwnProperty(data.player_name)) {
+                                if (supporters[data.player_name]) {
                                     computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                     delete supporters[data.player_name];
-                                } else if (opposers.hasOwnProperty(data.player_name)) {
+                                } else if (opposers[data.player_name]) {
                                     //computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                                 } else {
@@ -413,6 +413,31 @@ function update(data) {
                             }
                             let confidence = 1;
                             edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
+                        }
+                    }
+                    if (data.conflict) {
+                        //console.log(data.conflict);
+                        for (let i = 0; i < data.conflict.length; i++) {
+                            let key = data.conflict[i].edge;
+                            let time = data.conflict[i].time;
+                            if (edges_saved[key]) {
+                                let supporters = edges_saved[key].supporters;
+                                let opposers = edges_saved[key].opposers;
+                                if (time > 0) {
+                                    if (opposers[data.player_name]) {
+                                        opposers[data.player_name] += time;
+                                    } else {
+                                        opposers[data.player_name] = time;
+                                    }
+                                } else {
+                                    if (opposers[data.player_name]) {
+                                        opposers[data.player_name] -= time;
+                                        if (opposers[data.player_name] <= 0) {
+                                            delete opposers[data.player_name];
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
