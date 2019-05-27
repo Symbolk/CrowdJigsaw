@@ -146,8 +146,11 @@ var ImagesModel = require('./models/images').Images;
 if (server) {
     // update the image paths to database: "images/raw/starter_thumb.png"
     // empty the last database and save the latest
-    for (var i = 1; i < 11; i++) {
-        redisClient.del('image:' + i);   
+    for (let i = 1; i < 11; i++) {
+        redisClient.del('image:' + i); 
+        for (let j = 1; j < 101; j++) {
+            redisClient.del('image:' + i + ':' + j);
+        }  
     }
     ImagesModel.remove({}, function (err) {
         if (err) {
@@ -159,19 +162,23 @@ if (server) {
                     console.log(err);
                 } else {
                     var thumbnails = files.map(f => f.substring(9));
-                    thumbnails.forEach(function (item, index, input) {
+                    thumbnails.forEach(async function (item, index, input) {
                         let num = Number(item.split('_')[1].split('x')[0]);
+                        let difficult = await redisClient.hgetAsync('gaps:images:difficult', item.split('_')[0].split('/')[2])
+                        difficult = difficult ? difficult : 1;
                         if (num) {
                             ImagesModel.create({
                                 image_path: item,
                                 row_num: num,
-                                col_num: num
+                                col_num: num,
+                                difficult: difficult
                             }, function (err) {
                                 if (err) {
                                     console.log(err);
                                 } else if (num <= 10) {
                                     real_path = item.split('_')[0] + '_' + num + 'x' + num + '.jpg';
                                     redisClient.sadd('image:' + num, real_path);
+                                    redisClient.sadd('image:' + num + ':' + difficult, real_path);
                                 }
                             });
                         }
@@ -191,7 +198,11 @@ if (server) {
         });
 
         socket.on('puzzle_size_update',function (data) {
-            ImagesModel.find({ 'row_num': data.puzzle_size},null,{limit:10}, function (err, docs) {
+            let condition = { 
+                'row_num': data.puzzle_size,
+                'difficult': data.difficult
+            };
+            ImagesModel.find(condition,null,{limit:10}, function (err, docs) {
                 if (err) {
                     console.log(err);
                 } else {
@@ -206,7 +217,11 @@ if (server) {
         socket.on('nextPage', function (data) {
             //select the next n results and send
             let pageSize = 10;
-            ImagesModel.find({'row_num': data.puzzle_size}, null, { skip: pageSize * data.pageCount, limit: pageSize }, function (err, docs) {
+            let condition = { 
+                'row_num': data.puzzle_size,
+                'difficult': data.difficult
+            };
+            ImagesModel.find(condition, null, { skip: pageSize * data.pageCount, limit: pageSize }, function (err, docs) {
                 if(err){
                     console.log(err);
                 }else{

@@ -6,6 +6,7 @@ var RoundSchema = new mongoose.Schema({
     // puzzle info
     algorithm: { type: String, default: 'distribute'},
     image: { type: String, required: true }, //image url
+    difficult: {type: Number},
     imageWidth: { type: Number},
     imageHeight: { type: Number},
     shape: { type: String, required: true }, // jagged or square

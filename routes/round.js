@@ -150,7 +150,7 @@ module.exports = function (io) {
                 } else {
                     let imageSrc = data.imageURL;
                     if (!imageSrc && data.imageSize > 0) {
-                        let randomUrl = await redis.srandmemberAsync('image:' + data.imageSize, 1);
+                        let randomUrl = await redis.srandmemberAsync('image:' + data.imageSize + ':' + data.difficult, 1);
                         if (randomUrl.length <= 0) {
                             return;
                         }
@@ -171,6 +171,7 @@ module.exports = function (io) {
                         round_id: index,
                         creator: data.username,
                         image: imageSrc,
+                        difficult: data.difficult,
                         level: data.level,
                         shape: data.shape,
                         edge: data.edge,

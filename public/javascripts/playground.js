@@ -91,7 +91,7 @@ socket.on('roundPlayersChanged', function (data) {
 // get the next page, and refresh the thumblist
 socket.on("refresh", function (data) {
     $('.more_images').parent().parent().remove();
-    puzzleImageSrcSet = new Set();
+    puzzleImageSrcSet.clear();
     if (data.thumblist.length > 0) {
         data.thumblist.forEach(function (item, index, input) {
             puzzleImageSrcSet.add(item.image_path);
@@ -114,23 +114,46 @@ var edgeCheckbox = $('#egde_checkbox_column');
 var newRoundCreateButton = $('#newround_createbutton');
 var newRoundCancelButton = $('#newround_cancelbutton');
 var selectImageDialog = $('#selectimage_dialog').get(0);
-var mySlider = $("#newround_number_slider").slider();
-var mySlider2 = $("#puzzle_size_slider").slider();
+var numSlider = $("#newround_number_slider").slider();
+var sizeSlider = $("#puzzle_size_slider").slider();
+var difficultSlider = $("#puzzle_difficult_slider").slider();
 var pageCount = 0;
 var theOnlyNewRoundDialog = false;
-var selected_puzzle_size = mySlider2.slider('getValue');
-socket.emit('puzzle_size_update', { puzzle_size: selected_puzzle_size });
+var selected_puzzle_size = sizeSlider.slider('getValue');
+var selected_puzzle_difficult = difficultSlider.slider('getValue');
+socket.emit('puzzle_size_update', { 
+    puzzle_size: selected_puzzle_size,
+    puzzle_difficult: selected_puzzle_difficult 
+});
 
-mySlider2.slider().on('change',function (event) {
+sizeSlider.slider().on('change',function (event) {
     selected_puzzle_size = event.value.newValue;
+    selected_puzzle_difficult = difficultSlider.slider('getValue');
     $('#selectimage_table').empty();
-    puzzleImageSrcSet = new Set();
+    puzzleImageSrcSet.clear();
     pageCount=0;
     imgReadyCount=0;
-    socket.emit('puzzle_size_update', { puzzle_size: selected_puzzle_size });
+    socket.emit('puzzle_size_update', { 
+        puzzle_size: selected_puzzle_size,
+        puzzle_difficult: selected_puzzle_difficult 
+    });
     $('#newround_image').removeAttr('src');
     $('#newround_image_wrap').css('display', 'none');
+})
 
+difficultSlider.slider().on('change',function (event) {
+    selected_puzzle_size = sizeSlider.slider('getValue');
+    selected_puzzle_difficult = event.value.newValue;
+    $('#selectimage_table').empty();
+    puzzleImageSrcSet.clear();
+    pageCount=0;
+    imgReadyCount=0;
+    socket.emit('puzzle_size_update', { 
+        puzzle_size: selected_puzzle_size,
+        puzzle_difficult: selected_puzzle_difficult 
+    });
+    $('#newround_image').removeAttr('src');
+    $('#newround_image_wrap').css('display', 'none');
 })
 
 function getSelectorImage() {
@@ -159,7 +182,11 @@ function getSelectorImage() {
     template.appendTo('#selectimage_table');
     $('.more_images').click(function () {
         pageCount += 1;
-        socket.emit('nextPage', { pageCount: pageCount, puzzle_size:selected_puzzle_size });
+        socket.emit('nextPage', { 
+            pageCount: pageCount, 
+            puzzle_size: selected_puzzle_size,
+            puzzle_difficult: selected_puzzle_difficult
+        });
     });
     $('.selector-image').click(function () {
         var imgSrc = $(this).attr('src');
@@ -246,14 +273,15 @@ function initRandomRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(imgSrc, 0, level, playersNum, shape, edge, border, algorithm);
+        postNewRound(imgSrc, 0, 0, level, playersNum, shape, edge, border, algorithm);
     });
 
     $('#player_num_div').css('display', 'none');
     $('#select_img_div').css('display', 'none');
     $('#puzzle_size_div').css('display','none');
+    $('#puzzle_difficult_div').css('display','none');
 
-    mySlider.slider('setValue', 1);
+    numSlider.slider('setValue', 1);
     $('#randomround_button').click(function () {
         //$('#newround_blank').css('display', 'inline');
         $('#newround_image').attr('src', '/images/logo.png')
@@ -276,8 +304,9 @@ function initNewRoundDialog() {
 
     newRoundCreateButton.click(function () {
         var imgSrc = $('#newround_image').attr('src');
-        var playersNum = mySlider.slider('getValue');
-        var size = mySlider2.slider('getValue');
+        var playersNum = numSlider.slider('getValue');
+        var size = sizeSlider.slider('getValue');
+        var difficult = difficultSlider.slider('getValue');
         var shape = 'jagged';
         var level = 1;
         var edge = false;
@@ -301,16 +330,17 @@ function initNewRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(imgSrc, size, level, playersNum, shape, edge, border, algorithm);
+        postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm);
     });
 
-    mySlider.slider({
+    numSlider.slider({
         formatter: function (value) {
             return 'Current value: ' + value;
         }
     });
+
     if(admin != "true") {
-        mySlider.change(function() {
+        numSlider.change(function() {
             var num = parseInt($(this).val());
             console.log(num);
             if(num > 1) {
@@ -320,9 +350,15 @@ function initNewRoundDialog() {
             }
         });
     }
-    mySlider2.slider({
+    sizeSlider.slider({
         formatter: function (value) {
             return 'Current value: ' + value+"*"+value;
+        }
+    });
+
+    difficultSlider.slider({
+        formatter: function (value) {
+            return 'Current value: ' + value;
         }
     });
 
@@ -588,7 +624,7 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, size, level, playersNum, shape, edge, border, algorithm) {
+function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm) {
     if (imgSrc) {
         var img = new Image();
         var thumbStr = '_thumb';
@@ -603,6 +639,7 @@ function postNewRound(imgSrc, size, level, playersNum, shape, edge, border, algo
         admin: admin == "true",
         imageURL: imgSrc,
         imageSize: size,
+        difficult, difficult,
         level: level,
         edge: edge,
         shape: shape,
