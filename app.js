@@ -165,7 +165,7 @@ if (server) {
                     thumbnails.forEach(async function (item, index, input) {
                         let num = Number(item.split('_')[1].split('x')[0]);
                         let difficult = await redisClient.hgetAsync('gaps:images:difficult', item.split('_')[0].split('/')[2])
-                        difficult = difficult ? difficult : 1;
+                        difficult = difficult ? difficult : 0;
                         if (num) {
                             ImagesModel.create({
                                 image_path: item,
