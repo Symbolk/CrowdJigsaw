@@ -511,7 +511,16 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
 router.route('/help').all(LoginFirst).get(function (req, res) {
     // TODO    
     req.session.error = 'Get into Trouble?';
-    res.render('help', { title: 'Help', username: req.session.user.username });
+    res.render('help', { title: 'Help', username: "req.session.user.username" });
+});
+
+// Video pages
+router.route('/video1').get(function (req, res) {
+    res.render('video1', { title: 'Video', username: '' });
+});
+
+router.route('/video2').get(function (req, res) {
+    res.render('video2', { title: 'Video', username: '' });
 });
 
 
