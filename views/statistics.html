@@ -62,9 +62,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 for (var i = 0; i < 100; i++)
                     dataset[i] = Math.random() * 10 + 1001;
                 zLab = 'Steps';
-            }
-
-            else if (metric == 'time') {
+            } else if (metric == 'time') {
                 for (var i = 0; i < 100; i++)
                     dataset[i] = Math.random() * 10 + 2001;
                 zLab = 'Time';
@@ -81,7 +79,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 dataset[i] = Math.random() * 1000 + 1;
 
             // create some nice looking data with sin/cos
-            var steps = 1;  // number of datapoints will be steps*steps
+            var steps = 1; // number of datapoints will be steps*steps
             var xAxisMax = 10; // group size
             var yAxisMax = 7; // puzzle size
             $.ajax({
@@ -90,7 +88,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 dataType: 'json',
                 cache: false,
                 timeout: 5000,
-                success: function (d) {
+                success: function(d) {
                     let dArray = new Array();
                     for (let i = 0; i < 10; i++) {
                         let temp = new Array();
@@ -100,8 +98,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         dArray.push(temp);
                     }
                     if (metric == "steps") {
-                        for(let i in d){
-                            data.add({ x: Number(d[i].group_size), y: Number(d[i].puzzle_size), z: Number(d[i].average_steps) });
+                        for (let i in d) {
+                            data.add({
+                                x: Number(d[i].group_size),
+                                y: Number(d[i].puzzle_size),
+                                z: Number(d[i].average_steps)
+                            });
                         }
                         // for (let i = 0; i < 10; i++) {
                         //     for (j = 0; j < 7; j++) {
@@ -149,8 +151,12 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         //     }
                         // }
                     } else if (metric == "time") {
-                        for(let i in d){
-                            data.add({ x: Number(d[i].group_size), y: Number(d[i].puzzle_size), z: Number(d[i].average_time) });
+                        for (let i in d) {
+                            data.add({
+                                x: Number(d[i].group_size),
+                                y: Number(d[i].puzzle_size),
+                                z: Number(d[i].average_time)
+                            });
                         }
                     }
                     // }
@@ -167,10 +173,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         showLegend: true,
                         showGrid: true,
                         showShadow: false,
-                        xValueLabel: function (x) {
+                        xValueLabel: function(x) {
                             return x;
                         },
-                        yValueLabel: function (y) {
+                        yValueLabel: function(y) {
                             return y + '*' + y;
                         },
                         xLabel: 'GroupSize',
@@ -182,7 +188,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                         yStep: 1,
 
                         // Option tooltip can be true, false, or a function returning a string with HTML contents
-                        tooltip: function (point) {
+                        tooltip: function(point) {
                             // parameter point contains properties x, y, z, and data
                             // data is the original object passed to the point constructor
                             return 'value: <b>' + point.z + '</b><br>' + point.data.extra;
@@ -218,7 +224,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     document.getElementById('style').onchange = drawVisualization;
                     document.getElementById('metric').onchange = drawVisualization;
                 },
-                error: function (jqXHR, textStatus, errorThrown) {
+                error: function(jqXHR, textStatus, errorThrown) {
                     console.log('loadGame: ' + 'error ' + textStatus + " " + errorThrown);
                 }
             });
@@ -389,14 +395,17 @@ desired effect
                             <span>Statistics</span>
                         </a>
                     </li>
-                    <li>
+                    <li><a href="/demos"><i class="fa fa-video-camera fa-lg"></i> <span>Demos</span></a></li>
+                    <li><a href="https://github.com/Symbolk/CrowdJigsaw"><i class="fa fa-github fa-lg"></i> <span>Github</span></a></li>
+
+                    <!-- <li>
                         <a href="/help">
                             <i class="fa fa-question-circle fa-lg"></i>
                             <span>Help</span>
                         </a>
-                    </li>
+                    </li> -->
 
-                    <li class="treeview">
+                    <!-- <li class="treeview">
                         <a href="#">
                             <i class="fa fa-link fa-lg"></i>
                             <span>Links</span>
@@ -412,7 +421,7 @@ desired effect
                                 <a href="http://symbolk.com">Blog</a>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
                     <li>
                         <a href="/logout">
                             <i class="fa fa-sign-out fa-lg"></i>
@@ -427,7 +436,7 @@ desired effect
         <script src="/javascripts/jquery.min.js"></script>
 
         <script>
-            $(function () {
+            $(function() {
                 var uname = '<%= username %>';
                 var name = uname.charAt(0);
                 var fontSize = 60;
@@ -614,6 +623,13 @@ desired effect
     <!-- <script src="/javascripts/bootstrap-table.min.js" ></script> -->
     <!--<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.min.js"></script>
+
+</body>
+
+</html>-
+<script src="/javascripts/bootstrap-table.min.js"></script> -->
+<!--<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.min.js"></script>
 
 </body>
 

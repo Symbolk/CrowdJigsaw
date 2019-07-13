@@ -28,6 +28,7 @@ function encrypt(str, secret) {
     enc += cipher.final('hex');
     return enc;
 }
+
 function decrypt(str, secret) {
     var decipher = crypto.createDecipher('aes192', secret);
     var dec = decipher.update(str, 'hex', 'utf8');
@@ -37,22 +38,22 @@ function decrypt(str, secret) {
 
 
 // Get Home Page
-router.get('/', function (req, res, next) {
+router.get('/', function(req, res, next) {
     req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
     res.render('index', { title: 'Crowd Jigsaw Puzzle' });
 });
 
 // Login
 //返回一个路由的一个实例，你可以用于处理HTTP动态请求使用可选的中间件。使用router.route()是一种推荐的方法来避免重复路由命名和拼写错误.。
-router.route('/login').all(Logined).get(function (req, res) {
+router.route('/login').all(Logined).get(function(req, res) {
     res.render('login', { title: 'Login' });
-}).post(function (req, res) {
+}).post(function(req, res) {
     //从前端获取到的用户填写的数据
     let passwd_enc = encrypt(req.body.password, SECRET);
     let user = { username: req.body.username, password: passwd_enc };
     //用于查询用户名是否存在的条件
     let condition = { username: user.username };
-    UserModel.findOne(condition, function (err, doc) {
+    UserModel.findOne(condition, function(err, doc) {
         if (err) {
             console.log(err);
         } else {
@@ -66,7 +67,7 @@ router.route('/login').all(Logined).get(function (req, res) {
                             last_online_time: time
                         }
                     };
-                    UserModel.update(condition, operation, function (err) {
+                    UserModel.update(condition, operation, function(err) {
                         if (err) {
                             console.log(err);
                         } else {
@@ -74,8 +75,7 @@ router.route('/login').all(Logined).get(function (req, res) {
                             return res.redirect('/home');
                         }
                     });
-                }
-                else {
+                } else {
                     req.session.error = 'Wrong username or password!';
                     return res.redirect('/login');
                 }
@@ -90,12 +90,12 @@ router.route('/login').all(Logined).get(function (req, res) {
 /**
  * Log in as a visitor
  */
-router.route('/visitor').get(function (req, res) {
-    if(req.session.user){
+router.route('/visitor').get(function(req, res) {
+    if (req.session.user) {
         console.log(req.session.user.username);
         let selectStr = { username: req.session.user.username };
         let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
-        UserModel.findOne(selectStr, fields, function (err, doc) {
+        UserModel.findOne(selectStr, fields, function(err, doc) {
             if (err) {
                 console.log(err);
                 req.session.user = null;
@@ -107,10 +107,8 @@ router.route('/visitor').get(function (req, res) {
                 }
             }
         });
-    }
-    else
-    {
-        UserModel.find({}, function (err, docs) {
+    } else {
+        UserModel.find({}, function(err, docs) {
             if (err) {
                 console.log(err);
             } else {
@@ -123,7 +121,7 @@ router.route('/visitor').get(function (req, res) {
                     register_time: util.getNowFormatDate()
                 };
                 let user = { username: operation.username };
-                UserModel.create(operation, function (err) {
+                UserModel.create(operation, function(err) {
                     if (err) {
                         console.log(err);
                     } else {
@@ -140,11 +138,11 @@ router.route('/visitor').get(function (req, res) {
 
 
 // Register
-router.route('/register').all(Logined).get(function (req, res) {
+router.route('/register').all(Logined).get(function(req, res) {
     res.render('register', { title: 'Register' });
-}).post(function (req, res) {
+}).post(function(req, res) {
     //从前端获取到的用户填写的数据
-    if(req.body.password.replace(/[ ]/g, "").length == 0){
+    if (req.body.password.replace(/[ ]/g, "").length == 0) {
         req.session.error = 'Passwords must not be empty!';
         return res.redirect('/register');
     }
@@ -153,7 +151,7 @@ router.route('/register').all(Logined).get(function (req, res) {
     let passwd_sec_enc = encrypt(req.body.passwordSec, SECRET);
 
     let newUser = { username: req.body.username, password: passwd_enc, passwordSec: passwd_sec_enc };
-    UserModel.find({}, function (err, docs) {
+    UserModel.find({}, function(err, docs) {
         if (err) {
             console.log(err);
         } else {
@@ -168,17 +166,17 @@ router.route('/register').all(Logined).get(function (req, res) {
             };
             //用于查询用户名是否存在的条件
             // let selectStr={username:newUser.username};
-            UserModel.findOne({ username: newUser.username }, function (err, doc) {
+            UserModel.findOne({ username: newUser.username }, function(err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
                     if (!doc) {
-                        if(operation.username.replace(/[ ]/g, "").length == 0){
+                        if (operation.username.replace(/[ ]/g, "").length == 0) {
                             req.session.error = 'Username must not be empty!';
-                            return res.redirect('/register'); 
+                            return res.redirect('/register');
                         }
                         if (newUser.password === newUser.passwordSec) {
-                            UserModel.create(operation, function (err) {
+                            UserModel.create(operation, function(err) {
                                 if (err) {
                                     console.log(err);
                                 } else {
@@ -202,10 +200,10 @@ router.route('/register').all(Logined).get(function (req, res) {
 
 
 //Home 
-router.route('/home').all(LoginFirst).get(function (req, res) {
+router.route('/home').all(LoginFirst).get(function(req, res) {
     let selectStr = { username: req.session.user.username };
     let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
-    UserModel.findOne(selectStr, fields, function (err, doc) {
+    UserModel.findOne(selectStr, fields, function(err, doc) {
         if (err) {
             console.log(err);
         } else {
@@ -219,10 +217,10 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
 
 
 // Round
-router.route('/playground').all(LoginFirst).get(function (req, res) {
+router.route('/playground').all(LoginFirst).get(function(req, res) {
     let selectStr = { username: req.session.user.username };
     let fields = { _id: 0, username: 1, avatar: 1, admin: 1 };
-    UserModel.findOne(selectStr, fields, function (err, doc) {
+    UserModel.findOne(selectStr, fields, function(err, doc) {
         if (err) {
             console.log(err);
         } else {
@@ -233,62 +231,59 @@ router.route('/playground').all(LoginFirst).get(function (req, res) {
     });
 });
 
-router.route('/puzzle').all(LoginFirst).get(function (req, res) {
+router.route('/puzzle').all(LoginFirst).get(function(req, res) {
     let roundID = req.query.roundID;
     let condition = {
         round_id: parseInt(roundID)
     };
     var redis_key = 'round:' + condition.round_id;
     redis.get(redis_key, (err, data) => {
-        if(data){
+        if (data) {
             var round = JSON.parse(data);
-            res.render('puzzle',
-                {
-                    title: 'Puzzle',
-                    player_name: req.session.user.username,
-                    players_num: round.players_num,
-                    level: round.level,
-                    roundID: roundID,
-                    solved_players: round.solved_players,
-                    image: round.image,
-                    tileWidth: round.tileWidth,
-                    startTime: round.start_time,
-                    shape: round.shape,
-                    edge: round.edge,
-                    border: round.border,
-                    tilesPerRow: round.tilesPerRow,
-                    tilesPerColumn: round.tilesPerColumn,
-                    imageWidth: round.imageWidth,
-                    imageHeight: round.imageHeight,
-                    shapeArray: round.shapeArray
+            res.render('puzzle', {
+                title: 'Puzzle',
+                player_name: req.session.user.username,
+                players_num: round.players_num,
+                level: round.level,
+                roundID: roundID,
+                solved_players: round.solved_players,
+                image: round.image,
+                tileWidth: round.tileWidth,
+                startTime: round.start_time,
+                shape: round.shape,
+                edge: round.edge,
+                border: round.border,
+                tilesPerRow: round.tilesPerRow,
+                tilesPerColumn: round.tilesPerColumn,
+                imageWidth: round.imageWidth,
+                imageHeight: round.imageHeight,
+                shapeArray: round.shapeArray
             });
-        }
-        else {
-            RoundModel.findOne(condition, function (err, doc) {
+        } else {
+            RoundModel.findOne(condition, function(err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
                     var round = doc;
                     redis.set(redis_key, JSON.stringify(round), (err, data) => {});
-                    res.render('puzzle',
-                        {
-                            title: 'Puzzle',
-                            player_name: req.session.user.username,
-                            players_num: round.players_num,
-                            level: round.level,
-                            roundID: roundID,
-                            solved_players: round.solved_players,
-                            image: round.image,
-                            tileWidth: round.tileWidth,
-                            startTime: round.start_time,
-                            shape: round.shape,
-                            edge: round.edge,
-                            border: round.border,
-                            tilesPerRow: round.tilesPerRow,
-                            tilesPerColumn: round.tilesPerColumn,
-                            imageWidth: round.imageWidth,
-                            imageHeight: round.imageHeight,
-                            shapeArray: round.shapeArray
+                    res.render('puzzle', {
+                        title: 'Puzzle',
+                        player_name: req.session.user.username,
+                        players_num: round.players_num,
+                        level: round.level,
+                        roundID: roundID,
+                        solved_players: round.solved_players,
+                        image: round.image,
+                        tileWidth: round.tileWidth,
+                        startTime: round.start_time,
+                        shape: round.shape,
+                        edge: round.edge,
+                        border: round.border,
+                        tilesPerRow: round.tilesPerRow,
+                        tilesPerColumn: round.tilesPerColumn,
+                        imageWidth: round.imageWidth,
+                        imageHeight: round.imageHeight,
+                        shapeArray: round.shapeArray
                     });
                 }
             });
@@ -298,9 +293,9 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
 
 
 // Reset Password
-router.route('/reset').get(function (req, res) {
+router.route('/reset').get(function(req, res) {
     res.render('reset', { title: 'Reset Password' });
-}).post(function (req, res) {
+}).post(function(req, res) {
     if (req.body.username == null || req.body.username == undefined || req.body.username == '') {
         req.session.error = "Please input username first!";
         return res.redirect('/reset');
@@ -308,14 +303,14 @@ router.route('/reset').get(function (req, res) {
         let user = { username: req.body.username };
         let selectStr = { username: user.username };
 
-        UserModel.findOne(selectStr, function (err, doc) {
+        UserModel.findOne(selectStr, function(err, doc) {
             if (err) {
                 console.log(err);
             } else {
                 if (doc) {
                     let whereStr = { username: req.body.username };
                     let update = { $set: { password: encrypt(whereStr.username, SECRET) } };
-                    UserModel.update(whereStr, update, function (err) {
+                    UserModel.update(whereStr, update, function(err) {
                         if (err) {
                             console.log(err);
                         } else {
@@ -333,10 +328,10 @@ router.route('/reset').get(function (req, res) {
 });
 
 // Account Settings
-router.route('/settings').all(LoginFirst).get(function (req, res) {
+router.route('/settings').all(LoginFirst).get(function(req, res) {
     req.session.error = 'Change Password Here!';
     res.render('settings', { title: 'Player Settings', username: req.session.user.username });
-}).post(function (req, res) {
+}).post(function(req, res) {
     if (req.body.new_password != req.body.new_passwordSec) {
         req.session.error = 'Passwords do not agree with each other!';
         return res.redirect('/settings');
@@ -346,7 +341,7 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
             username: req.session.user.username
         };
 
-        UserModel.findOne(condition, function (err, doc) {
+        UserModel.findOne(condition, function(err, doc) {
             if (err) {
                 console.log(err);
             } else {
@@ -356,7 +351,7 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
                             password: encrypt(req.body.new_password, SECRET),
                         }
                     };
-                    UserModel.update(condition, operation, function (err) {
+                    UserModel.update(condition, operation, function(err) {
                         if (err) {
                             console.log(err);
                         } else {
@@ -375,17 +370,17 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
 });
 
 // Get the rank of this round
-router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
+router.route('/roundrank/:round_id').all(LoginFirst).get(function(req, res) {
     let condition = { "records.round_id": req.params.round_id };
     let fields = { _id: 0, username: 1, avatar: 1, records: 1 };
-    RoundModel.findOne({ round_id: req.params.round_id }, function (err, doc) {
+    RoundModel.findOne({ round_id: req.params.round_id }, function(err, doc) {
         if (err) {
             console.log(err);
         } else {
             var round = doc;
             var roundContribution = round.contribution;
             var puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
-            UserModel.find(condition, fields, function (err, docs) {
+            UserModel.find(condition, fields, function(err, docs) {
                 if (err) {
                     console.log(err);
                 } else {
@@ -394,7 +389,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                         let unfinished = new Array();
                         for (let d of docs) {
                             for (let r of d.records) {
-                                if (r.round_id == req.params.round_id && r.start_time != "-1" ) {
+                                if (r.round_id == req.params.round_id && r.start_time != "-1") {
                                     let hintPercent = 0;
                                     let correctPercent = 0;
                                     let finishPercent = 0;
@@ -405,10 +400,10 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                                         correctPercent = r.correct_hints / r.total_hints * 100;
                                     }
                                     if (r.total_links > 0 && r.correct_links != -1) {
-                                        finishPercent = (r.correct_links/2) / puzzle_links * 100;
+                                        finishPercent = (r.correct_links / 2) / puzzle_links * 100;
                                     }
                                     let contribution = 0;
-                                    if(roundContribution && roundContribution[d.username]){
+                                    if (roundContribution && roundContribution[d.username]) {
                                         contribution = roundContribution[d.username] * 100;
                                     }
                                     if (r.end_time != "-1") {
@@ -443,8 +438,11 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
                         finished = finished.sort(util.ascending("time"));
                         unfinished = unfinished.sort(util.descending("contribution"));
                         res.render('roundrank', {
-                            title: 'Round Rank', Finished: finished, Unfinished: unfinished,
-                            username: req.session.user.username, round_id: req.params.round_id
+                            title: 'Round Rank',
+                            Finished: finished,
+                            Unfinished: unfinished,
+                            username: req.session.user.username,
+                            round_id: req.params.round_id
                         });
                     }
                 }
@@ -454,11 +452,11 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(function (req, res) {
 });
 
 // Rank
-router.route('/rank').all(LoginFirst).get(function (req, res) {
+router.route('/rank').all(LoginFirst).get(function(req, res) {
     req.session.error = 'Players Rank!';
     let fields = { username: 1, records: 1, _id: 0 }
-    // Rank all the users according to the sum contribution
-    UserModel.find({}, function (err, docs) {
+        // Rank all the users according to the sum contribution
+    UserModel.find({}, function(err, docs) {
         if (err) {
             console.log(err);
         } else {
@@ -484,13 +482,13 @@ router.route('/rank').all(LoginFirst).get(function (req, res) {
 
 
 // Personal Records
-router.route('/records').all(LoginFirst).get(function (req, res) {
+router.route('/records').all(LoginFirst).get(function(req, res) {
     req.session.error = 'See Your Records!';
     let condition = {
         username: req.session.user.username
     };
 
-    UserModel.findOne(condition, { _id: 0, records: 1 }, function (err, doc) {
+    UserModel.findOne(condition, { _id: 0, records: 1 }, function(err, doc) {
         if (err) {
             // res.render('records', { title: 'Personal Records' });
             console.log(err);
@@ -508,25 +506,21 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
 });
 
 // Help page
-router.route('/help').all(LoginFirst).get(function (req, res) {
+router.route('/help').all(LoginFirst).get(function(req, res) {
     // TODO    
     req.session.error = 'Get into Trouble?';
     res.render('help', { title: 'Help', username: "req.session.user.username" });
 });
 
-// Video pages
-router.route('/video1').get(function (req, res) {
-    res.render('video1', { title: 'Video', username: '' });
-});
-
-router.route('/video2').get(function (req, res) {
-    res.render('video2', { title: 'Video', username: '' });
+// Video demos
+router.route('/demos').get(function(req, res) {
+    res.render('demos', { title: 'Video Demos', username: '' });
 });
 
 
 
 // Log out
-router.get('/logout', function (req, res) {
+router.get('/logout', function(req, res) {
     req.session.user = null;
     req.session.error = null;
     return res.redirect('/login');
@@ -549,51 +543,57 @@ function LoginFirst(req, res, next) {
     }
     next();
 }
-router.route('/statistics').all(LoginFirst).get(function (req, res) {
-    res.render('statistics', { title: 'Statistics',username: req.session.user.username});
+router.route('/statistics').all(LoginFirst).get(function(req, res) {
+    res.render('statistics', { title: 'Statistics', username: req.session.user.username });
 });
 // router.route('/award').all(LoginFirst).get(function (req, res) {
 //     res.render('award', {title: 'Award',username: req.session.user.username});
 // });
 
-router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
+router.route('/award/:round_id').all(LoginFirst).get(function(req, res) {
     var redis_key = 'round:' + req.params.round_id;
-    redis.get(redis_key, function (err, data) {
-        if (data){
+    redis.get(redis_key, function(err, data) {
+        if (data) {
             var round = JSON.parse(data);
             redis_key = 'round:' + req.params.round_id + ':scoreboard';
-            redis.zrevrange(redis_key, 0, -1, 'WITHSCORES', function (err, scoreboard) {
-                if (scoreboard){
+            redis.zrevrange(redis_key, 0, -1, 'WITHSCORES', function(err, scoreboard) {
+                if (scoreboard) {
                     //console.log(scoreboard);
                     var defeat_num = 0;
                     var player1 = '';
-                    if(scoreboard.length > 0 && parseFloat(scoreboard[1]) >= 100){
+                    if (scoreboard.length > 0 && parseFloat(scoreboard[1]) >= 100) {
                         player1 = scoreboard[0];
-                        if(req.session.user.username == player1){
+                        if (req.session.user.username == player1) {
                             defeat_num = round.players_num - 1;
                         }
                     }
                     var player2 = '';
-                    if(scoreboard.length > 2 && parseFloat(scoreboard[3]) >= 100){
+                    if (scoreboard.length > 2 && parseFloat(scoreboard[3]) >= 100) {
                         player2 = scoreboard[2];
-                        if(req.session.user.username == player2){
+                        if (req.session.user.username == player2) {
                             defeat_num = round.players_num - 2;
                         }
                     }
                     var player3 = '';
-                    if(scoreboard.length > 4 && parseFloat(scoreboard[5]) >= 100){
+                    if (scoreboard.length > 4 && parseFloat(scoreboard[5]) >= 100) {
                         player3 = scoreboard[4];
-                        if(req.session.user.username == player3){
+                        if (req.session.user.username == player3) {
                             defeat_num = round.players_num - 3;
                         }
                     }
-                    for(var i = 6; i < scoreboard.length; i += 2){
-                        if(req.session.user.username == scoreboard[i]){
+                    for (var i = 6; i < scoreboard.length; i += 2) {
+                        if (req.session.user.username == scoreboard[i]) {
                             defeat_num = round.players_num - 1 - i / 2;
                         }
                     }
                     res.render('award', {
-                        title: 'Award', player1: player1, player2:player2, player3:player3, defeat_num: defeat_num, username: req.session.user.username, round_id: req.params.round_id
+                        title: 'Award',
+                        player1: player1,
+                        player2: player2,
+                        player3: player3,
+                        defeat_num: defeat_num,
+                        username: req.session.user.username,
+                        round_id: req.params.round_id
                     });
                 }
             });

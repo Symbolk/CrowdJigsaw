@@ -4,45 +4,46 @@ This is a starter template page. Use this page to start your new project from
 scratch. This page gets rid of all links and provides the needed markup only.
 -->
 <html>
+
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title> CrowdJigaw | Puzzle</title>
-  <!-- Tell the browser to be responsive to screen width -->
-  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
-  <!-- Font Awesome -->
-  <!-- <link rel="stylesheet" href="/stylesheets/font-awesome.min.css"> -->
-  <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-  
-  <!-- Ionicons -->
-  <link rel="stylesheet" href="/stylesheets/ionicons.min.css">
-  <!-- Theme style -->
-  <link rel="stylesheet" href="/stylesheets/AdminLTE.min.css">
-  <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title> CrowdJigaw | Puzzle</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Font Awesome -->
+    <!-- <link rel="stylesheet" href="/stylesheets/font-awesome.min.css"> -->
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="/stylesheets/ionicons.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="/stylesheets/AdminLTE.min.css">
+    <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
         page. However, you can choose any other skin. Make sure you
         apply the skin class to the body tag so the changes take effect. -->
-  <link rel="stylesheet" href="/stylesheets/skin-blue-light.min.css">
+    <link rel="stylesheet" href="/stylesheets/skin-blue-light.min.css">
 
-  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-  <!--[if lt IE 9]>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
   <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
   <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
   <![endif]-->
 
-  <!--<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-blue.min.css" />-->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.teal-blue.min.css" />
-  <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
-  <link rel="stylesheet" href="/stylesheets/display.css" />
-  <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css">  
-  <link rel="stylesheet" type="text/css" href="/stylesheets/dialog-polyfill.css" />
-  <link rel="stylesheet" href="/stylesheets/buttons.css">
-  <link rel="stylesheet" href="/stylesheets/animate.min.css">  
-  <link rel="stylesheet" href="/stylesheets/amaran.min.css">
-  <link rel="stylesheet" href="/stylesheets/bootstrap-slider.min.css">
+    <!--<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-blue.min.css" />-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.teal-blue.min.css" />
+    <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
+    <link rel="stylesheet" href="/stylesheets/display.css" />
+    <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css">
+    <link rel="stylesheet" type="text/css" href="/stylesheets/dialog-polyfill.css" />
+    <link rel="stylesheet" href="/stylesheets/buttons.css">
+    <link rel="stylesheet" href="/stylesheets/animate.min.css">
+    <link rel="stylesheet" href="/stylesheets/amaran.min.css">
+    <link rel="stylesheet" href="/stylesheets/bootstrap-slider.min.css">
 
-  <!-- iCheck -->
-  <link rel="stylesheet" href="/stylesheets/icheck-bootstrap.min.css">
+    <!-- iCheck -->
+    <link rel="stylesheet" href="/stylesheets/icheck-bootstrap.min.css">
 </head>
 <!--
 BODY TAG OPTIONS:
@@ -64,89 +65,92 @@ desired effect
 |               | sidebar-mini                            |
 |---------------------------------------------------------|
 -->
+
 <body class="hold-transition skin-blue-light sidebar-mini" onload="detectBrowser()">
-<div class="wrapper">
+    <div class="wrapper">
 
-  <!-- Main Header -->
-  <header class="main-header">
+        <!-- Main Header -->
+        <header class="main-header">
 
-    <!-- Logo -->
-    <a href="/home" class="logo">
-      <!-- mini logo for sidebar mini 50x50 pixels -->
-      <span class="logo-mini"><b>C</b>JP</span>
-      <!-- logo for regular state and mobile devices -->
-      <span class="logo-lg"><b>Crowd</b>Jigsaw</span>
-    </a>
-
-    <!-- Header Navbar -->
-    <nav class="navbar navbar-static-top" role="navigation">
-      <!-- Sidebar toggle button-->
-      <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
-        <span class="sr-only">Toggle navigation</span>
-      </a>
-      <!-- Navbar Right Menu -->
-      <div class="navbar-custom-menu">
-        <ul class="nav navbar-nav">
-          <!-- User Account Menu -->
-          <li class="dropdown user user-menu">
-            <!-- Menu Toggle Button -->
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-              <!-- The user image in the navbar-->
-              <img src="" class="user-image headImg" alt="User Image">
-              <canvas id="headImg" style="display:none"></canvas>
-              <!-- hidden-xs hides the username on small devices so only the image appears. -->
-              <span class="hidden-xs"><%= username %></span>
+            <!-- Logo -->
+            <a href="/home" class="logo">
+                <!-- mini logo for sidebar mini 50x50 pixels -->
+                <span class="logo-mini"><b>C</b>JP</span>
+                <!-- logo for regular state and mobile devices -->
+                <span class="logo-lg"><b>Crowd</b>Jigsaw</span>
             </a>
-            <ul class="dropdown-menu">
-              <!-- The user image in the menu -->
-              <li class="user-header">
-                <img src="" class="img-circle headImg" alt="User Image">
-                <canvas id="headImg" style="display:none"></canvas>
-                <p>
-                    <%= username %>
-                  <small>Member since 2018.</small>
-                </p>
-              </li>
-              <!-- Menu Footer-->
-              <li class="user-footer">
-                <!-- <div class="pull-left">
+
+            <!-- Header Navbar -->
+            <nav class="navbar navbar-static-top" role="navigation">
+                <!-- Sidebar toggle button-->
+                <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                </a>
+                <!-- Navbar Right Menu -->
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <!-- User Account Menu -->
+                        <li class="dropdown user user-menu">
+                            <!-- Menu Toggle Button -->
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                                <!-- The user image in the navbar-->
+                                <img src="" class="user-image headImg" alt="User Image">
+                                <canvas id="headImg" style="display:none"></canvas>
+                                <!-- hidden-xs hides the username on small devices so only the image appears. -->
+                                <span class="hidden-xs"><%= username %></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <!-- The user image in the menu -->
+                                <li class="user-header">
+                                    <img src="" class="img-circle headImg" alt="User Image">
+                                    <canvas id="headImg" style="display:none"></canvas>
+                                    <p>
+                                        <%= username %>
+                                            <small>Member since 2018.</small>
+                                    </p>
+                                </li>
+                                <!-- Menu Footer-->
+                                <li class="user-footer">
+                                    <!-- <div class="pull-left">
                   <a href="#" class="btn btn-default btn-flat">Profile</a>
                 </div> -->
-                <div class="pull-right">
-                  <a href="/logout" class="btn btn-default btn-flat">Sign out</a>
+                                    <div class="pull-right">
+                                        <a href="/logout" class="btn btn-default btn-flat">Sign out</a>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <!-- Control Sidebar Toggle Button -->
+                        <li>
+                            <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
+                        </li>
+                    </ul>
                 </div>
-              </li>
-            </ul>
-          </li>
-          <!-- Control Sidebar Toggle Button -->
-          <li>
-            <a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </header>
-  <!-- Left side column. contains the logo and sidebar -->
-  <aside class="main-sidebar">
+            </nav>
+        </header>
+        <!-- Left side column. contains the logo and sidebar -->
+        <aside class="main-sidebar">
 
-    <!-- sidebar: style can be found in sidebar.less -->
-    <section class="sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
 
-      <!-- Sidebar user panel (optional) -->
-      <div class="user-panel">
-        <div class="pull-left image">
-          <img src="" class="img-circle head-sidebar" alt="User Image">
-          <canvas id="head-sidebar" style="display:none"></canvas>
-        </div>
-        <div class="pull-left info">
-          <p><%= username %></p>
-          <!-- Status -->
-          <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
-        </div>
-      </div>
+                <!-- Sidebar user panel (optional) -->
+                <div class="user-panel">
+                    <div class="pull-left image">
+                        <img src="" class="img-circle head-sidebar" alt="User Image">
+                        <canvas id="head-sidebar" style="display:none"></canvas>
+                    </div>
+                    <div class="pull-left info">
+                        <p>
+                            <%= username %>
+                        </p>
+                        <!-- Status -->
+                        <a href="#"><i class="fa fa-circle text-success"></i> Online</a>
+                    </div>
+                </div>
 
-      <!-- search form (Optional) -->
-      <!-- <form action="#" method="get" class="sidebar-form">
+                <!-- search form (Optional) -->
+                <!-- <form action="#" method="get" class="sidebar-form">
         <div class="input-group">
           <input type="text" name="q" class="form-control" placeholder="Search...">
           <span class="input-group-btn">
@@ -155,93 +159,96 @@ desired effect
             </span>
         </div>
       </form> -->
-      <!-- /.search form -->
+                <!-- /.search form -->
 
-      <!-- Sidebar Menu -->
-      <ul class="sidebar-menu" data-widget="tree">
-        <li class="header">Pages</li>
-        <!-- Optionally, you can add icons to the links -->
-        <li class="active"><a href="/home"><i class="fa fa-gamepad fa-lg"></i> <span>Playground</span></a></li>
-        <li><a href="/records"><i class="fa fa-calendar fa-lg"></i> <span>Records</span></a></li>
-        <li><a href="/settings"><i class="fa fa-gears fa-lg"></i> <span>Settings</span></a></li>
-        <li><a href="/rank"><i class="fa fa-list-ol fa-lg"></i> <span>Ranks</span></a></li>
-        <li><a href="/statistics"><i class="fa fa-area-chart fa-lg"></i> <span>Statistics</span></a></li>
-        <!-- <li><a href="/help"><i class="fa fa-question-circle fa-lg"></i> <span>Help</span></a></li>         -->
+                <!-- Sidebar Menu -->
+                <ul class="sidebar-menu" data-widget="tree">
+                    <li class="header">Pages</li>
+                    <!-- Optionally, you can add icons to the links -->
+                    <li class="active"><a href="/home"><i class="fa fa-gamepad fa-lg"></i> <span>Playground</span></a></li>
+                    <li><a href="/records"><i class="fa fa-calendar fa-lg"></i> <span>Records</span></a></li>
+                    <li><a href="/settings"><i class="fa fa-gears fa-lg"></i> <span>Settings</span></a></li>
+                    <li><a href="/rank"><i class="fa fa-list-ol fa-lg"></i> <span>Ranks</span></a></li>
+                    <li><a href="/statistics"><i class="fa fa-area-chart fa-lg"></i> <span>Statistics</span></a></li>
+                    <!-- <li><a href="/help"><i class="fa fa-question-circle fa-lg"></i> <span>Help</span></a></li>     -->
+                    <li><a href="/demos"><i class="fa fa-video-camera fa-lg"></i> <span>Demos</span></a></li>
+                    <li><a href="https://github.com/Symbolk/CrowdJigsaw"><i class="fa fa-github fa-lg"></i> <span>Github</span></a></li>
 
-        <li class="treeview">
+                    <!-- <li class="treeview">
           <a href="#"><i class="fa fa-video-camera fa-lg"></i> <span>Videos</span>
             <span class="pull-right-container">
                 <i class="fa fa-angle-right pull-right"></i>
               </span>
           </a>
           <ul class="treeview-menu">
-            <li><a href="/video1"><i class="fa fa-video-camera fa-lg"></i><span>Working Scene</span></a></li>
+            <li><a href="/video1"><i class="fa fa-video-camera fa-lg"></i>  <span>Working Scene</span></a></li>
             <li><a href="/video2"><i class="fa fa-video-camera fa-lg"></i><span>Feedback Mechanism</span></a></li>
           </ul>
-        </li>
-        <li><a href="/logout"><i class="fa fa-sign-out fa-lg"></i> <span>Sign Out</span></a></li> 
-      </ul>
-      <!-- /.sidebar-menu -->
-    </section>
-    <!-- /.sidebar -->
-  </aside>
-  <script src="/javascripts/jquery.min.js"></script>
+        </li> -->
+                    <li><a href="/logout"><i class="fa fa-sign-out fa-lg"></i> <span>Sign Out</span></a></li>
+                </ul>
+                <!-- /.sidebar-menu -->
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        <script src="/javascripts/jquery.min.js"></script>
 
-  <script>
-      $(function () {
-          var uname = '<%= username %>';
-          var name = uname.charAt(0);
-          var fontSize = 60;
-          var fontWeight = 'bold';
+        <script>
+            $(function() {
+                var uname = '<%= username %>';
+                var name = uname.charAt(0);
+                var fontSize = 60;
+                var fontWeight = 'bold';
 
-          var canvas = document.getElementById('headImg');
-          var img1 = document.getElementById('headImg');
-          canvas.width = 120;
-          canvas.height = 120;
-          var context = canvas.getContext('2d');
-          context.fillStyle = '#FFFFFF';
-          context.fillRect(0, 0, canvas.width, canvas.height);
-          context.fillStyle = '#4682B4';
-          context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
-          context.textAlign = 'center';
-          context.textBaseline = "middle";
-          context.fillText(name, fontSize, fontSize);
-          $('.headImg').attr('src', canvas.toDataURL("image/png"));
+                var canvas = document.getElementById('headImg');
+                var img1 = document.getElementById('headImg');
+                canvas.width = 120;
+                canvas.height = 120;
+                var context = canvas.getContext('2d');
+                context.fillStyle = '#FFFFFF';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.fillStyle = '#4682B4';
+                context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+                context.textAlign = 'center';
+                context.textBaseline = "middle";
+                context.fillText(name, fontSize, fontSize);
+                $('.headImg').attr('src', canvas.toDataURL("image/png"));
 
-          var canvas = document.getElementById('head-sidebar');
-          var img1 = document.getElementById('head-sidebar');
-          canvas.width = 120;
-          canvas.height = 120;
-          var context = canvas.getContext('2d');
-          context.fillStyle = '#4682B4';
-          context.fillRect(0, 0, canvas.width, canvas.height);
-          context.fillStyle = '#FFFFFF';
-          context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
-          context.textAlign = 'center';
-          context.textBaseline = "middle";
-          context.fillText(name, fontSize, fontSize);
-          $('.head-sidebar').attr('src', canvas.toDataURL("image/png"));
-      });
-      function detectBrowser()
-      {
-          var ua = window.navigator.userAgent;
-          var isEdge = ua.indexOf("Edge")!=-1
-          var isChrome = ua.indexOf("Chrome")!=-1 && ua.indexOf("Safari")!=-1 && !isEdge;
-          if (!isChrome)
-          {alert("Chrome is the only browser we support, please use Chrome!")}
-      }
-  </script>
-  <div class="modal fade" id="refresh_modal" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    </button>
-                    <h4 class="modal-title">
-                        Connect error, please refresh.
-                    </h4>
+                var canvas = document.getElementById('head-sidebar');
+                var img1 = document.getElementById('head-sidebar');
+                canvas.width = 120;
+                canvas.height = 120;
+                var context = canvas.getContext('2d');
+                context.fillStyle = '#4682B4';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.fillStyle = '#FFFFFF';
+                context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+                context.textAlign = 'center';
+                context.textBaseline = "middle";
+                context.fillText(name, fontSize, fontSize);
+                $('.head-sidebar').attr('src', canvas.toDataURL("image/png"));
+            });
+
+            function detectBrowser() {
+                var ua = window.navigator.userAgent;
+                var isEdge = ua.indexOf("Edge") != -1
+                var isChrome = ua.indexOf("Chrome") != -1 && ua.indexOf("Safari") != -1 && !isEdge;
+                if (!isChrome) {
+                    alert("Chrome is the only browser we support, please use Chrome!")
+                }
+            }
+        </script>
+        <div class="modal fade" id="refresh_modal" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        </button>
+                        <h4 class="modal-title">
+                            Connect error, please refresh.
+                        </h4>
+                    </div>
+                    <!-- /.modal-content -->
                 </div>
-            <!-- /.modal-content -->
+                <!-- /.modal-dialog -->
             </div>
-        <!-- /.modal-dialog -->
         </div>
-    </div>

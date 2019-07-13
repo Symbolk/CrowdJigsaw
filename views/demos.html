@@ -1,0 +1,37 @@
+<!-- Video Page 1 -->
+<% include header2.html %>
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            Demos
+            <small>Videos to show how the crowd works on the jigsaw puzzle.</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="#"> <i class="fa fa-dashboard"></i> CJP </a>
+            </li>
+            <li class="active">Video Demos</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid"
+        style="position: absolute;top: 50%; transform: translate(0, -50%); text-align:center;">
+        <video width="960" height="540" controls ">
+      <!-- public/video/ -->
+      <source src=" ./video/WorkingScene.mp4 " type=" video/mp4 " />
+    </video>
+    <video width=" 960 " height=" 540 " controls>
+      <source src=" ./video/Explanation.mp4 " type=" video/mp4 " />
+    </video>
+  </section>
+    </div>
+    <script type=" text/javascript ">
+        $(function() {
+            var button = document.querySelector('.sidebar-toggle');
+            button.click();
+        })
+    </script>
+    <% include footer2.html %>

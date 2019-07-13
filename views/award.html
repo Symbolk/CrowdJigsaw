@@ -46,25 +46,25 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <link rel="stylesheet" href="/stylesheets/icheck-bootstrap.min.css">
 
     <script type="text/javascript">
-        var firework = function () {
+        var firework = function() {
             this.size = 40;
             this.speed = 0.1;
             this.rise();
         }
         firework.prototype = {
-            color: function () {
+            color: function() {
                 var c = ['0', '3', '6', '9', 'c', 'f'];
                 var t = [c[Math.floor(Math.random() * 100) % 6], '0', 'f'];
-                t.sort(function () {
+                t.sort(function() {
                     return Math.random() > 0.5 ? -1 : 1;
                 });
                 return '#' + t.join('');
             },
-            aheight: function () {
+            aheight: function() {
                 var h = document.documentElement.clientHeight;
                 return Math.abs(Math.floor(Math.random() * h - 200)) + 201;
             },
-            firecracker: function () {
+            firecracker: function() {
                 var b = document.createElement('div');
                 var w = document.body.clientWidth;
                 b.style.color = this.color();
@@ -74,14 +74,14 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 document.getElementById('fire').appendChild(b);
                 return b;
             },
-            rise: function () {
+            rise: function() {
                 var o = this.firecracker();
                 var n = this.aheight();
                 var speed = this.speed;
                 var e = this.expl;
                 var s = this.size;
                 var k = n;
-                var m = function () {
+                var m = function() {
                     o.style.bottom = parseFloat(o.style.bottom) + k * speed + 'px';
                     k -= k * speed;
                     if (k < 2) {
@@ -94,7 +94,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                     var clear = setInterval(m, 20);
                 }
             },
-            expl: function (o, n, s, speed) {
+            expl: function(o, n, s, speed) {
                 var R = n / 3;
                 var Ri = n / 6;
                 var r = 0;
@@ -134,7 +134,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
                 var clearI = setInterval(spr, 20);
             }
         }
-        window.onload = function () {
+        window.onload = function() {
             function happyNewYear() {
                 new firework();
             }
@@ -207,7 +207,7 @@ desired effect
                                     <canvas id="headImg" style="display:none"></canvas>
                                     <p>
                                         <%= username %>
-                                        <small>Member since 2018.</small>
+                                            <small>Member since 2018.</small>
                                     </p>
                                 </li>
                                 <!-- Menu Footer-->
@@ -299,7 +299,10 @@ desired effect
                             <span>Statistics</span>
                         </a>
                     </li>
-                    <li>
+
+                    <li><a href="/demos"><i class="fa fa-video-camera fa-lg"></i> <span>Demos</span></a></li>
+                    <li><a href="https://github.com/Symbolk/CrowdJigsaw"><i class="fa fa-github fa-lg"></i> <span>Github</span></a></li>
+                    <!-- <li>
                         <a href="/help">
                             <i class="fa fa-question-circle fa-lg"></i>
                             <span>Help</span>
@@ -322,7 +325,7 @@ desired effect
                                 <a href="http://symbolk.com">Blog</a>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
                     <li>
                         <a href="/logout">
                             <i class="fa fa-sign-out fa-lg"></i>
@@ -337,41 +340,41 @@ desired effect
         <script src="/javascripts/jquery.min.js"></script>
 
         <script>
-            $(function () {
-            var uname = '<%= username %>';
-            var name = uname.charAt(0);
-            var fontSize = 60;
-            var fontWeight = 'bold';
+            $(function() {
+                var uname = '<%= username %>';
+                var name = uname.charAt(0);
+                var fontSize = 60;
+                var fontWeight = 'bold';
 
-            var canvas = document.getElementById('headImg');
-            var img1 = document.getElementById('headImg');
-            canvas.width = 120;
-            canvas.height = 120;
-            var context = canvas.getContext('2d');
-            context.fillStyle = '#FFFFFF';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = '#4682B4';
-            context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
-            context.textAlign = 'center';
-            context.textBaseline = "middle";
-            context.fillText(name, fontSize, fontSize);
-            $('.headImg').attr('src', canvas.toDataURL("image/png"));
+                var canvas = document.getElementById('headImg');
+                var img1 = document.getElementById('headImg');
+                canvas.width = 120;
+                canvas.height = 120;
+                var context = canvas.getContext('2d');
+                context.fillStyle = '#FFFFFF';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.fillStyle = '#4682B4';
+                context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+                context.textAlign = 'center';
+                context.textBaseline = "middle";
+                context.fillText(name, fontSize, fontSize);
+                $('.headImg').attr('src', canvas.toDataURL("image/png"));
 
-            var canvas = document.getElementById('head-sidebar');
-            var img1 = document.getElementById('head-sidebar');
-            canvas.width = 120;
-            canvas.height = 120;
-            var context = canvas.getContext('2d');
-            context.fillStyle = '#4682B4';
-            context.fillRect(0, 0, canvas.width, canvas.height);
-            context.fillStyle = '#FFFFFF';
-            context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
-            context.textAlign = 'center';
-            context.textBaseline = "middle";
-            context.fillText(name, fontSize, fontSize);
-            $('.head-sidebar').attr('src', canvas.toDataURL("image/png"));
-        });
-    </script>
+                var canvas = document.getElementById('head-sidebar');
+                var img1 = document.getElementById('head-sidebar');
+                canvas.width = 120;
+                canvas.height = 120;
+                var context = canvas.getContext('2d');
+                context.fillStyle = '#4682B4';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.fillStyle = '#FFFFFF';
+                context.font = fontWeight + ' ' + fontSize + 'px sans-serif';
+                context.textAlign = 'center';
+                context.textBaseline = "middle";
+                context.fillText(name, fontSize, fontSize);
+                $('.head-sidebar').attr('src', canvas.toDataURL("image/png"));
+            });
+        </script>
 
         <div class="content-wrapper" id="fire">
             <div id="mypic" class="right2">
@@ -393,7 +396,7 @@ desired effect
                 <p id='defeat_message'>You defeated
                     <%= defeat_num %> people.
                 </p>
-            <a href="/home" class="ok_button button button-3d button-primary button-rounded">OK</a>
+                <a href="/home" class="ok_button button button-3d button-primary button-rounded">OK</a>
             </div>
 
         </div>
