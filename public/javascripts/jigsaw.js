@@ -2,7 +2,7 @@ var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
-var uploadDelayTime = 0;
+var uploadDelayTime = algorithm == 'distribute'? 0: 5;
 
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
