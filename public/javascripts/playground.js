@@ -270,10 +270,14 @@ function initRandomRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
+        var offical = false;
+        if ($('#offical_checkbox').prop("checked")) {
+            offical = true;
+        }
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(imgSrc, 0, 0, level, playersNum, shape, edge, border, algorithm);
+        postNewRound(imgSrc, 0, 0, level, playersNum, shape, edge, border, algorithm, offical);
     });
 
     $('#player_num_div').css('display', 'none');
@@ -327,10 +331,14 @@ function initNewRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
+        var offical = false;
+        if ($('#offical_checkbox').prop("checked")) {
+            offical = true;
+        }
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm);
+        postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical);
     });
 
     numSlider.slider({
@@ -349,6 +357,8 @@ function initNewRoundDialog() {
                 $('#admin_key_div').css('display', 'none');
             }
         });
+        $('#offical').css('display', 'none');
+        $('#puzzle_difficult_div').css('display', 'none');
     }
     sizeSlider.slider({
         formatter: function (value) {
@@ -624,7 +634,7 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm) {
+function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical) {
     if (imgSrc) {
         var img = new Image();
         var thumbStr = '_thumb';
@@ -646,6 +656,7 @@ function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, b
         border: border,
         players_num: playersNum,
         algorithm: algorithm,
+        offical: offical,
     };
     if (admin != "true") {
         param.key = $('#newround_key_input').val();

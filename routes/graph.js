@@ -310,7 +310,7 @@ function distributed_update(data) {
                         redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', 1, key);
                         redis.sadd('round:' + data.round_id + ':distributed:edges', key, function(err, count) {
                             if (count == 1) {
-                                redis.sadd('round:' + data.round_id + ':distributed:first_edges:' + data.player_name, key);
+                                redis.sadd('round:' + data.round_id + ':first_edges:' + data.player_name, key);
                             }
                         });
                     }
@@ -394,6 +394,7 @@ function update(data) {
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                     delete opposers[data.player_name];
                                 } else {
+                                    redis.sadd('round:' + roundID + ':first_edges:' + data.player_name, key);
                                     computeScore(roundID, e, round.tilesPerRow, data.player_name);
                                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                                 }

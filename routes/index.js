@@ -252,6 +252,8 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
                     title: 'Home',
                     username: doc.username,
                     admin: doc.admin,
+                    total_score: doc.total_score || 0,
+                    round_attend: doc.round_attend || 0,
                     multiPlayer: dev.multiPlayer,
                     multiPlayerServer: dev.multiPlayerServer,
                     singlePlayerServer: dev.singlePlayerServer,

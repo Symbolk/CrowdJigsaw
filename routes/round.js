@@ -21,6 +21,8 @@ async function saveScore(round_id) {
         redis.zrevrangeAsync(redis_key + ':remove_wrong_link', 0, -1, 'WITHSCORES'),
         redis.zrevrangeAsync(redis_key + ':remove_hinted_wrong_link', 0, -1, 'WITHSCORES'),
     );
+    let roundJSON = await redis.getAsync('round:' + round_id);
+    let round = JSON.parse(roundJSON);
     let fields_name = ['score', 'create_correct_link', 'remove_correct_link',
         'create_wrong_link', 'remove_wrong_link', 'remove_hinted_wrong_link'];
     let scoremap = {};
@@ -37,7 +39,8 @@ async function saveScore(round_id) {
                         remove_correct_link: 0,
                         create_wrong_link: 0,
                         remove_wrong_link: 0,
-                        remove_hinted_wrong_link: 0
+                        remove_hinted_wrong_link: 0,
+                        offical: round.offical || false,
                     };
                 }
                 scoremap[username][fields_name[j]] = score;
@@ -45,7 +48,7 @@ async function saveScore(round_id) {
         }
     }
     for(let username in scoremap){
-        let first_edges = await redis.smembersAsync('round:' + round_id + ':distributed:first_edges:' + username);
+        let first_edges = await redis.smembersAsync('round:' + round_id + ':first_edges:' + username);
         scoremap[username].first_edges = first_edges;
         let condition = {
             round_id: round_id,
@@ -175,6 +178,7 @@ module.exports = function (io) {
                         level: data.level,
                         shape: data.shape,
                         edge: data.edge,
+                        offical: data.offical || false,
                         border: data.border,
                         algorithm: data.algorithm,
                         create_time: TIME,

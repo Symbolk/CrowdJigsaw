@@ -145,6 +145,23 @@ desired effect
         </div>
       </div>
 
+      <% if(title === 'Home') { %>
+        <div>
+          <h4 class="ml-4 mt-3">
+            <strong>
+              Attended Official Rounds:
+            </strong>
+            <span><%= round_attend %></span>
+          </h4>
+          <h4 class="ml-4 mt-3">
+            <strong>
+              Total Score:
+            </strong>
+            <span><%= total_score %></span>
+          </h4>
+        </div>
+      <% } %>
+
       <!-- search form (Optional) -->
       <!-- <form action="#" method="get" class="sidebar-form">
         <div class="input-group">
