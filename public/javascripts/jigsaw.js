@@ -12,27 +12,6 @@ $(document).ready(function () {
 });
 $("#loading").fadeOut();
 
-/*
-* Drawer functions
-*/
-$('.zoomIn').click(function () {
-    puzzle.zoom(.1);
-});
-
-$('.zoomOut').click(function () {
-    puzzle.zoom(-.1);
-});
-
-// $('.help').mousedown(function () {
-//     puzzle.showLastResult();
-// });
-
-$('.restart').click(function () {
-    // document.execCommand('Refresh');
-    window.location.reload();
-    // var puzzle = new JigsawPuzzle(config);
-});
-
 
 var hintedLinksNum = undefined;
 var totalHintsNum = 0;
@@ -3447,6 +3426,8 @@ function JigsawPuzzle(config) {
             groupsArray.push(group);
         }
         if (groupsArray.length == 0) {
+            normalizeTiles();
+            instance.hintsShowing = false;
             return;
         }
         console.log(minCenterGroup, instance.centerPoint);
@@ -3580,33 +3561,50 @@ $('#undo_button').on('click', function (event) {
 });
 
 $('#reset_button').on('click', function (event) {
+    $('#undo_button').css('display', 'none');
     puzzle.resetPlace();
 });
 
+$('#quit_button').on('click', function (event) {
+    $('#quitLabel').text('Are You Sure to Quit?');
+    $('#ensure_quit_dialog').modal({
+        keyboard: true
+    });
+});
+
+$('#zoomin_button').on('click', function () {
+    puzzle.zoom(.1);
+});
+
+$('#zoomout_button').on('click', function () {
+    puzzle.zoom(-.1);
+});
+
+
+$('#center_button').on('click', function () {
+    puzzle.focusToCenter();
+});
 
 $('#help_button').on('click', function (event) {
     puzzle.askHelp();
 });
 
-$('#undo_help img').mousedown(function () {
+$('.menu_png img').mousedown(function () {
     $(this).css("background-color", "rgba(200, 200, 200, 0.9)")
 });
 
-$('#undo_help img').mouseup(function () {
+$('.menu_png img').mouseup(function () {
     $(this).css("background-color", "rgba(200, 200, 200, 0)")
 });
 
-$('#undo_help img').mouseover(function () {
+$('.menu_png img').mouseover(function () {
     $(this).css("background-color", "rgba(200, 200, 200, 0.9)")
 });
 
-$('#undo_help img').mouseout(function () {
+$('.menu_png img').mouseout(function () {
     $(this).css("background-color", "rgba(200, 200, 200, 0)")
 });
 
-$('.returnCenter').click(function () {
-    puzzle.focusToCenter();
-});
 
 /**
  * Send personal records to the server at the end of one game

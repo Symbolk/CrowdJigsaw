@@ -146,19 +146,21 @@ desired effect
       </div>
 
       <% if(title === 'Home') { %>
-        <div>
-          <h4 class="ml-4 mt-3">
-            <strong>
-              Attended Official Rounds:
-            </strong>
-            <span><%= round_attend %></span>
-          </h4>
-          <h4 class="ml-4 mt-3">
-            <strong>
-              Total Score:
-            </strong>
-            <span><%= total_score %></span>
-          </h4>
+        <div class="box box-primary box-in-header">
+            <div class="box-header with-border">
+                <h5 class="box-title">Attended Official Rounds:</h5>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <%= round_attend %>
+            </div><!-- /.box-body -->
+        </div>
+        <div class="box box-primary box-in-header">
+            <div class="box-header with-border">
+                <h5 class="box-title">Total Score:</h5>
+            </div><!-- /.box-header -->
+            <div class="box-body">
+                <%= total_score %>
+            </div><!-- /.box-body -->
         </div>
       <% } %>
 

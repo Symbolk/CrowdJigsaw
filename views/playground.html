@@ -34,7 +34,11 @@
                         <div class="box box-widget widget-user">
                             <!-- Add the bg color to the header using any of the bg-* classes -->
                             <div class="widget-user-header bg-aqua-active">
+                                <% if(admin){%>
                                 <h3 class="widget-user-username">New Round</h3>
+                                <%}else{%>
+                                <h3 class="widget-user-username">Random Round</h3>
+                                <%}%>       
                                 <h5 class="widget-user-desc">Create One!</h5>
                             </div>
                             <div class="widget-user-image" id="newround_button">
@@ -47,30 +51,21 @@
                             </div>
                             <div class="box-footer">
                                 <div class="row">
-                                    <div class="col-sm-4 border-right">
+                                    <div class="col-sm-6 border-right">
                                         <div class="description-block">
-                                            <h5 class="description-header">1/2</h5>
-                                            <span class="description-text">Level</span>
+                                            <h5 class="description-header">4x4-10x10</h5>
+                                            <span class="description-text">Size</span>
                                         </div>
                                         <!-- /.description-block -->
                                     </div>
                                     <!-- /.col -->
-                                    <div class="col-sm-4 border-right">
+                                    <div class="col-sm-6 border-right">
                                         <div class="description-block">
                                             <h5 class="description-header">1-50</h5>
                                             <span class="description-text">Players</span>
                                         </div>
                                         <!-- /.description-block -->
                                     </div>
-                                    <!-- /.col -->
-                                    <div class="col-sm-4">
-                                        <div class="description-block">
-                                            <h5 class="description-header">Jagged</h5>
-                                            <span class="description-text">Shape</span>
-                                        </div>
-                                        <!-- /.description-block -->
-                                    </div>
-                                    <!-- /.col -->
                                 </div>
                                 <!-- /.row -->
                             </div>

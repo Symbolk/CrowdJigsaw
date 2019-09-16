@@ -359,6 +359,8 @@ function initNewRoundDialog() {
         });
         $('#offical').css('display', 'none');
         $('#puzzle_difficult_div').css('display', 'none');
+        $('#algorithm_radio_row').css('display', 'none');
+        $('#player_num_div').css('display', 'none');
     }
     sizeSlider.slider({
         formatter: function (value) {
@@ -420,15 +422,14 @@ function checkRoundStart(round){
 
 function renderRoundPlayers(round) {
     var roundID = round.round_id;
+    console.log(round);
     if (checkRoundStart(round)) {
         return;
     }
     var roundCard = null;
     if (roundsIDList[roundID]) {
         roundCard = $('#' + roundsIDList[roundID]);
-        var roundCardNum = roundCard.find('.roundcard-num');
-        var roundCardJoin = roundCard.find('.roundcard-join');
-        roundCardNum.text(round.players.length + '/' + round.players_num);
+        roundCard.find('.roundcard-num').text(round.players.length + '/' + round.players_num);
     }
 
     for (var player of round.players) {
@@ -565,8 +566,8 @@ function renderRoundList(data) {
             // roundCardImage.attr('src', '/images/logo.png');            
         }*/
         roundCardImage.css("background", "url('/images/hide.jpg') center center");
-        roundCardTitle.text('Round ' + roundID);
-        roundCard.find('.roundcard-level').text(round.level);
+        roundCardTitle.text('Round ' + roundID + (round.offical? ' (offical)': ' (exercise)'));
+        roundCard.find('.roundcard-level').text(round.tilesPerRow + 'x' + round.tilesPerColumn);
     }
 
     var roundCardprefix = 'roundcard_';
