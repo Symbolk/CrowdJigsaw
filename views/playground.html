@@ -13,6 +13,7 @@
             <h1>
                 Playground
                 <small>Here you can find all joinable rounds, or create your own one.</small>
+                <a data-toggle="control-sidebar" class="button button-3d button-border button-rounded button-primary">计分规则</a>
             </h1>
             <ol class="breadcrumb">
                 <li>
@@ -122,22 +123,7 @@
                             <!-- /.widget-user -->
                         </div>
                         <%} %>
-                <div>
-                    <ul>
-                        <br>
-                        <li style="font-weight:bold;color: red">新功能</li>
-                        <li>按下ctrl键时可选择多块进行拖动，单击选取块双击取消选择，请注意拖动结束前要保持ctrl键按下</li>
-                        <li>陷入僵局时，点击右上角的help按钮可以寻求推荐</li>
-                        <li style="font-weight:bold;color: red">规则</li>
-                        <li>每人初始得分：0</li>
-                        <li>拼上正确的一块：+3</li>
-                        <li>拆掉正确的一块：-6</li>
-                        <li>拼上错误的一块：-3</li>
-                        <li>拆掉错误的一块：+3</li>
-                        <li>拆掉推荐中错误的一块：+6</li>
-                        <li>有人完成拼图后停止统计</li>
-                    </ul>
-                </div>
+                
             </div>
             <% include newround1.html %>
             <% include roundcard.html %>
@@ -162,3 +148,38 @@
     <% } %>
     <% include toast.html %>
         <% include footer2.html %>
+        <!-- The Right Sidebar -->
+                <aside class="control-sidebar control-sidebar-light">
+                  <!-- Content of the sidebar goes here -->
+                </aside>
+                <!-- The sidebar's background -->
+                <!-- This div must placed right after the sidebar for it to work-->
+                <div class="control-sidebar-bg">
+                    <span></span>
+                    <br><br><br><br>
+                    <table class="table">
+                      <tbody>
+                        <tr>
+                          <td>初始得分：0</td>
+                        </tr>
+                        <tr>
+                          <td>拼上正确的一块：+3</td>
+                        </tr>
+                        <tr>
+                          <td>拆掉正确的一块：-6</td>
+                        </tr>
+                        <tr>
+                          <td>拼上错误的一块：-3</td>
+                        </tr>
+                        <tr>
+                          <td>拆掉错误的一块：+3</td>
+                        </tr>
+                        <tr>
+                          <td>拆掉推荐中错误的一块：+6</td>
+                        </tr>
+                        <tr>
+                          <td>有人完成拼图后停止统计</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>

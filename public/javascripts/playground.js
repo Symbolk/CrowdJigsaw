@@ -338,7 +338,12 @@ function initNewRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical);
+        if (playersNum == '1') {
+            window.location = '/round/random_puzzle/' + size;
+        }
+        else{
+            postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical);
+        }
     });
 
     numSlider.slider({
@@ -361,6 +366,7 @@ function initNewRoundDialog() {
         $('#puzzle_difficult_div').css('display', 'none');
         $('#algorithm_radio_row').css('display', 'none');
         $('#player_num_div').css('display', 'none');
+        $('#newround_table').css('display', 'none');
     }
     sizeSlider.slider({
         formatter: function (value) {

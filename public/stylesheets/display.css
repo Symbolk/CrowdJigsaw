@@ -296,3 +296,10 @@ footer {
   margin-left: 5%;
   width: 90%;
 }
+
+#rule_div {
+  position: fixed;
+  bottom: 10%;
+  left: 15%;
+  width: 50%;
+}

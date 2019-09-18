@@ -38,7 +38,7 @@ function decrypt(str, secret) {
 
 
 // Get Home Page
-router.route('/').get(function (req, res, next) {
+router.route('/').all(LoginFirst).all(Logined).get(function (req, res, next) {
     if(!dev.multiPlayer){
 	   return res.redirect('/visitor');
     }
@@ -127,12 +127,12 @@ router.route('/visitor').get(function (req, res) {
             }
         });
     } else {
-        UserModel.find({}, function (err, docs) {
+        UserModel.find(function (err, docs) {
             if (err) {
                 console.log(err);
             } else {
                 if (docs) {
-                    var index = docs.length;
+                    let index = docs.length > 0 ? docs[docs.length-1].userid + 1: docs.length;
                     let operation = {
                         userid: index,
                         username: 'Visitor#' + index,
@@ -184,7 +184,7 @@ router.route('/register').all(Logined).get(function (req, res) {
             console.log(err);
         } else {
             if (docs) {
-                var index = docs.length;
+                let index = docs.length > 0 ? docs[docs.length-1].userid + 1: docs.length;
                 //准备添加到数据库的数据（数组格式）
                 let operation = {
                     userid: index,
@@ -263,6 +263,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
     });
 });
 
+
 router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     let roundID = req.query.roundID;
     let condition = {
@@ -285,6 +286,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                 shape: round.shape,
                 edge: round.edge,
                 border: round.border,
+                offical: round.offical || false,
                 algorithm: round.algorithm,
                 tilesPerRow: round.tilesPerRow,
                 tilesPerColumn: round.tilesPerColumn,
@@ -313,6 +315,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                             shape: round.shape,
                             edge: round.edge,
                             border: round.border,
+                            offical: round.offical || false,
                             algorithm: round.algorithm,
                             tilesPerRow: round.tilesPerRow,
                             tilesPerColumn: round.tilesPerColumn,
@@ -562,10 +565,21 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
                     resp.push(r);
                 }
             }
-            res.render('records', {
-                title: 'Ranks',
-                username: req.session.user.username,
-                Allrecords: resp
+            UserModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    if (doc) {
+                        req.session.error = 'Welcome! ' + req.session.user.username;
+                        res.render('records', {
+                            title: 'Records',
+                            username: req.session.user.username,
+                            total_score: doc.total_score || 0,
+                            round_attend: doc.round_attend || 0,
+                            Allrecords: resp
+                        });
+                    }
+                }
             });
         }
     });

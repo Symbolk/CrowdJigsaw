@@ -542,6 +542,54 @@ module.exports = function (io) {
         });
     });
 
+    router.route('/random_puzzle/:size').get(async function (req, res) {
+        let puzzleSize = req.params.size;
+        if (puzzleSize < 4 || puzzleSize > 10) {
+            return;
+        }
+        let randomUrl = await redis.srandmemberAsync('image:' + puzzleSize + ':' + 0, 1);
+        if (randomUrl.length <= 0) {
+            return;
+        }
+        let imageSrc = randomUrl[0];
+        console.log(imageSrc);
+        let image = images('public/' + imageSrc);
+        let size = image.size();
+        let imageWidth = size.width;
+        let imageHeight = size.height;
+        let tileWidth = 64;
+        let tilesPerRow = Math.floor(imageWidth / tileWidth);
+        let tilesPerColumn = Math.floor(imageHeight / tileWidth);
+        let shape = 'jagged'
+        let edge = 'true';
+        let border = 'true';
+        let algorithm = 'distributed';
+        let TIME = util.getNowFormatDate();
+        let shapeArray = util.getRandomShapes(tilesPerRow, tilesPerColumn, shape, edge);
+        res.render('puzzle', {
+                title: 'Puzzle',
+                player_name: req.session.user.username,
+                players_num: 1,
+                level: 1,
+                roundID: -1,
+                solved_players: 0,
+                image: imageSrc,
+                tileWidth: tileWidth,
+                startTime: TIME,
+                shape: shape,
+                edge: edge,
+                border: border,
+                offical: false,
+                algorithm: algorithm,
+                tilesPerRow: tilesPerRow,
+                tilesPerColumn: tilesPerColumn,
+                imageWidth: imageWidth,
+                imageHeight: imageHeight,
+                shapeArray: shapeArray
+            });
+    });
+
+
     /**
      * Get all rounds
      */
