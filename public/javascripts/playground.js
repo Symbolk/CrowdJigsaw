@@ -274,10 +274,14 @@ function initRandomRoundDialog() {
         if ($('#offical_checkbox').prop("checked")) {
             offical = true;
         }
+        var forceLeaveEnable = false;
+        if ($('#forceleave_checkbox').prop("checked")) {
+            forceLeaveEnable = true;
+        }
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(imgSrc, 0, 0, level, playersNum, shape, edge, border, algorithm, offical);
+        postNewRound(imgSrc, 0, 0, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable);
     });
 
     $('#player_num_div').css('display', 'none');
@@ -335,14 +339,18 @@ function initNewRoundDialog() {
         if ($('#offical_checkbox').prop("checked")) {
             offical = true;
         }
+        var forceLeaveEnable = false;
+        if ($('#forceleave_checkbox').prop("checked")) {
+            forceLeaveEnable = true;
+        }
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
         if (playersNum == '1') {
-            window.location = '/round/random_puzzle/' + size;
+            window.location.href = requrl + 'round/random_puzzle/' + size;
         }
         else{
-            postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical);
+            postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable);
         }
     });
 
@@ -641,7 +649,7 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical) {
+function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable) {
     if (imgSrc) {
         var img = new Image();
         var thumbStr = '_thumb';
@@ -664,6 +672,7 @@ function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, b
         players_num: playersNum,
         algorithm: algorithm,
         offical: offical,
+        forceLeaveEnable: forceLeaveEnable,
     };
     if (admin != "true") {
         param.key = $('#newround_key_input').val();

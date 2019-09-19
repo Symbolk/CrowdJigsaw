@@ -3,7 +3,7 @@ var loadReady = false;
 var socket = io.connect(requrl);
 
 var moveAnimationTime = 15;
-var uploadDelayTime = algorithm == 'distribute'? 0: 5;
+var uploadDelayTime = algorithm == 'distribute'? 5: 5;
 
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
@@ -272,25 +272,26 @@ function JigsawPuzzle(config) {
     this.forceLeaving = false;
     this.forceLeave = function(text)
     {
-        /*
+        if (forceLeaveEnable === 'false') {
+            return;
+        }
         if (!instance.forceLeaving) {
             sendRecord(false, 5);
-            console.log(text);
-        }*/
+        }
         instance.forceLeaving = true;
-        /*
+        
         $('#cancel-button').attr('disabled',"true");
 
         $('#quitLabel').text(text);
         $('#ensure_quit_dialog').modal({
             keyboard: false,
             backdrop: false
-        });*/
+        });
     }
 
     socket.on('forceLeave', function (data) {
         if (data.round_id == roundID) {
-            instance.forceLeave('Someone Have Finished the Puzzle. Send record.');
+            instance.forceLeave('More than 3 Players Have Finished the Puzzle. Send record.');
         }
     });
 
@@ -3682,8 +3683,8 @@ function quitRound(roundID) {
 }
 
 
-if(solved_players >= 1){
-    puzzle.forceLeave('Someone Have Finished the Puzzle. Send record.');
+if(solved_players >= 3){
+    puzzle.forceLeave('More than 3 Players Have Finished the Puzzle. Send record.');
 }
 
 

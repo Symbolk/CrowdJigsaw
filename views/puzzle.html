@@ -1,8 +1,9 @@
 <link rel='stylesheet' href='/stylesheets/jigsaw.css' />
 <script type="text/javascript" src="/javascripts/paper-full.js"></script>
 <script type="text/javascript" src="/javascripts/socket.io.js"></script>
-<base href="/">
-
+<% if (title === 'Random Puzzle') { %>
+    <base href="/">
+<% } %> 
 <% include header.html %>
     <div class="demo-layout-transparent mdl-layout mdl-js-layout">
             <div class="modal fade" id="ensure_quit_dialog" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
@@ -149,6 +150,7 @@
                 var hasEdge = '<%-edge%>';
                 var hasBorder = '<%-border%>';
                 var isOffical = '<%-offical%>';
+                var forceLeaveEnable = '<%-forceLeaveEnable%>';
 
                 var imageWidth = '<%-imageWidth%>';
                 var imageHeight = '<%-imageHeight%>';

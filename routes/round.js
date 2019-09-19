@@ -158,9 +158,9 @@ module.exports = function (io) {
                             return;
                         }
                         imageSrc = randomUrl[0];
-                        console.log(imageSrc);
                     }
                     let index = docs_size;
+                    console.log(index, imageSrc);
                     let TIME = util.getNowFormatDate();
                     let image = images('public/' + imageSrc);
                     let size = image.size();
@@ -179,6 +179,7 @@ module.exports = function (io) {
                         shape: data.shape,
                         edge: data.edge,
                         offical: data.offical || false,
+                        forceLeaveEnable: data.forceLeaveEnable || false,
                         border: data.border,
                         algorithm: data.algorithm,
                         create_time: TIME,
@@ -320,11 +321,6 @@ module.exports = function (io) {
                                     if (err) {
                                         console.log(err);
                                     }
-                                    else{
-                                        socket.broadcast.emit('forceLeave', {
-                                            round_id: data.round_id
-                                        });
-                                    }
                                 });
                                 saveScore(data.round_id);
                             } else {
@@ -339,7 +335,7 @@ module.exports = function (io) {
                                     if (err) {
                                         console.log(err);
                                     } 
-                                    else {
+                                    else if (solved_players + 1 >= 3) {
                                         socket.broadcast.emit('forceLeave', {
                                             round_id: data.round_id
                                         });
@@ -552,7 +548,6 @@ module.exports = function (io) {
             return;
         }
         let imageSrc = randomUrl[0];
-        console.log(imageSrc);
         let image = images('public/' + imageSrc);
         let size = image.size();
         let imageWidth = size.width;
@@ -561,13 +556,13 @@ module.exports = function (io) {
         let tilesPerRow = Math.floor(imageWidth / tileWidth);
         let tilesPerColumn = Math.floor(imageHeight / tileWidth);
         let shape = 'jagged'
-        let edge = 'true';
+        let edge = 'false';
         let border = 'true';
         let algorithm = 'distributed';
         let TIME = util.getNowFormatDate();
         let shapeArray = util.getRandomShapes(tilesPerRow, tilesPerColumn, shape, edge);
         res.render('puzzle', {
-                title: 'Puzzle',
+                title: 'Random Puzzle',
                 player_name: req.session.user.username,
                 players_num: 1,
                 level: 1,
@@ -580,6 +575,7 @@ module.exports = function (io) {
                 edge: edge,
                 border: border,
                 offical: false,
+                forceLeaveEnable: false,
                 algorithm: algorithm,
                 tilesPerRow: tilesPerRow,
                 tilesPerColumn: tilesPerColumn,
