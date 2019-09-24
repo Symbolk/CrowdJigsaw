@@ -2257,7 +2257,7 @@ function JigsawPuzzle(config) {
         }
         if (getHintsIndex.length > 0 && players_num > 1) {
             var event_name = algorithm == 'distribute' ? 
-                'distributed_fetchHints' : 'fetchHints';
+                'distributed_getHintsAround' : 'getHintsAround';
             //console.log(instance.getHintsArray, getHintsIndex);
             console.log(event_name);
             socket.emit(event_name, {
@@ -2586,7 +2586,7 @@ function JigsawPuzzle(config) {
                 instance.hintedFrom = data.players[i].from;
                 var hints = edgesToHints(data.players[i].edges);
                 data.sureHints = hints;
-                processProactiveHints(data);
+                processReactiveHints(data);
                 instance.hintedFrom = undefined;
             }
             if (instance.singleArray.length > 0) {
@@ -2933,6 +2933,7 @@ function JigsawPuzzle(config) {
                 console.log(new Point(hintTile.cellPosition));
                 var hintTileIndex = getTileIndex(hintTile);
                 var des = correctCellposition + hintTile.relativePosition;
+                /*
                 if (instance.singleArray[hintTileIndex]) {
                     var single = instance.singleArray[hintTileIndex];
                     single.desDiff = (des * instance.tileWidth - 
@@ -2948,6 +2949,7 @@ function JigsawPuzzle(config) {
                             hintTile.position) / moveAnimationTime
                     }
                 }
+                */
                 placeTile(hintTile, des);
                 if (hintTile.positionMoved) {
                     instance.hintedTilesMap[getTileIndex(hintTile)] = true;
