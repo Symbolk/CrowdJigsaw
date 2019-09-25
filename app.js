@@ -156,7 +156,6 @@ if (server) {
         if (err) {
             console.log(err);
         } else {
-            console.log('[OK] Images Collection Rebuilt.');
             glob('./public/images/raw/*_thumb.jpg', function (err, files) {
                 if (err) {
                     console.log(err);
@@ -164,6 +163,9 @@ if (server) {
                     var thumbnails = files.map(f => f.substring(9));
                     thumbnails.forEach(async function (item, index, input) {
                         let num = Number(item.split('_')[1].split('x')[0]);
+                        if (num != undefined && num !== 10) {
+                            return;
+                        }
                         let difficult = await redisClient.hgetAsync('gaps:images:difficult', item.split('_')[0].split('/')[2])
                         difficult = difficult ? difficult : 0;
                         if (num) {
@@ -177,37 +179,28 @@ if (server) {
                                     console.log(err);
                                 } else if (num <= 10) {
                                     real_path = item.split('_')[0] + '_' + num + 'x' + num + '.jpg';
-                                    redisClient.sadd('image:' + num, real_path);
-                                    redisClient.sadd('image:' + num + ':' + difficult, real_path);
+                                    redisClient.sadd('jigsaw_image', real_path);
+                                    redisClient.sadd('jigsaw_image:' + difficult, real_path);
                                 }
                             });
                         }
                     });
+                    console.log('[OK] Images Collection Rebuilt.');
                 };
             });
         }
     });
     io.on('connection', function (socket) {
-        // select the simple puzzles from the database
-        ImagesModel.find({ 'row_num': { $lte: 5 } }, function (err, docs) {
-            if (err) {
-                console.log(err);
-            } else {
-                socket.emit('simple_thumbnails', { thumblist: docs });
-            }
-        });
 
         socket.on('puzzle_size_update',function (data) {
             let condition = { 
-                'row_num': data.puzzle_size,
-                'difficult': data.difficult
+                'difficult': data.puzzle_difficult
             };
             ImagesModel.find(condition,null,{limit:10}, function (err, docs) {
                 if (err) {
                     console.log(err);
                 } else {
                     socket.emit('thumbnails', { thumblist: docs });
-
                 }
             });
 
@@ -218,8 +211,7 @@ if (server) {
             //select the next n results and send
             let pageSize = 10;
             let condition = { 
-                'row_num': data.puzzle_size,
-                'difficult': data.difficult
+                'difficult': data.puzzle_difficult
             };
             ImagesModel.find(condition, null, { skip: pageSize * data.pageCount, limit: pageSize }, function (err, docs) {
                 if(err){

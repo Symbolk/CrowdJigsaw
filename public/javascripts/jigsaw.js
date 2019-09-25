@@ -36,7 +36,7 @@ Array.prototype.remove = function (start, end) {
 view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
-
+console.log(tilesPerRow, tilesPerColumn, tileWidth);
 $('#puzzle-image').attr('src', imgSrc);
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
@@ -248,6 +248,7 @@ function getOriginImage(config) {
     }
     else {
         raster = new Raster(config.imgName);
+        raster.setSize(imageWidth, imageHeight);
     }
     return raster;
 }
@@ -3027,8 +3028,14 @@ function JigsawPuzzle(config) {
                 }
             }
         }
+        if (!instance.tiles) {
+            return;
+        }
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
+            if (!tile) {
+                continue;
+            }
             if (tile.differentColor.length > 0) {
                 for (var j = 0; j < tile.differentColor.length; j++) {
                     var edgeIndex = tile.differentColor[j];
@@ -3057,6 +3064,7 @@ function JigsawPuzzle(config) {
                 }
             }
         }
+        return;
         if (instance.groupsArray && instance.groupsArray.length > 0) {
             var groupsArray = instance.groupsArray;
             var done = true;

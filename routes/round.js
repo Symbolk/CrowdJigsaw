@@ -120,17 +120,6 @@ function startGA(round_id){
     });
 }
 
-function getRandomImage(size) {
-    return new Promise((resolve, reject) => {
-        redis.srandmember('image:' + size, 1, (err, url) => {
-            // body...
-            resolve({
-                url: url
-            });
-        });
-    });
-}
-
 module.exports = function (io) {
 
     io.on('connection', function (socket) {
@@ -153,7 +142,7 @@ module.exports = function (io) {
                 } else {
                     let imageSrc = data.imageURL;
                     if (!imageSrc && data.imageSize > 0) {
-                        let randomUrl = await redis.srandmemberAsync('image:' + data.imageSize + ':' + data.difficult, 1);
+                        let randomUrl = await redis.srandmemberAsync('jigsaw_image:' + data.difficult, 1);
                         if (randomUrl.length <= 0) {
                             return;
                         }
@@ -162,13 +151,11 @@ module.exports = function (io) {
                     let index = docs_size;
                     console.log(index, imageSrc);
                     let TIME = util.getNowFormatDate();
-                    let image = images('public/' + imageSrc);
-                    let size = image.size();
-                    let imageWidth = size.width;
-                    let imageHeight = size.height;
                     let tileWidth = 64;
-                    let tilesPerRow = Math.floor(imageWidth / tileWidth);
-                    let tilesPerColumn = Math.floor(imageHeight / tileWidth);
+                    let tilesPerRow = data.imageSize;
+                    let tilesPerColumn = data.imageSize;
+                    let imageWidth = tilesPerColumn * tileWidth;
+                    let imageHeight = tilesPerRow * tileWidth;
                     let shapeArray = util.getRandomShapes(tilesPerRow, tilesPerColumn, data.shape, data.edge);
                     let operation = {
                         round_id: index,
@@ -543,18 +530,19 @@ module.exports = function (io) {
         if (puzzleSize < 4 || puzzleSize > 10) {
             return;
         }
-        let randomUrl = await redis.srandmemberAsync('image:' + puzzleSize + ':' + 0, 1);
-        if (randomUrl.length <= 0) {
-            return;
+        let imageSrc = req.query.src;
+        if (!imageSrc) {
+            let randomUrl = await redis.srandmemberAsync('jigsaw_image:' + 0, 1);
+            if (randomUrl.length <= 0) {
+                return;
+            }
+            imageSrc = randomUrl[0];
         }
-        let imageSrc = randomUrl[0];
-        let image = images('public/' + imageSrc);
-        let size = image.size();
-        let imageWidth = size.width;
-        let imageHeight = size.height;
         let tileWidth = 64;
-        let tilesPerRow = Math.floor(imageWidth / tileWidth);
-        let tilesPerColumn = Math.floor(imageHeight / tileWidth);
+        let tilesPerRow = puzzleSize;
+        let tilesPerColumn = puzzleSize;
+        let imageWidth = tilesPerColumn * tileWidth;
+        let imageHeight = tilesPerRow * tileWidth;
         let shape = 'jagged'
         let edge = 'false';
         let border = 'true';

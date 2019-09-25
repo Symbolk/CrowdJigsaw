@@ -1,19 +1,8 @@
 var socket = io.connect(window.location.protocol + '//' + window.location.host + '/');
 
-//roundimageselector.js
 var puzzleImageSrcSet = new Set();
-//puzzleImageSrcSet.add("images/raw/starter_thumb.png");
-// only relatively simple images in random rounds
-var simpleImageSrcSet = new Set();
-//var puzzle_size;
-socket.on('simple_thumbnails', function (data) {
-    if (data.thumblist.length > 0) {
-        data.thumblist.forEach(function (item, index, input) {
-            simpleImageSrcSet.add(item.image_path);
-        });
-    }
-});
 socket.on('thumbnails', function (data) {
+    console.log(data);
     if (data.thumblist.length > 0) {
         data.thumblist.forEach(function (item, index, input) {
             puzzleImageSrcSet.add(item.image_path);
@@ -125,20 +114,10 @@ socket.emit('puzzle_size_update', {
     puzzle_size: selected_puzzle_size,
     puzzle_difficult: selected_puzzle_difficult 
 });
-
+$('#newround_image_wrap').css('display', 'none');
 sizeSlider.slider().on('change',function (event) {
     selected_puzzle_size = event.value.newValue;
     selected_puzzle_difficult = difficultSlider.slider('getValue');
-    $('#selectimage_table').empty();
-    puzzleImageSrcSet.clear();
-    pageCount=0;
-    imgReadyCount=0;
-    socket.emit('puzzle_size_update', { 
-        puzzle_size: selected_puzzle_size,
-        puzzle_difficult: selected_puzzle_difficult 
-    });
-    $('#newround_image').removeAttr('src');
-    $('#newround_image_wrap').css('display', 'none');
 })
 
 difficultSlider.slider().on('change',function (event) {
@@ -249,7 +228,6 @@ function initRandomRoundDialog() {
     });
 
     newRoundCreateButton.click(function () {
-        var imgSrc = Array.from(simpleImageSrcSet)[Math.floor((Math.random() * (simpleImageSrcSet.size - 1)))];
         var playersNum = 1;
         var shape = 'jagged';
         var level = 1;
@@ -281,7 +259,7 @@ function initRandomRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(imgSrc, 0, 0, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable);
+        postNewRound(null, 0, 0, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable);
     });
 
     $('#player_num_div').css('display', 'none');
@@ -347,7 +325,14 @@ function initNewRoundDialog() {
             algorithm = 'central';
         }
         if (playersNum == '1') {
-            window.location.href = requrl + 'round/random_puzzle/' + size;
+            if (imgSrc) {
+                var thumbStr = '_thumb';
+                var thumbIndex = imgSrc.indexOf(thumbStr);
+                if (thumbIndex >= 0) {
+                    imgSrc = imgSrc.substring(0, thumbIndex) + imgSrc.substring(thumbIndex + thumbStr.length);
+                }
+            }
+            window.location.href = requrl + 'round/random_puzzle/' + size + (imgSrc? '?src=' + imgSrc: '');
         }
         else{
             postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable);
@@ -407,7 +392,7 @@ function initSelectImageDialog() {
     });
 
     $('#newround_image_button').click(function () {
-        $('#newround_image_wrap').css('display', '');
+        $('#newround_image_wrap').css('display', 'block');
         if (!selectImageDialog.open) {
             selectImageDialog.showModal();
         }
