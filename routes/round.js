@@ -40,7 +40,7 @@ async function saveScore(round_id) {
                         create_wrong_link: 0,
                         remove_wrong_link: 0,
                         remove_hinted_wrong_link: 0,
-                        offical: round.offical || false,
+                        official: round.official || false,
                     };
                 }
                 scoremap[username][fields_name[j]] = score;
@@ -165,7 +165,7 @@ module.exports = function (io) {
                         level: data.level,
                         shape: data.shape,
                         edge: data.edge,
-                        offical: data.offical || false,
+                        official: data.official || false,
                         forceLeaveEnable: data.forceLeaveEnable || false,
                         border: data.border,
                         algorithm: data.algorithm,
@@ -562,7 +562,7 @@ module.exports = function (io) {
                 shape: shape,
                 edge: edge,
                 border: border,
-                offical: false,
+                official: false,
                 forceLeaveEnable: false,
                 algorithm: algorithm,
                 tilesPerRow: tilesPerRow,

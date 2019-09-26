@@ -248,9 +248,9 @@ function initRandomRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
-        var offical = false;
-        if ($('#offical_checkbox').prop("checked")) {
-            offical = true;
+        var official = false;
+        if ($('#official_checkbox').prop("checked")) {
+            official = true;
         }
         var forceLeaveEnable = false;
         if ($('#forceleave_checkbox').prop("checked")) {
@@ -259,7 +259,7 @@ function initRandomRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(null, 0, 0, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable);
+        postNewRound(null, 0, 0, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable);
     });
 
     $('#player_num_div').css('display', 'none');
@@ -313,9 +313,9 @@ function initNewRoundDialog() {
         if ($('#border_checkbox').prop("checked")) {
             border = true;
         }
-        var offical = false;
-        if ($('#offical_checkbox').prop("checked")) {
-            offical = true;
+        var official = false;
+        if ($('#official_checkbox').prop("checked")) {
+            official = true;
         }
         var forceLeaveEnable = false;
         if ($('#forceleave_checkbox').prop("checked")) {
@@ -335,7 +335,7 @@ function initNewRoundDialog() {
             window.location.href = requrl + 'round/random_puzzle/' + size + (imgSrc? '?src=' + imgSrc: '');
         }
         else{
-            postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable);
+            postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable);
         }
     });
 
@@ -355,7 +355,7 @@ function initNewRoundDialog() {
                 $('#admin_key_div').css('display', 'none');
             }
         });
-        $('#offical').css('display', 'none');
+        $('#official').css('display', 'none');
         $('#puzzle_difficult_div').css('display', 'none');
         $('#algorithm_radio_row').css('display', 'none');
         $('#player_num_div').css('display', 'none');
@@ -565,7 +565,7 @@ function renderRoundList(data) {
             // roundCardImage.attr('src', '/images/logo.png');            
         }*/
         roundCardImage.css("background", "url('/images/hide.jpg') center center");
-        roundCardTitle.text('Round ' + roundID + (round.offical? ' (offical)': ' (exercise)'));
+        roundCardTitle.text('Round ' + roundID + (round.official? ' (official)': ' (exercise)'));
         roundCard.find('.roundcard-level').text(round.tilesPerRow + 'x' + round.tilesPerColumn);
     }
 
@@ -634,7 +634,7 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, offical, forceLeaveEnable) {
+function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable) {
     if (imgSrc) {
         var img = new Image();
         var thumbStr = '_thumb';
@@ -656,7 +656,7 @@ function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, b
         border: border,
         players_num: playersNum,
         algorithm: algorithm,
-        offical: offical,
+        official: official,
         forceLeaveEnable: forceLeaveEnable,
     };
     if (admin != "true") {

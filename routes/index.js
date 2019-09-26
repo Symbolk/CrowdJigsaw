@@ -240,7 +240,9 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
         _id: 0,
         username: 1,
         avatar: 1,
-        admin: 1
+        admin: 1,
+        total_score: 1,
+        round_attend: 1,
     };
     UserModel.findOne(selectStr, fields, function (err, doc) {
         if (err) {
@@ -286,7 +288,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                 shape: round.shape,
                 edge: round.edge,
                 border: round.border,
-                offical: round.offical || false,
+                official: round.official || false,
                 forceLeaveEnable: round.forceLeaveEnable || false,
                 algorithm: round.algorithm,
                 tilesPerRow: round.tilesPerRow,
@@ -316,7 +318,7 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                             shape: round.shape,
                             edge: round.edge,
                             border: round.border,
-                            offical: round.offical || false,
+                            official: round.official || false,
                             forceLeaveEnable: round.forceLeaveEnable || false,
                             algorithm: round.algorithm,
                             tilesPerRow: round.tilesPerRow,
@@ -567,7 +569,12 @@ router.route('/records').all(LoginFirst).get(function (req, res) {
                     resp.push(r);
                 }
             }
-            UserModel.findOne(condition, function (err, doc) {
+            let fields = {
+                _id: 0,
+                total_score: 1,
+                round_attend: 1,
+            };
+            UserModel.findOne(condition, fields, function (err, doc) {
                 if (err) {
                     console.log(err);
                 } else {
