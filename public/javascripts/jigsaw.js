@@ -13,6 +13,38 @@ $(document).ready(function () {
 });
 $("#loading").fadeOut();
 
+if (players_num == 1 || roundID < 0) {
+    $('#help_button').css('display', 'none');
+    $('#guess_button').css('display', 'none');
+    $('#share_button').css('display', 'none');
+}
+
+$('#share_info input').change(function () {
+    if ($('#share_info_no').prop("checked")) {
+        $('#share_info_reason_wraper').css('display', 'block');
+    }
+    else {
+        $('#share_info_reason_wraper').css('display', 'none');
+    }
+});
+
+$('#next_game input').change(function () {
+    if ($('#next_game_no').prop("checked")) {
+        $('#next_game_reason_wraper').css('display', 'block');
+    }
+    else {
+        $('#next_game_reason_wraper').css('display', 'none');
+    }
+});
+
+$('#next_game2 input').change(function () {
+    if ($('#next_game_no2').prop("checked")) {
+        $('#next_game_reason_wraper2').css('display', 'block');
+    }
+    else {
+        $('#next_game_reason_wraper2').css('display', 'none');
+    }
+});
 
 var hintedLinksNum = undefined;
 var totalHintsNum = 0;
@@ -285,8 +317,7 @@ function JigsawPuzzle(config) {
 
         $('#quitLabel').text(text);
         $('#ensure_quit_dialog').modal({
-            keyboard: false,
-            backdrop: false
+            keyboard: true,
         });
     }
 
@@ -432,6 +463,8 @@ function JigsawPuzzle(config) {
 
     this.conflictGroupHasBeenMoveAway = false;
 
+    this.shareInfoToggle = false;
+
     $.amaran({
         'title': 'startRound',
         'message': 'Round ' + roundID + ': ' + this.tilesPerRow + ' * ' + this.tilesPerColumn,
@@ -510,8 +543,15 @@ function JigsawPuzzle(config) {
         }
         computeGraphData();
 
+
         if (!instance.saveTilePositions) {
             saveGame();
+            if (players_num > 1) {
+                $('#pregame_survey').modal({
+                    keyboard: false,
+                    backdrop: 'static',
+                });
+            }
         }
         else {
             if (!instance.gameFinished) {
@@ -524,54 +564,11 @@ function JigsawPuzzle(config) {
 
         normalizeTiles();
 
-        instance.gameStarted = true;
+        if (instance.shareInfoToggle) {
+            $('#share_button').css('display', 'none');
+        }
 
-        // if (needIntro) {
-        //     // $("#step1").click();
-        //     introJs().setOption("overlayOpacity", 0).setOptions({
-        //         steps: [
-        //             {
-        //                 element: '#step2',
-        //                 intro: "Zoom in!"
-        //             },
-        //             {
-        //                 element: '#step3',
-        //                 intro: "Zoom out!"
-        //             },
-        //             {
-        //                 element: '#step4',
-        //                 intro: "Restart the game!"
-        //             },
-        //             {
-        //                 element: '#step5',
-        //                 intro: "Return to the center!"
-        //             },
-        //             {
-        //                 element: '#quit',
-        //                 intro: "Quit the game!"
-        //             },
-        //             // {
-        //             //     element: '#myselect',
-        //             //     intro: "Change the drag mode here!"
-        //             // },
-        //             {
-        //                 element: '#steps_chip',
-        //                 intro: "Show/Hide the step counter!"
-        //             },
-        //             {
-        //                 element: '#timer_chip',
-        //                 intro: "Show/Hide the time counter!"
-        //             },
-        //             // {
-        //             //     intro: "Drag mode 'dragTileFirst': short press to drag a tile and long press to drag a group of tiles, vice versa."
-        //             // },
-        //             {
-        //                 intro: "Now Let's Begin!"
-        //             }
-        //         ],
-        //         scrollToElement: false
-        //     }).start();
-        // }
+        instance.gameStarted = true;
     }
 
     function refreshAroundTiles(tile, beHinted) {
@@ -605,6 +602,10 @@ function JigsawPuzzle(config) {
                     tile.conflictTiles[aroundTiles[i]] = false;
                     var neighborTile = instance.tiles[aroundTiles[i]];
                     neighborTile.conflictTiles[tileIndex] = false;
+                }
+
+                if (tile.hintedLinks[i] >= 0) {
+                    tile.hintedLinks[i] = Math.floor(tile.hintedLinks[i]) + 0.5;
                 }
             }
 
@@ -746,7 +747,7 @@ function JigsawPuzzle(config) {
 
         $('#finish_dialog').modal({
             keyboard: false,
-            backdrop: false
+            backdrop: 'static',
         });
 
         /**          
@@ -1608,7 +1609,9 @@ function JigsawPuzzle(config) {
             instance.dfsGraphLinksMap[tileIndex][aroundTileIndex] = true;
             var beHinted = (aroundTileIndex == Math.floor(tile.hintedLinks[i]));
             var from = tile.linksFrom[i];
-            instance.subGraphData.push(generateLinksTags(tileIndex, aroundTileIndex, i, beHinted, from));
+            if (!beHinted || aroundTileIndex != tile.hintedLinks[i]) {
+                instance.subGraphData.push(generateLinksTags(tileIndex, aroundTileIndex, i, beHinted, from));
+            }
             dfsGraph(aroundTileIndex);
         }
     }
@@ -1648,12 +1651,8 @@ function JigsawPuzzle(config) {
         if (mousedowned || instance.hintsShowing) {
             return;
         }
-        /*
-        $('#show_hints_dialog').modal({
-            keyboard: false,
-            backdrop: false
-        }).show();
-        */
+
+
         var event_name = algorithm == 'distribute' ? 
             'distributed_fetchHints' : 'fetchHints';
         console.log(event_name);
@@ -2012,9 +2011,10 @@ function JigsawPuzzle(config) {
             }
             if (hintsConflict.length > 0) {
                 param.conflict = hintsConflict;
-                console.log(param);
             }
-            socket.emit("uploadForGA", param);
+            if (instance.shareInfoToggle) {
+                socket.emit("uploadForGA", param);
+            }
             instance.subGraphDataQueue.push(param);
             setTimeout(uploadGraphData, uploadDelayTime * 1000);
         }
@@ -2063,7 +2063,7 @@ function JigsawPuzzle(config) {
             var param = instance.subGraphDataQueue[0];
             if(instance.gameFinished || time - param.time >= uploadDelayTime){
                 edges_count = Object.getOwnPropertyNames(param.edges).length;
-                if(edges_count > 0){
+                if(edges_count > 0 && instance.shareInfoToggle){
                     var event_name = algorithm == 'distribute' ?
                         'distributed_upload' : 'upload';
                     socket.emit(event_name, param);
@@ -2260,7 +2260,6 @@ function JigsawPuzzle(config) {
             var event_name = algorithm == 'distribute' ? 
                 'distributed_getHintsAround' : 'getHintsAround';
             //console.log(instance.getHintsArray, getHintsIndex);
-            console.log(event_name);
             socket.emit(event_name, {
             //socket.emit("distributed_fetchHints", {
                 "round_id": round_id,
@@ -3269,6 +3268,16 @@ function JigsawPuzzle(config) {
         instance.puzzleImage.visible = !visible;
     }
 
+    this.toggleShareInfo = function () {
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            computeSubGraph(tile);
+        }
+        computeGraphData();
+        instance.shareInfoToggle = true;
+        saveGame();
+    }
+
     function saveGame() {
         if (roundID < 0) {
             return;
@@ -3305,7 +3314,8 @@ function JigsawPuzzle(config) {
             tileLinksFrom: JSON.stringify(tileLinksFrom),
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum,
-            conflictEdgesTimesMap: JSON.stringify(instance.conflictEdgesTimesMap)
+            conflictEdgesTimesMap: JSON.stringify(instance.conflictEdgesTimesMap),
+            shareInfoToggle: instance.shareInfoToggle,
         });
     }
 
@@ -3343,6 +3353,7 @@ function JigsawPuzzle(config) {
                 if(gameData.conflictEdgesTimesMap) {
                     instance.conflictEdgesTimesMap = JSON.parse(gameData.conflictEdgesTimesMap);
                 }
+                instance.shareInfoToggle = gameData.shareInfoToggle || false;
             }
             createAndPlaceTiles(needIntro);
         }
@@ -3556,12 +3567,28 @@ function JigsawPuzzle(config) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
         sendRecord(true, rating);
-        if (roundID >= 0) {
+        if (roundID >= 0 && players_num > 0) {
+            var extraData = {
+                rating: rating,
+                nextGame: $('#next_game_yes2').prop("checked"), 
+                reason: $('#next_game_reason2').val(),
+            }
+            socket.emit('survey', {
+                round_id:roundID,
+                time: time,
+                player_name: player_name,
+                survey_type: 'endgame',
+                extra: JSON.stringify(extraData),
+            });
             quitRound(roundID);
         }
         else {
             window.location = '/home';
         }
+    });
+    $('#survey-button').click(function (event) {
+        // player's rating for the hint(what he thinks about the function)
+        
     });
 
     $('#quit').click(function (event) {
@@ -3574,7 +3601,19 @@ function JigsawPuzzle(config) {
     $('#apply-button').click(function (event) {
         var rating = $("#rating").val();
         sendRecord(false, rating);
-        if (roundID >= 0) {
+        if (roundID >= 0 && players_num > 0) {
+            var extraData = {
+                rating: rating,
+                nextGame: $('#next_game_yes').prop("checked"), 
+                reason: $('#next_game_reason').val(),
+            }
+            socket.emit('survey', {
+                round_id:roundID,
+                time: time,
+                player_name: player_name,
+                survey_type: 'endgame',
+                extra: JSON.stringify(extraData),
+            });
             quitRound(roundID);
         }
         else {
@@ -3588,6 +3627,53 @@ $('#undo_button').on('click', function (event) {
     if (puzzle.steps != undoStep) {
         puzzle.undoNextStep();
     }
+});
+
+$('#guess_button').on('click', function (event) {
+    $('#guess_dialog').modal();
+});
+
+$('#guess-submit-button').on('click', function (event) {
+    socket.emit('survey', {
+        round_id:roundID,
+        time: time,
+        player_name: player_name,
+        survey_type: 'guess',
+        extra: $('#guess_content').val(),
+    });
+    $('#guess_dialog').modal('hide');
+})
+
+$('#share_button').on('click', function (event) {
+    $('#share_toggle_dialog').modal();
+});
+
+$('#pregame-survey-button').on('click', function (event) {
+    var extraData = {
+        wantToShare: $('#share_info_yes').prop("checked"), 
+        reason: $('#share_info_reason').val(),
+    }
+    socket.emit('survey', {
+        round_id:roundID,
+        time: time,
+        player_name: player_name,
+        survey_type: 'pregame',
+        extra: JSON.stringify(extraData),
+    });
+    $('#pregame_survey').modal('hide');
+    showIntro();
+});
+
+$('#share-toggle-button').on('click', function (event) {
+    puzzle.toggleShareInfo();
+    socket.emit('survey', {
+        round_id:roundID,
+        time: time,
+        player_name: player_name,
+        survey_type: 'shareInfo'
+    });
+    $('#share_button').css('display', 'none');
+    $('#share_toggle_dialog').modal('hide');
 });
 
 $('#reset_button').on('click', function (event) {
@@ -3714,3 +3800,21 @@ $(document).ready(function(e) {
     window.history.pushState('forward', null, '#'); //在IE中必须得有这两行
     window.history.forward(1);
 });
+
+function showIntro() {
+    introJs().setOptions({
+        steps: [
+            {
+                element: '#share_button',
+                intro: "点击选择是否分享拼图信息给他人"
+            },
+            {
+                element: '#guess_button',
+                intro: "点击猜测拼图图片内容"
+            },
+        ],
+        scrollToElement: false,
+        exitOnOverlayClick: false,
+        exitOnEsc: false,
+    }).start();
+}

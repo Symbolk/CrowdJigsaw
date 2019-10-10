@@ -5,6 +5,7 @@ var RoundModel = require('../models/round').Round;
 var UserModel = require('../models/user').User;
 var ActionModel = require('../models/action').Action;
 var RecordModel = require('../models/record').Record;
+var SurveyModel = require('../models/survey').Survey;
 var util = require('./util.js');
 var dev = require('../config/dev');
 var images = require("images");
@@ -187,7 +188,7 @@ module.exports = function (io) {
 
                     createRecord(data.username, operation.round_id, TIME);
 
-                    RoundModel.create(operation, function (err, doc) {
+                    RoundModel.create(operation, async function (err, doc) {
                         if (err) {
                             console.log(err);
                         } else {
@@ -203,9 +204,11 @@ module.exports = function (io) {
                                 msg: 'You just create and join round' + doc.round_id
                             });
                             let redis_key = 'round:' + doc.round_id;
-                            redis.set(redis_key, JSON.stringify(doc));
+                            await redis.setAsync(redis_key, JSON.stringify(doc));
+                            await redis.delAsync('round:' + doc.round_id + ':scoreboard');
+                            await redis.delAsync('round:' + doc.round_id + ':players');
                             redis_key = 'round:' + doc.round_id + ':players';
-                            redis.sadd(redis_key, data.username);
+                            await redis.saddAsync(redis_key, data.username);
                         }
                     });
                 }
@@ -369,23 +372,8 @@ module.exports = function (io) {
                 });
         });
         socket.on('saveGame', function (data) {
-            var save_game = {
-                round_id: data.round_id,
-                steps: data.steps,
-                realSteps: data.realSteps,
-                startTime: data.startTime,
-                maxSubGraphSize: data.maxSubGraphSize,
-                tiles: data.tiles,
-                tileHintedLinks: data.tileHintedLinks,
-                tileLinkSteps: data.tileLinkSteps,
-                tileLinksFrom: data.tileLinksFrom,
-                totalHintsNum: data.totalHintsNum,
-                correctHintsNum: data.correctHintsNum,
-                conflictEdgesTimesMap: data.conflictEdgesTimesMap
-            };
-
             let redis_key = 'user:' + data.player_name + ':savegame';
-            redis.set(redis_key, JSON.stringify(save_game), function (err, response) {
+            redis.set(redis_key, JSON.stringify(data), function (err, response) {
                 if (err) {
                     console.log(err);
                     socket.emit('gameSaved', {
@@ -397,6 +385,25 @@ module.exports = function (io) {
                         round_id: data.round_id,
                         player_name: data.player_name
                     });
+                }
+            });
+        });
+        socket.on('survey', function(data) {
+            if (!data.round_id || !data.time || !data.player_name || !data.survey_type) {
+                return;
+            }
+            if (data.round_id < 0) {
+                return;
+            }
+            SurveyModel.create({
+                round_id: data.round_id,
+                time: data.time,
+                player_name: data.player_name,
+                survey_type: data.survey_type,
+                extra: data.extra,
+            }, function (err) {
+                if (err) {
+                    console.log(err);
                 }
             });
         });

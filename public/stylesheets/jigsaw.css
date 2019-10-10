@@ -126,6 +126,18 @@ canvas[resize]{
     right: 20px;
 }
 
+#guess_menu{
+    position: fixed;
+    top: 30%;
+    right: 20px;
+}
+
+#share_menu{
+    position: fixed;
+    top: 60%;
+    right: 20px;
+}
+
 .menu_png img{
     background-color: rgba(200, 200, 200, 0);
     height: 75px;
@@ -168,9 +180,15 @@ canvas[resize]{
 }
 
 #button_group{
-    height: 5%;
-    width: 80px;
     position: absolute;
     top: 20px;
     left: 20px;
+}
+
+#timer{
+    font-size: 40px;
+    position: absolute;
+    top: 25px;
+    left: 20px;
+    height: auto;
 }

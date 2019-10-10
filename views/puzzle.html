@@ -6,6 +6,101 @@
 <% } %> 
 <% include header.html %>
     <div class="demo-layout-transparent mdl-layout mdl-js-layout">
+            <div class="modal fade" id="guess_dialog" tabindex="-1" role="dialog" aria-labelledby="guessLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            </button>
+                            <h4 class="modal-title" id="guessLabel">
+                                请输入您对拼图内容的猜测
+                            </h4>
+                        </div>
+                        <div class="modal-body" style="text-align:center;">
+                            <h5 class="text-center text-nowrap text-danger">可以输入多个词，以空格分隔。<br/>可以多次猜测，我们会记录每一次猜测结果。</h5>
+                            <textarea style="width: 60%" rows="2" id="guess_content"></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="guess-submit-button">
+                                OK
+                            </button>
+                            <button type="button" class="btn btn-primary" id="guess-cancel-button" data-dismiss="modal">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>
+                <!-- /.modal-dialog -->
+            </div>
+
+            <div class="modal fade" id="share_toggle_dialog" tabindex="-1" role="dialog" aria-labelledby="shareToggleLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            </button>
+                            <h4 class="modal-title" id="shareToggleLabel">
+                                是否要与他人共享拼图信息？
+                            </h4>
+                        </div>
+                        <div class="modal-body" style="text-align:center;">
+                            <h5 class="text-center text-nowrap text-danger">点击OK，与他人共享拼图信息，直至游戏结束。</h5>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="share-toggle-button">
+                                OK
+                            </button>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>
+                <!-- /.modal-dialog -->
+            </div>
+
+            <div class="modal fade" id="pregame_survey" tabindex="-1" role="dialog" aria-labelledby="pregameLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            </button>
+                            <h4 class="modal-title" id="pregameLabel">
+                                请选择选项完成我们的调查
+                            </h4>
+                        </div>
+                        <div class="modal-body" style="text-align:center;">
+                            <h4 class="text-center text-nowrap text-danger">如果有选择，是否愿意与他人分享拼图信息？</h4>
+                            <h6>如果愿意，在您觉得拼出一定成果之时，点击右侧棕色分享按钮，与他人共享您的拼图成果</h6>
+                            <div id="share_info">
+                                <div class="radio icheck-success">
+                                    <input type="radio" checked id="share_info_yes" name="share_info"/>
+                                    <label for="share_info_yes">
+                                        是
+                                    </label>
+                                </div>
+                                <div class="radio icheck-danger">
+                                    <input type="radio" id="share_info_no" name="share_info" />
+                                    <label for="share_info_no">
+                                        否
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="share_info_reason_wraper" style="display: none;">
+                                <h5 class="text-center text-nowrap text-danger">可否告诉我们为什么？</h5>
+                                <textarea id="share_info_reason" style="width: 60%" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="pregame-survey-button">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>
+                <!-- /.modal-dialog -->
+            </div>
+
             <div class="modal fade" id="ensure_quit_dialog" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -16,9 +111,28 @@
                             </h4>
                         </div>
                         <div class="modal-body rating-body" style="text-align:center;">
-                            <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
-                            <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
+                            <h4 class="text-center text-nowrap text-danger">请选择你对给你推荐的信息的满意度</h4>
                             <input id="rating" required class="rb-rating" type="text" value="" title="">
+                            <hr>
+                            <h4 class="text-center text-nowrap text-danger">下次是否还会参加拼图实验？</h4>
+                            <div id="next_game">
+                                <div class="radio icheck-success">
+                                    <input type="radio" checked id="next_game_yes" name="next_game"/>
+                                    <label for="next_game_yes">
+                                        是
+                                    </label>
+                                </div>
+                                <div class="radio icheck-danger">
+                                    <input type="radio" id="next_game_no" name="next_game" />
+                                    <label for="next_game_no">
+                                        否
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="next_game_reason_wraper" style="display: none;">
+                                <h5 class="text-center text-nowrap text-danger">可否告诉我们为什么？</h5>
+                                <textarea id="next_game_reason" style="width: 60%" rows="2"></textarea>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" id="apply-button">
@@ -43,8 +157,28 @@
                             </h4>
                         </div>
                         <div class="modal-body rating-body" style="text-align:center;">
-                            <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
+                            <h4 class="text-center text-nowrap text-danger">请选择你对给你推荐的信息的满意度</h4>
                             <input id="rating2" required class="rb-rating" type="text" value="" title="">
+                            <hr>
+                            <h4 class="text-center text-nowrap text-danger">下次是否还会参加拼图实验？</h4>
+                            <div id="next_game2">
+                                <div class="radio icheck-success">
+                                    <input type="radio" checked id="next_game_yes2" name="next_game2"/>
+                                    <label for="next_game_yes2">
+                                        是
+                                    </label>
+                                </div>
+                                <div class="radio icheck-danger">
+                                    <input type="radio" id="next_game_no2" name="next_game2" />
+                                    <label for="next_game_no2">
+                                        否
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="next_game_reason_wraper2" style="display: none;">
+                                <h5 class="text-center text-nowrap text-danger">可否告诉我们为什么？</h5>
+                                <textarea id="next_game_reason2" style="width: 60%" rows="2"></textarea>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-primary" id="submit-button">
@@ -94,9 +228,11 @@
                     </div>
                 </div>
             </div>
-
-        <div id = button_group>
-            <span id="steps_chip" class="mdl-chip mdl-chip--contact">
+        <div id="timer_wrap">
+            <strong id="timer">00:00:00</strong>
+        </div>
+        <div id="button_group">
+            <span id="steps_chip" class="mdl-chip mdl-chip--contact" style="display: none;">
                 <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white" style="font-size: 12px">Step</span>
                 <span id="steps" class="mdl-chip__text">0</span>
                 <!--<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_steps" style="left: 85px; position: absolute; margin: 5">-->
@@ -105,15 +241,6 @@
                 </label>
                 <!-- <button type="button" class="mdl-chip__action" id="stepButton"><i class="fa fa-close"></i></button> -->
             </span>
-            <span id="timer_chip" class="mdl-chip mdl-chip--contact">
-                <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white" style="font-size: 12px">Time</span>
-                <span id="timer" class="mdl-chip__text">00:00:00</span>
-                <!-- <button type="button" class="mdl-chip__action"><i class="fa fa-close"></i></button> -->
-                <!--<label id="timer_switch" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_timer" style="left: 85px; position: absolute; margin: 5">-->
-                    <!--<input type="checkbox" id="show_timer" class="mdl-switch__input" checked>-->
-                    <!-- <span class="mdl-switch__label"></span> -->
-                </label>
-            </span>
         </div>
         <div class="menu_png" id="undo_help">
             <img src="images/undo.png" id="undo_button" />
@@ -121,6 +248,12 @@
         </div>
         <div class="menu_png" id="quit_menu">
             <img src="images/quit.png" id="quit_button" />
+        </div>
+        <div class="menu_png" id="guess_menu">
+            <img src="images/guess.png" id="guess_button" />
+        </div>
+        <div class="menu_png" id="share_menu">
+            <img src="images/share.png" id="share_button" />
         </div>
         <div class="menu_png" id="addon_menu">
             <img src="images/center.png" id="center_button" />

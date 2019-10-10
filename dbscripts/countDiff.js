@@ -4,20 +4,20 @@ import time
 import datetime
 import json
 
-mongo_ip = "162.105.89.243"
+mongo_ip = "162.105.89.173"
 mongo_port = 27017
 
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-round = list(db['rounds'].find({'round_id':133}))[-1]
-diffs = list(db['diffs'].find({'round_id':133}))
+round = list(db['rounds'].find({'round_id':374}))[-1]
+diffs = list(db['diffs'].find({'round_id':374}))
 
 rows, cols = round['tilesPerRow'], round['tilesPerColumn']
 startTime = None
-with open('diff_result_133.csv', 'w') as f:
+with open('diff_result_374.csv', 'w') as f:
 	f.write('time,edges_in_ga,correct_in_ga,edges_in_cog,correct_in_cog,edges_in_both,correct_in_both,create,correct,wrong,ga_precision,cog_precision,both_precision\n')
-	for diff in diffs:
+	for i, diff in enumerate(diffs):
 		ga_edges, hints = json.loads(diff['ga_edges']), json.loads(diff['hints'])
 		time, edges_in_ga, correct_in_ga, edges_in_cog, correct_in_cog, edges_in_both, correct_in_both, create, correct, wrong = (int(diff['time']), 
 			len(ga_edges) * 2, 0, 0, 0, 0, 0, 0, 0, 0)
