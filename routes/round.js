@@ -6,6 +6,7 @@ var UserModel = require('../models/user').User;
 var ActionModel = require('../models/action').Action;
 var RecordModel = require('../models/record').Record;
 var SurveyModel = require('../models/survey').Survey;
+var CogModel = require('../models/cog').Cog;
 var util = require('./util.js');
 var dev = require('../config/dev');
 var images = require("images");
@@ -618,6 +619,35 @@ module.exports = function (io) {
             } else if (record) {
                 res.send(JSON.stringify(record));          
             }
+        });
+    });
+
+    router.route('/progress/:round_id').all(LoginFirst).get(async function (req, res, next) {
+        var round_id = req.params.round_id;
+        let redis_key = 'round:' + round_id + ':coglist';
+        let coglist = await redis.lrangeAsync(redis_key, 0, -1);
+        if (coglist.length > 0) {
+            res.json(coglist);
+            return;
+        }
+        CogModel.find({round_id: round_id}, async function(err, cogs) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            let coglist = [];
+            for (let i = 0; i < cogs.length; i++) {
+                let brief_cog = {
+                    correctHints: cogs[i].correctHints,
+                    correctLinks: cogs[i].correctLinks,
+                    completeLinks: cogs[i].completeLinks,
+                    totalLinks: cogs[i].totalLinks,
+                }
+                let last = JSON.stringify(brief_cog);
+                coglist.push(last);
+                await redis.rpushAsync(redis_key, last);
+            }
+            res.json(coglist);
         });
     });
 

@@ -16,21 +16,18 @@ function renderScore(data) {
         },
         tooltip : {
             trigger: 'item',
-            formatter: "{a} <br/>{b} : {c} ({d}%)"
+            formatter: "{a} <br/>{b} : {c}"
         },
-        legend: {
-            // orient: 'vertical',
-            // top: 'middle',
-            bottom: 10,
-            left: 'center',
+        xAxis: {
+            type: 'category',
             data: []
+        },
+        yAxis: {
+            type: 'value'
         },
         series : [
             {
-                type: 'pie',
-                radius : '65%',
-                center: ['50%', '50%'],
-                selectedMode: 'single',
+                type: 'bar',
                 data:[],
                 itemStyle: {
                     emphasis: {
@@ -49,7 +46,7 @@ function renderScore(data) {
         if (value <= 0) {
             continue;
         }
-        option.legend.data.push(key);
+        option.xAxis.data.push(key);
         var series_data = {
             value: value,
             name: key
@@ -57,7 +54,7 @@ function renderScore(data) {
         option.series[0].data.push(series_data);
     }
 
-    if (option.legend.data.length == 0) {
+    if (option.xAxis.data.length == 0) {
         return;
     }
     var scoreTable = document.getElementById('score');
@@ -168,6 +165,108 @@ function renderLinks(data) {
     myChart.setOption(option);
 };
 
+
+function renderProgress(coglist) {
+    var option = {
+        title: {
+            text: 'progress',
+            left: 'center'
+        },
+        tooltip : {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            }
+        },
+        legend: {
+            data:['correctHints','correctLinks','totalLinks','completeLinks']
+        },
+        toolbox: {
+            feature: {
+                saveAsImage: {}
+            }
+        },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true
+        },
+        xAxis : [
+            {
+                type : 'category',
+                boundaryGap : false,
+            }
+        ],
+        yAxis : [
+            {
+                type : 'value'
+            }
+        ],
+        series : [
+            {
+                name:'correctHints',
+                type:'line',
+                label: {
+                    normal: {
+                        show: true,
+                        position: 'bottom'
+                    }
+                },
+                data:[]
+            },
+            {
+                name:'correctLinks',
+                type:'line',
+                label: {
+                    normal: {
+                        show: true,
+                        position: 'top'
+                    }
+                },
+                data:[]
+            },
+            {
+                name:'totalLinks',
+                type:'line',
+                label: {
+                    normal: {
+                        show: true,
+                        position: 'top'
+                    }
+                },
+                data:[]
+            },
+            {
+                name:'completeLinks',
+                type:'line',
+                label: {
+                    normal: {
+                        show: true,
+                        position: 'top'
+                    }
+                },
+                data:[]
+            }
+        ]
+    };
+    for (var i = 0; i < coglist.length; i++) {
+        var cog = JSON.parse(coglist[i]);
+        option.series[0].data.push(cog.correctHints > 0 ? cog.correctHints: 0);
+        option.series[1].data.push(cog.correctLinks > 0 ? cog.correctLinks: 0);
+        option.series[2].data.push(cog.totalLinks > 0 ? cog.totalLinks: 0);
+        option.series[3].data.push(cog.completeLinks > 0 ? cog.completeLinks: 0);
+    }
+    var progressChart = document.getElementById('progress');
+    progressChart.style.display = "block";
+    var myChart = echarts.init(progressChart);
+    // 使用刚指定的配置项和数据显示图表。
+    myChart.setOption(option);
+}
+
 function renderDetail(username) {
     console.log(round_id, username);
     $.ajax({
@@ -180,6 +279,24 @@ function renderDetail(username) {
             console.log(data);
             renderScore(data);
             renderLinks(data);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {}
+    });
+}
+
+function getProgress() {
+    console.log(round_id);
+    $.ajax({
+        url: window.location.protocol + '//' + window.location.host + '/round/progress/' + round_id,
+        type: 'get',
+        dataType: 'json',
+        cache: true,
+        timeout: 5000,
+        success: function (data) {
+            console.log(data);
+            if (data && data.length > 0) {
+                renderProgress(data);
+            }
         },
         error: function (jqXHR, textStatus, errorThrown) {}
     });
