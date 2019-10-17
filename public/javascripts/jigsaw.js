@@ -126,7 +126,10 @@ var t;
 //var startTime = (new Date()).getTime(); //compute from when the user ready
 var startTime = serverStartTime; //compute from when the round start at server-side
 function timedCount() {
-    time = Math.floor(((new Date()).getTime() - startTime) / 1000);
+    var realtime = Math.floor(((new Date()).getTime() - startTime) / 1000);
+    if (realtime > time) {
+        time = realtime;
+    }
     var hours = Math.floor(time / 3600);
     var minutes = Math.floor((time - hours * 3600) / 60);
     var seconds = time - hours * 3600 - minutes * 60;
@@ -1645,6 +1648,12 @@ function JigsawPuzzle(config) {
             return;
         }
 
+        socket.emit('survey', {
+            round_id:roundID,
+            player_name: player_name,
+            survey_type: 'askHelp',
+        });
+
         console.log("Asking for help...");
         //clearTimeout(instance.askHelpTimeout);
 
@@ -1990,9 +1999,12 @@ function JigsawPuzzle(config) {
             }
             var param = {
                 player_name: player_name,
+                algorithm: algorithm,
                 round_id: roundID,
                 time: time,
                 edges: edges,
+                tilesPerRow: tilesPerRow,
+                tilesPerColumn: tilesPerColumn,
                 is_hint: instance.hintsShowing && !instance.gameFinished
                 //logs: instance.hintsLog
             };
@@ -2012,9 +2024,7 @@ function JigsawPuzzle(config) {
             if (hintsConflict.length > 0) {
                 param.conflict = hintsConflict;
             }
-            if (instance.shareInfoToggle) {
-                socket.emit("uploadForGA", param);
-            }
+            socket.emit("uploadForGA", param);
             instance.subGraphDataQueue.push(param);
             setTimeout(uploadGraphData, uploadDelayTime * 1000);
         }
@@ -2063,7 +2073,7 @@ function JigsawPuzzle(config) {
             var param = instance.subGraphDataQueue[0];
             if(instance.gameFinished || time - param.time >= uploadDelayTime){
                 edges_count = Object.getOwnPropertyNames(param.edges).length;
-                if(edges_count > 0 && instance.shareInfoToggle){
+                if(edges_count > 0){
                     var event_name = algorithm == 'distribute' ?
                         'distributed_upload' : 'upload';
                     socket.emit(event_name, param);
@@ -3306,6 +3316,7 @@ function JigsawPuzzle(config) {
             player_name: player_name,
             steps: instance.steps,
             realSteps: instance.realSteps,
+            time: time,
             startTime: startTime,
             maxSubGraphSize: instance.maxSubGraphSize,
             tiles: JSON.stringify(tilePositions),
@@ -3349,6 +3360,10 @@ function JigsawPuzzle(config) {
                 instance.saveLinkSteps = JSON.parse(gameData.tileLinkSteps);
                 totalHintsNum = gameData.totalHintsNum;
                 correctHintsNum = gameData.correctHintsNum;
+
+                if (gameData.time) {
+                    time = gameData.time;
+                }
 
                 if(gameData.conflictEdgesTimesMap) {
                     instance.conflictEdgesTimesMap = JSON.parse(gameData.conflictEdgesTimesMap);
@@ -3575,7 +3590,6 @@ function JigsawPuzzle(config) {
             }
             socket.emit('survey', {
                 round_id:roundID,
-                time: time,
                 player_name: player_name,
                 survey_type: 'endgame',
                 extra: JSON.stringify(extraData),
@@ -3609,7 +3623,6 @@ function JigsawPuzzle(config) {
             }
             socket.emit('survey', {
                 round_id:roundID,
-                time: time,
                 player_name: player_name,
                 survey_type: 'endgame',
                 extra: JSON.stringify(extraData),
@@ -3631,12 +3644,16 @@ $('#undo_button').on('click', function (event) {
 
 $('#guess_button').on('click', function (event) {
     $('#guess_dialog').modal();
+    socket.emit('survey', {
+        round_id:roundID,
+        player_name: player_name,
+        survey_type: 'guessClick',
+    });
 });
 
 $('#guess-submit-button').on('click', function (event) {
     socket.emit('survey', {
         round_id:roundID,
-        time: time,
         player_name: player_name,
         survey_type: 'guess',
         extra: $('#guess_content').val(),
@@ -3655,7 +3672,6 @@ $('#pregame-survey-button').on('click', function (event) {
     }
     socket.emit('survey', {
         round_id:roundID,
-        time: time,
         player_name: player_name,
         survey_type: 'pregame',
         extra: JSON.stringify(extraData),
@@ -3668,7 +3684,6 @@ $('#share-toggle-button').on('click', function (event) {
     puzzle.toggleShareInfo();
     socket.emit('survey', {
         round_id:roundID,
-        time: time,
         player_name: player_name,
         survey_type: 'shareInfo'
     });

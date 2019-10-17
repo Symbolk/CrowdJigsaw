@@ -389,7 +389,7 @@ module.exports = function (io) {
             });
         });
         socket.on('survey', function(data) {
-            if (!data.round_id || !data.time || !data.player_name || !data.survey_type) {
+            if (!data.round_id || !data.player_name || !data.survey_type) {
                 return;
             }
             if (data.round_id < 0) {
@@ -397,7 +397,7 @@ module.exports = function (io) {
             }
             SurveyModel.create({
                 round_id: data.round_id,
-                time: data.time,
+                time: Date.now(),
                 player_name: data.player_name,
                 survey_type: data.survey_type,
                 extra: data.extra,

@@ -549,10 +549,11 @@ function updateForGA(data) {
             }
             // update the confidence of every saved edge
             for (let e in edges_saved) {
-                let oldConfidence = edges_saved[e].confidence;
-                let oldWeight = edges_saved[e].weight;
-                let supporters = edges_saved[e].supporters;
-                let opposers = edges_saved[e].opposers;
+                let edge = edges_saved[e];
+                let oldConfidence = edge.confidence;
+                let oldWeight = edge.weight;
+                let supporters = edge.supporters;
+                let opposers = edge.opposers;
                 let wp = 0;
                 let wn = 0;
                 for (let s in supporters) {
@@ -561,10 +562,13 @@ function updateForGA(data) {
                 for (let o in opposers) {
                     wn += opposers[o];
                 }
-                edges_saved[e].weight = wp;
+                edge.weight = wp;
                 if (wp + wn != 0) {
-                    edges_saved[e].confidence = wp / (wp + wn);
+                    edge.confidence = wp / (wp + wn);
                 }
+            }
+            if (data.algorithm === 'distribute') {
+                computeCog(data.round_id, edges_saved, Date.now(), data.tilesPerRow, data.tilesPerColumn, null);
             }
             redis.set(redis_key, JSON.stringify(edges_saved));
         }
@@ -617,20 +621,20 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
         }
     }
 
-    var correctHints = 0;
-    for (var i = 0; i < nodesAndHints.hints.length; i++) {
-        var hint = nodesAndHints.hints[i];
-        if(i >= tilesPerRow && (i - tilesPerRow) == hint[0]){ //up
-            correctHints += 1;
-        }
-        if(i % tilesPerRow < tilesPerRow - 1 && (i + 1) == hint[1]){ //right
-            correctHints += 1;
-        }
-        if(i < (tilesPerColumn - 1) * tilesPerRow && (i + tilesPerRow) == hint[2]){ //bottom
-            correctHints += 1;
-        }
-        if(i % tilesPerRow > 0 && (i - 1) == hint[3]){ //left
-            correctHints += 1;
+    if (nodesAndHints) {
+        var correctHints = 0;
+        var hints = nodesAndHints.hints;
+        for (var i = 0; i < hints.length; i++) {
+            if(i % tilesPerRow < tilesPerRow - 1){ //right
+                if (i + 1 == hints[i][1] && i == hints[i+1][3]) {
+                    correctHints += 1;
+                }
+            }
+            if(i < (tilesPerColumn - 1) * tilesPerRow){ //bottom
+                if (i + tilesPerRow == hints[i][2] && i == hints[i + tilesPerRow][0]) {
+                    correctHints += 1;
+                }
+            }
         }
     }
 
@@ -638,21 +642,43 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
         round_id: roundID,
         time: time,
         correctLinks: correctLinks,
-        correctHints: correctHints,
+        correctHints: correctHints? correctHints: null,
         completeLinks: completeLinks,
         totalLinks: totalLinks,
-        ga_edges: nodesAndHints.GA_edges,
-        nodes: nodesAndHints.nodes,
-        hints: nodesAndHints.hints,
+        ga_edges: nodesAndHints? nodesAndHints.GA_edges: null,
+        nodes: nodesAndHints? nodesAndHints.nodes: null,
+        hints: nodesAndHints? nodesAndHints.hints: null,
         edges_saved: brief_edges_saved,
     }
-    CogModel.create(Cog, function (err) {
+    let redis_key = 'round:' + roundID + ':coglist';
+    redis.lindex(redis_key, -1, function (err, last) {
         if (err) {
             console.log(err);
-            return false;
-        } else {
-            return true;
+            return;
         }
+        let brief_cog = {
+            correctHints: correctHints? correctHints: -1,
+            correctLinks: correctLinks,
+            completeLinks: completeLinks,
+            totalLinks: totalLinks,
+        }
+        if (last) {
+            let last_cog = JSON.parse(last);
+            if (parseInt(last_cog.correctLinks) >= brief_cog.correctLinks 
+                && parseInt(last_cog.completeLinks) >= brief_cog.completeLinks 
+                && parseInt(last_cog.correctHints) >= brief_cog.correctHints) {
+                return;
+            }
+        }
+        redis.rpush(redis_key, JSON.stringify(brief_cog));
+        CogModel.create(Cog, function (err) {
+            if (err) {
+                console.log(err);
+                return false;
+            } else {
+                return true;
+            }
+        });
     });
 }
 
