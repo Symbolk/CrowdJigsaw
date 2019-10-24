@@ -638,6 +638,7 @@ module.exports = function (io) {
             let coglist = [];
             for (let i = 0; i < cogs.length; i++) {
                 let brief_cog = {
+                    time: Math.round(cogs[i].time),
                     correctHints: cogs[i].correctHints,
                     correctLinks: cogs[i].correctLinks,
                     completeLinks: cogs[i].completeLinks,

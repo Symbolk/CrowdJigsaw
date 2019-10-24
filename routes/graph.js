@@ -577,21 +577,8 @@ function updateForGA(data) {
 
 function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
     var totalLinks = 2 * tilesPerRow * tilesPerColumn - tilesPerRow -tilesPerColumn;
-    var completeLinks = Object.getOwnPropertyNames(edges_saved).length;
+    var completeLinks = 0;
     var correctLinks = 0;
-    for (e in edges_saved) {
-        edge = edges_saved[e];
-        if(edge.tag == 'L-R'){
-            if(edge.x + 1 == edge.y && edge.y % tilesPerRow != 0){
-                correctLinks += 1;
-            }
-        }
-        else{
-            if(edge.x + tilesPerColumn == edge.y){
-                correctLinks += 1;
-            }
-        }
-    }
 
     var brief_edges_saved = {};
     for (var e in edges_saved) {
@@ -618,6 +605,19 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
             wn: wn,
             sLen: sLen,
             oLen: oLen
+        }
+        if (sLen > 0) {
+            completeLinks += 1;
+            if(edge.tag == 'L-R'){
+                if(edge.x + 1 == edge.y && edge.y % tilesPerRow != 0){
+                    correctLinks += 1;
+                }
+            }
+            else{
+                if(edge.x + tilesPerColumn == edge.y){
+                    correctLinks += 1;
+                }
+            }
         }
     }
 
@@ -657,6 +657,7 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
             return;
         }
         let brief_cog = {
+            time: Math.round(time),
             correctHints: correctHints? correctHints: -1,
             correctLinks: correctLinks,
             completeLinks: completeLinks,

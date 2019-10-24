@@ -10,12 +10,13 @@ mongo_port = 27017
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-round = list(db['rounds'].find({'round_id':374}))[-1]
-diffs = list(db['diffs'].find({'round_id':374}))
+round_id = 418
+round = list(db['rounds'].find({'round_id':round_id}))[-1]
+diffs = list(db['diffs'].find({'round_id':round_id}))
 
 rows, cols = round['tilesPerRow'], round['tilesPerColumn']
 startTime = None
-with open('diff_result_374.csv', 'w') as f:
+with open('diff_result_%d.csv' % round_id, 'w') as f:
 	f.write('time,edges_in_ga,correct_in_ga,edges_in_cog,correct_in_cog,edges_in_both,correct_in_both,create,correct,wrong,ga_precision,cog_precision,both_precision\n')
 	for i, diff in enumerate(diffs):
 		ga_edges, hints = json.loads(diff['ga_edges']), json.loads(diff['hints'])

@@ -49,8 +49,8 @@ socket.on('roundChanged', function (data) {
         roundDetailJoinButton.removeAttr("disabled");
         renderRoundDetail(round);
     }
-    renderRoundList(roundsList);
     renderRoundPlayers(round);
+    renderRoundList(roundsList);
 });
 
 socket.on('roundPlayersChanged', function (data) {
@@ -421,7 +421,6 @@ function checkRoundStart(round){
 
 function renderRoundPlayers(round) {
     var roundID = round.round_id;
-    console.log(round);
     if (checkRoundStart(round)) {
         return;
     }
@@ -434,7 +433,7 @@ function renderRoundPlayers(round) {
     for (var player of round.players) {
         if (username == player && !(($("element").data('bs.modal') || {}).isShown)) {
             renderRoundDetail(round);
-        }
+        }        
     }
 }
 
@@ -508,6 +507,18 @@ function renderRoundDetail(round) {
             if (round.start_time == '-1' && round.players.length == round.players_num) {
                 startRound(roundID);
             }
+            for (var otherRoundID in roundsIDList) {
+                var roundCardID = roundsIDList[otherRoundID];
+                if (!roundCardID) {
+                    continue;
+                }
+                var roundCard = $('#' + roundCardID);
+                if (parseInt(otherRoundID) !== roundID) {
+                    roundCard.css('display', 'none');
+                } else {
+                    roundCard.css('display', 'block');
+                }
+            }
         }
     }
 
@@ -522,6 +533,7 @@ function renderRoundDetail(round) {
 
 function renderRoundList(data) {
     roundsList = {};
+
     for (var roundID in data) {
         var round = data[roundID];
         var roundID = round.round_id;
@@ -585,6 +597,28 @@ function renderRoundList(data) {
         }
     }
     roundsIDList = newRoundsIDList;
+
+    var waitingRounds = [];
+    for (var roundCardID of roundsIDList) {
+        if (!roundCardID) {
+            continue;
+        }
+        waitingRounds.push(roundCardID);
+    }
+    var showRoundCardID = waitingRounds[Math.floor(Math.random() * waitingRounds.length)];
+    console.log(waitingRounds, showRoundCardID);
+
+    for (var roundCardID of roundsIDList) {
+        if (!roundCardID) {
+            continue;
+        }
+        var roundCard = $('#' + roundCardID);
+        if (roundCardID !== showRoundCardID) {
+            roundCard.css('display', 'none');
+        } else {
+            roundCard.css('display', 'block');
+        }
+    }
 }
 
 function getRoundPlayers(round) {

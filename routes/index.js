@@ -543,6 +543,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, re
             unfinished = unfinished.sort(util.descending("finishPercent"));
             res.render('roundrank', {
                 title: 'Round Rank',
+                endTime: finished && finished.length > 0? finished[0].time: 3600,
                 Finished: finished,
                 Unfinished: unfinished,
                 username: req.session.user.username,

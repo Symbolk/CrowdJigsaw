@@ -286,6 +286,11 @@
         <!-- /.content -->
     </div>
     <script type="text/javascript">
-        getProgress();
+        let endTime = ((hms) => {
+            let [h, m, s] = hms.split(':');
+            return parseInt(h) * 3600 + parseInt(m) * 60 + parseInt(s);
+        })('<%-endTime%>');
+        console.log('<%-endTime%>', endTime);
+        getProgress(endTime);
     </script>
     <% include footer2.html %>

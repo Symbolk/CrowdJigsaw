@@ -11,7 +11,7 @@ mongo_port = 27017
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-round_id = 408
+round_id = 420
 
 Round = list(db['rounds'].find({'round_id': round_id}))[0]
 start_time = int(datetime.datetime.strptime(Round['start_time'], '%Y-%m-%d %H:%M:%S:%f').timestamp())
@@ -35,6 +35,9 @@ for r in records:
 		'not_willing_to_share_reason': '',
 		'click_share_info': False,
 		'click_share_info_time': "",
+		'click_hint_count': 0,
+		'click_hint_time': [],
+		'guess_click_count': 0,
 		'guess_count': 0,
 		'guess_word': [],
 		'guess_word_time': [],
@@ -68,16 +71,23 @@ for s in surveys:
 			user_stats[username]['satisfy'] = extra['rating']
 		user_stats[username]['willing_next_game'] = extra['nextGame']
 		user_stats[username]['not_willing_next_game_reason'] = extra['reason']
+	elif s['survey_type'] == 'askHelp':
+		user_stats[username]['click_hint_count'] += 1
+		user_stats[username]['click_hint_time'].append(time)
+	elif s['survey_type'] == 'guess_countlick':
+		user_stats[username]['guess_click_count'] += 1
+
 
 with open('survey_result_%d.csv' % round_id, 'w+') as f:
-	f.write('username,willing_to_share,not_willing_to_share_reason,click_share_button,click_guess_count,\
-		hint_count,click_share_button_time,click_hint_time,click_guess_time,guess_words,\
+	f.write('username,willing_to_share,not_willing_to_share_reason,click_share_button,click_guess_count,submit_guess_count,\
+		click_hint_count,click_share_button_time,click_hint_time,click_guess_time,guess_words,\
 		hint_satisfy,willing_next_game,not_willing_next_game_reason,finish_time,score\n')
 	for _, stat in user_stats.items():
-		f.write('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % (
+		f.write('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % (
 				stat['username'], str(stat['willing_to_share']), stat['not_willing_to_share_reason'],
-				str(stat['click_share_info']), str(stat['guess_count']),
-				"", str(stat['click_share_info_time']), "", 
+				str(stat['click_share_info']), str(stat['guess_click_count']), str(stat['guess_count']),
+				str(stat['click_hint_count']), str(stat['click_share_info_time']), 
+				"/".join([str(_) for _ in stat['click_hint_time']]),
 				"/".join([str(_) for _ in stat['guess_word_time']]), "/".join(stat['guess_word']),
 				str(stat['satisfy']), str(stat['willing_next_game']), stat['not_willing_next_game_reason'],
 				str(stat['time_str']), str(stat['score'])
