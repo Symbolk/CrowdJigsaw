@@ -1612,7 +1612,7 @@ function JigsawPuzzle(config) {
             instance.dfsGraphLinksMap[tileIndex][aroundTileIndex] = true;
             var beHinted = (aroundTileIndex == Math.floor(tile.hintedLinks[i]));
             var from = tile.linksFrom[i];
-            if (!beHinted || aroundTileIndex != tile.hintedLinks[i]) {
+            if (!beHinted || instance.gameFinished || !hintDelay || aroundTileIndex != tile.hintedLinks[i]) {
                 instance.subGraphData.push(generateLinksTags(tileIndex, aroundTileIndex, i, beHinted, from));
             }
             dfsGraph(aroundTileIndex);
