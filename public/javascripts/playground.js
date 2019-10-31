@@ -29,6 +29,8 @@ socket.on('create_round_failed', function(data) {
 socket.on('roundChanged', function (data) {
     var round = data.round;
     round.players = data.players;
+    round.active_players = data.active_players || data.players || [];
+    round.active_total_players = data.active_total_players || round.players_num;
     roundsList[data.round_id] = round;
     //console.log(data.round.end_time, parseInt($('#rounddetail_id').text()));
     if(data.round.end_time != '-1' && data.round_id == parseInt($('#rounddetail_id').text())){
@@ -59,6 +61,8 @@ socket.on('roundPlayersChanged', function (data) {
         return;
     }
     round.players = data.players;
+    round.active_players = data.active_players || data.players || [];
+    round.active_total_players = data.active_total_players || round.players_num;
     renderRoundPlayers(round);
     if (data.username == username) {
         $.amaran({
@@ -428,14 +432,11 @@ function checkRoundStart(round){
 }
 
 function renderRoundPlayers(round) {
+    renderRoundDetailPlayers(round.active_players, round.active_total_players);
+
     var roundID = round.round_id;
     if (checkRoundStart(round)) {
         return;
-    }
-    var roundCard = null;
-    if (roundsIDList[roundID]) {
-        roundCard = $('#' + roundsIDList[roundID]);
-        roundCard.find('.roundcard-num').text(round.players.length + '/' + round.players_num);
     }
 
     for (var player of round.players) {
@@ -443,6 +444,24 @@ function renderRoundPlayers(round) {
             renderRoundDetail(round);
         }        
     }
+}
+
+function renderRoundDetailPlayers(active_players, active_total_players) {
+    var roundDetailPlayerList = $('#rounddetail_playerlist');
+    roundDetailPlayerList.empty();
+
+    var roundDetailProgress = $('#rounddetail_progress');
+    //roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
+    roundDetailProgress.css('width', (100 * active_players.length / active_total_players) + '%');
+    roundDetailProgress.text(active_players.length + '/' + active_total_players);
+
+    for (var player of active_players) {
+        var li = $($('#rounddetail_li_template').html());
+        li.find('.player-name').text(player);
+        li.appendTo('#rounddetail_playerlist');
+    }
+
+    $('.roundcard-num').text(active_players.length + '/' + active_total_players);
 }
 
 function renderRoundDetail(round) {
@@ -458,7 +477,6 @@ function renderRoundDetail(round) {
     var roundDetailCreator = $('#rounddetail_author');
     var roundDetailCreateTime = $('#rounddetail_createtime');
     var roundDetailShapeImage = $('#rounddetail_shape_image');
-    var roundDetailProgress = $('#rounddetail_progress');
 
     var roundDetailLevel = $('#rounddetail_level');
     var img = new Image();
@@ -487,19 +505,11 @@ function renderRoundDetail(round) {
 
     roundDetailLevel.text('Level' + round.level);
 
-    var roundDetailPlayerList = $('#rounddetail_playerlist');
-    roundDetailPlayerList.empty();
+
     roundDetailJoinButton.text('Join');
     roundDetailCancelButton.text('Close');
 
-    //roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
-    roundDetailProgress.css('width', (100 * round.players.length / round.players_num) + '%');
-    roundDetailProgress.text(round.players.length + '/' + round.players_num);
     for (var player of round.players) {
-        var li = $($('#rounddetail_li_template').html());
-        li.find('.player-name').text(player);
-        li.appendTo('#rounddetail_playerlist');
-
         if (player == username) {
             if (round.creator == username) {
                 roundDetailJoinButton.text('Start!');
@@ -636,8 +646,10 @@ function getRoundPlayers(round) {
         dataType: 'json',
         cache: false,
         timeout: 5000,
-        success: function (players) {
-            round.players = players;
+        success: function (data) {
+            round.players = data.players;
+            round.active_players = data.active_players || data.players || [];
+            round.active_total_players = data.active_total_players;
             renderRoundPlayers(round);
         },
         error: function (jqXHR, textStatus, errorThrown) {
@@ -714,7 +726,7 @@ function quitRound(roundID) {
 }
 
 function joinRound(roundID) {
-    socket.emit('joinRound', {round_id:roundID, username: username});
+    socket.emit('joinMinPlayersRound', {round_id:roundID, username: username});
 }
 
 function startRound(roundID) {

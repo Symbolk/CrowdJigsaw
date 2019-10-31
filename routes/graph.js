@@ -284,7 +284,7 @@ function computeScore(round_id, edge, tilesPerRow, player_name){
 var averageTime = 0.0;
 var updateTimes = 0;
 
-function distributed_update(data) {
+async function distributed_update(data) {
     let time = (new Date()).getTime();
     saveAction(data.round_id, time, data.player_name, data.edges, data.logs, data.is_hint);
     let redis_players_key = 'round:' + data.round_id + ':distributed:players';
@@ -358,7 +358,7 @@ function generateEdgeMap(nodesAndHints, edges_saved) {
     nodesAndHints.edgeMap = edgeMap;
 }
 
-function update(data) {
+async function update(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
     let redis_key = 'round:' + roundID;
@@ -368,7 +368,7 @@ function update(data) {
         } else if (round_json) {
             let round = JSON.parse(round_json);
             let redis_key = 'round:' + roundID + ':edges';
-            redis.get(redis_key, function (err, edges_json) {
+            redis.get(redis_key, async function (err, edges_json) {
                 if (err) {
                     console.log(err);
                 } else {
@@ -486,8 +486,7 @@ function update(data) {
                     generateHints(nodesAndHints);
                     checkUnsureHints(nodesAndHints);
                     generateEdgeMap(nodesAndHints, edges_saved);
-                    computeCog(roundID, edges_saved, time, round.tilesPerRow, round.tilesPerColumn, nodesAndHints);
-                    
+                    await computeCog(roundID, edges_saved, time, round.tilesPerRow, round.tilesPerColumn, nodesAndHints);
                     redis.set(redis_key, JSON.stringify(edges_saved));
                 }
             });
@@ -495,11 +494,11 @@ function update(data) {
     });
 }
 
-function updateForGA(data) {
+async function updateForGA(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
     let redis_key = 'round:' + roundID + ':edges:ga';
-    redis.get(redis_key, function (err, doc) {
+    redis.get(redis_key, async function (err, doc) {
         if (err) {
             console.log(err);
         } else {
@@ -568,17 +567,21 @@ function updateForGA(data) {
                 }
             }
             if (data.algorithm === 'distribute') {
-                computeCog(data.round_id, edges_saved, Date.now(), data.tilesPerRow, data.tilesPerColumn, null);
+                await computeCog(data.round_id, edges_saved, Date.now(), data.tilesPerRow, data.tilesPerColumn, null);
             }
             redis.set(redis_key, JSON.stringify(edges_saved));
         }
     });
 }
 
-function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
+async function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
     var totalLinks = 2 * tilesPerRow * tilesPerColumn - tilesPerRow -tilesPerColumn;
     var completeLinks = 0;
     var correctLinks = 0;
+    var totalHints = 0;
+
+    var allPlayersTotalLinks = 0;
+    var allPlayersCorrectLinks = 0;
 
     var brief_edges_saved = {};
     for (var e in edges_saved) {
@@ -607,15 +610,18 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
             oLen: oLen
         }
         if (sLen > 0) {
+            allPlayersTotalLinks += sLen;
             completeLinks += 1;
             if(edge.tag == 'L-R'){
                 if(edge.x + 1 == edge.y && edge.y % tilesPerRow != 0){
                     correctLinks += 1;
+                    allPlayersCorrectLinks += sLen;
                 }
             }
             else{
                 if(edge.x + tilesPerColumn == edge.y){
                     correctLinks += 1;
+                    allPlayersCorrectLinks += sLen;
                 }
             }
         }
@@ -625,6 +631,11 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
         var correctHints = 0;
         var hints = nodesAndHints.hints;
         for (var i = 0; i < hints.length; i++) {
+            for (var d = 0; d < 4; d++) {
+                if (hints[i][d] >= 0) {
+                    totalHints += 1;
+                }
+            }
             if(i % tilesPerRow < tilesPerRow - 1){ //right
                 if (i + 1 == hints[i][1] && i == hints[i+1][3]) {
                     correctHints += 1;
@@ -638,6 +649,33 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
         }
     }
 
+    let gaLinks = 0;
+    let gaCorrectLinks = 0;
+    let gaEdgesJson = await redis.getAsync('round:' + roundID + ':GA_edges');
+    let gaEdges = null;
+    if (gaEdgesJson) {
+        gaEdges = JSON.parse(gaEdgesJson);
+        gaLinks = gaEdges.length;
+        for (let i = 0; i < gaEdges.length; i++) {
+            let e = gaEdges[i];
+            let [l, r] = e.split('-');
+            let x = parseInt(l.substr(0, l.length - 1));
+            let tag = r[0] == 'R'? 'L-R': 'T-B';
+            let y = parseInt(r.substr(1));
+            console.log(e, x, tag, y);
+            if(tag == 'L-R'){
+                if(x + 1 == y && y % tilesPerRow != 0){
+                    gaCorrectLinks += 1;
+                }
+            }
+            else{
+                if(x + tilesPerColumn == y){
+                    gaCorrectLinks += 1;
+                }
+            }
+        }
+    }
+
     var Cog = {
         round_id: roundID,
         time: time,
@@ -645,7 +683,7 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
         correctHints: correctHints? correctHints: null,
         completeLinks: completeLinks,
         totalLinks: totalLinks,
-        ga_edges: nodesAndHints? nodesAndHints.GA_edges: null,
+        ga_edges: gaEdges? gaEdges: null,
         nodes: nodesAndHints? nodesAndHints.nodes: null,
         hints: nodesAndHints? nodesAndHints.hints: null,
         edges_saved: brief_edges_saved,
@@ -659,9 +697,14 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
         let brief_cog = {
             time: Math.round(time),
             correctHints: correctHints? correctHints: -1,
+            totalHints: totalHints / 2,
             correctLinks: correctLinks,
             completeLinks: completeLinks,
             totalLinks: totalLinks,
+            allPlayersTotalLinks: allPlayersTotalLinks,
+            allPlayersCorrectLinks: allPlayersCorrectLinks,
+            gaLinks,
+            gaCorrectLinks,
         }
         if (last) {
             let last_cog = JSON.parse(last);

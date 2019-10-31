@@ -11,7 +11,7 @@ mongo_port = 27017
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-round_id = 420
+round_id = 435
 
 Round = list(db['rounds'].find({'round_id': round_id}))[0]
 start_time = int(datetime.datetime.strptime(Round['start_time'], '%Y-%m-%d %H:%M:%S:%f').timestamp())
@@ -74,7 +74,7 @@ for s in surveys:
 	elif s['survey_type'] == 'askHelp':
 		user_stats[username]['click_hint_count'] += 1
 		user_stats[username]['click_hint_time'].append(time)
-	elif s['survey_type'] == 'guess_countlick':
+	elif s['survey_type'] == 'guessClick':
 		user_stats[username]['guess_click_count'] += 1
 
 
