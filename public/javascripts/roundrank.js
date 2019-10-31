@@ -180,6 +180,7 @@ function renderProgress(coglist) {
                 }
             }
         },
+        color: ['#ee1d24', '#aba000', '#000', '#00aeef', '#2f3192', '#00a650'],
         legend: {
             data:['correctHints','correctLinks','totalLinks','completeLinks', 'gaCompleteLinks', 'gaCorrectLinks']
         },
@@ -213,42 +214,78 @@ function renderProgress(coglist) {
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#ee1d24',
+                        width: 2
+                    }
+                }
             },
             {
                 name:'correctLinks',
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#aba000',
+                        width: 2
+                    }
+                }
             },
             {
                 name:'totalLinks',
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#000',
+                        width: 2
+                    }
+                }
             },
             {
                 name:'completeLinks',
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#00aeef',
+                        width: 2
+                    }
+                }
             },
             {
                 name:'gaCompleteLinks',
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#2f3192',
+                        width: 2
+                    }
+                }
             },
             {
                 name:'gaCorrectLinks',
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#00a650',
+                        width: 2
+                    }
+                }
             }
         ]
     };
@@ -309,27 +346,46 @@ function renderPrecision(coglist) {
                 type : 'value'
             }
         ],
-        series : [
+        color: ['#aba000', '#ee1d24', '#00a650'],
+        series: [
             {
                 name:`all links' precision`,
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#aba000',
+                        width: 2
+                    }
+                }
             },
             {
                 name:`strong links' precision`,
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#ee1d24',
+                        width: 2
+                    }
+                }
             },
             {
                 name:`ga links' precision`,
                 type:'line',
                 data:[],
                 symbol: 'none',
-                smooth: true
+                smooth: true,
+                lineStyle: {
+                    normal: {
+                        color: '#00a650',
+                        width: 2
+                    }
+                }
             }
         ]
     };

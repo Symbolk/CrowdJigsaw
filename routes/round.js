@@ -68,7 +68,7 @@ async function saveScore(round_id) {
 }
 
 function getRoundFinishTime(startTime) {
-    let finishTime = Math.floor(((new Date()).getTime() - startTime) / 1000);
+    let finishTime = Math.floor((Date.now() - startTime) / 1000);
     let hours = Math.floor(finishTime / 3600);
     let minutes = Math.floor((finishTime - hours * 3600) / 60);
     let seconds = finishTime - hours * 3600 - minutes * 60;
@@ -692,7 +692,7 @@ module.exports = function (io) {
     });
 
     router.route('/progress/:round_id').all(LoginFirst).get(async function (req, res, next) {
-        var round_id = req.params.round_id;
+        let round_id = req.params.round_id;
         let redis_key = 'round:' + round_id + ':coglist';
         let coglist = await redis.lrangeAsync(redis_key, 0, -1);
         if (coglist.length > 0) {
@@ -719,6 +719,50 @@ module.exports = function (io) {
             }
             res.json(coglist);
         });
+    });
+
+    router.route('/ga_solve/:round_id').get(async function(req, res, next) {
+        let round_id = req.params.round_id;
+
+        let start_time = undefined;
+        let roundJSON = await redis.getAsync('round:' + round_id);
+        if (roundJSON) {
+            try {
+                let round = JSON.parse(roundJSON);
+                start_time = Date.parse(round.start_time);
+            }
+            catch (error) {
+                start_time = null;
+            }
+        }
+
+        let finish_time = start_time? getRoundFinishTime(start_time): null;
+
+        let record = {
+            username: 'GeneticAlgorithm' + round_id,
+            round_id: round_id,
+            time: finish_time,
+            end_time: util.getNowFormatDate()
+        }
+        RecordModel.findOne({
+            username: 'GeneticAlgorithm' + round_id,
+            round_id: round_id
+        }, function (err, doc) {
+            if (err) {
+                console.log(err);
+            }
+            console.log(doc);
+            if (doc) {
+                res.send('duplicate');
+                return;
+            }
+            RecordModel.create(record, function (err) {
+                if (err) {
+                    console.log(err);
+                }
+                res.send('success');
+            });
+        })
     });
 
     router.route('/getRoundPlayers/:round_id').all(LoginFirst).get(async function (req, res, next) {
