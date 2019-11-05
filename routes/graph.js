@@ -13,6 +13,11 @@ const Promise = require('bluebird');
 const redis = require('redis').createClient();
 var roundNodesAndHints = {};
 
+
+var updateGALock = false;
+var updateLock = false;
+var updateDistributeLock = false;
+
 /**
  * Calculate the contribution according to the alpha decay function
  * num_before can be sup or opp
@@ -284,7 +289,23 @@ function computeScore(round_id, edge, tilesPerRow, player_name){
 var averageTime = 0.0;
 var updateTimes = 0;
 
-async function distributed_update(data) {
+async function distributedUpdateWrapper(data) {
+    if (!data._id) {
+        data._id =  Date.now();
+    }
+    if (updateDistributeLock) {
+        console.log('distributedUpdate ' + data._id + ' Waiting');
+        setImmediate(distributedUpdateWrapper, data);
+        return;
+    }
+    console.log('distributedUpdate ' + data._id + ' Started');
+    updateDistributeLock = true;
+    await distributedUpdate(data);
+    updateDistributeLock = false;
+    console.log('distributedUpdate ' + data._id + ' Ended');
+}
+
+async function distributedUpdate(data) {
     let time = (new Date()).getTime();
     saveAction(data.round_id, time, data.player_name, data.edges, data.logs, data.is_hint);
     let redis_players_key = 'round:' + data.round_id + ':distributed:players';
@@ -356,6 +377,22 @@ function generateEdgeMap(nodesAndHints, edges_saved) {
         };
     }
     nodesAndHints.edgeMap = edgeMap;
+}
+
+async function updateWrapper(data) {
+    if (!data._id) {
+        data._id =  Date.now();
+    }
+    if (updateLock) {
+        console.log('update ' + data._id + ' Waiting');
+        setImmediate(updateWrapper, data);
+        return;
+    }
+    console.log('update ' + data._id + ' Started');
+    updateLock = true;
+    await update(data);
+    updateLock = false;
+    console.log('update ' + data._id + ' Ended');
 }
 
 async function update(data) {
@@ -481,6 +518,22 @@ async function update(data) {
     let nowTime = Date.now();
     await computeCog(roundID, edges_saved, nowTime, round.tilesPerRow, round.tilesPerColumn, nodesAndHints);
     await redis.setAsync('round:' + roundID + ':edges', JSON.stringify(edges_saved));
+}
+
+async function updateForGAWrapper(data) {
+    if (!data._id) {
+        data._id =  Date.now();
+    }
+    if (updateGALock) {
+        console.log('updateForGA ' + data._id + ' Waiting');
+        setImmediate(updateForGAWrapper, data);
+        return;
+    }
+    console.log('updateForGA ' + data._id + ' Started');
+    updateGALock = true;
+    await updateForGA(data);
+    updateGALock = false;
+    console.log('updateForGA ' + data._id + ' Ended');
 }
 
 async function updateForGA(data) {
@@ -879,15 +932,15 @@ function getPlayersData(data) {
 module.exports = function (io) {
     io.on('connection', function (socket) {
         socket.on('uploadForGA', function (data) {
-            updateForGA(data);
+            updateForGAWrapper(data);
         });
 
         socket.on('distributed_upload', function (data) {
-            distributed_update(data);
+            distributedUpdateWrapper(data);
         });
 
         socket.on('upload', function (data) {
-            update(data);
+            updateWrapper(data);
         });
 
         socket.on('distributed_fetchHints', async function(data) {

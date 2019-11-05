@@ -1971,10 +1971,6 @@ function JigsawPuzzle(config) {
                 if (!yTile.allAroundByTiles) {
                     instance.getHintsArray[linksData.y] = true;
                 }
-                if (instance.gameFinished) {
-                    var puzzleSize = tilesPerRow * tilesPerColumn;
-                    linksData.size = puzzleSize * puzzleSize * puzzleSize;
-                }
                 if (instance.conflictEdgesTimesMap[key]) {
                     hintsConflict.push({
                         edge: key,
