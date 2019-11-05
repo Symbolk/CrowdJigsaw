@@ -294,15 +294,16 @@ async function distributedUpdateWrapper(data) {
         data._id =  Date.now();
     }
     if (updateDistributeLock) {
-        console.log('distributedUpdate ' + data._id + ' Waiting');
         setImmediate(distributedUpdateWrapper, data);
         return;
     }
-    console.log('distributedUpdate ' + data._id + ' Started');
+    let delay = Date.now() - data._id;
+    if (delay > 10) {
+        console.log('distributedUpdate scheduled delay: ' + delay);
+    }
     updateDistributeLock = true;
     await distributedUpdate(data);
     updateDistributeLock = false;
-    console.log('distributedUpdate ' + data._id + ' Ended');
 }
 
 async function distributedUpdate(data) {
@@ -384,15 +385,16 @@ async function updateWrapper(data) {
         data._id =  Date.now();
     }
     if (updateLock) {
-        console.log('update ' + data._id + ' Waiting');
         setImmediate(updateWrapper, data);
         return;
     }
-    console.log('update ' + data._id + ' Started');
+    let delay = Date.now() - data._id;
+    if (delay > 10) {
+        console.log('update scheduled delay: ' + delay);
+    }
     updateLock = true;
     await update(data);
     updateLock = false;
-    console.log('update ' + data._id + ' Ended');
 }
 
 async function update(data) {
@@ -525,15 +527,16 @@ async function updateForGAWrapper(data) {
         data._id =  Date.now();
     }
     if (updateGALock) {
-        console.log('updateForGA ' + data._id + ' Waiting');
         setImmediate(updateForGAWrapper, data);
         return;
     }
-    console.log('updateForGA ' + data._id + ' Started');
+    let delay = Date.now() - data._id;
+    if (delay > 10) {
+        console.log('updateForGA scheduled delay: ' + delay);
+    }
     updateGALock = true;
     await updateForGA(data);
     updateGALock = false;
-    console.log('updateForGA ' + data._id + ' Ended');
 }
 
 async function updateForGA(data) {
