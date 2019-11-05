@@ -243,8 +243,12 @@ module.exports = function (io) {
         }
 
         socket.on('joinMinPlayersRound', async function (data) {
+            let alreadyJoined = await redis.sismemberAsync('active_players', data.username);
+            if (alreadyJoined) {
+                return;
+            }
+
             let activeRoundAndPlayersNum = await redis.zrangeAsync('active_round', 0, -1, 'WITHSCORES');
-            console.log(activeRoundAndPlayersNum);
 
             let activeRoundFullRate = [];
             for (let i = 0; i < activeRoundAndPlayersNum.length; i += 2) {
@@ -428,8 +432,6 @@ module.exports = function (io) {
                             RecordModel.update(condition, operation, function (err, doc) {
                                 if (err) {
                                     console.log(err);
-                                } else {
-                                    console.log(data.player_name + ' saves his record');
                                 }
                             });
 
@@ -594,8 +596,6 @@ module.exports = function (io) {
             RecordModel.update(condition, operation, function (err, doc) {
                 if (err) {
                     console.log(err);
-                } else {
-                    console.log(data.player_name + ' saves his record: ' + contri.toFixed(3));
                 }
             });
         });
@@ -751,7 +751,6 @@ module.exports = function (io) {
             if (err) {
                 console.log(err);
             }
-            console.log(doc);
             if (doc) {
                 res.send('duplicate');
                 return;
