@@ -462,7 +462,6 @@ function JigsawPuzzle(config) {
     this.conflictEdgesTimesMap = {};
 
     this.subGraphDataQueue = new Array();
-    this.subGraphDataQueue_FIFO = true;
 
     this.conflictGroupHasBeenMoveAway = false;
 
@@ -1997,7 +1996,7 @@ function JigsawPuzzle(config) {
                 player_name: player_name,
                 algorithm: algorithm,
                 round_id: roundID,
-                time: time,
+                time: Date.now(),
                 edges: edges,
                 tilesPerRow: tilesPerRow,
                 tilesPerColumn: tilesPerColumn,
@@ -2039,27 +2038,15 @@ function JigsawPuzzle(config) {
             return;
         }
 
-        if(instance.subGraphDataQueue_FIFO){
-            for (var i = 0; i < instance.subGraphDataQueue.length - 1; i++) {
-                var olderGraphData = instance.subGraphDataQueue[i];
-                for (var j = i + 1; j < instance.subGraphDataQueue.length; j++) {
-                    var newerGraphData = instance.subGraphDataQueue[j];
-                    for (var key in olderGraphData.edges){
-                        if (key in newerGraphData.edges){
-                            olderGraphData.edges[key] = newerGraphData.edges[key];
-                            delete newerGraphData.edges[key];
-                        }
-                    }
-                }
-            }
-        }
-        else{
-            var newestGraphData = instance.subGraphDataQueue[instance.subGraphDataQueue.length - 1];
-            for (var i = 0; i < instance.subGraphDataQueue.length - 1; i++) {
-                var olderGraphData = instance.subGraphDataQueue[i];
-                for (var key in newestGraphData.edges){
-                    if (key in olderGraphData.edges){
-                        delete olderGraphData.edges[key];
+        var nowTime = Date.now();
+        for (var i = 0; i < instance.subGraphDataQueue.length - 1; i++) {
+            var olderGraphData = instance.subGraphDataQueue[i];
+            for (var j = i + 1; j < instance.subGraphDataQueue.length; j++) {
+                var newerGraphData = instance.subGraphDataQueue[j];
+                for (var key in olderGraphData.edges){
+                    if (key in newerGraphData.edges){
+                        olderGraphData.edges[key] = newerGraphData.edges[key];
+                        delete newerGraphData.edges[key];
                     }
                 }
             }
@@ -2067,7 +2054,7 @@ function JigsawPuzzle(config) {
         
         while (instance.subGraphDataQueue.length > 0) {
             var param = instance.subGraphDataQueue[0];
-            if(instance.gameFinished || time - param.time >= uploadDelayTime){
+            if(instance.gameFinished || (nowTime - param.time) / 1000 >= uploadDelayTime){
                 edges_count = Object.getOwnPropertyNames(param.edges).length;
                 if(edges_count > 0){
                     var event_name = algorithm == 'distribute' ?
