@@ -336,7 +336,7 @@ function initNewRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        if (playersNum == '1') {
+        if (playersNum == '0') {
             if (imgSrc) {
                 var thumbStr = '_thumb';
                 var thumbIndex = imgSrc.indexOf(thumbStr);
