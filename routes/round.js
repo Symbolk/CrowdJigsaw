@@ -105,6 +105,8 @@ function LoginFirst(req, res, next) {
     next();
 }
 
+let joinRoundLock = {};
+
 function startGA(round_id){
     var http = require('http');  
     http.get(dev.GA_server + '/ga?data_server=localhost&round_id=' + round_id, (resp) => {
@@ -239,10 +241,31 @@ module.exports = function (io) {
             let active_round_count = await redis.zcardAsync('active_round');
             if (!active_round_count) {
                 await redis.delAsync('active_total_players');
+                await redis.delAsync('active_players');
             }
         }
 
-        socket.on('joinMinPlayersRound', async function (data) {
+        async function joinRound(data, round_id) {
+            var TIME = util.getNowFormatDate();
+            createRecord(data.username, round_id, TIME);
+            let redis_key = 'round:' + round_id + ':players';
+            await redis.saddAsync(redis_key, data.username);
+            await redis.saddAsync('active_players', data.username);
+            let players = await redis.smembersAsync(redis_key);
+            let active_players = await redis.smembersAsync('active_players');
+            io.sockets.emit('roundPlayersChanged', {
+                players: players,
+                active_players: active_players,
+                active_total_players: await getActiveTotalPlayers(),
+                username: data.username,
+                round_id: round_id,
+                action: "join",
+                title: "JoinRound",
+                msg: 'You just join round'
+            });
+        }
+
+        async function joinMinPlayersRound(data) {
             let alreadyJoined = await redis.sismemberAsync('active_players', data.username);
             if (alreadyJoined) {
                 return;
@@ -266,44 +289,26 @@ module.exports = function (io) {
             let selectedRoundID = activeRoundFullRate[0].roundID;
             console.log(activeRoundFullRate, selectedRoundID);
 
-            var TIME = util.getNowFormatDate();
-            createRecord(data.username, selectedRoundID, TIME);
-            let redis_key = 'round:' + selectedRoundID + ':players';
-            await redis.saddAsync(redis_key, data.username);
-            await redis.saddAsync('active_players', data.username);
-            let players = await redis.smembersAsync(redis_key);
-            let active_players = await redis.smembersAsync('active_players');
-            io.sockets.emit('roundPlayersChanged', {
-                players: players,
-                active_players: active_players,
-                active_total_players: await getActiveTotalPlayers(),
-                username: data.username,
-                round_id: selectedRoundID,
-                action: "join",
-                title: "JoinRound",
-                msg: 'You just join round'
-            });
+            await joinRound(data, selectedRoundID);
+        }
 
+        async function joinRoundWrapper(data, func) {
+            if (joinRoundLock[data.username]) {
+                setImmediate(joinRoundWrapper, data, func);
+                return;
+            }
+            joinRoundLock[data.username] = true;
+            await func(data);
+            joinRoundLock[data.username] = false;
+        }
+
+
+        socket.on('joinMinPlayersRound', async (data) => { 
+            await joinRoundWrapper(data, joinMinPlayersRound)
         });
 
-        socket.on('joinRound', async function (data) {
-            var TIME = util.getNowFormatDate();
-            createRecord(data.username, data.round_id, TIME);
-            let redis_key = 'round:' + data.round_id + ':players';
-            await redis.saddAsync(redis_key, data.username);
-            await redis.saddAsync('active_players', data.username);
-            let players = await redis.smembersAsync(redis_key);
-            let active_players = await redis.smembersAsync('active_players');
-            io.sockets.emit('roundPlayersChanged', {
-                players: players,
-                active_players: active_players,
-                active_total_players: await getActiveTotalPlayers(),
-                username: data.username,
-                round_id: data.round_id,
-                action: "join",
-                title: "JoinRound",
-                msg: 'You just join round'
-            });
+        socket.on('joinRound', async (data) => { 
+            await joinRoundWrapper(data, joinRound)
         });
 
         socket.on('quitRound', async function (data) {

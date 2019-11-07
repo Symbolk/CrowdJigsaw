@@ -234,7 +234,7 @@ schedule.scheduleJob('0 0 * * * *', function () {
     var condition = {
         end_time: "-1"
     };
-    RoundModel.find(condition, function (err, docs) {
+    RoundModel.find(condition, async function (err, docs) {
             if (err) {
                 console.log(err);
             }
@@ -247,6 +247,7 @@ schedule.scheduleJob('0 0 * * * *', function () {
                         round.end_time = "-2"; // not ended but killed
                         round.save();
                         console.log("Autoclose Round" + round.round_id);
+                        await redis.zremAsync('active_round', round.round_id);
                     }
                 }
             }

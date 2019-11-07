@@ -14,9 +14,9 @@ const redis = require('redis').createClient();
 var roundNodesAndHints = {};
 
 
-var updateGALock = false;
-var updateLock = false;
-var updateDistributeLock = false;
+var updateGALock = {};
+var updateLock = {};
+var updateDistributeLock = {};
 
 /**
  * Calculate the contribution according to the alpha decay function
@@ -293,7 +293,7 @@ async function distributedUpdateWrapper(data) {
     if (!data._id) {
         data._id =  Date.now();
     }
-    if (updateDistributeLock) {
+    if (updateDistributeLock[data.round_id]) {
         setImmediate(distributedUpdateWrapper, data);
         return;
     }
@@ -301,9 +301,9 @@ async function distributedUpdateWrapper(data) {
     if (delay > 10) {
         console.log('distributedUpdate scheduled delay: ' + delay);
     }
-    updateDistributeLock = true;
+    updateDistributeLock[data.round_id] = true;
     await distributedUpdate(data);
-    updateDistributeLock = false;
+    updateDistributeLock[data.round_id] = false;
 }
 
 async function distributedUpdate(data) {
@@ -384,7 +384,7 @@ async function updateWrapper(data) {
     if (!data._id) {
         data._id =  Date.now();
     }
-    if (updateLock) {
+    if (updateLock[data.round_id]) {
         setImmediate(updateWrapper, data);
         return;
     }
@@ -392,9 +392,9 @@ async function updateWrapper(data) {
     if (delay > 10) {
         console.log('update scheduled delay: ' + delay);
     }
-    updateLock = true;
+    updateLock[data.round_id] = true;
     await update(data);
-    updateLock = false;
+    updateLock[data.round_id] = false;
 }
 
 async function update(data) {
@@ -526,7 +526,7 @@ async function updateForGAWrapper(data) {
     if (!data._id) {
         data._id =  Date.now();
     }
-    if (updateGALock) {
+    if (updateGALock[data.round_id]) {
         setImmediate(updateForGAWrapper, data);
         return;
     }
@@ -534,9 +534,9 @@ async function updateForGAWrapper(data) {
     if (delay > 10) {
         console.log('updateForGA scheduled delay: ' + delay);
     }
-    updateGALock = true;
+    updateGALock[data.round_id] = true;
     await updateForGA(data);
-    updateGALock = false;
+    updateGALock[data.round_id] = false;
 }
 
 async function updateForGA(data) {
