@@ -247,7 +247,7 @@ schedule.scheduleJob('0 0 * * * *', function () {
                         round.end_time = "-2"; // not ended but killed
                         round.save();
                         console.log("Autoclose Round" + round.round_id);
-                        await redis.zremAsync('active_round', round.round_id);
+                        await redisClient.zremAsync('active_round', round.round_id);
                     }
                 }
             }

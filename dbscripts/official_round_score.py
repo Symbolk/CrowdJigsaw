@@ -11,7 +11,7 @@ mongo_port = 27017
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-official_rounds = set(r['round_id'] for r in db["rounds"].find({'official': True}))
+official_rounds = set(r['round_id'] for r in db["rounds"].find({'official': True, 'round_id': {'$gt': 530}}))
 print(official_rounds)
 
 user_map = defaultdict(lambda: {
@@ -25,14 +25,18 @@ for record in official_records:
 		user_map[record['username']]['score'] += record['score'] if record['score'] > 0 else 0
 		user_map[record['username']]['round'].add(record['round_id'])
 
-
+all_users = list(db['users'].find())
 print(user_map)
-for username, data in user_map.items():
+for user in all_users:
+	username = user['username']
+	round_attend, total_score = (len(user_map[username]['round']), 
+		user_map[username]['score']) if username in user_map else (0, 0)
 	db['users'].update_one(
 		{'username': username}, 
-		{'$set': {'round_attend': len(data['round']), 'total_score': data['score']}})
+		{'$set': {'round_attend': round_attend, 'total_score': total_score}})
 
 
+'''
 class_map = defaultdict(lambda: {
 	'players': set(),
 	'score': 0})
@@ -56,3 +60,4 @@ with open('userscore.csv', 'w+') as f:
 		f.write('%s,%s,%s\n' % (username, str(round_attended), str(total_score)))
 
 
+'''
