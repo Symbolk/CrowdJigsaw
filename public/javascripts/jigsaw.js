@@ -708,7 +708,11 @@ function JigsawPuzzle(config) {
     }
 
     this.focusToCenter = function () {
-        view.scrollBy(instance.centerPoint - view.center / 1.25);
+        instance.currentZoom = 1;
+        /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? instance.zoom(-0.5) : instance.zoom(-0.1);
+        for (var i = 0; i < 10; i++) {
+            view.scrollBy(instance.centerPoint - view.center / 1.25);
+        }
     }
 
     this.calcHintedTile = function () {
@@ -3507,7 +3511,7 @@ function JigsawPuzzle(config) {
     }
     
     this.resetPlace = function () {
-                normalizeTiles();
+        normalizeTiles();
         instance.hintsShowing = true;
 
         var groupsArray = new Array();
@@ -3598,7 +3602,7 @@ function JigsawPuzzle(config) {
 
         var disRatio = 1;
         for(var i=0;i<groupsArray.length;i++){
-            if(groupsArray.length == maxGroupNum)
+            if(groupsArray[i].length == maxGroupNum)
                 continue;
             for(var k=0;k<groupsArray[i].groupTiles.length;k++){
                 groupsArray[i].groupTiles[k].picking = true;
