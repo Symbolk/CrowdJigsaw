@@ -284,6 +284,7 @@ function computeScore(round_id, edge, tilesPerRow, player_name){
         redis.zincrby(redis_key + ':remove_hinted_wrong_link', 1, player_name);
     }
     redis.zincrby(redis_key, score, player_name);
+    redis.zincrby('active_scoreboard', score, player_name);
 }
 
 var averageTime = 0.0;

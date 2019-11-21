@@ -230,10 +230,18 @@ if (server) {
 var schedule = require('node-schedule');
 var RoundModel = require('./models/round').Round;
 //once an hour
-schedule.scheduleJob('0 0 * * * *', function () {
+schedule.scheduleJob('0 0 * * * *', async function () {
     var condition = {
         end_time: "-1"
     };
+    var removeActiveRound = async () => {
+        let active_round_count = await redisClient.zcardAsync('active_round');
+        if (!active_round_count) {
+            await redisClient.delAsync('active_total_players');
+            await redisClient.delAsync('active_players');
+            await redisClient.delAsync('active_scoreboard');
+        }
+    }
     RoundModel.find(condition, async function (err, docs) {
             if (err) {
                 console.log(err);
@@ -250,7 +258,9 @@ schedule.scheduleJob('0 0 * * * *', function () {
                         await redisClient.zremAsync('active_round', round.round_id);
                     }
                 }
+                await removeActiveRound();
             }
         }
     );
+    await removeActiveRound();
 });

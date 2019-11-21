@@ -49,6 +49,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
         var username = '<%-username-%>';
         var round_id = '<%-round_id-%>';
         var players_num = '<%-players_num-%>';
+        players_num = parseInt(players_num);
         scoreboard = JSON.parse(scoreboard);
 
         console.log(scoreboard);
@@ -60,7 +61,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
         var player3 = '';
         for (var i = 0; i < scoreboard.length; i += 2) {
             if (username == scoreboard[i]) {
-                defeat_num = players_num - 1 - i / 2;
+                console.log(i, scoreboard.length);
+                defeat_num = (1 - (i + 2) / scoreboard.length) * 100;
+                console.log(defeat_num);
                 my_score = scoreboard[i+1]
             }
             if (i == 0) {
@@ -420,7 +423,7 @@ desired effect
         document.getElementById('player1').innerText = player1;
         document.getElementById('player2').innerText = player2;
         document.getElementById('player3').innerText = player3;
-        var defeat_html = "You defeated " + defeat_num + " people. <br> Your score is " + my_score + ". ";
+        var defeat_html = "You defeated " + defeat_num + "% of players. <br> Your score is " + my_score + ". ";
         document.getElementById('defeat_message').innerHTML = defeat_html;
     </script>
 

@@ -454,7 +454,7 @@ function renderRoundDetailPlayers(active_players, active_total_players) {
     //roundDetailProgress.MaterialProgress.setProgress(100*round.players.length/round.players_num);
     roundDetailProgress.css('width', (100 * active_players.length / active_total_players) + '%');
     roundDetailProgress.text(active_players.length + '/' + active_total_players);
-
+    active_players.sort();
     for (var player of active_players) {
         var li = $($('#rounddetail_li_template').html());
         li.find('.player-name').text(player);

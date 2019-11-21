@@ -646,7 +646,7 @@ router.route('/statistics').all(LoginFirst).get(function (req, res) {
 
 router.route('/award/:round_id').all(LoginFirst).get(function (req, res) {
     let round_key = 'round:' + req.params.round_id;
-    let scoreboard_key = 'round:' + req.params.round_id + ':scoreboard';
+    let scoreboard_key = 'active_scoreboard';
     Promise.join(redis.getAsync(round_key),
         redis.zrevrangeAsync(scoreboard_key, 0, -1, 'WITHSCORES'))
     .then(function(results){
