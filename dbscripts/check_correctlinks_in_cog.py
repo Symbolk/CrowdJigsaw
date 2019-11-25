@@ -7,8 +7,7 @@ mongo_port = 27017
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-def generate_single_file(round_id, row, column, bound):
-	cogs = list(db['cogs'].find({"round_id":545}))
+def generate_single_file(round_id, cogs, row, column, bound):
 	oppo = {
 		'left': 'right',
 		'up': 'bottom',
@@ -47,17 +46,23 @@ def generate_single_file(round_id, row, column, bound):
 	result = []
 	for c in cogs:
 		nodes = c['nodes']
+		if not nodes:
+			continue
 		hints = [[-1, -1, -1, -1] for _ in range(row * column)]
 		for x, dirs in enumerate(nodes):
 			for d, data in dirs.items():
 				if 'indexes' not in data:
 					continue
 				indexes = data['indexes']
-				max_con, max_i = bound, None
+				max_con, max_i = 0, None
+				second_con = 0
 				for idx, val in indexes.items():
 					if val['confidence'] > max_con:
+						second_con = max(max_con, second_con)
 						max_con, max_i = val['confidence'], idx
-				if max_i:
+					elif val['confidence'] > second_con:
+						second_con = val['confidence']
+				if max_i and max_con >= bound and second_con < 0.8 * max_con:
 					hints[x][d2i[d]] = int(max_i)
 		single_total = 0
 		single_correct = 0
@@ -71,7 +76,7 @@ def generate_single_file(round_id, row, column, bound):
 						single_correct += 1
 		result.append((single_total, single_correct, 0 if not single_total else single_correct / single_total))
 	with open('single_precision_%d_%s.csv' % (round_id, str(bound)), 'w+') as f:
-		f.write('total,correct,precision\n')
+		f.write('total,correct,precision_%s\n' % str(bound))
 		for single_total, single_correct, precision in result:
 			f.write('%d,%d,%s\n' % (single_total, single_correct, str(precision)))
 
@@ -79,6 +84,9 @@ rounds = list(db['rounds'].find({'official': True, 'round_id': {'$gt': 400}, 'so
 for r in rounds:
 	round_id, row, column = int(r['round_id']), int(r['tilesPerRow']), int(r['tilesPerColumn'])
 	print(round_id, row, column)
-	generate_single_file(round_id, row, column, 0.9)
+	cogs = list(db['cogs'].find({"round_id":round_id}))
+	generate_single_file(round_id, cogs, row, column, 0)
+	generate_single_file(round_id, cogs, row, column, 0.618)
+	generate_single_file(round_id, cogs, row, column, 0.9)
 
 client.close()

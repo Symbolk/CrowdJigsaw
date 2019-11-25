@@ -708,10 +708,12 @@ function JigsawPuzzle(config) {
     }
 
     this.focusToCenter = function () {
-        instance.currentZoom = 1;
-        /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? instance.zoom(-0.5) : instance.zoom(-0.1);
+        if (instance.currentZoom > 0.9) {
+            instance.currentZoom = 1;
+            /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? instance.zoom(-0.5) : instance.zoom(-0.1);
+        }
         for (var i = 0; i < 10; i++) {
-            view.scrollBy(instance.centerPoint - view.center / 1.25);
+            view.scrollBy(instance.centerPoint - view.center / 1 + new Point(window.innerWidth / 2, window.innerHeight / 10));
         }
     }
 
@@ -3600,7 +3602,6 @@ function JigsawPuzzle(config) {
 
         clusterCenter.x = centerGroup[0].x;
         clusterCenter.y = centerGroup[0].y;
-        instance.centerPoint = clusterCenter*instance.tileWidth;
         for(var i=0;i<groupsArray.length;i++){
             groupsArray[i].xdis = (groupsArray[i].x-clusterCenter.x)*instance.tileWidth;
             groupsArray[i].ydis = (groupsArray[i].y-clusterCenter.y)*instance.tileWidth;
@@ -3631,7 +3632,8 @@ function JigsawPuzzle(config) {
         }
         
         instance.groupsArray = groupsArray;
-        this.focusToCenter();
+        instance.centerPoint = clusterCenter*instance.tileWidth;
+        instance.focusToCenter();
         //normalizeTiles();
     }
 }
@@ -3901,6 +3903,10 @@ $(document).ready(function(e) {
 function showIntro() {
     introJs().setOptions({
         steps: [
+            {
+                element: '#reset_button',
+                intro: "点击将所有拼图块向中心聚拢"
+            },
             {
                 element: '#share_button',
                 intro: "点击选择是否分享拼图信息给他人"
