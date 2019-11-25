@@ -3422,7 +3422,7 @@ function JigsawPuzzle(config) {
     /*
     *找到位置并聚拢
     */
-    function clusterTile(group,centerx,centery,disRatio) {
+    function clusterTile(group,centerx,centery,disRatio,isCenter) {
         var centerCellPositionX = Math.round(centerx/instance.tileWidth);
         var centerCellPositionY = Math.round(centery/instance.tileWidth);
         var origindis = group.dis;
@@ -3438,7 +3438,7 @@ function JigsawPuzzle(config) {
             group.groupTiles[k].originPosition = group.groupTiles[k].cellPosition;
         }
         //已经在中间了
-        if(Math.abs(prex-centerCellPositionX)<=1 && Math.abs(prey-centerCellPositionY)<=1){     
+        if(Math.abs(prex-centerCellPositionX)<=1 && Math.abs(prey-centerCellPositionY)<=1 || isCenter == true){     
             group.destination = firstTile.position/instance.tileWidth;
             group.times = 60;
             group.desDiff = (group.destination * instance.tileWidth - 
@@ -3494,7 +3494,6 @@ function JigsawPuzzle(config) {
             origindis = newdis;
             isConflicted = checkResetPlaceConflict(group.groupTiles,new Point(Math.round((firstTile.position.x+offsetdx)/instance.tileWidth),
                 Math.round((firstTile.position.y+offsetdy)/instance.tileWidth)));
-
         }
         des.x = Math.round((group.groupTiles[0].position.x+rawoffsetx)/instance.tileWidth);
         des.y = Math.round((group.groupTiles[0].position.y+rawoffsety)/instance.tileWidth);;
@@ -3573,7 +3572,9 @@ function JigsawPuzzle(config) {
                 ydis: minCenterDisY,
                 cosa:idxMinCenterDis==0?0:Math.abs(minCenterDisX)/idxMinCenterDis,
                 sina:idxMinCenterDis==0?0:Math.abs(minCenterDisY)/idxMinCenterDis,
-                dis: idxMinCenterDis
+                dis: idxMinCenterDis,
+                puzzleCenterdis:idxMinCenterDis,
+                isCenter:false
             };
             groupsArray.push(group);
         }
@@ -3584,11 +3585,22 @@ function JigsawPuzzle(config) {
             instance.tiles[i].picking = false;   
         }
 
+        var centerGroup = new Array();
+        for(var i=0;i<groupsArray.length;i++){
+            if(groupsArray[i].groupTiles.length == maxGroupNum){
+                centerGroup.push(groupsArray[i]);
+            }
+        }
+        centerGroup.sort(function (a,b){
+            return a.puzzleCenterdis - b.puzzleCenterdis;
+        });
+        centerGroup[0].isCenter = true;
+        
         var clusterCenter = new Point(0,0);
 
-        clusterCenter.x = (maxGroupleftTopPoint.x+maxGrouprightBottomPoint.x)/2;
-        clusterCenter.y = (maxGroupleftTopPoint.y+maxGrouprightBottomPoint.y)/2;
-
+        clusterCenter.x = centerGroup[0].x;
+        clusterCenter.y = centerGroup[0].y;
+        instance.centerPoint = clusterCenter*instance.tileWidth;
         for(var i=0;i<groupsArray.length;i++){
             groupsArray[i].xdis = (groupsArray[i].x-clusterCenter.x)*instance.tileWidth;
             groupsArray[i].ydis = (groupsArray[i].y-clusterCenter.y)*instance.tileWidth;
@@ -3602,15 +3614,13 @@ function JigsawPuzzle(config) {
 
         var disRatio = 1;
         for(var i=0;i<groupsArray.length;i++){
-            if(groupsArray[i].length == maxGroupNum)
-                continue;
             for(var k=0;k<groupsArray[i].groupTiles.length;k++){
                 groupsArray[i].groupTiles[k].picking = true;
             }
             if(i>0){
                 disRatio = (groupsArray[i-1].dis==0?1:groupsArray[i].dis / groupsArray[i-1].dis);
             }
-            clusterTile(groupsArray[i],clusterCenter.x*instance.tileWidth,clusterCenter.y*instance.tileWidth,disRatio);
+            clusterTile(groupsArray[i],clusterCenter.x*instance.tileWidth,clusterCenter.y*instance.tileWidth,disRatio,groupsArray[i].isCenter);
             for(var k=0;k<groupsArray[i].groupTiles.length;k++){
                 groupsArray[i].groupTiles[k].picking = false;
             }
@@ -3621,6 +3631,7 @@ function JigsawPuzzle(config) {
         }
         
         instance.groupsArray = groupsArray;
+        this.focusToCenter();
         //normalizeTiles();
     }
 }
