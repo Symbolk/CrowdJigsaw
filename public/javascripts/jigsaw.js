@@ -3775,9 +3775,32 @@ $('#share-toggle-button').on('click', function (event) {
     $('#share_toggle_dialog').modal('hide');
 });
 
+var resetPlaceStep = 0;
 $('#reset_button').on('click', function (event) {
+    if (puzzle.steps === resetPlaceStep) {
+        $.amaran({
+            'title': 'Warning',
+            'message': 'Too frequent!',
+            'inEffect': 'slideRight',
+            'cssanimationOut': 'zoomOutUp',
+            'position': "top right",
+            'delay': 2000,
+            'closeOnClick': true,
+            'closeButton': true
+        });
+        return;
+    }
+    resetPlaceStep = puzzle.steps;
     $('#undo_button').css('display', 'none');
-    puzzle.resetPlace();
+    $('#showhints_msgLabel').text('1分钟内拼图块将聚拢。如果超过1分钟仍无响应，请关闭网页重新打开。');
+    $('#show_hints_dialog').modal({
+        keyboard: false,
+        backdrop: 'static',
+    });
+    setTimeout(function () {
+        puzzle.resetPlace();
+        $('#show_hints_dialog').modal('hide');
+    }, 500);
 });
 
 $('#quit_button').on('click', function (event) {

@@ -259,6 +259,7 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
                     multiPlayer: dev.multiPlayer,
                     multiPlayerServer: dev.multiPlayerServer,
                     singlePlayerServer: dev.singlePlayerServer,
+                    normalPlayerCreateRound: dev.normalPlayerCreateRound,
                 });
             }
         }

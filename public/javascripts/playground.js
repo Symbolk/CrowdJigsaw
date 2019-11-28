@@ -361,7 +361,7 @@ function initNewRoundDialog() {
         numSlider.change(function() {
             var num = parseInt($(this).val());
             console.log(num);
-            if(num > 1) {
+            if(num > 100) {
                 $('#admin_key_div').css('display', 'inline');
             } else {
                 $('#admin_key_div').css('display', 'none');
@@ -370,7 +370,9 @@ function initNewRoundDialog() {
         $('#official').css('display', 'none');
         $('#puzzle_difficult_div').css('display', 'none');
         $('#algorithm_radio_row').css('display', 'none');
-        $('#player_num_div').css('display', 'none');
+        if (!normalPlayerCreateRound) {
+            $('#player_num_div').css('display', 'none');
+        }
         $('#newround_table').css('display', 'none');
     }
     sizeSlider.slider({

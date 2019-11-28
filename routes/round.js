@@ -136,7 +136,7 @@ module.exports = function (io) {
          * Create a new round
          */
         socket.on('newRound', function (data) {
-            if (data.players_num > 1 && 
+            if (data.players_num > 100 && 
                 data.admin != true && data.key != dev.admin_key) {
                 console.log(data.key, dev.admin_key);
                 socket.emit('create_round_failed', {

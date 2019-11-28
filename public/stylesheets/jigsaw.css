@@ -185,10 +185,12 @@ canvas[resize]{
     left: 20px;
 }
 
+#timer_wrap {
+    position: fixed;
+    top: 30px;
+    left: 25px;
+}
+
 #timer{
     font-size: 40px;
-    position: absolute;
-    top: 25px;
-    left: 20px;
-    height: auto;
 }
