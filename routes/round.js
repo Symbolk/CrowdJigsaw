@@ -205,12 +205,16 @@ module.exports = function (io) {
                             await redis.setAsync(redis_key, JSON.stringify(doc));
                             await redis.delAsync('round:' + doc.round_id + ':scoreboard');
                             await redis.delAsync('round:' + doc.round_id + ':players');
-                            await addActiveRound(doc.round_id, doc.players_num);
-                           
+
+                            if (data.players_num > 1) {
+                                await addActiveRound(doc.round_id, doc.players_num);
+                            }
+                            
                             redis_key = 'round:' + doc.round_id + ':players';
                             await redis.saddAsync(redis_key, data.username);
-                            await redis.saddAsync('active_players', data.username);
-
+                            if (data.players_num > 1) {
+                                await redis.saddAsync('active_players', data.username);
+                            }
                             console.log(data.username + ' creates Round' + index);
                             let players = [data.username];
                             let active_players = await redis.smembersAsync('active_players');

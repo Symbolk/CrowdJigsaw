@@ -3927,10 +3927,6 @@ function showIntro() {
     introJs().setOptions({
         steps: [
             {
-                element: '#reset_button',
-                intro: "点击将所有拼图块向中心聚拢"
-            },
-            {
                 element: '#share_button',
                 intro: "点击选择是否分享拼图信息给他人"
             },
