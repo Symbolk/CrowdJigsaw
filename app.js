@@ -4,7 +4,6 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var redis = require("redis")
 const session = require('express-session');
 var RedisStore = require('connect-redis')(session);
 const ejs = require('ejs');
@@ -14,11 +13,9 @@ var gm = require('gm');
 var config; // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
+const redis = require('./redis');
 var FileStreamRotator = require('file-stream-rotator');
 
-var Promise = require("bluebird");
-Promise.promisifyAll(redis);
-const redisClient = require('redis').createClient();
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -147,9 +144,9 @@ if (server) {
     // update the image paths to database: "images/raw/starter_thumb.png"
     // empty the last database and save the latest
     for (let i = 1; i < 11; i++) {
-        redisClient.del('image:' + i); 
+        redis.del('image:' + i); 
         for (let j = 1; j < 101; j++) {
-            redisClient.del('image:' + i + ':' + j);
+            redis.del('image:' + i + ':' + j);
         }  
     }
     ImagesModel.remove({}, function (err) {
@@ -166,7 +163,7 @@ if (server) {
                         if (num != undefined && num !== 10) {
                             return;
                         }
-                        let difficult = await redisClient.hgetAsync('gaps:images:difficult', item.split('_')[0].split('/')[2])
+                        let difficult = await redis.hgetAsync('gaps:images:difficult', item.split('_')[0].split('/')[2])
                         difficult = difficult ? difficult : 0;
                         if (num) {
                             ImagesModel.create({
@@ -179,8 +176,8 @@ if (server) {
                                     console.log(err);
                                 } else if (num <= 10) {
                                     real_path = item.split('_')[0] + '_' + num + 'x' + num + '.jpg';
-                                    redisClient.sadd('jigsaw_image', real_path);
-                                    redisClient.sadd('jigsaw_image:' + difficult, real_path);
+                                    redis.sadd('jigsaw_image', real_path);
+                                    redis.sadd('jigsaw_image:' + difficult, real_path);
                                 }
                             });
                         }
@@ -235,11 +232,11 @@ schedule.scheduleJob('0 0 * * * *', async function () {
         end_time: "-1"
     };
     var removeActiveRound = async () => {
-        let active_round_count = await redisClient.zcardAsync('active_round');
+        let active_round_count = await redis.zcardAsync('active_round');
         if (!active_round_count) {
-            await redisClient.delAsync('active_total_players');
-            await redisClient.delAsync('active_players');
-            await redisClient.delAsync('active_scoreboard');
+            await redis.delAsync('active_total_players');
+            await redis.delAsync('active_players');
+            await redis.delAsync('active_scoreboard');
         }
     }
     RoundModel.find(condition, async function (err, docs) {
@@ -255,7 +252,7 @@ schedule.scheduleJob('0 0 * * * *', async function () {
                         round.end_time = "-2"; // not ended but killed
                         round.save();
                         console.log("Autoclose Round" + round.round_id);
-                        await redisClient.zremAsync('active_round', round.round_id);
+                        await redis.zremAsync('active_round', round.round_id);
                     }
                 }
                 await removeActiveRound();

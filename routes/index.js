@@ -11,7 +11,7 @@ var crypto = require('crypto');
 var util = require('./util.js');
 var PythonShell = require('python-shell');
 
-const redis = require('redis').createClient();
+const redis = require('../redis');
 const Promise = require('bluebird');
 
 const SECRET = "CrowdIntel";

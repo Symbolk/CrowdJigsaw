@@ -10,7 +10,7 @@ var CogModel = require('../models/cog').Cog;
 var util = require('./util.js');
 var dev = require('../config/dev');
 var images = require("images");
-const redis = require('redis').createClient();
+const redis = require('../redis');
 const Promise = require('bluebird');
 
 async function saveScore(round_id) {

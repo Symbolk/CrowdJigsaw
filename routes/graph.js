@@ -10,7 +10,7 @@ var util = require('./util.js');
 var constants = require('../config/constants');
 var dirs = ['top', 'right', 'bottom', 'left'];
 const Promise = require('bluebird');
-const redis = require('redis').createClient();
+const redis = require('../redis');
 var roundNodesAndHints = {};
 
 
