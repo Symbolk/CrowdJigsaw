@@ -10,6 +10,7 @@ var UserSchema = new mongoose.Schema({
     admin: { type: Boolean, default: false }, // only admin can new rounds&see images
     round_attend: { type: Number, default: 0 },
     total_score: { type: Number, default: 0 },
+    after_class_score: { type: Number, default: 0 },
 }, { collection: 'users' });
 
 // UserSchema.set('collection', 'users');

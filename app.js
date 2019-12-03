@@ -221,6 +221,26 @@ if (server) {
     });
 }
 
+var PythonShell = require('python-shell');
+function ComputeOfficialScore() {
+    var options = {
+        mode: 'text',
+        pythonPath: 'python3',
+        pythonOptions: ['-u'], // get print results in real-time
+        scriptPath: '/Users/weiyuhan/git/CrowdJigsaw/dbscripts'
+    };
+    let pyshell = new PythonShell('official_round_score.py', options);
+    pyshell.on('message', function (message) {
+        // received a message sent from the Python script (a simple "print" statement)
+        console.log(message);
+    });
+    // end the input stream and allow the process to exit
+    pyshell.end(function (err,code,signal) {
+        if (err){
+            console.log(err);
+        }
+    });
+}
 /**
  * A schedule job to clear the endless rounds
  */
@@ -231,6 +251,7 @@ schedule.scheduleJob('0 0 * * * *', async function () {
     var condition = {
         end_time: "-1"
     };
+    ComputeOfficialScore();
     var removeActiveRound = async () => {
         let active_round_count = await redis.zcardAsync('active_round');
         if (!active_round_count) {

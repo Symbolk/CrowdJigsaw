@@ -8,7 +8,7 @@ mongoose.Promise = require('bluebird');
 */
 var options = {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useMongoClient: true,
     // auth: { authdb: 'CrowdJigsaw' },
     // user: config.user,
     // pass: config.pass

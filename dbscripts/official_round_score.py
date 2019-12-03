@@ -11,29 +11,47 @@ mongo_port = 27017
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-official_rounds = set(r['round_id'] for r in db["rounds"].find({'official': True, 'round_id': {'$gt': 530}}))
-print(official_rounds)
-
 user_map = defaultdict(lambda: {
 	'round': set(),
-	'score': 0})
+	'score': 0,
+	'after_class_score': 0})
+
+official_rounds = list(db["rounds"].find({'official': True, 'round_id': {'$gt': 530}}))
+official_round_ids = set(r['round_id'] for r in official_rounds)
+round_map = dict()
+for r in official_rounds:
+	round_map[r['round_id']] = r
+print(official_round_ids)
+
 official_records = db["records"].find()
 for record in official_records:
-	if record['round_id'] not in official_rounds:
+	if record['round_id'] not in official_round_ids:
 		continue
 	if record['round_id'] not in user_map[record['username']]['round']:
-		user_map[record['username']]['score'] += record['score'] if record['score'] > 0 else 0
+		creator = round_map[record['round_id']]['creator']
+		score = record['score']
+		if not creator.startswith('wyh'):
+			r = round_map[record['round_id']]
+			solved_players, rows = r['solved_players'], r['tilesPerRow']
+			if solved_players:
+				score = 10 * (1.5 if record['username'] == creator else 1) * \
+							r['players_num'] * ((rows - 5) // 10)
+				user_map[record['username']]['after_class_score'] += score if score > 0 else 0
+		user_map[record['username']]['score'] += score if score > 0 else 0
 		user_map[record['username']]['round'].add(record['round_id'])
 
 all_users = list(db['users'].find())
-print(user_map)
 for user in all_users:
 	username = user['username']
-	round_attend, total_score = (len(user_map[username]['round']), 
-		user_map[username]['score']) if username in user_map else (0, 0)
+	round_attend, total_score, after_class_score = (len(user_map[username]['round']), 
+		user_map[username]['score'], user_map[username]['after_class_score']
+		) if username in user_map else (0, 0, 0)
 	db['users'].update_one(
 		{'username': username}, 
-		{'$set': {'round_attend': round_attend, 'total_score': total_score}})
+		{'$set': {
+		'round_attend': round_attend, 
+		'total_score': total_score,
+		'after_class_score': after_class_score}})
 
 
 '''
