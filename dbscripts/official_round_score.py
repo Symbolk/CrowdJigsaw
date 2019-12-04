@@ -21,7 +21,7 @@ official_round_ids = set(r['round_id'] for r in official_rounds)
 round_map = dict()
 for r in official_rounds:
 	round_map[r['round_id']] = r
-print(official_round_ids)
+#print(official_round_ids)
 
 official_records = db["records"].find()
 for record in official_records:
@@ -35,7 +35,7 @@ for record in official_records:
 			solved_players, rows = r['solved_players'], r['tilesPerRow']
 			if solved_players:
 				score = 10 * (1.5 if record['username'] == creator else 1) * \
-							r['players_num'] * ((rows - 5) // 10)
+							r['players_num'] * ((rows - 5) / 5)
 				user_map[record['username']]['after_class_score'] += score if score > 0 else 0
 		user_map[record['username']]['score'] += score if score > 0 else 0
 		user_map[record['username']]['round'].add(record['round_id'])
@@ -51,7 +51,7 @@ for user in all_users:
 		{'$set': {
 		'round_attend': round_attend, 
 		'total_score': total_score,
-		'after_class_score': after_class_score}})
+		'after_class_score': int(after_class_score)}})
 
 
 '''

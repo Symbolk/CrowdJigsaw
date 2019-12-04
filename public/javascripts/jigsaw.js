@@ -12,7 +12,6 @@ $('#undo_button').css('display', 'none');
 $(document).ready(function () {
     loadReady = true;
 });
-$("#loading").fadeOut();
 
 if (roundID < 0) {
     $('#help_button').css('display', 'none');
@@ -70,7 +69,6 @@ Array.prototype.remove = function (start, end) {
 view.currentScroll = new Point(0, 0);
 var scrollVector = new Point(0, 0);
 var scrollMargin = 32;
-console.log(tilesPerRow, tilesPerColumn, tileWidth);
 $('#puzzle-image').attr('src', imgSrc);
 
 var imgWidth = $('.puzzle-image').css('width').replace('px', '');
@@ -347,9 +345,6 @@ function JigsawPuzzle(config) {
 
     socket.on('gameSaved', function (data) {
         if (data.success == true && data.round_id == roundID && data.player_name == player_name) {
-            console.log("Saved.");
-        } else {
-            console.log(data.err);
         }
     });
 
@@ -586,6 +581,15 @@ function JigsawPuzzle(config) {
         }
 
         instance.gameStarted = true;
+        instance.focusToCenter();
+        var canvasLayer = document.getElementById("canvas");
+        canvasLayer.style.background = "#dddddd";
+        var background = new Shape.Rectangle({
+            rectangle: new Rectangle(0, 0, 63 * tileWidth, 63 * tileWidth),
+            fillColor: 'white'
+        });
+        background.sendToBack();
+        $("#loading").fadeOut();
     }
 
     function refreshAroundTiles(tile, beHinted) {
@@ -713,7 +717,7 @@ function JigsawPuzzle(config) {
             /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent) ? instance.zoom(-0.5) : instance.zoom(-0.1);
         }
         for (var i = 0; i < 10; i++) {
-            view.scrollBy(instance.centerPoint - view.center / 1 + new Point(window.innerWidth / 2, window.innerHeight / 10));
+            view.scrollBy(instance.centerPoint - view.center / 1 + new Point(window.innerWidth / 3.5, window.innerHeight / 20));
         }
     }
 
@@ -820,6 +824,7 @@ function JigsawPuzzle(config) {
             return;
         }
         // randomly select tiles and place them one by one 
+        var offset = new Point(32 - tilesPerColumn + 1, 32 - tilesPerRow / 2);
         for (var y = 0; y < yTileCount; y++) {
             for (var x = 0; x < xTileCount; x++) {
 
@@ -828,14 +833,7 @@ function JigsawPuzzle(config) {
                 var tile = tiles[index2];
                 tileIndexes.remove(index1, 1);
 
-                var position = view.center -
-                    new Point(instance.tileWidth, instance.tileWidth / 2) +
-                    new Point(instance.tileWidth * (x * 2 + ((y % 2))), instance.tileWidth * (y * 1)) -
-                    new Point(instance.puzzleImage.size.width, instance.puzzleImage.size.height / 2);
-
-                var cellPosition = new Point(
-                    Math.round(position.x / instance.tileWidth),//returns int closest to arg
-                    Math.round(position.y / instance.tileWidth));
+                var cellPosition = new Point(x * 2 + (y % 2), y) + offset;
 
                 tile.position = cellPosition * instance.tileWidth; // round position(actual (x,y) in the canvas)
                 tile.cellPosition = cellPosition; // cell position(in which grid the tile is)
@@ -925,7 +923,6 @@ function JigsawPuzzle(config) {
 
                 // tile fixed index/unique id
                 tile.findex = y * xTileCount + x;
-                //console.log(tile.findex);
                 tiles.push(tile);
                 tile.name = "tile-" + tileIndexes.length;
                 tileIndexes.push(tileIndexes.length);
@@ -1258,7 +1255,6 @@ function JigsawPuzzle(config) {
 
                 // tile fixed index/unique id
                 tile.findex = y * xTileCount + x;
-                //console.log(tile.findex);
                 tiles.push(tile);
                 tile.name = "tile-" + tileIndexes.length;
                 tileIndexes.push(tileIndexes.length);
@@ -1429,7 +1425,7 @@ function JigsawPuzzle(config) {
     *restplace的冲突检查
     */
     function checkResetPlaceConflict(tiles, centerCellPosition) {
-        if (Math.abs(centerCellPosition.x) > 70 || Math.abs(centerCellPosition.y) > 50) {
+        if (checkCellPositionOutOfRange(centerCellPosition)) {
             return true;
         }
         var hasConflict = false;
@@ -1438,7 +1434,10 @@ function JigsawPuzzle(config) {
         for (var i = 0; i < tiles.length; i++) {
             var tile = tiles[i];
             var cellPosition = centerCellPosition + tile.relativePosition;
-            
+            if (checkCellPositionOutOfRange(cellPosition)) {
+                return true;
+            }
+
             var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
             hasConflict = alreadyPlacedTile;
             if (!hasConflict) {
@@ -1456,15 +1455,20 @@ function JigsawPuzzle(config) {
         return hasConflict;
     }
 
+    function checkCellPositionOutOfRange(cellPosition) {
+        return !(0 < cellPosition.x && cellPosition.x < 63 &&
+                0 < cellPosition.y && cellPosition.y < 63);
+    }
+
     function checkConflict(tiles, centerCellPosition, selectedGroupTiles) {
-        if (Math.abs(centerCellPosition.x) > 70 || Math.abs(centerCellPosition.y) > 50) {
-            return true;
+        if (checkCellPositionOutOfRange(centerCellPosition)) {
+            return [true];
         }
         var hasConflict = false;
         var needToMove = true;
 
         if (this.allowOverlap)
-            return hasConflict;
+            return [hasConflict];
         var onlyOneTile = (tiles.length == 1);
         for (var i = 0; i < tiles.length; i++) {
             if(hasConflict && !needToMove)
@@ -1473,6 +1477,9 @@ function JigsawPuzzle(config) {
             var tileIndex = getTileIndex(tile);
 
             var cellPosition = centerCellPosition + tile.relativePosition;
+            if (checkCellPositionOutOfRange(cellPosition)) {
+                return [true];
+            }
             var roundPosition = cellPosition * instance.tileWidth;
 
             var alreadyPlacedTile = (getTileAtCellPosition(cellPosition) != undefined);
@@ -1731,13 +1738,9 @@ function JigsawPuzzle(config) {
             survey_type: 'askHelp',
         });
 
-        console.log("Asking for help...");
-        //clearTimeout(instance.askHelpTimeout);
-
         if (mousedowned || instance.hintsShowing) {
             return;
         }
-
 
         var event_name = algorithm == 'distribute' ? 
             'distributed_fetchHints' : 'fetchHints';
@@ -2018,7 +2021,6 @@ function JigsawPuzzle(config) {
 
     function computeGraphData() {
         instance.subGraphData = instance.removeLinksData.concat(instance.subGraphData);
-        //console.log(instance.subGraphData);
         instance.getHintsArray = new Array();
         var hintsConflict = new Array();
         var edges = {};
@@ -2566,7 +2568,6 @@ function JigsawPuzzle(config) {
                 }
             }
         }
-        //console.log(edgeMap);
         return edgeMap;
     }
 
@@ -2577,7 +2578,6 @@ function JigsawPuzzle(config) {
         }
         for (var i = 0; i < edges.length; i++) {
             var e = edges[i];
-            //console.log(e, instance.edgeMap[e]);
             if (instance.edgeMap[e] && Math.random() > instance.edgeMap[e].pro) {
                 continue;
             }
@@ -2614,7 +2614,6 @@ function JigsawPuzzle(config) {
             data.players.sort(sortPlayersByQuality);
             instance.singleArray = new Array();
             for (var i = 0; i < data.players.length; i++) {
-                //console.log(data.players[i].quality);
                 instance.hintedFrom = data.players[i].from;
                 var hints = edgesToHints(data.players[i].edges);
                 data.sureHints = hints;
@@ -3025,9 +3024,7 @@ function JigsawPuzzle(config) {
                 hintTile.relativePosition = new Point(0, 0);
                 hintTile.alreadyHinted = true;
                 hintTile.picking = false;
-                //console.log("put", hintTile.name, "in position", hintTile.cellPosition, hintTile.positionMoved);
             }
-
             for (var i = 0; i < groupTiles.length; i++) {
                 var hintTile = groupTiles[i];
                 refreshAroundTiles(hintTile, true);
@@ -3229,7 +3226,6 @@ function JigsawPuzzle(config) {
         }
         var img = hitResult.item;
         var tile = img.parent.parent;
-        // console.log(tile.name);
         if (tile && tile.name) {
             if (!tile.picking) {
                 finded = true;
@@ -3871,9 +3867,7 @@ function sendRecord(finished, rating) {
     };
     if (!finished) {
         var randomTime = Math.random() * 1000;
-        console.log("saveRecord in " + randomTime + "ms");
         setTimeout(function(){
-            console.log("saveRecord");
             socket.emit('saveRecord', params);
         }, randomTime);
     }
