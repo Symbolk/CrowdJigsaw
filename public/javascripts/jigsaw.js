@@ -1268,7 +1268,7 @@ function JigsawPuzzle(config) {
     }
 
     this.removeSelectedTile = function(point) {
-        if (!instance.draging) {
+        if (!(instance.draging && ctrlDown)) {
             return;
         }
         var hitResult = project.hitTest(point);
@@ -1832,13 +1832,8 @@ function JigsawPuzzle(config) {
             var tilesMoved = false;
             for (var i = 0; i < instance.selectedTile.length; i++) {
                 var tile = instance.selectedTile[i];
-                var cellPosition = undefined;
-                if (hasConflict) {
-                    cellPosition = originCenterCellPostion + tile.relativePosition;
-                }
-                else {
-                    cellPosition = centerCellPosition + tile.relativePosition;
-                }
+                var cellPosition = hasConflict? originCenterCellPostion : centerCellPosition;
+                cellPosition += tile.relativePosition;
                 placeTile(tile, cellPosition);
                 tilesMoved = tilesMoved || tile.positionMoved;
             }
@@ -1894,7 +1889,6 @@ function JigsawPuzzle(config) {
             }
             $('html,body').css('cursor', 'default');
             normalizeTiles();
-
             instance.ctrlDrag = false;
         }
     }
