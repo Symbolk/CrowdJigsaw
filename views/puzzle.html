@@ -114,27 +114,12 @@
                     </div>
                     <div class="modal-body rating-body" style="text-align:center;">
                         <h4 class="text-center text-nowrap text-danger">请选择你对给你推荐的信息的满意度</h4>
-                        <input id="rating" required class="rb-rating" type="text" value="" title="">
+                        <input id="rating" required class="rb-rating hint-rb-rating" type="text" value="" title="">
                         <hr>
-                        <h4 class="text-center text-nowrap text-danger">下次是否还会参加拼图实验？</h4>
-                        <div id="next_game">
-                            <div class="radio icheck-success">
-                                <input type="radio" checked id="next_game_yes" name="next_game"/>
-                                <label for="next_game_yes">
-                                    是
-                                </label>
-                            </div>
-                            <div class="radio icheck-danger">
-                                <input type="radio" id="next_game_no" name="next_game" />
-                                <label for="next_game_no">
-                                    否
-                                </label>
-                            </div>
-                        </div>
-                        <div id="next_game_reason_wraper" style="display: none;">
-                            <h5 class="text-center text-nowrap text-danger">可否告诉我们为什么？</h5>
-                            <textarea id="next_game_reason" style="width: 60%" rows="2"></textarea>
-                        </div>
+                        <h4 class="text-center text-nowrap text-danger">请选择继续参加拼图实验的意愿度</h4>
+                        <input id="next_game_rating" required class="rb-rating next-rb-rating" type="text" value="4" title="">
+                        <h5 class="text-center text-nowrap text-danger">如有建议，请提供</h5>
+                        <textarea id="next_game_reason" style="width: 60%" rows="2"></textarea>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" id="apply-button">
@@ -160,27 +145,12 @@
                     </div>
                     <div class="modal-body rating-body" style="text-align:center;">
                         <h4 class="text-center text-nowrap text-danger">请选择你对给你推荐的信息的满意度</h4>
-                        <input id="rating2" required class="rb-rating" type="text" value="" title="">
+                        <input id="rating2" required class="rb-rating hint-rb-rating" type="text" value="" title="">
                         <hr>
-                        <h4 class="text-center text-nowrap text-danger">下次是否还会参加拼图实验？</h4>
-                        <div id="next_game2">
-                            <div class="radio icheck-success">
-                                <input type="radio" checked id="next_game_yes2" name="next_game2"/>
-                                <label for="next_game_yes2">
-                                    是
-                                </label>
-                            </div>
-                            <div class="radio icheck-danger">
-                                <input type="radio" id="next_game_no2" name="next_game2" />
-                                <label for="next_game_no2">
-                                    否
-                                </label>
-                            </div>
-                        </div>
-                        <div id="next_game_reason_wraper2" style="display: none;">
-                            <h5 class="text-center text-nowrap text-danger">可否告诉我们为什么？</h5>
-                            <textarea id="next_game_reason2" style="width: 60%" rows="2"></textarea>
-                        </div>
+                        <h4 class="text-center text-nowrap text-danger">请选择继续参加拼图实验的意愿度</h4>
+                        <input id="next_game_rating2" required class="rb-rating next-rb-rating" type="text" value="4" title="">
+                        <h5 class="text-center text-nowrap text-danger">如有建议，请提供</h5>
+                        <textarea id="next_game_reason2" style="width: 60%" rows="2"></textarea>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" id="submit-button">

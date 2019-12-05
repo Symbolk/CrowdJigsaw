@@ -11,7 +11,7 @@ mongo_port = 27017
 client =  MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-round_id = 435
+round_id = 605
 
 Round = list(db['rounds'].find({'round_id': round_id}))[0]
 start_time = int(datetime.datetime.strptime(Round['start_time'], '%Y-%m-%d %H:%M:%S:%f').timestamp())
@@ -81,16 +81,19 @@ for s in surveys:
 with open('survey_result_%d.csv' % round_id, 'w+') as f:
 	f.write('username,willing_to_share,not_willing_to_share_reason,click_share_button,click_guess_count,submit_guess_count,\
 		click_hint_count,click_share_button_time,click_hint_time,click_guess_time,guess_words,\
-		hint_satisfy,willing_next_game,not_willing_next_game_reason,finish_time,score\n')
+		hint_satisfy,willing_next_game,not_willing_next_game_reason,finish_time,score,round_id\n')
 	for _, stat in user_stats.items():
-		f.write('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' % (
+		if str(stat['time_str']) == '-1':
+			continue
+
+		f.write('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%d\n' % (
 				stat['username'], str(stat['willing_to_share']), stat['not_willing_to_share_reason'],
 				str(stat['click_share_info']), str(stat['guess_click_count']), str(stat['guess_count']),
 				str(stat['click_hint_count']), str(stat['click_share_info_time']), 
 				"/".join([str(_) for _ in stat['click_hint_time']]),
 				"/".join([str(_) for _ in stat['guess_word_time']]), "/".join(stat['guess_word']),
 				str(stat['satisfy']), str(stat['willing_next_game']), stat['not_willing_next_game_reason'],
-				str(stat['time_str']), str(stat['score'])
-			))
+				str(stat['time_str']), str(stat['score']), round_id)
+			)
 
 

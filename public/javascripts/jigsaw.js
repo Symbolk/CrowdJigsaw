@@ -28,24 +28,6 @@ $('#share_info input').change(function () {
     }
 });
 
-$('#next_game input').change(function () {
-    if ($('#next_game_no').prop("checked")) {
-        $('#next_game_reason_wraper').css('display', 'block');
-    }
-    else {
-        $('#next_game_reason_wraper').css('display', 'none');
-    }
-});
-
-$('#next_game2 input').change(function () {
-    if ($('#next_game_no2').prop("checked")) {
-        $('#next_game_reason_wraper2').css('display', 'block');
-    }
-    else {
-        $('#next_game_reason_wraper2').css('display', 'none');
-    }
-});
-
 
 var hintedLinksNum = undefined;
 var totalHintsNum = 0;
@@ -3643,7 +3625,7 @@ function JigsawPuzzle(config) {
     else{
         $('#apply-button').attr('disabled',"true");
         $('#submit-button').attr('disabled',"true");
-        $('.rb-rating').rating({
+        $('.hint-rb-rating').rating({
             'showCaption': false,
             'showClear': false,
             'stars': '5',
@@ -3653,19 +3635,34 @@ function JigsawPuzzle(config) {
             'size': 'xs',
             // 'starCaptions': { 0: 'NO', 1: 'Too Bad', 2: 'Little Help', 3: 'Just So So', 4: 'Great Help', 5: 'Excellent!' }
         });
+        $('.next-rb-rating').rating({
+            'showCaption': true,
+            'showClear': false,
+            'stars': '5',
+            'min': '0',
+            'max': '5',
+            'step': '1',
+            'size': 'xs',
+            'starCaptions': { 0: '请选择', 1: '非常不愿意', 2: '不愿意', 3: '无所谓', 4: '愿意', 5: '非常愿意' }
+        });
         $('.rb-rating').change(function (event){
-            $('#apply-button').removeAttr("disabled");
-            $('#submit-button').removeAttr("disabled");
+            if ($("#rating").val() && $("#next_game_rating").val()) {
+                $('#apply-button').removeAttr("disabled");
+            }
+            if ($("#rating2").val() && $("#next_game_rating2").val()) {
+                $('#submit-button').removeAttr("disabled");
+            }
         })
     }
     $('#submit-button').click(function (event) {
         // player's rating for the hint(what he thinks about the function)
         var rating = $("#rating2").val();
+        var next_game_rating = $("#next_game_rating2").val();
         sendRecord(true, rating);
         if (roundID >= 0) {
             var extraData = {
                 rating: rating,
-                nextGame: $('#next_game_yes2').prop("checked"), 
+                nextGame: next_game_rating, 
                 reason: $('#next_game_reason2').val(),
             }
             socket.emit('survey', {
@@ -3680,10 +3677,7 @@ function JigsawPuzzle(config) {
             window.location = '/home';
         }
     });
-    $('#survey-button').click(function (event) {
-        // player's rating for the hint(what he thinks about the function)
-        
-    });
+
 
     $('#quit').click(function (event) {
         $('#quitLabel').text('Are You Sure to Quit?');
@@ -3694,11 +3688,12 @@ function JigsawPuzzle(config) {
 
     $('#apply-button').click(function (event) {
         var rating = $("#rating").val();
+        var next_game_rating = $("#next_game_rating").val();
         sendRecord(false, rating);
         if (roundID >= 0) {
             var extraData = {
                 rating: rating,
-                nextGame: $('#next_game_yes').prop("checked"), 
+                nextGame: next_game_rating, 
                 reason: $('#next_game_reason').val(),
             }
             socket.emit('survey', {
