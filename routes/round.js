@@ -9,7 +9,6 @@ var SurveyModel = require('../models/survey').Survey;
 var CogModel = require('../models/cog').Cog;
 var util = require('./util.js');
 var dev = require('../config/dev');
-var images = require("images");
 const redis = require('../redis');
 const Promise = require('bluebird');
 

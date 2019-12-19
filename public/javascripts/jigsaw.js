@@ -13,7 +13,7 @@ $(document).ready(function () {
     loadReady = true;
 });
 
-if (roundID < 0) {
+if (roundID < 0 || players_num == 1) {
     $('#help_button').css('display', 'none');
     $('#guess_button').css('display', 'none');
     $('#share_button').css('display', 'none');
@@ -2492,7 +2492,7 @@ function JigsawPuzzle(config) {
     }
 
     function showVulnerableEdges() {
-        if (!instance.edgeMap) {
+        if (!instance.edgeMap || players_num == 1) {
             return;
         }
         hideAllColorBorder();
