@@ -540,7 +540,7 @@ function JigsawPuzzle(config) {
 
         if (!instance.saveTilePositions) {
             saveGame();
-            if (players_num > 0) {
+            if (players_num > 1) {
                 $('#pregame_survey').modal({
                     keyboard: false,
                     backdrop: 'static',
@@ -3613,7 +3613,7 @@ function JigsawPuzzle(config) {
  * Game Finish
  */
 (function () {
-    if(players_num == 0){
+    if(players_num == 1){
         $('.rating-body').css('display', 'none');
     }
     else{
