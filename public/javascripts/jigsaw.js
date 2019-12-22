@@ -1,10 +1,31 @@
+var wasmWorker = null;
+function wasmWorkerInit() {
+    wasmWorker = new Worker("/wasm/build/clusterWorker.js");
+    wasmWorker.onmessage = function (e) {
+        var data = e.data;
+        switch (data.cmd) {
+            case 'ready':
+                $('#reset_button').css('display', 'block');
+                break;
+            case 'cluster return':
+                puzzle.cppResetPlaceCallback(data.tilePositions, data.funcStartTime);
+                break;
+            default:
+                break;
+        } 
+    };
+}
+wasmWorkerInit();
+
+var wasmTimeoutID = null;
+
+
 var requrl = window.location.protocol + '//' + window.location.host + '/';
 var loadReady = false;
 var socket = io.connect(requrl);
 
 var moveAnimationTime = 15;
 var uploadDelayTime = algorithm == 'distribute'? 5: 5;
-
 
 var undoStep = -1;
 $('#undo_button').css('display', 'none');
@@ -567,7 +588,8 @@ function JigsawPuzzle(config) {
         var canvasLayer = document.getElementById("canvas");
         canvasLayer.style.background = "#dddddd";
         var background = new Shape.Rectangle({
-            rectangle: new Rectangle(0, 0, 63 * tileWidth, 63 * tileWidth),
+            rectangle: new Rectangle(0 * tileWidth, 0 * tileWidth, 
+                63 * tileWidth, 63 * tileWidth),
             fillColor: 'white'
         });
         background.sendToBack();
@@ -3482,6 +3504,63 @@ function JigsawPuzzle(config) {
         }  
 
     }
+
+    this.cppResetPlace = function () {
+        if (instance.hintsShowing) {
+            return;
+        }
+        var funcStartTime = Date.now();
+        normalizeTiles();
+        instance.hintsShowing = true;
+
+        var tilePositions = new Array();
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            tilePositions.push(tile.cellPosition.x);
+            tilePositions.push(tile.cellPosition.y);
+        }
+        var newTilePositions = tilePositions;
+        wasmWorker.postMessage({
+            cmd: 'cluster',
+            tilePositions: tilePositions,
+            tilesPerRow: tilesPerRow, 
+            tilesPerColumn: tilesPerColumn,
+            funcStartTime: funcStartTime,
+        });
+
+        wasmTimeoutID = setTimeout(function () {
+            console.log("webWorker die, restart");
+            wasmWorker.terminate();
+            $('#reset_button').css('display', 'none');
+            $.amaran({
+                'title': 'Some Error Occur',
+                'message': 'Some errors occured, try after several steps!',
+                'inEffect': 'slideRight',
+                'cssanimationOut': 'zoomOutUp',
+                'position': "top right",
+                'closeOnClick': true,
+                'closeButton': true
+            });
+            instance.hintsShowing = false;
+            wasmWorkerInit();
+        }, 500);
+    }
+
+    this.cppResetPlaceCallback = function (tilePositions, funcStartTime) {
+        clearTimeout(wasmTimeoutID);
+
+        for (var i = 0; i < instance.tiles.length; i++) {
+            var tile = instance.tiles[i];
+            var cellPosition = new Point(tilePositions[2 * i], 
+                tilePositions[2 * i + 1]);
+            placeTile(tile, cellPosition);
+        }
+
+        instance.hintsShowing = false;
+        normalizeTiles();
+        var funcEndTime = Date.now();
+        console.log(funcStartTime, funcEndTime, funcEndTime - funcStartTime);
+    }
     
     this.resetPlace = function () {
         normalizeTiles();
@@ -3762,6 +3841,8 @@ $('#share-toggle-button').on('click', function (event) {
 
 var resetPlaceStep = 0;
 $('#reset_button').on('click', function (event) {
+    puzzle.cppResetPlace();
+    /*
     if (puzzle.steps === resetPlaceStep) {
         $.amaran({
             'title': 'Warning',
@@ -3786,6 +3867,7 @@ $('#reset_button').on('click', function (event) {
         puzzle.resetPlace();
         $('#show_hints_dialog').modal('hide');
     }, 500);
+    */
 });
 
 $('#quit_button').on('click', function (event) {

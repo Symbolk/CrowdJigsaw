@@ -1,0 +1,1 @@
+em++ -std=c++11 add_one.cpp -o add_one.js -s WASM=1 -s EXPORTED_FUNCTIONS='["_addOne", "_main"]' -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "getValue", "setValue"]'
