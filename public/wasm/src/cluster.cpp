@@ -14,6 +14,8 @@ int dirs[24][2] = { {0, 1}, {1, 0}, {0, -1}, {-1, 0}, {1, 1}, {-1, 1}, {1, -1}, 
 	{0, -2}, {-2, 0}, {0, 2}, {2, 0}, {-2, 2}, {2, 2}, {2, -2}, {-2, -2},
 	{1, 2},{1, -2}, {-1, 2}, {-1, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2, -1} };
 
+int pos_map[HEIGHT * WIDTH];
+
 struct Tile {
 	int id;
 	int x;
@@ -67,6 +69,9 @@ struct Group {
 
 		keys = new ull[rows];
 		memset(keys, 0, sizeof(ull) * rows);
+		for (int i = 0; i < rows; i++) {
+			keys[i] = 0;
+		}
 		for (auto t : tiles) {
 			keys[t->y - min_r] |= (ull)1 << t->x;
 		}
@@ -125,15 +130,23 @@ struct Group {
 		}
 	}
 
-	void moveTowardCenter(DoublePoint& global_mid, ull* global_keys) {
+	ull* generateExtentedKeys() {
 		ull* extented_keys = new ull[rows + 2];
 		memset(extented_keys, 0, sizeof(ull) * (rows + 2));
+		for (int i = 0; i < rows + 2; i++) {
+			extented_keys[i] = 0;
+		}
 		for (int i = 1; i < rows + 1; i++) {
 			extented_keys[i] = keys[i - 1] | (keys[i - 1] << 1) | (keys[i - 1] >> 1);
 		}
 		for (int i = 0; i < rows + 2; i++) {
 			extented_keys[i] |= (i >= 1 ? extented_keys[i - 1] : 0) | (i <= rows ? extented_keys[i + 1] : 0);
 		}
+		return extented_keys;
+	}
+
+	void moveTowardCenter(DoublePoint& global_mid, ull* global_keys) {
+		ull* extented_keys = generateExtentedKeys();
 		int start = left_top.y - 1;
 		DoublePoint p = mid;
 
@@ -156,8 +169,6 @@ struct Group {
 			}
 		}
 
-		pickGroup(global_keys);
-
 		int cur_x = round(p.x), cur_y = round(p.y);
 		int after_x = cur_x, after_y = cur_y;
 		double cur_dis = distance;
@@ -179,8 +190,12 @@ struct Group {
 
 			cur_dis = computeDistance(p, global_mid);
 		}
+
+		//printf("Move Group with %lu Tiles from (%d, %d) by (%d, %d)\n", tiles.size(), left_top.x, left_top.y, move.x, move.y);
 		placeGroup(global_keys);
 		placeTiles();
+
+		delete[] extented_keys;
 	}
 
 	~Group() {
@@ -188,35 +203,37 @@ struct Group {
 	}
 };
 
-void dfsGroup(Group* group, Tile* t, vector<Tile*>* tiles, int** pos_map) {
+void dfsGroup(Group* group, Tile* t, vector<Tile*>* tiles) {
 	int x = t->x, y = t->y;
-	if (pos_map[y][x] < 0) {
+	if (pos_map[y * WIDTH + x] < 0) {
 		return;
 	}
 	group->tiles.push_back(t);
-	pos_map[y][x] = -2;
+	pos_map[y * WIDTH + x] = -2;
 	for (auto xy : dirs) {
 		int dx = x + xy[0], dy = y + xy[1];
 		if (dx < 0 || dx >= WIDTH || dy < 0 || dy >= HEIGHT) {
 			continue;
 		}
-		int neighbor = pos_map[dy][dx];
+		int neighbor = pos_map[dy * WIDTH + dx];
 		if (neighbor >= 0) {
-			dfsGroup(group, (*tiles)[neighbor], tiles, pos_map);
+			//printf("from %d at (%d, %d) to %d at (%d, %d)\n", t->id, x, y, neighbor, dx, dy);
+			dfsGroup(group, (*tiles)[neighbor], tiles);
 		}
 	}
 }
 
-vector<Group*>* generateGroups(vector<Tile*>* tiles, int** pos_map) {
+vector<Group*>* generateGroups(vector<Tile*>* tiles) {
 	int len = tiles->size();
 	auto groups = new vector<Group*>();
 	for (auto t : *tiles) {
-		if (pos_map[t->y][t->x] < 0) {
+		if (pos_map[t->y * WIDTH + t->x] < 0) {
 			continue;
 		}
 		auto group = new Group();
-		dfsGroup(group, t, tiles, pos_map);
+		dfsGroup(group, t, tiles);
 		groups->push_back(group);
+		//printf("\ngroup size: %lu \n\n", group->tiles.size());
 	}
 	return groups;
 }
@@ -229,10 +246,11 @@ void cluster(Point* tile_positions, int rows, int cols) {
 	int len = rows * cols;
 	auto tiles = new vector<Tile*>;
 	//auto pos_map = new PosMapping(rows, cols);
-	int** pos_map = new int* [HEIGHT];
 	for (int i = 0; i < HEIGHT; ++i) {
-		pos_map[i] = new int[WIDTH];
-		memset(pos_map[i], -1, sizeof(int) * cols);
+		for (int j = 0; j < WIDTH; j++) {
+			pos_map[i * WIDTH + j] = -2;
+		}
+		//memset(pos_map[i], -1, sizeof(int) * cols);
 	}
 
 	int min_r = WIDTH, max_r = 0;
@@ -249,12 +267,14 @@ void cluster(Point* tile_positions, int rows, int cols) {
 		max_c = max(x, max_c);
 
 		Tile* t = new Tile(id, x, y);
+		//t->print();
 		tiles->push_back(t);
-		pos_map[y][x] = id;
+		pos_map[y * WIDTH + x] = id;
 	}
 
+	//printf("\n");
 	DoublePoint mid{ ((double)min_c + max_c) / 2.0, ((double)min_r + max_r) / 2.0 };
-	auto groups = generateGroups(tiles, pos_map);
+	auto groups = generateGroups(tiles);
 	for (auto g : *groups) {
 		g->init();
 		g->refresh_distance(mid);
@@ -278,8 +298,8 @@ void cluster(Point* tile_positions, int rows, int cols) {
 
 	ull* global_keys = new ull[HEIGHT];
 	memset(global_keys, 0, sizeof(ull) * HEIGHT);
-	for (auto g : *groups) {
-		g->placeGroup(global_keys);
+	for (int i = 0; i < HEIGHT; i++) {
+		global_keys[i] = 0;
 	}
 
 	//cluster logic
@@ -305,8 +325,4 @@ void cluster(Point* tile_positions, int rows, int cols) {
 		delete t;
 	}
 	delete tiles;
-	for (int i = 0; i < rows; ++i) {
-		delete[] pos_map[i];
-	}
-	delete[] pos_map;
 }

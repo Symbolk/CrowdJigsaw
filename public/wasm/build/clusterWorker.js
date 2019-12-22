@@ -4,7 +4,7 @@ var wasmCluster = Module.cwrap("cluster", null, ["number", "number", "number"]);
 
 var cppCluster = function (tilePositions, rows, cols) {
     var input_array = new Int32Array(tilePositions);
-
+    
     var len = input_array.length;
     var bytes_per_element = input_array.BYTES_PER_ELEMENT;
     var input_ptr = Module._malloc(2 * len * bytes_per_element);

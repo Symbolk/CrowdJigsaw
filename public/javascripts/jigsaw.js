@@ -5,7 +5,7 @@ function wasmWorkerInit() {
         var data = e.data;
         switch (data.cmd) {
             case 'ready':
-                $('#reset_button').css('display', 'block');
+                $('#reset_button').css('display', 'inline');
                 break;
             case 'cluster return':
                 puzzle.cppResetPlaceCallback(data.tilePositions, data.funcStartTime);
@@ -3549,17 +3549,26 @@ function JigsawPuzzle(config) {
     this.cppResetPlaceCallback = function (tilePositions, funcStartTime) {
         clearTimeout(wasmTimeoutID);
 
+        instance.groupsArray = new Array();
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var cellPosition = new Point(tilePositions[2 * i], 
                 tilePositions[2 * i + 1]);
-            placeTile(tile, cellPosition);
+            //placeTile(tile, cellPosition);
+            var group = {
+                groupTiles: new Array(tile),
+                times: moveAnimationTime,
+                destination: cellPosition,
+            }
+            group.desDiff = (group.destination * instance.tileWidth - 
+                group.groupTiles[0].position) / group.times;
+            instance.groupsArray.push(group);
         }
 
-        instance.hintsShowing = false;
-        normalizeTiles();
+        //instance.hintsShowing = false;
+        //normalizeTiles();
         var funcEndTime = Date.now();
-        console.log(funcStartTime, funcEndTime, funcEndTime - funcStartTime);
+        console.log("cluster time: " + (funcEndTime - funcStartTime) + 'ms');
     }
     
     this.resetPlace = function () {
