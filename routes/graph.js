@@ -406,6 +406,7 @@ async function update(data) {
         return;
     }
     let round = JSON.parse(round_json);
+    let round_finish = round.solved_players > 0;
     let edges_json = await redis.getAsync('round:' + roundID + ':edges');
     let edges_saved = edges_json? JSON.parse(edges_json): {};
     saveAction(roundID, Date.now(), data.player_name, data.edges, data.logs, data.is_hint);
@@ -421,24 +422,32 @@ async function update(data) {
                     //computeScore(roundID, e, round.tilesPerRow, data.player_name);
                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                 } else if (opposers[data.player_name]) {
-                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                     delete opposers[data.player_name];
                 } else {
                     redis.sadd('round:' + roundID + ':first_edges:' + data.player_name, key);
-                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
                     supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                 }
             } else { // e.size<0(e.size==0?)
                 if (supporters[data.player_name]) {
-                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                     delete supporters[data.player_name];
                 } else if (opposers[data.player_name]) {
                     //computeScore(roundID, e, round.tilesPerRow, data.player_name);
                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                 } else {
-                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
                     opposers[data.player_name] = e.size * (e.size / e.nodes);
                 }
             }
@@ -448,11 +457,15 @@ async function update(data) {
             let opposers = {};
             let weight = 0;
             if (e.size > 0) {
-                computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                if (!round_finish) {
+                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                }
                 supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
                 weight += supporters[data.player_name];
             } else {
-                computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                if (!round_finish) {
+                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                }
                 opposers[data.player_name] = e.size * (e.size / e.nodes);
             }
             let confidence = 1;
