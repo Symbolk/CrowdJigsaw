@@ -1,5 +1,8 @@
 var wasmWorker = null;
 function wasmWorkerInit() {
+    if (!Worker || !WebAssembly) {
+        return;
+    }
     wasmWorker = new Worker("/wasm/build/clusterWorker.js");
     wasmWorker.onmessage = function (e) {
         var data = e.data;

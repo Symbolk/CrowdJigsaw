@@ -1,4 +1,64 @@
 <% include header2.html %>
+<script src="/javascripts/jquery.min.js"></script>
+<script src="/javascripts/bootstrap-table.min.js"></script>
+<div id="thanks">
+    <h2>感谢大家一学期的参与</h2>
+    <h4>进行拼图游戏，可访问<a href="pintu.fun">pintu.fun</a></h4>
+</div>
+<div id="user_score_table">
+    <h3>各同学得分</h3>
+    <table data-toggle="table">
+        <thead>
+            <tr>
+                <th data-field="username" data-halign="center" data-align="center">Player Name</th>
+                <th data-field="score" data-halign="center" data-align="center" data-sortable="true">Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% final_user_score.forEach(function(u){ %>
+                <tr>
+                    <td>
+                        <span>
+                            <%- u.username %>
+                        </span>
+                    </td>
+                    <td>
+                        <span>
+                            <%- u.score %>
+                        </span>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<div id="class_score_table">
+    <h3>各班级(学号前7位)得分</h3>
+    <table data-toggle="table">
+        <thead>
+            <tr>
+                <th data-field="class_id" data-halign="center" data-align="center">Player Name</th>
+                <th data-field="score" data-halign="center" data-align="center" data-sortable="true">Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% final_class_score.forEach(function(u){ %>
+                <tr>
+                    <td>
+                        <span>
+                            <%- u.class_id %>
+                        </span>
+                    </td>
+                    <td>
+                        <span>
+                            <%- u.score %>
+                        </span>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
     <script>
         var username = "<%=username%>";
         var admin = "<%=admin%>";
@@ -7,6 +67,10 @@
         var multiPlayerServer = "<%=multiPlayerServer%>";
         var singlePlayerServer = "<%=singlePlayerServer%>";
         var normalPlayerCreateRound = "<%=normalPlayerCreateRound%>";
+        var final_class_score = "<%=final_class_score%>";
+        var final_user_score = "<%=final_user_score%>";
+        var final_show_flag = "<%=final_show_flag%>";
+        console.log(final_show_flag);
         normalPlayerCreateRound = normalPlayerCreateRound === "true"? true: false;
     </script>
     <!-- Content W  rapper. Contains page content -->
@@ -29,10 +93,9 @@
         </section>
 
         <!-- Main content -->
-        <section class="content">
+        <section class="content" id="round_content">
 
             <div class="row col-lg-4" id="round_list"></div>
-            <div class="row">
                 <% if(true){%>
                     <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
                         <!-- Widget: user widget style 1 -->
@@ -137,7 +200,6 @@
                     <% } %>
                             <% include roundimageshower.html %>
     <!-- /.content-wrapper -->
-    <script src="/javascripts/jquery.min.js"></script>
     <script src="/javascripts/bootstrap.min.js"></script>
     <script src="/javascripts/bootstrap-slider.min.js"></script>
 
@@ -218,3 +280,11 @@
                       </tbody>
                     </table>
                 </div>
+<script type="text/javascript">
+    if (final_show_flag === 'true') {
+        $('#user_score_table').css('display', 'block');
+        $('#class_score_table').css('display', 'block');
+        $('#thanks').css('display', 'block');
+        $('#round_content').css('display', 'none');
+    }
+</script>

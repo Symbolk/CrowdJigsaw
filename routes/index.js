@@ -38,7 +38,7 @@ function decrypt(str, secret) {
 
 
 // Get Home Page
-router.route('/').all(LoginFirst).all(Logined).get(function (req, res, next) {
+router.route('/').all(LoginFirst).all(Logined).get(async function (req, res, next) {
     if(!dev.multiPlayer){
 	   return res.redirect('/visitor');
     }
@@ -245,11 +245,17 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
         round_attend: 1,
         after_class_score: 1,
     };
-    UserModel.findOne(selectStr, fields, function (err, doc) {
+    UserModel.findOne(selectStr, fields, async function (err, doc) {
         if (err) {
             console.log(err);
         } else {
             if (doc) {
+                let final_user_score = await redis.getAsync('final_user_score');
+                final_user_score = final_user_score? JSON.parse(final_user_score): [];
+                let final_class_score = await redis.getAsync('final_class_score');
+                final_class_score = final_class_score? JSON.parse(final_class_score): [];
+                let final_show_flag = await redis.getAsync('final_show_flag');
+                final_show_flag = final_show_flag? true: false;
                 req.session.error = 'Welcome! ' + req.session.user.username;
                 res.render('playground', {
                     title: 'Home',
@@ -262,6 +268,9 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
                     multiPlayerServer: dev.multiPlayerServer,
                     singlePlayerServer: dev.singlePlayerServer,
                     normalPlayerCreateRound: dev.normalPlayerCreateRound,
+                    final_class_score: final_class_score,
+                    final_user_score: final_user_score,
+                    final_show_flag: final_show_flag,
                 });
             }
         }

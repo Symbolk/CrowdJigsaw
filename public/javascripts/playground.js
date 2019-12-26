@@ -749,4 +749,3 @@ function startRound(roundID) {
 function startPuzzle(roundID) {
     window.location.href = requrl + 'puzzle?roundID=' + roundID;
 }
-
