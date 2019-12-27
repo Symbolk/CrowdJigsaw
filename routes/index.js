@@ -256,12 +256,30 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
                 final_class_score = final_class_score? JSON.parse(final_class_score): [];
                 let final_show_flag = await redis.getAsync('final_show_flag');
                 final_show_flag = final_show_flag? true: false;
+                let ranking = final_user_score.length;
+                let new_final_user_score = [];
+                let score = 0;
+                if (final_user_score.length > 0) {
+                    for (let i = 0; i < final_user_score.length; i++) {
+                        let u = final_user_score[i];
+                        if (u.username[0] !== '1' || u.username.length != 10) {
+                            continue;
+                        }
+                        if (i < 10) {
+                            new_final_user_score.push(u);
+                        }
+                        if (u.username === doc.username || doc.username.search(/u.username/) >= 0) {
+                            ranking = i + 1;
+                            score = u.score;
+                        }
+                    }
+                }
                 req.session.error = 'Welcome! ' + req.session.user.username;
                 res.render('playground', {
                     title: 'Home',
                     username: doc.username,
                     admin: doc.admin,
-                    total_score: doc.total_score || 0,
+                    total_score: score || doc.total_score || 0,
                     round_attend: doc.round_attend || 0,
                     after_class_score: doc.after_class_score || 0,
                     multiPlayer: dev.multiPlayer,
@@ -269,8 +287,9 @@ router.route('/home').all(LoginFirst).get(function (req, res) {
                     singlePlayerServer: dev.singlePlayerServer,
                     normalPlayerCreateRound: dev.normalPlayerCreateRound,
                     final_class_score: final_class_score,
-                    final_user_score: final_user_score,
+                    final_user_score: new_final_user_score,
                     final_show_flag: final_show_flag,
+                    final_ranking: ranking,
                 });
             }
         }

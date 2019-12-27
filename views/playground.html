@@ -1,12 +1,8 @@
 <% include header2.html %>
 <script src="/javascripts/jquery.min.js"></script>
 <script src="/javascripts/bootstrap-table.min.js"></script>
-<div id="thanks">
-    <h2>感谢大家一学期的参与</h2>
-    <h4>进行拼图游戏，可访问<a href="pintu.fun">pintu.fun</a></h4>
-</div>
 <div id="user_score_table">
-    <h3>各同学得分</h3>
+    <h3>Top10 同学得分</h3>
     <table data-toggle="table">
         <thead>
             <tr>
@@ -59,6 +55,11 @@
         </tbody>
     </table>
 </div>
+<div id="thanks">
+    <h2>感谢大家一学期的参与</h2>
+    <h4>你后半学期的总得分为<%= total_score %>，排名为<%= final_ranking %></h4>
+    <h4>进行拼图游戏，可访问<a href="pintu.fun">pintu.fun</a></h4>
+</div>
     <script>
         var username = "<%=username%>";
         var admin = "<%=admin%>";
@@ -70,7 +71,6 @@
         var final_class_score = "<%=final_class_score%>";
         var final_user_score = "<%=final_user_score%>";
         var final_show_flag = "<%=final_show_flag%>";
-        console.log(final_show_flag);
         normalPlayerCreateRound = normalPlayerCreateRound === "true"? true: false;
     </script>
     <!-- Content W  rapper. Contains page content -->
