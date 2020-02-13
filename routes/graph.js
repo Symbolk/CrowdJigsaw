@@ -11,7 +11,8 @@ var constants = require('../config/constants');
 var dirs = ['top', 'right', 'bottom', 'left'];
 const Promise = require('bluebird');
 const redis = require('../redis');
-var roundNodesAndHints = {};
+let roundNodesAndHints = {};
+let roundFocusGraph = {};
 
 
 var updateGALock = {};
@@ -624,6 +625,23 @@ async function updateForGA(data) {
         await computeCog(data.round_id, edges_saved, Date.now(), data.tilesPerRow, data.tilesPerColumn, null);
     }
     await redis.setAsync(redis_key, JSON.stringify(edges_saved));
+
+    if (!data.focusGraph || !data.preFocusGraph) {
+        return;
+    }
+    let focusGraph = new Set(data.focusGraph);
+    let preFocusGraph = new Set(data.preFocusGraph);
+    if (!roundFocusGraph[data.round_id]) {
+        roundFocusGraph[data.round_id] = {};
+    }
+    preFocusGraph.forEach(idx => {
+        let pre = roundFocusGraph[data.round_id][idx];
+        roundFocusGraph[data.round_id][idx] = pre? pre - 1: pre;
+    });
+    focusGraph.forEach(idx => {
+        let pre = roundFocusGraph[data.round_id][idx];
+        roundFocusGraph[data.round_id][idx] = pre? pre + 1: 1;
+    });
 }
 
 async function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
@@ -962,7 +980,12 @@ module.exports = function (io) {
 
         socket.on('distributed_fetchHints', async function(data) {
             let playersData = await getPlayersData(data);
-            socket.emit('distributed_proactiveHints', playersData);
+            socket.emit('distributed_proactiveHints', {
+                players: playersData.players,
+                edge_sup: playersData.edge_sup,
+                edge_opp: playersData.edge_opp,
+                roundFocusGraph: roundFocusGraph[data.round_id]
+            });
         });
 
         // request global hints
@@ -983,7 +1006,8 @@ module.exports = function (io) {
                     socket.emit('proactiveHints', {
                         sureHints: hints,
                         unsureHints: unsureHints,
-                        edgeMap: nodesAndHints.edgeMap
+                        edgeMap: nodesAndHints.edgeMap,
+                        roundFocusGraph: roundFocusGraph[data.round_id]
                     });
                 });
             }
@@ -997,7 +1021,8 @@ module.exports = function (io) {
                 edge_opp: playersData.edge_opp,
                 indexes: data.indexes,
                 selectedTileIndexes: data.selectedTileIndexes,
-                currentStep: data.currentStep
+                currentStep: data.currentStep,
+                roundFocusGraph: roundFocusGraph[data.round_id]
             });
         });
 
@@ -1022,7 +1047,8 @@ module.exports = function (io) {
                         currentStep: data.currentStep,
                         sureHints: hints,
                         unsureHints: unsureHints,
-                        edgeMap: nodesAndHints.edgeMap
+                        edgeMap: nodesAndHints.edgeMap,
+                        roundFocusGraph: roundFocusGraph[data.round_id]
                     });
                 });
             }

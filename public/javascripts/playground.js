@@ -2,7 +2,6 @@ var socket = io.connect(window.location.protocol + '//' + window.location.host +
 
 var puzzleImageSrcSet = new Set();
 socket.on('thumbnails', function (data) {
-    console.log(data);
     if (data.thumblist.length > 0) {
         data.thumblist.forEach(function (item, index, input) {
             puzzleImageSrcSet.add(item.image_path);
@@ -152,7 +151,6 @@ difficultSlider.slider().on('change',function (event) {
 if(!admin) {
     numSlider.change(function() {
         var num = parseInt($(this).val());
-        console.log(num);
         if(num > 100) {
             $('#admin_key_div').css('display', 'inline');
         } else {
@@ -285,6 +283,10 @@ function initRandomRoundDialog() {
         if ($('#official_checkbox').prop("checked")) {
             official = true;
         }
+        var tileHeat = false;
+        if ($('#tile_heat_checkbox').prop("checked")) {
+            tileHeat = true;
+        }
         var hintDelay = false;
         if ($('#hint_delay_checkbox').prop("checked")) {
             hintDelay = true;
@@ -296,7 +298,7 @@ function initRandomRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
-        postNewRound(null, 0, 0, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable, hintDelay);
+        postNewRound(null, 0, 0, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable, hintDelay, tileHeat);
     });
 
     $('#player_num_div').css('display', 'none');
@@ -354,6 +356,10 @@ function initNewRoundDialog() {
         if ($('#official_checkbox').prop("checked")) {
             official = true;
         }
+        var tileHeat = false;
+        if ($('#tile_heat_checkbox').prop("checked")) {
+            tileHeat = true;
+        }
         var hintDelay = false;
         if ($('#hint_delay_checkbox').prop("checked")) {
             hintDelay = true;
@@ -376,7 +382,7 @@ function initNewRoundDialog() {
             window.location.href = requrl + 'round/random_puzzle/' + size + (imgSrc? '?src=' + imgSrc: '');
         }
         else{
-            postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable, hintDelay);
+            postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable, hintDelay, tileHeat);
         }
     });
 
@@ -701,7 +707,7 @@ function getJoinableRounds() {
     });
 }
 
-function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable, hintDelay) {
+function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, border, algorithm, official, forceLeaveEnable, hintDelay, tileHeat) {
     if (imgSrc) {
         var img = new Image();
         var thumbStr = '_thumb';
@@ -726,6 +732,7 @@ function postNewRound(imgSrc, size, difficult, level, playersNum, shape, edge, b
         official: official,
         forceLeaveEnable: forceLeaveEnable,
         hintDelay: hintDelay,
+        tileHeat: tileHeat,
     };
     if (!admin) {
         param.key = $('#newround_key_input').val();

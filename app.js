@@ -227,7 +227,7 @@ function ComputeOfficialScore() {
         mode: 'text',
         pythonPath: 'python3',
         pythonOptions: ['-u'], // get print results in real-time
-        scriptPath: '/Users/weiyuhan/git/CrowdJigsaw/dbscripts'
+        scriptPath: '/home/weiyuhan/git/CrowdJigsaw/dbscripts'
     };
     let pyshell = new PythonShell('official_round_score.py', options);
     pyshell.on('message', function (message) {

@@ -182,6 +182,45 @@ var ctrlFrame, ctrlFrameFrom, ctrlFrameTo;
 var downTime, alreadyDragged, dragTime, draggingGroup;
 var mousedowned = false;
 var timeoutFunction;
+
+var opacityMem = {};
+function onMouseMove(event) {
+    var instance = puzzle;
+    if (instance && instance.tileWidth && instance.tileHeatMap) {
+        var point = event.point;
+        var x = Math.round(point.x / instance.tileWidth);
+        var y = Math.round(point.y / instance.tileWidth);
+        var tempOpacityTiles = [instance.tilePositionMap[x * 100 + y]];
+        for (var i = 0; i < 4; i++) {
+            var dx = x + directions[i].x;
+            var dy = y + directions[i].y;
+            tempOpacityTiles.push(instance.tilePositionMap[dx * 100 + dy]);
+        }
+        var opacityTiles = new Array();
+        for (var i = 0; i < tempOpacityTiles.length; i++) {
+            if(tempOpacityTiles[i] == undefined) {
+                continue;
+            }
+            var tileIndex = tempOpacityTiles[i];
+            var tile = instance.tiles[tileIndex];
+            if (tile.picking) {
+                continue;
+            }
+            opacityTiles.push(tileIndex);
+        }
+        for (var idx in opacityMem) {
+            var opacity = opacityMem[idx];
+            instance.tiles[idx].opacity = opacity;
+            delete opacityMem[idx];
+        }
+        for (var i = 0; i < opacityTiles.length; i++) {
+            var tileIndex = opacityTiles[i];
+            opacityMem[tileIndex] = instance.tiles[tileIndex].opacity;
+            instance.tiles[tileIndex].opacity = 1;
+        }
+    }
+}
+
 function onMouseDown(event) {
     mousedowned = true;
     var tilesCount = puzzle.pickTile(event.point, (event.event.ctrlKey || event.event.metaKey));
@@ -482,6 +521,9 @@ function JigsawPuzzle(config) {
     this.conflictGroupHasBeenMoveAway = false;
 
     this.shareInfoToggle = false;
+
+    this.tilePositionMap = {};
+    this.curFocusTile = new Set();
 
     $.amaran({
         'title': 'startRound',
@@ -912,6 +954,7 @@ function JigsawPuzzle(config) {
                 var tile = new Group(mask, img, border);
                 tile.clipped = true;
                 tile = new Group(topEdge, rightEdge, bottomEdge, leftEdge, colorBorder, tile);
+                tile.mask = mask;
                 tile.topEdge = topEdge;
                 tile.rightEdge = rightEdge;
                 tile.bottomEdge = bottomEdge;
@@ -1692,6 +1735,7 @@ function JigsawPuzzle(config) {
         if (instance.dfsGraphLinksMap[tileIndex]) {
             return;
         }
+        instance.curFocusTile.add(tileIndex);
         instance.dfsGraphLinksMap[tileIndex] = new Array();
         instance.subGraphNodesCount += 1;
         var tile = instance.tiles[tileIndex];
@@ -1758,7 +1802,50 @@ function JigsawPuzzle(config) {
         });
     }
 
+    function showTileHeatMap(roundFocusGraph) {
+        if (!roundFocusGraph || !tileHeat) {
+            return;
+        }
+        var tileHeatMap = Array();
+        for (var i = 0; i < instance.tiles.length; i++) {
+            tileHeatMap[i] = 0;
+        }
+        for (var key in roundFocusGraph) {
+            if (instance.preFocusGraph.has(key)) {
+                continue;
+            }
+            var value = roundFocusGraph[key];
+            var xy = key.split('-');
+            var x = parseInt(xy[0].substr(0, xy[0].length - 1));
+            var y = parseInt(xy[1].substr(1));
+            if (!instance.curFocusTile || !instance.curFocusTile.has(x)) {
+                tileHeatMap[x] = tileHeatMap[x] < 0 ? value : tileHeatMap[x] + value;
+            }
+            if (!instance.curFocusTile || !instance.curFocusTile.has(y)) {
+                tileHeatMap[y] = tileHeatMap[y] < 0 ? value : tileHeatMap[y] + value;
+            }
+        };
+        var lowestHeat = tileHeatMap[0];
+        var highestHeat = tileHeatMap[0];
+        for (var i = 0; i < instance.tiles.length; i++) {
+            if (tileHeatMap[i] < lowestHeat) {
+                lowestHeat = tileHeatMap[i];
+            }
+            if (tileHeatMap[i] > highestHeat) {
+                highestHeat = tileHeatMap[i];
+            }
+        }
+        for (var i = 0; i < instance.tiles.length; i++) {
+            tileHeatMap[i] = (highestHeat - tileHeatMap[i] * 0.8) / (highestHeat - lowestHeat);
+            tileHeatMap[i] = tileHeatMap[i] > 0.8 ? 1 : tileHeatMap[i];
+            instance.tiles[i].opacity = tileHeatMap[i];
+        }
+        instance.tileHeatMap = tileHeatMap;
+        instance.curFocusTile = new Set();
+    }
+
     function processProactiveHints(data) {
+        showTileHeatMap(data.roundFocusGraph);
         if (!ctrlDown && !mousedowned && !instance.hintsShowing && data && data.sureHints) {
             if (!instance.hintsShowing) {
                 instance.hintsShowing = true;
@@ -1941,6 +2028,8 @@ function JigsawPuzzle(config) {
         return edges;
     }
 
+    this.preFocusGraph = new Map();
+
     /**
      *  Update links in the background graph
      *  Check which case it is in the 4 cases, and call the corrosponding method:
@@ -2057,7 +2146,6 @@ function JigsawPuzzle(config) {
                 }
             }
         }
-
         instance.maxSubGraphSize = 0;
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
@@ -2070,6 +2158,12 @@ function JigsawPuzzle(config) {
             if(!instance.hintsShowing){
                 instance.hintsLog = {};
             }
+            var focusGraph = new Set();
+            if (tileHeat) {
+                for (var key in edges) {
+                    focusGraph.add(key);
+                }
+            }
             var param = {
                 player_name: player_name,
                 algorithm: algorithm,
@@ -2078,9 +2172,12 @@ function JigsawPuzzle(config) {
                 edges: edges,
                 tilesPerRow: tilesPerRow,
                 tilesPerColumn: tilesPerColumn,
-                is_hint: instance.hintsShowing && !instance.gameFinished
+                is_hint: instance.hintsShowing && !instance.gameFinished,
+                focusGraph: tileHeat? Array.from(focusGraph): undefined,
+                preFocusGraph: tileHeat? Array.from(instance.preFocusGraph): undefined
                 //logs: instance.hintsLog
             };
+            instance.preFocusGraph = focusGraph;
             if (param.is_hint) {
                 var conflict = Array.from(instance.hintsConflict);
                 for (var i = 0; i < conflict.length; i++) {
@@ -2165,7 +2262,6 @@ function JigsawPuzzle(config) {
                 tile.differentColor = new Array();
                 tile.colorDirection = new Array();
             }
-            tile.opacity = 1;
         }
     }
 
@@ -2192,12 +2288,6 @@ function JigsawPuzzle(config) {
                 hideColorBorder(tile.aroundTiles[3]);
             }
             tile.colorBorder.visible = false;
-        }
-        for (var i = 0; i < instance.tiles.length; i++) {
-            var tile = instance.tiles[i];
-            if (tile.differentColor.length == 0) {
-                tile.opacity = 1;
-            }
         }
     }
 
@@ -2258,6 +2348,7 @@ function JigsawPuzzle(config) {
     function normalizeTiles(forAskHelp) {
         var leftUpPoint = new Point(10000, 10000);
         var rightBottomPoint = new Point(-10000, -10000);
+        instance.tilePositionMap = {};
         for (var i = 0; i < instance.tiles.length; i++) {
             var tile = instance.tiles[i];
             var position = tile.position;
@@ -2288,6 +2379,10 @@ function JigsawPuzzle(config) {
                 tile.aroundTilesChanged = false;
             }
             tile.positionMoved = false;
+            if (instance.tileHeatMap) {
+                tile.mask.opacity = instance.tileHeatMap[i];
+            }
+            instance.tilePositionMap[cellPosition.x * 100 + cellPosition.y] = i;
         }
         instance.centerPoint = (leftUpPoint + rightBottomPoint) / 2;
     }
@@ -2380,15 +2475,6 @@ function JigsawPuzzle(config) {
                 break;
             }
         }
-        /*
-        if (colorIndex > 0) {
-            for (var i = 0; i < instance.tiles.length; i++) {
-                var tile = instance.tiles[i];
-                if (!tile.differentColor || tile.differentColor.length == 0) {
-                    tile.opacity = 0.25;
-                }
-            }
-        }*/
     }
 
     function countBidirectionLinks(sureHints){
@@ -2675,6 +2761,7 @@ function JigsawPuzzle(config) {
     });
 
     function processReactiveHints(data) {
+        showTileHeatMap(data.roundFocusGraph);
         if (ctrlDown || data.sureHints.length == 0) {
             return;
         }
@@ -2726,8 +2813,6 @@ function JigsawPuzzle(config) {
             instance.hintsShowing = false;
         }
     }
-
-    //socket.on("reactiveHints", processReactiveHints);
 
     socket.on('reactiveHints', function(data) {
         instance.singleArray = new Array();
