@@ -15,7 +15,6 @@ var config; // the global config for dev/pro env
 require('./db');
 const redis = require('./redis');
 var FileStreamRotator = require('file-stream-rotator');
-
 var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
@@ -95,6 +94,7 @@ app.use(cookieParser());
 
 // set the static folder as the public
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/user'));

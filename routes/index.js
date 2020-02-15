@@ -10,7 +10,8 @@ var dev = require('../config/dev');
 var crypto = require('crypto');
 var util = require('./util.js');
 var PythonShell = require('python-shell');
-
+var url = require('url');
+var request = require('request');
 const redis = require('../redis');
 const Promise = require('bluebird');
 
@@ -46,6 +47,19 @@ router.route('/').all(LoginFirst).all(Logined).get(async function (req, res, nex
     res.render('index', {
         title: 'Crowd Jigsaw Puzzle'
     });
+});
+
+// Image proxy
+router.get('/proxy', function (req, res) {
+    let parts = url.parse(req.url, true);
+    let imageUrl = parts.query.url;
+    parts = url.parse(imageUrl);
+    if(parts.hostname !== 'image.pintu.fun') {
+        res.status(500).send({
+           message: 'Only support image from host: image.pintu.fun'
+        });
+    }
+    req.pipe(request(imageUrl)).pipe(res)
 });
 
 // Login
@@ -323,6 +337,8 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                 forceLeaveEnable: round.forceLeaveEnable || false,
                 tileHeat: round.tileHeat || false,
                 hintDelay: round.hintDelay || false,
+                outsideImage: round.outsideImage || false,
+                originSize: round.originSize || false,
                 algorithm: round.algorithm,
                 tilesPerRow: round.tilesPerRow,
                 tilesPerColumn: round.tilesPerColumn,
@@ -355,6 +371,8 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                             forceLeaveEnable: round.forceLeaveEnable || false,
                             tileHeat: round.tileHeat || false,
                             hintDelay: round.hintDelay || false,
+                            outsideImage: round.outsideImage || false,
+                            originSize: round.originSize || false,
                             algorithm: round.algorithm,
                             tilesPerRow: round.tilesPerRow,
                             tilesPerColumn: round.tilesPerColumn,

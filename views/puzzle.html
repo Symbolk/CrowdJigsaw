@@ -186,7 +186,7 @@
         </div>
 
         <div class="solution">
-            <img id="puzzle-image" class="puzzle-image" style="display: none;" />
+            <img id="puzzle-image" class="puzzle-image" style="display: none;"/>
             <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
         </div>
 
@@ -262,6 +262,10 @@
         console.log('tileHeat', tileHeat)
         var hintDelay = '<%-hintDelay%>' === 'true';
         console.log('hintDelay', hintDelay)
+        var outsideImage = '<%-outsideImage%>' === 'true';
+        console.log('outsideImage', outsideImage)
+        var originSize = '<%-originSize%>' === 'true';
+        console.log('originSize', originSize)
 
         var imageWidth = '<%-imageWidth%>';
         imageWidth = parseInt(imageWidth);
@@ -279,13 +283,14 @@
 
         document.querySelector('.puzzle-image').width = imageWidth;
         document.querySelector('.puzzle-image').height = imageHeight;
-        document.querySelector('.puzzle-image').src = imgSrc;
+        document.querySelector('.puzzle-image').src = outsideImage? 'proxy?url=' + imgSrc : imgSrc;
 
         var myCanvas = document.createElement("canvas");
         myCanvas.setAttribute("width", screen.availWidth*1.5);
         myCanvas.setAttribute("height", screen.availHeight);
         myCanvas.setAttribute("id", "canvas");
         myCanvas.setAttribute("class", "canvas");
+        myCanvas.setAttribute("crossorigin", "anonymous")
         document.querySelector('.puzzle').appendChild(myCanvas);
 
         $(".canvas").css('position', 'fixed');

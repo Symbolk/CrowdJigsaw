@@ -17,6 +17,8 @@ var RoundSchema = new mongoose.Schema({
     official: { type: Boolean, default: false }, // whether the tile has edge
     tileHeat: {type: Boolean, default: false},
     hintDelay: {type: Boolean, default: true},
+    originSize: {type: Boolean, default: false},
+    outsideImage: {type: Boolean, default: false},
     forceLeaveEnable: { type: Boolean, default: false }, // whether the tile has edge
     border: { type: Boolean, default: false },// whether the tile has border
     row_num:  { type: Number, default: -1 },

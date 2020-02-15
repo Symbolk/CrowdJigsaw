@@ -14,47 +14,70 @@
                             <button type="button" class="button button-glow button-border button-rounded button-primary" id="newround_image_button">
                                 <b>Select Picture</b>
                             </button>
+                            <div style="display: none;" id="newround_image_input_wrapper">
+                                <input type="text" class="form-control" id="newround_image_input" placeholder="Url From image.pintu.fun" aria-describedby="basic-addon3">
+                                <br>
+                                <p>Select image and copy link from <br> <a target="_blank" href="https://image.pintu.fun">image.pintu.fun</a></p>
+                            </div>
                         </div>
                         <div id="newround_image_wrap">
                             <img class="article-image" id="newround_image" border="0" alt="">
                         </div>
                     </div>
 
-                    <table class="table" id="newround_table">
+                    <table class="table">
                         <tbody>
-                            <tr id="tile_heat">
+                            <tr>
                                 <td>
+                                    <div class="radio icheck-amethyst">
+                                        <input type="radio" checked id="local_radio" name="image_source"/>
+                                        <label for="local_radio">
+                                            Local
+                                        </label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="radio icheck-emerland">
+                                        <input type="radio" id="url_radio" name="image_source" />
+                                        <label for="url_radio">
+                                            Internet
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="tile_heat" class="admin_only">
+                                <td colspan="2">
                                     <div class="checkbox icheck-orange">
                                         <input type="checkbox" id="tile_heat_checkbox" />
                                         <label for="tile_heat_checkbox">TileHeat</label>
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="hint_delay">
-                                <td>
+                            <tr id="hint_delay" class="admin_only">
+                                <td colspan="2">
                                     <div class="checkbox icheck-orange">
                                         <input type="checkbox" checked id="hint_delay_checkbox" />
                                         <label for="hint_delay_checkbox">HintDelay</label>
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="official">
-                                <td>
+                            <tr id="official" class="admin_only">
+                                <td colspan="2">
                                     <div class="checkbox icheck-orange">
                                         <input type="checkbox" checked id="official_checkbox" />
                                         <label for="official_checkbox">Official</label>
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="forceleave">
-                                <td>
+                            <tr id="forceleave" class="admin_only">
+                                <td colspan="2">
                                     <div class="checkbox icheck-orange">
                                         <input type="checkbox" id="forceleave_checkbox" />
                                         <label for="forceleave_checkbox">Enable Force Leave</label>
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="shape_radio">
+                            <tr id="shape_radio" class="admin_only">
                                 <td>
                                     <div class="radio icheck-emerland">
                                         <input type="radio" checked id="option2" name="shape" class="newround-shape-jagged" />
@@ -72,7 +95,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="egde_checkbox_row">
+                            <tr id="egde_checkbox_row" class="admin_only">
                                 <td id="border_checkbox_column">
                                     <div class="checkbox icheck-greensea">
                                         <input type="checkbox" checked id="border_checkbox" />
@@ -86,7 +109,7 @@
                                     </div>
                                 </td>
                             </tr>
-                            <tr id="algorithm_radio_row">
+                            <tr id="algorithm_radio_row" class="admin_only">
                                 <td>
                                     <div class="radio icheck-amethyst">
                                         <input type="radio" id="new_radio" name="algorithm"/>
@@ -100,6 +123,24 @@
                                         <input type="radio" checked id="old_radio" name="algorithm" />
                                         <label for="old_radio">
                                             Central
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="radio icheck-amethyst">
+                                        <input type="radio" checked id="custom_size_radio" name="size_selector"/>
+                                        <label for="custom_size_radio">
+                                            Custom Size
+                                        </label>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="radio icheck-emerland">
+                                        <input type="radio" id="origin_size_radio" name="size_selector" />
+                                        <label for="origin_size_radio">
+                                            Origin Size
                                         </label>
                                     </div>
                                 </td>
