@@ -19,6 +19,7 @@
     "file-stream-rotator": "^0.2.1",
     "glob": "^7.1.2",
     "gm": "^1.23.1",
+    "image-size": "^0.8.3",
     "imagemagick": "^0.1.3",
     "images": "^3.0.1",
     "jsdom": "^9.4.0",

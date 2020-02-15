@@ -332,7 +332,6 @@ function initNewRoundDialog() {
         if ($('#url_radio').prop("checked")) {
             outsideImage = true;
             imgSrc = $('#newround_image_input').val();
-            console.log(imgSrc);
         }
         var originSize = false;
         if ($('#origin_size_radio').prop("checked")) {
@@ -364,7 +363,20 @@ function initNewRoundDialog() {
             if (!admin) {
                 param.key = $('#newround_key_input').val();
             }
-            socket.emit('newRound', param);
+            if (outsideImage) {
+                var tempImage = new Image();
+                tempImage.src = imgSrc;
+                tempImage.onload = function() {  
+                    if (tempImage.width && tempImage.height) {
+                        param.imageWidth = tempImage.width;
+                        param.imageHeight = tempImage.height;
+                        socket.emit('newRound', param);
+                    }
+                }  
+            }
+            else {
+                socket.emit('newRound', param);
+            }
         }
     });
 

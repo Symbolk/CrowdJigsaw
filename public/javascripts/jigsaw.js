@@ -52,7 +52,8 @@ $('#share_info input').change(function () {
     }
 });
 
-
+var originTilesPerRow = tilesPerRow;
+var originTilesPerColumn = tilesPerColumn;
 var hintedLinksNum = undefined;
 var totalHintsNum = 0;
 var correctHintsNum = 0;
@@ -338,7 +339,17 @@ function getOriginImage(config) {
     }
     else {
         raster = new Raster(config.imgName);
-        raster.setSize(imageWidth, imageHeight);
+        if (originSize) {
+            imageWidth = raster.size.width;
+            imageHeight = raster.size.height;
+            tilesPerRow = Math.floor(imageWidth / tileWidth);
+            tilesPerColumn = Math.floor(imageHeight / tileWidth);
+            console.log(imageWidth, tilesPerRow);
+            console.log(imageHeight, tilesPerColumn);
+        }
+        else {
+            raster.setSize(imageWidth, imageHeight);
+        }
     }
     return raster;
 }
@@ -394,10 +405,6 @@ function JigsawPuzzle(config) {
 
     socket.on('roundChanged', function (data) {
         if (data.username == player_name && data.round_id == roundID) {
-            $('.rating-body').css('display', 'inline');
-            $('#apply-button').removeAttr('disabled');
-            $('#submit-button').removeAttr('disabled');
-            $('#cancel-button').removeAttr('disabled');
             if(data.action == "quit"){
                 if(players_num == 1){
                     window.location = '/home';
@@ -406,6 +413,13 @@ function JigsawPuzzle(config) {
                     window.location = '/award/' + roundID;
                 }
             }
+            else {
+                $('.rating-body').css('display', 'inline');
+                $('#apply-button').removeAttr('disabled');
+                $('#submit-button').removeAttr('disabled');
+                $('#cancel-button').removeAttr('disabled');
+            }
+            
         }
     });
 

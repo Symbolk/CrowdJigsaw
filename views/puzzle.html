@@ -281,8 +281,10 @@
         var shapeArrayStr = '<%-shapeArray%>';
         var shapeArray = JSON.parse(shapeArrayStr);
 
-        document.querySelector('.puzzle-image').width = imageWidth;
-        document.querySelector('.puzzle-image').height = imageHeight;
+        if (!outsideImage) {
+            document.querySelector('.puzzle-image').width = imageWidth;
+            document.querySelector('.puzzle-image').height = imageHeight;
+        }
         document.querySelector('.puzzle-image').src = outsideImage? 'proxy?url=' + imgSrc : imgSrc;
 
         var myCanvas = document.createElement("canvas");
