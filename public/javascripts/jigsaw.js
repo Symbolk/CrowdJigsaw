@@ -184,7 +184,8 @@ var mousedowned = false;
 var timeoutFunction;
 
 var opacityMem = {};
-function onMouseMove(event) {
+
+function changeOpacityWhenMouseClose(event) {
     var instance = puzzle;
     if (instance && instance.tileWidth && instance.tileHeatMap) {
         var point = event.point;
@@ -219,6 +220,10 @@ function onMouseMove(event) {
             instance.tiles[tileIndex].opacity = 1;
         }
     }
+}
+
+function onMouseMove(event) {
+    changeOpacityWhenMouseClose(event);
 }
 
 function onMouseDown(event) {
@@ -264,6 +269,7 @@ function onMouseUp(event) {
 
 
 function onMouseDrag(event) {
+    changeOpacityWhenMouseClose(event);
     mousedowned = true;
     if (timeoutFunction) {
         clearTimeout(timeoutFunction);
@@ -414,7 +420,7 @@ function JigsawPuzzle(config) {
                 }
             }
             else {
-                $('.rating-body').css('display', 'inline');
+                //$('.rating-body').css('display', 'inline');
                 $('#apply-button').removeAttr('disabled');
                 $('#submit-button').removeAttr('disabled');
                 $('#cancel-button').removeAttr('disabled');
@@ -425,10 +431,6 @@ function JigsawPuzzle(config) {
 
     socket.on('roundPlayersChanged', function (data) {
         if (data.username == player_name && data.round_id == roundID) {
-            $('.rating-body').css('display', 'inline');
-            $('#apply-button').removeAttr('disabled');
-            $('#submit-button').removeAttr('disabled');
-            $('#cancel-button').removeAttr('disabled');
             if(data.action == "quit"){
                 if(players_num == 1){
                     window.location = '/home';
@@ -437,6 +439,10 @@ function JigsawPuzzle(config) {
                     window.location = '/award/' + roundID;
                 }
             }
+            //$('.rating-body').css('display', 'inline');
+            $('#apply-button').removeAttr('disabled');
+            $('#submit-button').removeAttr('disabled');
+            $('#cancel-button').removeAttr('disabled');
         }
     });
 
@@ -619,12 +625,6 @@ function JigsawPuzzle(config) {
 
         if (!instance.saveTilePositions) {
             saveGame();
-            if (players_num > 1) {
-                $('#pregame_survey').modal({
-                    keyboard: false,
-                    backdrop: 'static',
-                });
-            }
         }
         else {
             if (!instance.gameFinished) {
@@ -1831,12 +1831,8 @@ function JigsawPuzzle(config) {
             var xy = key.split('-');
             var x = parseInt(xy[0].substr(0, xy[0].length - 1));
             var y = parseInt(xy[1].substr(1));
-            if (!instance.curFocusTile || !instance.curFocusTile.has(x)) {
-                tileHeatMap[x] = tileHeatMap[x] < 0 ? value : tileHeatMap[x] + value;
-            }
-            if (!instance.curFocusTile || !instance.curFocusTile.has(y)) {
-                tileHeatMap[y] = tileHeatMap[y] < 0 ? value : tileHeatMap[y] + value;
-            }
+            tileHeatMap[x] = tileHeatMap[x] < 0 ? value : tileHeatMap[x] + value;
+            tileHeatMap[y] = tileHeatMap[y] < 0 ? value : tileHeatMap[y] + value;
         };
         var lowestHeat = tileHeatMap[0];
         var highestHeat = tileHeatMap[0];
@@ -1848,11 +1844,17 @@ function JigsawPuzzle(config) {
                 highestHeat = tileHeatMap[i];
             }
         }
+        console.log(tileHeatMap);
         for (var i = 0; i < instance.tiles.length; i++) {
+            if (!tileHeatMap[i]) {
+                tileHeatMap[i] = 1;
+                continue;
+            }
             tileHeatMap[i] = (highestHeat - tileHeatMap[i] * 0.8) / (highestHeat - lowestHeat);
-            tileHeatMap[i] = tileHeatMap[i] > 0.8 ? 1 : tileHeatMap[i];
+            tileHeatMap[i] = tileHeatMap[i] > 0.5 ? 1 : 0.2;
             instance.tiles[i].opacity = tileHeatMap[i];
         }
+        console.log(tileHeatMap);
         instance.tileHeatMap = tileHeatMap;
         instance.curFocusTile = new Set();
     }
@@ -2393,7 +2395,7 @@ function JigsawPuzzle(config) {
             }
             tile.positionMoved = false;
             if (instance.tileHeatMap) {
-                tile.mask.opacity = instance.tileHeatMap[i];
+                tile.opacity = instance.tileHeatMap[i];
             }
             instance.tilePositionMap[cellPosition.x * 100 + cellPosition.y] = i;
         }
@@ -3806,8 +3808,8 @@ function JigsawPuzzle(config) {
         $('.rating-body').css('display', 'none');
     }
     else{
-        $('#apply-button').attr('disabled',"true");
-        $('#submit-button').attr('disabled',"true");
+        //$('#apply-button').attr('disabled',"true");
+        //$('#submit-button').attr('disabled',"true");
         $('.hint-rb-rating').rating({
             'showCaption': false,
             'showClear': false,
@@ -4067,7 +4069,7 @@ function quitRound(roundID) {
     else{
         $('#quitLabel').text('Quiting...');
         $('#msgLabel').text('Quiting...');
-        $('.rating-body').css('display', 'none');
+        //$('.rating-body').css('display', 'none');
         $('#apply-button').attr('disabled',"true");
         $('#submit-button').attr('disabled',"true");
         $('#cancel-button').attr('disabled',"true");
