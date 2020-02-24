@@ -10,7 +10,7 @@ const ejs = require('ejs');
 var fs = require('fs');
 const glob = require('glob');
 var gm = require('gm');
-var config; // the global config for dev/pro env
+var config = require('./config/dev'); // the global config for dev/pro env
 //var pkg = require('./package');
 require('./db');
 const redis = require('./redis');
@@ -35,9 +35,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     store: new RedisStore({
-        host: "127.0.0.1",
-        port: 6379,
-        db: 1
+        client: redis
     })
 }));
 

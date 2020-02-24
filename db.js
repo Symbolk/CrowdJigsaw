@@ -8,10 +8,10 @@ mongoose.Promise = require('bluebird');
 */
 var options = {
     useNewUrlParser: true,
-    useMongoClient: true,
-    // auth: { authdb: 'CrowdJigsaw' },
-    // user: config.user,
-    // pass: config.pass
+    //useMongoClient: true,
+    auth: { authdb: config.mongodb.authdb },
+    user: config.mongodb.user,
+    pass: config.mongodb.password
 };
 mongoose.connect(DB_URL, options);
 const db = mongoose.connection;

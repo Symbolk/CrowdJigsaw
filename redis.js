@@ -4,5 +4,6 @@ Promise.promisifyAll(redisModule);
 const config = require('./config/dev');
 
 const redis = redisModule.createClient();
-redis.select(config.redisDB);
+redis.auth(config.redis.password);
+redis.select(config.redis.database);
 module.exports = redis;
