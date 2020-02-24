@@ -416,7 +416,7 @@ function JigsawPuzzle(config) {
                     window.location = '/home';
                 }
                 else{
-                    window.location = '/award/' + roundID;
+                    window.location = '/roundrank/' + roundID;
                 }
             }
             else {
@@ -436,7 +436,7 @@ function JigsawPuzzle(config) {
                     window.location = '/home';
                 }
                 else{
-                    window.location = '/award/' + roundID;
+                    window.location = '/roundrank/' + roundID;
                 }
             }
             //$('.rating-body').css('display', 'inline');

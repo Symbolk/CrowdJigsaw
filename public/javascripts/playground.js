@@ -363,7 +363,7 @@ function initNewRoundDialog() {
             if (!admin) {
                 param.key = $('#newround_key_input').val();
             }
-            if (outsideImage) {
+            if (originSize && imgSrc) {
                 var tempImage = new Image();
                 tempImage.src = imgSrc;
                 tempImage.onload = function() {  
@@ -375,6 +375,8 @@ function initNewRoundDialog() {
                 }  
             }
             else {
+                param.originSize = false;
+                console.log(param);
                 socket.emit('newRound', param);
             }
         }

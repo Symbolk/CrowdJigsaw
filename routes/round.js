@@ -149,7 +149,7 @@ module.exports = function (io) {
                     console.log(err);
                 } else {
                     let imageSrc = data.imageURL;
-                    if (!imageSrc && data.imageSize > 0) {
+                    if (!imageSrc) {
                         let randomUrl = await redis.srandmemberAsync('jigsaw_image:' + data.difficult, 1);
                         if (randomUrl.length <= 0) {
                             return;
@@ -160,10 +160,11 @@ module.exports = function (io) {
                     console.log(index, imageSrc);
                     let TIME = util.getNowFormatDate();
                     let tileWidth = 64;
-                    let tilesPerRow = data.outsideImage? Math.floor(data.imageWidth / tileWidth): data.imageSize;
-                    let tilesPerColumn = data.outsideImage? Math.floor(data.imageHeight / tileWidth): data.imageSize;
-                    let imageWidth = data.outsideImage? data.imageWidth: tilesPerRow * tileWidth;
-                    let imageHeight = data.outsideImage? data.imageHeight: tilesPerColumn * tileWidth;
+                    let tilesPerRow = data.originSize? Math.floor(data.imageWidth / tileWidth): data.imageSize;
+                    let tilesPerColumn = data.originSize? Math.floor(data.imageHeight / tileWidth): data.imageSize;
+                    console.log(tilesPerRow, tilesPerColumn, data);
+                    let imageWidth = data.originSize? data.imageWidth: tilesPerRow * tileWidth;
+                    let imageHeight = data.originSize? data.imageHeight: tilesPerColumn * tileWidth;
                     let shapeArray = util.getRandomShapes(tilesPerRow, tilesPerColumn, data.shape, data.edge);
                     let operation = {
                         round_id: index,
@@ -230,10 +231,6 @@ module.exports = function (io) {
                                 title: "CreateRound",
                                 msg: 'You just create and join round' + doc.round_id
                             });
-
-                            if (data.outsideImage) {
-
-                            }
                         }
                     });
                 }
