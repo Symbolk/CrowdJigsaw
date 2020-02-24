@@ -249,7 +249,7 @@ schedule.scheduleJob('0 0 * * * *', async function () {
     var condition = {
         end_time: "-1"
     };
-    ComputeOfficialScore();
+    //ComputeOfficialScore();
     var removeActiveRound = async () => {
         let active_round_count = await redis.zcardAsync('active_round');
         if (!active_round_count) {
