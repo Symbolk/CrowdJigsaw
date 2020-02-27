@@ -1850,7 +1850,7 @@ function JigsawPuzzle(config) {
                 tileHeatMap[i] = 1;
                 continue;
             }
-            tileHeatMap[i] = (highestHeat - tileHeatMap[i] * 0.8) / (highestHeat - lowestHeat);
+            tileHeatMap[i] = (highestHeat - tileHeatMap[i]) / (highestHeat - lowestHeat);
             tileHeatMap[i] = tileHeatMap[i] > 0.5 ? 1 : 0.2;
             instance.tiles[i].opacity = tileHeatMap[i];
         }

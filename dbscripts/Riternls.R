@@ -44,4 +44,4 @@ while (pre_SSE > SSE) {
 }
 
 p <- ggplot(data.frame(x=x, y=y), aes(x, y))
-p+geom_point(size=3)+geom_line(aes(x,fitted(model_list[[4]])),col='red')+geom_line(aes(x,fitted(model_list[[10]])),col='black')
+p+geom_point(size=3)+geom_line(aes(x,fitted(model_list[[1]])),col='green')+geom_line(aes(x,fitted(model_list[[4]])),col='red')+geom_line(aes(x,fitted(model_list[[15]])),col='black')
