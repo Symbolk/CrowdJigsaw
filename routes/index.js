@@ -518,6 +518,10 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
     }
 });
 
+function prefix(num, length) {
+    return (Array(length).join('0') + num).slice(-length);  
+}
+
 // Get the rank of this round
 router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, res) {
     let condition = {
@@ -541,6 +545,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, re
                 return;
             }
             let round = JSON.parse(round_json);
+            let start_time = Date.parse(round.start_time);
             //console.log(round, round.tilesPerColumn, round.tilesPerRow);
             let puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
             let finished = new Array();
@@ -559,9 +564,16 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, re
                     finishPercent = (r.correct_links / 2) / puzzle_links * 100;
                 }
                 if (r.end_time != "-1") {
+                    let end_time = Date.parse(r.end_time)
+                    let finish_time = (end_time - start_time) / 1000;
+                    let record_finish_time = r.time.split(':').map(e => parseInt(e)).reduce((a, b) => a * 60 + b);
+                    let time = finish_time < record_finish_time ? finish_time : record_finish_time;
+                    time = prefix(parseInt(time / 3600), 2) + ':' + 
+                    prefix(parseInt((time % 3600) / 60), 2) + ":" + 
+                    prefix(parseInt(time % 60), 2); 
                     finished.push({
                         "playername": r.username,
-                        "time": r.time,
+                        "time": time,
                         "steps": r.steps,
                         "hintPercent": hintPercent.toFixed(3),
                         "finishPercent": finishPercent.toFixed(3),
