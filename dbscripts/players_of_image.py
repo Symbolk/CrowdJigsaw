@@ -10,7 +10,7 @@ mongo_port = 27017
 client = MongoClient(mongo_ip, mongo_port)
 db = client.CrowdJigsaw
 
-IMG = 'images/raw/2012MiumiuAdvertisement2_10x10.jpg'
+IMG = 'images/raw/daze19_10x10.jpg'
 
 rounds = list(db['rounds'].find({'image': IMG}))
 print([r['round_id'] for r in rounds])

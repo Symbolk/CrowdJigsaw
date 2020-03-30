@@ -49,7 +49,7 @@ def load_data():
     with open('ab_data.csv') as f:
         lines = f.readlines()
         for l in lines[1:]:
-            img, _, players, time = l.strip().split(',')
+            img, players, time = l.strip().split(',')
             if img not in exp_map:
                 exp_map[img] = ExpGroup(img)
             exp_map[img].add_point(int(players), int(time))
@@ -61,13 +61,13 @@ def save_data(experiments):
         f.write('img,players,time,k,adapt_t\n')
         for exp in experiments:
             for p in exp.points:
-                f.write('%s,%d,%d,%f,%f\n' % (exp.img, p.x, p.y, exp.k, exp.k * p.y))
+                f.write('%s,%d,%d,%f,%f\n' % (exp.img, p.x, p.y, exp.k, p.y/exp.k))
 
 
 if __name__ == '__main__':
     experiments = load_data()
     print(len(experiments))
-    base = experiments[5]
+    base = experiments[1]
     for i in experiments:
         if i == base:
             continue
@@ -81,22 +81,11 @@ if __name__ == '__main__':
             i_data.append((p.x, p.y))
         data.append(i_data)
     print(len(data))
-    print(','.join(map(lambda i: 'c(%s)' % (','.join(map(lambda e: str(e[0]), i))), data)))
-    print(','.join(map(lambda i: 'c(%s)' % (','.join(map(lambda e: str(e[1]), i))), data)))
-    print(','.join(map(lambda i: '%.4f' % i.k, experiments)))
-
+    ix = ','.join(map(lambda i: 'c(%s)' % (','.join(map(lambda e: str(e[0]), i))), data))
+    iy = ','.join(map(lambda i: 'c(%s)' % (','.join(map(lambda e: str(e[1]), i))), data))
+    ik = ','.join(map(lambda i: '%.4f' % i.k, experiments))
+    print("img_x = list(%s)\nimg_y = list(%s)\nimg_k = list(%s)" % (ix, iy, ik))
+    save_data(experiments)
 '''
-0 992
-1 923
-2 856
-3 842
-4 790
-5 724
-6 740
-7 785
-8 785
-9 754
-10 750
-11 773
-12 729
+
 '''
