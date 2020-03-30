@@ -387,6 +387,69 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
     });
 });
 
+router.route('/share_puzzle').all(LoginFirst).get(function (req, res) {
+    let roundID = req.query.roundID;
+    let condition = {
+        round_id: parseInt(roundID)
+    };
+    var redis_key = 'round:' + condition.round_id;
+    redis.get(redis_key, (err, data) => {
+        if(data){
+            var round = JSON.parse(data);
+            res.render('share_puzzle',
+                {
+                    title: 'Puzzle',
+                    player_name: req.session.user.username,
+                    players_num: round.players_num,
+                    level: round.level,
+                    roundID: roundID,
+                    solved_players: round.solved_players,
+                    image: round.image,
+                    tileWidth: round.tileWidth,
+                    startTime: round.start_time,
+                    shape: round.shape,
+                    edge: round.edge,
+                    border: round.border,
+                    tilesPerRow: round.tilesPerRow,
+                    tilesPerColumn: round.tilesPerColumn,
+                    imageWidth: round.imageWidth,
+                    imageHeight: round.imageHeight,
+                    shapeArray: round.shapeArray
+            });
+        }
+        else {
+            RoundModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    var round = doc;
+                    redis.set(redis_key, JSON.stringify(round), (err, data) => {});
+                    res.render('share_puzzle',
+                        {
+                            title: 'Puzzle',
+                            player_name: req.session.user.username,
+                            players_num: round.players_num,
+                            level: round.level,
+                            roundID: roundID,
+                            solved_players: round.solved_players,
+                            image: round.image,
+                            tileWidth: round.tileWidth,
+                            startTime: round.start_time,
+                            shape: round.shape,
+                            edge: round.edge,
+                            border: round.border,
+                            tilesPerRow: round.tilesPerRow,
+                            tilesPerColumn: round.tilesPerColumn,
+                            imageWidth: round.imageWidth,
+                            imageHeight: round.imageHeight,
+                            shapeArray: round.shapeArray
+                    });
+                }
+            });
+        }
+    });
+});
+
 
 var ga_started = new Array();
 router.route('/ga').get(function (req, res) {

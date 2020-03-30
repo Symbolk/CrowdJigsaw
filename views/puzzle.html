@@ -300,7 +300,11 @@
         $(".canvas").css('left', '0px');
     </script>
     </script>
+    <% if (algorithm === 'share') { %>
+    <script type="text/paperscript" canvas="canvas" src="/javascripts/share_jigsaw.js"></script>
+    <% } else { %>
     <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
+    <% } %>
     <script type="text/javascript" src="/javascripts/intro.js"></script>
     <script src='/javascripts/anime.js'></script>
     <!--<script src="/javascripts/menu.js"></script>-->

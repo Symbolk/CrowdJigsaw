@@ -321,6 +321,9 @@ function initNewRoundDialog() {
         if ($('#old_radio').prop("checked")) {
             algorithm = 'central';
         }
+        if ($('#share_radio').prop("checked")) {
+            algorithm = 'share';
+        }
         if (imgSrc) {
             var thumbStr = '_thumb';
             var thumbIndex = imgSrc.indexOf(thumbStr);

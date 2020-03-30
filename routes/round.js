@@ -11,6 +11,7 @@ var util = require('./util.js');
 var dev = require('../config/dev');
 const redis = require('../redis');
 const Promise = require('bluebird');
+var lockedTileIndexes = new Array();
 
 async function saveScore(round_id) {
     let redis_key = 'round:' + round_id + ':scoreboard';
@@ -371,6 +372,55 @@ module.exports = function (io) {
             }
         });
 
+        //接收拼图块被选择的消息，广播给所有玩家，锁定这一块。
+        socket.on('tileSelect', function (data) {
+            let islocked = -1;
+            for(var i=0;i<lockedTileIndexes.length;i++){
+                for (var j=0;j<data.selected_tiles.length;j++) {
+                    if(lockedTileIndexes[i]==data.selected_tiles[j]){
+                        islocked = 1;
+                        break;
+                    }
+                }
+            }
+
+            if(islocked == -1){
+                for (var j=0;j<data.selected_tiles.length;j++) {
+                    lockedTileIndexes.push(data.selected_tiles[j])
+                }
+            }
+            let redis_key = 'roundid:' + data.round_id + ':savegame';
+            redis.get(redis_key, function(err, save_game){
+                //console.log(save_game);
+                    socket.emit('isLock', {
+                    username: data.username,
+                    gameData: JSON.parse(save_game),
+                    lock:islocked,
+                    slockTileIndexes:lockedTileIndexes
+                });
+                islocked=-1;
+            });
+        });
+
+        socket.on('tileRelease', function (data) {
+            if(lockedTileIndexes != null){
+                for(var i=0;i<data.selected_tiles.length;i++){
+                    var index = lockedTileIndexes.indexOf(data.selected_tiles[i]);
+                    if (index > -1) {
+                        lockedTileIndexes.splice(index, 1);
+                    }
+                }
+            }
+            let redis_key = 'roundid:' + data.round_id + ':savegame';
+            redis.get(redis_key, function(err, save_game){
+                //console.log(save_game);
+                    socket.emit('updateTiles', {
+                    username: data.username,
+                    gameData: JSON.parse(save_game)
+                });
+            });
+        });
+
         socket.on('iSolved', function (data) {
             console.log('!!!Round ' + data.round_id + ' is solves!');
             let finish_time = getRoundFinishTime(data.startTime);
@@ -468,6 +518,43 @@ module.exports = function (io) {
                 }
             });
         });
+
+
+        socket.on('share_saveGame', function (data) {
+            var save_game = {
+                round_id: data.round_id,
+                steps: data.steps,
+                realSteps: data.realSteps,
+                startTime: data.startTime,
+                maxSubGraphSize: data.maxSubGraphSize,
+                tiles: data.tiles,
+                tileHintedLinks: data.tileHintedLinks,
+                totalHintsNum: data.totalHintsNum,
+                correctHintsNum: data.correctHintsNum
+            };
+            let redis_key = 'roundid:' + data.round_id + ':savegame';
+            redis.set(redis_key, JSON.stringify(save_game), function(err, response){
+                if (err) {
+                    console.log(err);
+                    socket.emit('gameSaved', { err: err });
+                } else {
+                    socket.emit('gameSaved', { success: true, round_id: data.round_id, player_name: data.player_name});
+                }
+            });
+        });
+        /**
+         * Load a game by one user
+         */
+        socket.on('share_loadGame', function (data) {
+            let redis_key = 'roundid:' + data.round_id + ':savegame';
+            redis.get(redis_key, function(err, save_game){
+                io.sockets.emit('loadGameSuccess', {
+                    username: data.username,
+                    gameData: JSON.parse(save_game)
+                });
+            });
+        });
+
         socket.on('survey', function(data) {
             if (!data.round_id || !data.player_name || !data.survey_type) {
                 return;
@@ -493,7 +580,6 @@ module.exports = function (io) {
         socket.on('loadGame', function (data) {
             let redis_key = 'user:' + data.username + ':savegame';
             redis.get(redis_key, function (err, save_game) {
-                //console.log(save_game);
                 io.sockets.emit('loadGameSuccess', {
                     username: data.username,
                     gameData: JSON.parse(save_game)
