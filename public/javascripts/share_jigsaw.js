@@ -437,7 +437,7 @@ function JigsawPuzzle(config) {
             
         }
     });
-    
+
     var instance = this; // the current object(which calls the function)
     this.tileShape = config.tileShape;
     this.level = config.level;
@@ -937,6 +937,8 @@ function JigsawPuzzle(config) {
             totalHintsNum: totalHintsNum,
             correctHintsNum: correctHintsNum
         });
+
+        sendRecord(true, 5);
     }
 
     function sharedPlaceTiles(xTileCount, yTileCount) {
@@ -2902,7 +2904,9 @@ function JigsawPuzzle(config) {
         }
     });
     socket.on('updateTiles', function (data) {
-
+        if (!instance.tiles) {
+            return;
+        }
             var selectedTileIndexes = new Array();
             if(instance.selectedTile != null){
                 for (var i = 0; i < instance.selectedTile.length; i++) {

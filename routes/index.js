@@ -627,6 +627,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, re
                     finishPercent = (r.correct_links / 2) / puzzle_links * 100;
                 }
                 if (r.end_time != "-1") {
+                    finishPercent = 100;
                     let end_time = Date.parse(r.end_time)
                     let finish_time = (end_time - start_time) / 1000;
                     let record_finish_time = r.time.split(':').map(e => parseInt(e)).reduce((a, b) => a * 60 + b);

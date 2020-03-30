@@ -539,6 +539,10 @@ module.exports = function (io) {
                     socket.emit('gameSaved', { err: err });
                 } else {
                     socket.emit('gameSaved', { success: true, round_id: data.round_id, player_name: data.player_name});
+                    socket.broadcast.emit('updateTiles', {
+                        username: data.username,
+                        gameData: save_game
+                    });
                 }
             });
         });
@@ -877,6 +881,15 @@ module.exports = function (io) {
                     players, active_players, active_total_players
                 });
             }
+        })
+    });
+
+    router.route('/share_clear').get(function(req, res, next) {
+        let before = lockedTileIndexes;
+        lockedTileIndexes = new Array();
+        res.json({
+            before: before,
+            now: lockedTileIndexes
         })
     });
 
