@@ -45,11 +45,6 @@ router.route('/').all(LoginFirst).all(Logined).get(async function (req, res, nex
 	   return res.redirect('/visitor');
        console.log("redirect visitor");
     }
-    // req.session.error = 'Welcome to Crowd Jigsaw Puzzle!';
-    // res.render('index', {
-    //     title: 'Crowd Jigsaw Puzzle'
-    // });
-    console.log("render index");
 });
 
 // Image proxy
@@ -754,7 +749,7 @@ router.get('/logout', function (req, res) {
     req.session.user = null;
     req.session.error = null;
     //req.session.destroy();
-    return res.redirect('http://passport.pintu.fun/logout?redirectUrl=test-gjm.pintu.fun');
+    return res.redirect('http://passport.pintu.fun/logout?redirectUrl=pintu.fun');
 });
 
 function Logined(req, res, next) {
