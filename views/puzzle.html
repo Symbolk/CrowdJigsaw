@@ -1,100 +1,207 @@
 <link rel='stylesheet' href='/stylesheets/jigsaw.css' />
 <script type="text/javascript" src="/javascripts/paper-full.js"></script>
 <script type="text/javascript" src="/javascripts/socket.io.js"></script>
-
+<script src="/javascripts/jquery.min.js"></script>
+<script src="/javascripts/jquery-ui.min.js"></script>
+<% if (title === 'Random Puzzle') { %>
+    <base href="/">
+<% } %> 
 <% include header.html %>
     <div class="demo-layout-transparent mdl-layout mdl-js-layout">
-            <div class="modal fade" id="ensure_quit_dialog" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            </button>
-                            <h4 class="modal-title" id="quitLabel">
-                                Are You Sure to Quit?
-                            </h4>
-                        </div>
-                        <div class="modal-body rating-body" style="text-align:center;">
-                            <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
-                            <!-- <input id="rating" type="number" class="rating" min=0 max=5 step=0.5 data-size="sm" showClear="false" data-default-caption="{rating} hearts"> -->
-                            <input id="rating" required class="rb-rating" type="text" value="" title="">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="apply-button">
-                                OK
-                            </button>
-                            <button type="button" class="btn btn-primary" id="cancel-button" data-dismiss="modal">
-                                Cancel
-                            </button>
-                        </div>
+        <div class="modal fade" id="guess_dialog" tabindex="-1" role="dialog" aria-labelledby="guessLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        </button>
+                        <h4 class="modal-title" id="guessLabel">
+                            请输入您对拼图内容的猜测
+                        </h4>
                     </div>
-                    <!-- /.modal-content -->
-                </div>
-                <!-- /.modal-dialog -->
-            </div>
-
-            <div class="modal fade" id="finish_dialog" tabindex="-1" role="dialog" aria-labelledby="msgLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title" id="msgLabel">
-                                Congratulations!
-                            </h4>
-                        </div>
-                        <div class="modal-body rating-body" style="text-align:center;">
-                            <h4 class="text-center text-nowrap text-danger">What do you think about the hint?</h4>
-                            <input id="rating2" required class="rb-rating" type="text" value="" title="">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="submit-button">
-                                OK
-                            </button>
-                        </div>
+                    <div class="modal-body" style="text-align:center;">
+                        <h5 class="text-center text-nowrap text-danger">可以输入多个词，以空格分隔。<br/>可以多次猜测，我们会记录每一次猜测结果。</h5>
+                        <textarea style="width: 60%" rows="2" id="guess_content"></textarea>
                     </div>
-                    <!-- /.modal-content -->
-                </div>
-                <!-- /.modal-dialog -->
-            </div>
-
-            <div class="modal fade" id="show_hints_dialog" tabindex="-1" role="dialog" aria-labelledby="msgLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title" id="msgLabel">
-                                Getting help from the crowd...
-                            </h4>
-                        </div>
-                        <div class="modal-body">
-                            <p class="text-center text-nowrap text-danger" id="round_id"><i class="fa fa-spin fa-spinner fa-2x"></i></p>
-                        </div>
-                    </div>
-                    <!-- /.modal-content -->
-                </div>
-                <!-- /.modal-dialog -->
-            </div>
-            <!-- /.modal -->
-
-            <div class="mask" id="loading">
-                <div class="mdl-spinner mdl-js-spinner is-active"></div>
-            </div>
-
-            <div class="solution">
-                <img id="puzzle-image" class="puzzle-image" style="display: none;" />
-                <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
-            </div>
-
-            <main class="puzzle">
-            </main>
-
-            <div class="htmleaf-container">
-                <div class="htmleaf-content">
-                    <div class="center menu">
-                        <div id="myMenu"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="guess-submit-button">
+                            OK
+                        </button>
+                        <button type="button" class="btn btn-primary" id="guess-cancel-button" data-dismiss="modal">
+                            Cancel
+                        </button>
                     </div>
                 </div>
+                <!-- /.modal-content -->
             </div>
+            <!-- /.modal-dialog -->
+        </div>
 
-        <div id = button_group>
-            <span id="steps_chip" class="mdl-chip mdl-chip--contact">
+        <div class="modal fade" id="share_toggle_dialog" tabindex="-1" role="dialog" aria-labelledby="shareToggleLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        </button>
+                        <h4 class="modal-title" id="shareToggleLabel">
+                            是否要与他人共享拼图信息？
+                        </h4>
+                    </div>
+                    <div class="modal-body" style="text-align:center;">
+                        <h5 class="text-center text-nowrap text-danger">点击OK，与他人共享拼图信息，直至游戏结束。<br>点击分享信息后开始计分。</h5>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="share-toggle-button">
+                            OK
+                        </button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
+        <div class="modal fade" id="pregame_survey" tabindex="-1" role="dialog" aria-labelledby="pregameLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        </button>
+                        <h4 class="modal-title" id="pregameLabel">
+                            请选择选项完成我们的调查
+                        </h4>
+                    </div>
+                    <div class="modal-body" style="text-align:center;">
+                        <h4 class="text-center text-nowrap text-danger">如果有选择，是否愿意与他人分享拼图信息？</h4>
+                        <h6>如果愿意，在您觉得拼出一定成果之时，点击右侧棕色分享按钮，与他人共享您的拼图成果<br>点击分享信息后开始计分。</h6>
+                        <div id="share_info">
+                            <div class="radio icheck-success">
+                                <input type="radio" checked id="share_info_yes" name="share_info"/>
+                                <label for="share_info_yes">
+                                    是
+                                </label>
+                            </div>
+                            <div class="radio icheck-danger">
+                                <input type="radio" id="share_info_no" name="share_info" />
+                                <label for="share_info_no">
+                                    否
+                                </label>
+                            </div>
+                        </div>
+                        <div id="share_info_reason_wraper" style="display: none;">
+                            <h5 class="text-center text-nowrap text-danger">可否告诉我们为什么？</h5>
+                            <textarea id="share_info_reason" style="width: 60%" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="pregame-survey-button">
+                            OK
+                        </button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
+        <div class="modal fade" id="ensure_quit_dialog" tabindex="-1" role="dialog" aria-labelledby="quitLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        </button>
+                        <h4 class="modal-title" id="quitLabel">
+                            Are You Sure to Quit?
+                        </h4>
+                    </div>
+                    <div class="modal-body rating-body" style="text-align:center; display: none;">
+                        <h4 class="text-center text-nowrap text-danger">请选择你对给你推荐的信息的满意度</h4>
+                        <input id="rating" required class="rb-rating hint-rb-rating" type="text" value="" title="">
+                        <hr>
+                        <h4 class="text-center text-nowrap text-danger">请选择继续参加拼图实验的意愿度</h4>
+                        <input id="next_game_rating" required class="rb-rating next-rb-rating" type="text" value="4" title="">
+                        <h5 class="text-center text-nowrap text-danger">如有建议，请提供</h5>
+                        <textarea id="next_game_reason" style="width: 60%" rows="2"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="apply-button">
+                            OK
+                        </button>
+                        <button type="button" class="btn btn-primary" id="cancel-button" data-dismiss="modal">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
+        <div class="modal fade" id="finish_dialog" tabindex="-1" role="dialog" aria-labelledby="msgLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="msgLabel">
+                            Congratulations!
+                        </h4>
+                    </div>
+                    <div class="modal-body rating-body" style="text-align:center; display: none;">
+                        <h4 class="text-center text-nowrap text-danger">请选择你对给你推荐的信息的满意度</h4>
+                        <input id="rating2" required class="rb-rating hint-rb-rating" type="text" value="" title="">
+                        <hr>
+                        <h4 class="text-center text-nowrap text-danger">请选择继续参加拼图实验的意愿度</h4>
+                        <input id="next_game_rating2" required class="rb-rating next-rb-rating" type="text" value="4" title="">
+                        <h5 class="text-center text-nowrap text-danger">如有建议，请提供</h5>
+                        <textarea id="next_game_reason2" style="width: 60%" rows="2"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="submit-button">
+                            OK
+                        </button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+
+        <div class="modal fade" id="show_hints_dialog" tabindex="-1" role="dialog" aria-labelledby="msgLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="showhints_msgLabel">
+                            Getting help from the crowd...
+                        </h4>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-center text-nowrap text-danger" id="round_id"><i class="fa fa-spin fa-spinner fa-2x"></i></p>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
+        <!-- /.modal -->
+
+        <div class="mask" id="loading">
+            <div class="mdl-spinner mdl-js-spinner is-active"></div>
+        </div>
+
+        <div class="solution">
+            <img id="puzzle-image" class="puzzle-image" style="display: none;"/>
+            <img width="128" height="128" id="empty" style="display: none;" src="images/empty.png" />
+        </div>
+
+        <main class="puzzle">
+        </main>
+
+        <div class="htmleaf-container">
+            <div class="htmleaf-content">
+                <div class="center menu">
+                    <div id="myMenu"></div>
+                </div>
+            </div>
+        </div>
+        <div id="button_group">
+            <span id="steps_chip" class="mdl-chip mdl-chip--contact" style="display: none;">
                 <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white" style="font-size: 12px">Step</span>
                 <span id="steps" class="mdl-chip__text">0</span>
                 <!--<label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_steps" style="left: 85px; position: absolute; margin: 5">-->
@@ -103,70 +210,102 @@
                 </label>
                 <!-- <button type="button" class="mdl-chip__action" id="stepButton"><i class="fa fa-close"></i></button> -->
             </span>
-            <span id="timer_chip" class="mdl-chip mdl-chip--contact">
-                <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white" style="font-size: 12px">Time</span>
-                <span id="timer" class="mdl-chip__text">00:00:00</span>
-                <!-- <button type="button" class="mdl-chip__action"><i class="fa fa-close"></i></button> -->
-                <!--<label id="timer_switch" class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="show_timer" style="left: 85px; position: absolute; margin: 5">-->
-                    <!--<input type="checkbox" id="show_timer" class="mdl-switch__input" checked>-->
-                    <!-- <span class="mdl-switch__label"></span> -->
-                </label>
-            </span>
         </div>
-        <div id="undo_help">
+        <div id="timer_wrap">
+            <strong id="timer">00:00:00</strong>
+        </div>
+        <div class="menu_png" id="undo_help">
             <img src="images/undo.png" id="undo_button" />
-            <img src="images/help.png" id="help_button" />
+            <img src="images/reset.png" id="reset_button" style="display: none;">
+            <img src="images/handshake.png" id="help_button" />
         </div>
-
-            <script type="text/javascript">
-                var player_name = '<%-player_name-%>';
-                var solved_players = '<%-solved_players-%>';
-                var level = '<%-level%>';
-                level = parseInt(level);
-                var roundID = '<%-roundID%>';
-                roundID = parseInt(roundID);
-
-                var serverStartTime = '<%-startTime%>';
-                serverStartTime = Date.parse(serverStartTime);
-
-                var imgSrc = '<%-image%>';
-                var tileWidth = '<%-tileWidth%>';
-                tileWidth = parseInt(tileWidth);
-
-                var players_num = '<%-players_num%>';
-                players_num = parseInt(players_num);
-
-                var roundShape = '<%-shape%>';
-                var hasEdge = '<%-edge%>';
-                var hasBorder = '<%-border%>';
-
-                var imageWidth = '<%-imageWidth%>';
-                var imageHeight = '<%-imageHeight%>';
-
-                var tilesPerRow = '<%-tilesPerRow%>';;
-                var tilesPerColumn = '<%-tilesPerColumn%>';
-
-                var shapeArrayStr = '<%-shapeArray%>';
-                var shapeArray = JSON.parse(shapeArrayStr);
-
-                document.querySelector('.puzzle-image').width = imageWidth;
-                document.querySelector('.puzzle-image').height = imageHeight;
-                document.querySelector('.puzzle-image').src = imgSrc;
-
-                var myCanvas = document.createElement("canvas");
-                myCanvas.setAttribute("width", screen.availWidth*1.5);
-                myCanvas.setAttribute("height", screen.availHeight);
-                myCanvas.setAttribute("id", "canvas");
-                myCanvas.setAttribute("class", "canvas");
-                document.querySelector('.puzzle').appendChild(myCanvas);
-            </script>
-            </script>
-            <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
-            <script type="text/javascript" src="/javascripts/intro.js"></script>
-            </body>
+        <div class="menu_png" id="quit_menu">
+            <img src="images/quit.png" id="quit_button" />
+        </div>
+        <div class="menu_png" id="guess_menu" style="display: none;">
+            <img src="images/guess.png" id="guess_button" />
+        </div>
+        <div class="menu_png" id="share_menu" style="display: none;">
+            <img src="images/share.png" id="share_button" />
+        </div>
+        <div class="menu_png" id="addon_menu">
+            <img src="images/center.png" id="center_button" />
+            <img src="images/zoomin.png" id="zoomin_button" />
+            <img src="images/zoomout.png" id="zoomout_button" />
+        </div>
     </div>
-    <script src="/javascripts/jquery.min.js"></script>
-    <script src="http://cdn.bootcss.com/jqueryui/1.11.0/jquery-ui.min.js"></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/animejs/1.0.0/anime.js'></script>
-    <script src="/javascripts/menu.js"></script>
+
+    <script type="text/javascript">
+        var player_name = '<%-player_name-%>';
+        var solved_players = '<%-solved_players-%>';
+        var level = '<%-level%>';
+        level = parseInt(level);
+        var roundID = '<%-roundID%>';
+        roundID = parseInt(roundID);
+
+        var serverStartTime = '<%-startTime%>';
+        serverStartTime = Date.parse(serverStartTime);
+
+        var imgSrc = '<%-image%>';
+        var tileWidth = '<%-tileWidth%>';
+        tileWidth = parseInt(tileWidth);
+
+        var players_num = '<%-players_num%>';
+        players_num = parseInt(players_num);
+
+        var roundShape = '<%-shape%>';
+        var hasEdge = '<%-edge%>';
+        var hasBorder = '<%-border%>';
+        var isOfficial = '<%-official%>';
+        var forceLeaveEnable = '<%-forceLeaveEnable%>';
+        var tileHeat = '<%-tileHeat%>' === 'true';
+        console.log('tileHeat', tileHeat)
+        var hintDelay = '<%-hintDelay%>' === 'true';
+        console.log('hintDelay', hintDelay)
+        var outsideImage = '<%-outsideImage%>' === 'true';
+        console.log('outsideImage', outsideImage)
+        var originSize = '<%-originSize%>' === 'true';
+        console.log('originSize', originSize)
+
+        var imageWidth = '<%-imageWidth%>';
+        imageWidth = parseInt(imageWidth);
+        var imageHeight = '<%-imageHeight%>';
+        imageHeight = parseInt(imageHeight);
+
+        var tilesPerRow = '<%-tilesPerRow%>';
+        tilesPerRow = parseInt(tilesPerRow);
+        var tilesPerColumn = '<%-tilesPerColumn%>';
+        tilesPerColumn = parseInt(tilesPerColumn);
+        var algorithm = '<%-algorithm%>';
+
+        var shapeArrayStr = '<%-shapeArray%>';
+        var shapeArray = JSON.parse(shapeArrayStr);
+
+        if (!outsideImage) {
+            document.querySelector('.puzzle-image').width = imageWidth;
+            document.querySelector('.puzzle-image').height = imageHeight;
+        }
+        document.querySelector('.puzzle-image').src = outsideImage? 'proxy?url=' + imgSrc : imgSrc;
+
+        var myCanvas = document.createElement("canvas");
+        myCanvas.setAttribute("width", screen.availWidth*1.5);
+        myCanvas.setAttribute("height", screen.availHeight);
+        myCanvas.setAttribute("id", "canvas");
+        myCanvas.setAttribute("class", "canvas");
+        myCanvas.setAttribute("crossorigin", "anonymous")
+        document.querySelector('.puzzle').appendChild(myCanvas);
+
+        $(".canvas").css('position', 'fixed');
+        $(".canvas").css('top', '0px');
+        $(".canvas").css('left', '0px');
+    </script>
+    </script>
+    <% if (algorithm === 'share') { %>
+    <script type="text/paperscript" canvas="canvas" src="/javascripts/share_jigsaw.js"></script>
+    <% } else { %>
+    <script type="text/paperscript" canvas="canvas" src="/javascripts/jigsaw.js"></script>
+    <% } %>
+    <script type="text/javascript" src="/javascripts/intro.js"></script>
+    <script src='/javascripts/anime.js'></script>
+    <!--<script src="/javascripts/menu.js"></script>-->
     <% include footer.html %>

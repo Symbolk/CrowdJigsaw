@@ -9,7 +9,7 @@ module.exports = {
 
     decay: 0.618, // the weight discount of the hinted link
     epsilon: 0.2, // the gap beteen weight-positive
-    phi: 0.618, // the minimal confidence value to be hinted
+    phi: 0, // the minimal confidence value to be hinted
     msn: 1, // minimal supporter num to be hinted
     create_correct_link_score: 3,
     remove_correct_link_score: -6,

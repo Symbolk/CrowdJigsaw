@@ -1,0 +1,1 @@
+em++ -std=c++11 src/cluster.cpp -o cluster.js -s EXCEPTION_DEBUG=1 -s SAFE_HEAP=1 -s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s EXPORTED_FUNCTIONS='["_cluster"]' -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "getValue", "setValue"]' && mv cluster.js build/cluster.js && mv cluster.wasm build/cluster.wasm

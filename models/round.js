@@ -4,7 +4,9 @@ const mongoose = require("mongoose");
 var RoundSchema = new mongoose.Schema({
     round_id: { type: Number, required: true, unique: true, index: true }, //inc
     // puzzle info
+    algorithm: { type: String, default: 'distribute'},
     image: { type: String, required: true }, //image url
+    difficult: {type: Number},
     imageWidth: { type: Number},
     imageHeight: { type: Number},
     shape: { type: String, required: true }, // jagged or square
@@ -12,8 +14,13 @@ var RoundSchema = new mongoose.Schema({
     shapeArray: { type: String, default: "" }, // jagged or square
     level: { type: Number, required: true }, //1-3
     edge: { type: Boolean, default: false }, // whether the tile has edge
+    official: { type: Boolean, default: false }, // whether the tile has edge
+    tileHeat: {type: Boolean, default: false},
+    hintDelay: {type: Boolean, default: true},
+    originSize: {type: Boolean, default: false},
+    outsideImage: {type: Boolean, default: false},
+    forceLeaveEnable: { type: Boolean, default: false }, // whether the tile has edge
     border: { type: Boolean, default: false },// whether the tile has border
-    row_num:  { type: Number, default: -1 },
     tilesPerRow:  { type: Number, default: -1 },
     tilesPerColumn:  { type: Number, default: -1 },
     tile_num: { type: Number, default: -1 },

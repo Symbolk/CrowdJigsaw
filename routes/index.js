@@ -10,9 +10,9 @@ var dev = require('../config/dev');
 var crypto = require('crypto');
 var util = require('./util.js');
 var PythonShell = require('python-shell');
-/**请求其他页面**/
-const request = require('request');
 
+var url = require('url');
+var request = require('request');
 const redis = require('../redis');
 const Promise = require('bluebird');
 
@@ -41,7 +41,6 @@ function decrypt(str, secret) {
 
 // Get Home Page
 router.route('/').all(LoginFirst).all(Logined).get(async function (req, res, next) {
-    console.log("system get");
     if(!dev.multiPlayer){
 	   return res.redirect('/visitor');
        console.log("redirect visitor");
@@ -51,6 +50,19 @@ router.route('/').all(LoginFirst).all(Logined).get(async function (req, res, nex
     //     title: 'Crowd Jigsaw Puzzle'
     // });
     console.log("render index");
+});
+
+// Image proxy
+router.get('/proxy', function (req, res) {
+    let parts = url.parse(req.url, true);
+    let imageUrl = parts.query.url;
+    parts = url.parse(imageUrl);
+    if(parts.hostname !== 'image.pintu.fun') {
+        res.status(500).send({
+           message: 'Only support image from host: image.pintu.fun'
+        });
+    }
+    req.pipe(request(imageUrl)).pipe(res)
 });
 
 // Login
@@ -334,7 +346,10 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                 border: round.border,
                 official: round.official || false,
                 forceLeaveEnable: round.forceLeaveEnable || false,
+                tileHeat: round.tileHeat || false,
                 hintDelay: round.hintDelay || false,
+                outsideImage: round.outsideImage || false,
+                originSize: round.originSize || false,
                 algorithm: round.algorithm,
                 tilesPerRow: round.tilesPerRow,
                 tilesPerColumn: round.tilesPerColumn,
@@ -365,7 +380,10 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                             border: round.border,
                             official: round.official || false,
                             forceLeaveEnable: round.forceLeaveEnable || false,
+                            tileHeat: round.tileHeat || false,
                             hintDelay: round.hintDelay || false,
+                            outsideImage: round.outsideImage || false,
+                            originSize: round.originSize || false,
                             algorithm: round.algorithm,
                             tilesPerRow: round.tilesPerRow,
                             tilesPerColumn: round.tilesPerColumn,
@@ -374,6 +392,69 @@ router.route('/puzzle').all(LoginFirst).get(function (req, res) {
                             shapeArray: round.shapeArray
                         });
                     }
+                }
+            });
+        }
+    });
+});
+
+router.route('/share_puzzle').all(LoginFirst).get(function (req, res) {
+    let roundID = req.query.roundID;
+    let condition = {
+        round_id: parseInt(roundID)
+    };
+    var redis_key = 'round:' + condition.round_id;
+    redis.get(redis_key, (err, data) => {
+        if(data){
+            var round = JSON.parse(data);
+            res.render('share_puzzle',
+                {
+                    title: 'Puzzle',
+                    player_name: req.session.user.username,
+                    players_num: round.players_num,
+                    level: round.level,
+                    roundID: roundID,
+                    solved_players: round.solved_players,
+                    image: round.image,
+                    tileWidth: round.tileWidth,
+                    startTime: round.start_time,
+                    shape: round.shape,
+                    edge: round.edge,
+                    border: round.border,
+                    tilesPerRow: round.tilesPerRow,
+                    tilesPerColumn: round.tilesPerColumn,
+                    imageWidth: round.imageWidth,
+                    imageHeight: round.imageHeight,
+                    shapeArray: round.shapeArray
+            });
+        }
+        else {
+            RoundModel.findOne(condition, function (err, doc) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    var round = doc;
+                    redis.set(redis_key, JSON.stringify(round), (err, data) => {});
+                    res.render('share_puzzle',
+                        {
+                            title: 'Puzzle',
+                            player_name: req.session.user.username,
+                            players_num: round.players_num,
+                            level: round.level,
+                            roundID: roundID,
+                            solved_players: round.solved_players,
+                            image: round.image,
+                            tileWidth: round.tileWidth,
+                            startTime: round.start_time,
+                            shape: round.shape,
+                            edge: round.edge,
+                            border: round.border,
+                            tilesPerRow: round.tilesPerRow,
+                            tilesPerColumn: round.tilesPerColumn,
+                            imageWidth: round.imageWidth,
+                            imageHeight: round.imageHeight,
+                            shapeArray: round.shapeArray
+                    });
                 }
             });
         }
@@ -511,6 +592,10 @@ router.route('/settings').all(LoginFirst).get(function (req, res) {
     }
 });
 
+function prefix(num, length) {
+    return (Array(length).join('0') + num).slice(-length);  
+}
+
 // Get the rank of this round
 router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, res) {
     let condition = {
@@ -534,6 +619,7 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, re
                 return;
             }
             let round = JSON.parse(round_json);
+            let start_time = Date.parse(round.start_time);
             //console.log(round, round.tilesPerColumn, round.tilesPerRow);
             let puzzle_links = 2 * round.tilesPerColumn * round.tilesPerRow - round.tilesPerColumn - round.tilesPerRow;
             let finished = new Array();
@@ -552,9 +638,17 @@ router.route('/roundrank/:round_id').all(LoginFirst).get(async function (req, re
                     finishPercent = (r.correct_links / 2) / puzzle_links * 100;
                 }
                 if (r.end_time != "-1") {
+                    finishPercent = 100;
+                    let end_time = Date.parse(r.end_time)
+                    let finish_time = (end_time - start_time) / 1000;
+                    let record_finish_time = r.time.split(':').map(e => parseInt(e)).reduce((a, b) => a * 60 + b);
+                    let time = finish_time < record_finish_time ? finish_time : record_finish_time;
+                    time = prefix(parseInt(time / 3600), 2) + ':' + 
+                    prefix(parseInt((time % 3600) / 60), 2) + ":" + 
+                    prefix(parseInt(time % 60), 2); 
                     finished.push({
                         "playername": r.username,
-                        "time": r.time,
+                        "time": time,
                         "steps": r.steps,
                         "hintPercent": hintPercent.toFixed(3),
                         "finishPercent": finishPercent.toFixed(3),
