@@ -1,10 +1,77 @@
 <% include header2.html %>
+<script src="/javascripts/jquery.min.js"></script>
+<script src="/javascripts/bootstrap-table.min.js"></script>
+<div id="user_score_table">
+    <h3>Top10 同学得分</h3>
+    <table data-toggle="table">
+        <thead>
+            <tr>
+                <th data-field="username" data-halign="center" data-align="center">Player Name</th>
+                <th data-field="score" data-halign="center" data-align="center" data-sortable="true">Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% final_user_score.forEach(function(u){ %>
+                <tr>
+                    <td>
+                        <span>
+                            <%- u.username %>
+                        </span>
+                    </td>
+                    <td>
+                        <span>
+                            <%- u.score %>
+                        </span>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<div id="class_score_table">
+    <h3>各班级(学号前7位)得分</h3>
+    <table data-toggle="table">
+        <thead>
+            <tr>
+                <th data-field="class_id" data-halign="center" data-align="center">Player Name</th>
+                <th data-field="score" data-halign="center" data-align="center" data-sortable="true">Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% final_class_score.forEach(function(u){ %>
+                <tr>
+                    <td>
+                        <span>
+                            <%- u.class_id %>
+                        </span>
+                    </td>
+                    <td>
+                        <span>
+                            <%- u.score %>
+                        </span>
+                    </td>
+                </tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+<div id="thanks">
+    <h2>感谢大家一学期的参与</h2>
+    <h4>你后半学期的总得分为<%= total_score %>，排名为<%= final_ranking %></h4>
+    <h4>进行拼图游戏，可访问<a href="pintu.fun">pintu.fun</a></h4>
+</div>
     <script>
         var username = "<%=username%>";
         var admin = "<%=admin%>";
+        admin = admin === "true"? true: false;
         var multiPlayer = "<%=multiPlayer%>";
         var multiPlayerServer = "<%=multiPlayerServer%>";
         var singlePlayerServer = "<%=singlePlayerServer%>";
+        var normalPlayerCreateRound = "<%=normalPlayerCreateRound%>";
+        var final_class_score = "<%=final_class_score%>";
+        var final_user_score = "<%=final_user_score%>";
+        var final_show_flag = "<%=final_show_flag%>";
+        normalPlayerCreateRound = normalPlayerCreateRound === "true"? true: false;
     </script>
     <!-- Content W  rapper. Contains page content -->
     <div class="content-wrapper">
@@ -13,12 +80,8 @@
             <h1>
                 Playground
                 <small>Here you can find all joinable rounds, or create your own one.</small>
-            <% if(multiPlayer==true){%>
-                <a href="<%=singlePlayerServer%>/home">Single Player Game</a>
-            <%}
-            else{%>
-                <a href="<%=multiPlayerServer%>/home">Multi Player Game</a>
-            <%} %>
+                <a id="rules" data-toggle="control-sidebar" class="button button-3d button-border button-rounded button-primary" style="display: none;">计分规则</a>
+                <a id="after_class_rules" data-toggle="control-sidebar" class="button button-3d button-border button-rounded button-primary" style="display: none;">课后得分规则</a>
             </h1>
             <ol class="breadcrumb">
                 <li>
@@ -30,17 +93,20 @@
         </section>
 
         <!-- Main content -->
-        <section class="content">
+        <section class="content" id="round_content">
 
             <div class="row col-lg-4" id="round_list"></div>
-            <div class="row">
-                <% if(admin==true){%>
+                <% if(true){%>
                     <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
                         <!-- Widget: user widget style 1 -->
                         <div class="box box-widget widget-user">
                             <!-- Add the bg color to the header using any of the bg-* classes -->
                             <div class="widget-user-header bg-aqua-active">
+                                <% if(admin){%>
                                 <h3 class="widget-user-username">New Round</h3>
+                                <%}else{%>
+                                <h3 class="widget-user-username">Random Round</h3>
+                                <%}%>       
                                 <h5 class="widget-user-desc">Create One!</h5>
                             </div>
                             <div class="widget-user-image" id="newround_button">
@@ -53,30 +119,21 @@
                             </div>
                             <div class="box-footer">
                                 <div class="row">
-                                    <div class="col-sm-4 border-right">
+                                    <div class="col-sm-6 border-right">
                                         <div class="description-block">
-                                            <h5 class="description-header">1/2</h5>
-                                            <span class="description-text">Level</span>
+                                            <h5 class="description-header">4x4-10x10</h5>
+                                            <span class="description-text">Size</span>
                                         </div>
                                         <!-- /.description-block -->
                                     </div>
                                     <!-- /.col -->
-                                    <div class="col-sm-4 border-right">
+                                    <div class="col-sm-6 border-right">
                                         <div class="description-block">
                                             <h5 class="description-header">1-50</h5>
                                             <span class="description-text">Players</span>
                                         </div>
                                         <!-- /.description-block -->
                                     </div>
-                                    <!-- /.col -->
-                                    <div class="col-sm-4">
-                                        <div class="description-block">
-                                            <h5 class="description-header">Jagged</h5>
-                                            <span class="description-text">Shape</span>
-                                        </div>
-                                        <!-- /.description-block -->
-                                    </div>
-                                    <!-- /.col -->
                                 </div>
                                 <!-- /.row -->
                             </div>
@@ -84,12 +141,7 @@
                     </div>
                     <%}
       else{%>           
-                    <% if(multiPlayer==true){%>
-                        <div class="col-md-4 col-sm-6 col-xs-12 random-game-card" style="display: none;">
-                    <%}
-                    else{%>
                         <div class="col-md-4 col-sm-6 col-xs-12 random-game-card" >
-                    <%} %>
                             <!-- Widget: user widget style 1 -->
                             <div class="box box-widget widget-user">
                                 <!-- Add the bg color to the header using any of the bg-* classes -->
@@ -138,24 +190,7 @@
                             <!-- /.widget-user -->
                         </div>
                         <%} %>
-                <div>
-                    <ul>
-                        <br>
-                        <li style="font-weight:bold;color: red">新功能</li>
-                        <li>按下ctrl键时可选择多块进行拖动，单击选取块双击取消选择，请注意拖动结束前要保持ctrl键按下</li>
-                        <li>陷入僵局时，点击右上角的help按钮可以寻求推荐</li>
-                        <li style="font-weight:bold;color: red">新的规则</li>
-                        <li>每人初始得分：0</li>
-                        <li>拼上正确的一块：+3</li>
-                        <li>拆掉正确的一块：-6</li>
-                        <li>拼上错误的一块：-3</li>
-                        <li>拆掉错误的一块：+3</li>
-                        <li>拆掉推荐中错误的一块：+6</li>
-                        <li>有人完成拼图后停止统计</li>
-                        <li>班级得分为班级前十名的得分之和</li>
-                        <li>奖金由得分最高的前三个班级获得</li>
-                    </ul>
-                </div>
+                
             </div>
             <% include newround1.html %>
             <% include roundcard.html %>
@@ -165,7 +200,6 @@
                     <% } %>
                             <% include roundimageshower.html %>
     <!-- /.content-wrapper -->
-    <script src="/javascripts/jquery.min.js"></script>
     <script src="/javascripts/bootstrap.min.js"></script>
     <script src="/javascripts/bootstrap-slider.min.js"></script>
 
@@ -180,3 +214,77 @@
     <% } %>
     <% include toast.html %>
         <% include footer2.html %>
+        <!-- The Right Sidebar -->
+                <aside class="control-sidebar control-sidebar-light">
+                  <!-- Content of the sidebar goes here -->
+                </aside>
+                <!-- The sidebar's background -->
+                <!-- This div must placed right after the sidebar for it to work-->
+                <div class="control-sidebar-bg">
+                    <span></span>
+                    <br><br><br><br>
+                    <table class="table" id="rules_table">
+                      <tbody>
+                        <tr>
+                          <td>初始得分：0</td>
+                        </tr>
+                        <tr>
+                            <td>点击分享信息后开始计分</td>
+                        </tr>
+                        <tr>
+                          <td>拼上正确的一块：+3</td>
+                        </tr>
+                        <tr>
+                          <td>拆掉正确的一块：-6</td>
+                        </tr>
+                        <tr>
+                          <td>拼上错误的一块：-3</td>
+                        </tr>
+                        <tr>
+                          <td>拆掉错误的一块：+3</td>
+                        </tr>
+                        <tr>
+                          <td>拆掉推荐中错误的一块：+6</td>
+                        </tr>
+                        <tr>
+                          <td>有人完成拼图后停止统计</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <table class="table" id="after_class_rules_table">
+                      <tbody>
+                        <tr>
+                          <td>课后进行拼图游戏可得分</td>
+                        </tr>
+                        <tr>
+                            <td>课后得分记录在左侧“After Class Score”中</td>
+                        </tr>
+                        <tr>
+                          <td>游戏得分参考拼图参与人数，拼图大小</td>
+                        </tr>
+                        <tr>
+                          <td>得分= 10 * 拼图人数 * （拼图大小 - 5）/ 5</td>
+                        </tr>
+                        <tr>
+                          <td>游戏创建者可得1.5倍得分</td>
+                        </tr>
+                        <tr>
+                          <td>即单人开10*10的拼图，得分为15分</td>
+                        </tr>
+                        <tr>
+                          <td>多人开10*10的拼图，每人得分与拼图参与人数成正比</td>
+                        </tr>
+                        <tr>
+                          <td>有人完成拼图后该局有效</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                </div>
+<script type="text/javascript">
+    if (final_show_flag === 'true') {
+        $('#user_score_table').css('display', 'block');
+        $('#class_score_table').css('display', 'block');
+        $('#thanks').css('display', 'block');
+        $('#round_content').css('display', 'none');
+    }
+</script>

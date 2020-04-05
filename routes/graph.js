@@ -10,8 +10,14 @@ var util = require('./util.js');
 var constants = require('../config/constants');
 var dirs = ['top', 'right', 'bottom', 'left'];
 const Promise = require('bluebird');
-const redis = require('redis').createClient();
-var roundNodesAndHints = {};
+const redis = require('../redis');
+let roundNodesAndHints = {};
+let roundFocusGraph = {};
+
+
+var updateGALock = {};
+var updateLock = {};
+var updateDistributeLock = {};
 
 /**
  * Calculate the contribution according to the alpha decay function
@@ -110,7 +116,7 @@ function updateNodesLinks(nodeLink, x, y, dir, confidence, weight, edge, nowTime
     };
 }
 
-function generateHints(roundID, nodesAndHints){
+function generateHints(nodesAndHints){
     var nodes = nodesAndHints.nodes;
     var hints = nodesAndHints.hints;
 
@@ -279,12 +285,30 @@ function computeScore(round_id, edge, tilesPerRow, player_name){
         redis.zincrby(redis_key + ':remove_hinted_wrong_link', 1, player_name);
     }
     redis.zincrby(redis_key, score, player_name);
+    redis.zincrby('active_scoreboard', score, player_name);
 }
 
 var averageTime = 0.0;
 var updateTimes = 0;
 
-function distributed_update(data) {
+async function distributedUpdateWrapper(data) {
+    if (!data._id) {
+        data._id =  Date.now();
+    }
+    if (updateDistributeLock[data.round_id]) {
+        setImmediate(distributedUpdateWrapper, data);
+        return;
+    }
+    let delay = Date.now() - data._id;
+    if (delay > 10) {
+        console.log('distributedUpdate scheduled delay: ' + delay);
+    }
+    updateDistributeLock[data.round_id] = true;
+    await distributedUpdate(data);
+    updateDistributeLock[data.round_id] = false;
+}
+
+async function distributedUpdate(data) {
     let time = (new Date()).getTime();
     saveAction(data.round_id, time, data.player_name, data.edges, data.logs, data.is_hint);
     let redis_players_key = 'round:' + data.round_id + ':distributed:players';
@@ -308,6 +332,11 @@ function distributed_update(data) {
                 redis.sadd(sup_key, key, function(err, count) {
                     if (count == 1) {
                         redis.zincrby('round:' + data.round_id + ':distributed:edge_sup', 1, key);
+                        redis.sadd('round:' + data.round_id + ':distributed:edges', key, function(err, count) {
+                            if (count == 1) {
+                                redis.sadd('round:' + data.round_id + ':first_edges:' + data.player_name, key);
+                            }
+                        });
                     }
                     if (count == 1 && e.beHinted && e.from != data.player_name) {
                         redis.zincrby('round:' + data.round_id + ':distributed:hint_sup', 1, e.from);
@@ -331,210 +360,298 @@ function distributed_update(data) {
             }
         }
     });
-}
-
-function update(data) {
-    // fetch the saved edges data of this round
-    let roundID = data.round_id;
-    let redis_key = 'round:' + roundID;
-    redis.get(redis_key, function(err, round_json) {
-        if (err) {
-            console.log(err);
-        } else if (round_json) {
-            let round = JSON.parse(round_json);
-            let redis_key = 'round:' + roundID + ':edges';
-            redis.get(redis_key, function (err, edges_json) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    let edges_saved = {};
-                    if (edges_json) {
-                        edges_saved = JSON.parse(edges_json);
-                    }
-                    let time = (new Date()).getTime();
-                    saveAction(roundID, time, data.player_name, data.edges, data.logs, data.is_hint);
-
-                    for (let key in data.edges) {
-                        let e = data.edges[key];
-                        // if the edge exists, update the size
-                        if (edges_saved.hasOwnProperty(key)) {
-                            let supporters = edges_saved[key].supporters;
-                            let opposers = edges_saved[key].opposers;
-                            if (e.size > 0) {
-                                if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                    delete opposers[data.player_name];
-                                } else {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                }
-                            } else { // e.size<0(e.size==0?)
-                                if (supporters.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, supporters[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
-                                    delete supporters[data.player_name];
-                                } else if (opposers.hasOwnProperty(data.player_name)) {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, -opposers[data.player_name], e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
-                                } else {
-                                    computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                    opposers[data.player_name] = e.size * (e.size / e.nodes);
-                                }
-                            }
-                        } else {
-                            // if the edge not exists, create the edge
-                            let supporters = {};
-                            let opposers = {};
-                            let weight = 0;
-                            if (e.size > 0) {
-                                computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                                weight += supporters[data.player_name];
-                            } else {
-                                computeScore(roundID, e.x, e.y, e.tag, e.size, 0, e.beHinted, round.tilesPerRow, data.player_name, e.from);
-                                opposers[data.player_name] = e.size * (e.size / e.nodes);
-                            }
-                            let confidence = 1;
-                            edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
-                        }
-                    }
-
-                    let nodesAndHints = getNodesAndHints(roundID, round.tile_num, edges_saved);
-
-                    // update the confidence of every saved edge
-                    for (let e in edges_saved) {
-                        let oldConfidence = edges_saved[e].confidence;
-                        let oldWeight = edges_saved[e].weight;
-                        let supporters = edges_saved[e].supporters;
-                        let opposers = edges_saved[e].opposers;
-                        let wp = 0;
-                        let wn = 0;
-                        for (let s in supporters) {
-                            wp += supporters[s];
-                        }
-                        for (let o in opposers) {
-                            wn += opposers[o];
-                        }
-                        edges_saved[e].weight = wp;
-                        if (wp + wn != 0) {
-                            edges_saved[e].confidence = wp / (wp + wn);
-                            if(edges_saved[e].confidence < oldConfidence){
-                                updateNodesAndEdges(nodesAndHints, edges_saved[e]);
-                            }
-                        }
-                    }
-
-                    for (let e in edges_saved) {
-                        updateNodesAndEdges(nodesAndHints, edges_saved[e]);
-                    }
-                    generateHints(roundID, nodesAndHints);
-                    checkUnsureHints(nodesAndHints);
-                    computeCog(roundID, edges_saved, time, round.tilesPerRow, round.tilesPerColumn, nodesAndHints);
-                    
-                    redis.set(redis_key, JSON.stringify(edges_saved));
-                }
-            });
+    if (data.conflict) {
+        for (let i = 0; i < data.conflict.length; i++) {
+            let key = data.conflict[i].edge;
+            let time = data.conflict[i].time;
+            redis.zincrby('round:' + data.round_id + ':distributed:edge_opp', time * 0.2, key);
         }
-    });
+    }
 }
 
-function updateForGA(data) {
+function generateEdgeMap(nodesAndHints, edges_saved) {
+    let edgeMap = {};
+    for (let e in edges_saved) {
+        let edge = edges_saved[e];
+        edgeMap[e] = {
+            sup: edge.weight,
+            opp: edge.wn,
+            pro: edge.confidence
+        };
+    }
+    nodesAndHints.edgeMap = edgeMap;
+}
+
+async function updateWrapper(data) {
+    if (!data._id) {
+        data._id =  Date.now();
+    }
+    if (updateLock[data.round_id]) {
+        setImmediate(updateWrapper, data);
+        return;
+    }
+    let delay = Date.now() - data._id;
+    if (delay > 10) {
+        console.log('update scheduled delay: ' + delay);
+    }
+    updateLock[data.round_id] = true;
+    await update(data);
+    updateLock[data.round_id] = false;
+}
+
+async function update(data) {
     // fetch the saved edges data of this round
     let roundID = data.round_id;
-    let redis_key = 'round:' + roundID + ':edges:ga';
-    redis.get(redis_key, function (err, doc) {
-        if (err) {
-            console.log(err);
+    let round_json = await redis.getAsync('round:' + roundID);
+    if (!round_json) {
+        return;
+    }
+    let round = JSON.parse(round_json);
+    let round_finish = round.solved_players > 0;
+    let edges_json = await redis.getAsync('round:' + roundID + ':edges');
+    let edges_saved = edges_json? JSON.parse(edges_json): {};
+    saveAction(roundID, Date.now(), data.player_name, data.edges, data.logs, data.is_hint);
+
+    for (let key in data.edges) {
+        let e = data.edges[key];
+        // if the edge exists, update the size
+        if (edges_saved[key]) {
+            let supporters = edges_saved[key].supporters;
+            let opposers = edges_saved[key].opposers;
+            if (e.size > 0) {
+                if (supporters[data.player_name]) {
+                    //computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                } else if (opposers[data.player_name]) {
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
+                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                    delete opposers[data.player_name];
+                } else {
+                    redis.sadd('round:' + roundID + ':first_edges:' + data.player_name, key);
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
+                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                }
+            } else { // e.size<0(e.size==0?)
+                if (supporters[data.player_name]) {
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
+                    opposers[data.player_name] = e.size * (e.size / e.nodes);
+                    delete supporters[data.player_name];
+                } else if (opposers[data.player_name]) {
+                    //computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    opposers[data.player_name] = e.size * (e.size / e.nodes);
+                } else {
+                    if (!round_finish) {
+                        computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                    }
+                    opposers[data.player_name] = e.size * (e.size / e.nodes);
+                }
+            }
         } else {
-            let edges_saved = {};
-            if (doc) {
-                edges_saved = JSON.parse(doc);
+            // if the edge not exists, create the edge
+            let supporters = {};
+            let opposers = {};
+            let weight = 0;
+            if (e.size > 0) {
+                if (!round_finish) {
+                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                }
+                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                weight += supporters[data.player_name];
+            } else {
+                if (!round_finish) {
+                    computeScore(roundID, e, round.tilesPerRow, data.player_name);
+                }
+                opposers[data.player_name] = e.size * (e.size / e.nodes);
             }
-            for (let key in data.edges) {
-                let e = data.edges[key];
-                // if the edge exists, update the size
-                if (edges_saved.hasOwnProperty(key)) {
-                    let supporters = edges_saved[key].supporters;
-                    let opposers = edges_saved[key].opposers;
-                    if (e.size > 0) {
-                        if (supporters.hasOwnProperty(data.player_name)) {
-                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                        } else if (opposers.hasOwnProperty(data.player_name)) {
-                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                            delete opposers[data.player_name];
-                        } else {
-                            supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                        }
-                    } else { // e.size<0(e.size==0?)
-                        if (supporters.hasOwnProperty(data.player_name)) {
-                            opposers[data.player_name] = e.size * (e.size / e.nodes);
-                            delete supporters[data.player_name];
-                        } else if (opposers.hasOwnProperty(data.player_name)) {
-                            opposers[data.player_name] = e.size * (e.size / e.nodes);
-                        } else {
-                            opposers[data.player_name] = e.size * (e.size / e.nodes);
-                        }
+            let confidence = 1;
+            edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
+        }
+    }
+    if (data.conflict) {
+        //console.log(data.conflict);
+        for (let i = 0; i < data.conflict.length; i++) {
+            let key = data.conflict[i].edge;
+            let time = data.conflict[i].time;
+            if (edges_saved[key]) {
+                let supporters = edges_saved[key].supporters;
+                let opposers = edges_saved[key].opposers;
+                if (time > 0) {
+                    if (opposers[data.player_name]) {
+                        opposers[data.player_name] += time;
+                    } else {
+                        opposers[data.player_name] = time;
                     }
                 } else {
-                    // if the edge not exists, create the edge
-                    let supporters = {};
-                    let opposers = {};
-                    let weight = 0;
-                    if (e.size > 0) {
-                        supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
-                        weight += supporters[data.player_name];
-                    } else {
-                        opposers[data.player_name] = e.size * (e.size / e.nodes);
+                    if (opposers[data.player_name]) {
+                        opposers[data.player_name] -= time;
+                        if (opposers[data.player_name] <= 0) {
+                            delete opposers[data.player_name];
+                        }
                     }
-                    let confidence = 1;
-                    edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
                 }
-            }
-            // update the confidence of every saved edge
-            for (let e in edges_saved) {
-                let oldConfidence = edges_saved[e].confidence;
-                let oldWeight = edges_saved[e].weight;
-                let supporters = edges_saved[e].supporters;
-                let opposers = edges_saved[e].opposers;
-                let wp = 0;
-                let wn = 0;
-                for (let s in supporters) {
-                    wp += supporters[s];
-                }
-                for (let o in opposers) {
-                    wn += opposers[o];
-                }
-                edges_saved[e].weight = wp;
-                if (wp + wn != 0) {
-                    edges_saved[e].confidence = wp / (wp + wn);
-                }
-            }
-            redis.set(redis_key, JSON.stringify(edges_saved));
-        }
-    });
-}
-
-function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
-    var totalLinks = 2 * tilesPerRow * tilesPerColumn - tilesPerRow -tilesPerColumn;
-    var completeLinks = Object.getOwnPropertyNames(edges_saved).length;
-    var correctLinks = 0;
-    for (e in edges_saved) {
-        edge = edges_saved[e];
-        if(edge.tag == 'L-R'){
-            if(edge.x + 1 == edge.y && edge.y % tilesPerRow != 0){
-                correctLinks += 1;
-            }
-        }
-        else{
-            if(edge.x + tilesPerColumn == edge.y){
-                correctLinks += 1;
             }
         }
     }
+
+    let nodesAndHints = getNodesAndHints(roundID, round.tile_num, edges_saved);
+
+    // update the confidence of every saved edge
+    for (let e in edges_saved) {
+        let oldConfidence = edges_saved[e].confidence;
+        let oldWeight = edges_saved[e].weight;
+        let supporters = edges_saved[e].supporters;
+        let opposers = edges_saved[e].opposers;
+        let wp = 0;
+        let wn = 0;
+        for (let s in supporters) {
+            wp += supporters[s];
+        }
+        for (let o in opposers) {
+            wn += opposers[o];
+        }
+        edges_saved[e].weight = wp;
+        edges_saved[e].wn = wn;
+        if (wp + wn != 0) {
+            edges_saved[e].confidence = wp / (wp + wn);
+            if(edges_saved[e].confidence < oldConfidence){
+                updateNodesAndEdges(nodesAndHints, edges_saved[e]);
+            }
+        }
+    }
+
+    for (let e in edges_saved) {
+        updateNodesAndEdges(nodesAndHints, edges_saved[e]);
+    }
+
+    generateHints(nodesAndHints);
+    checkUnsureHints(nodesAndHints);
+    generateEdgeMap(nodesAndHints, edges_saved);
+    let nowTime = Date.now();
+    await computeCog(roundID, edges_saved, nowTime, round.tilesPerRow, round.tilesPerColumn, nodesAndHints);
+    await redis.setAsync('round:' + roundID + ':edges', JSON.stringify(edges_saved));
+}
+
+async function updateForGAWrapper(data) {
+    if (!data._id) {
+        data._id =  Date.now();
+    }
+    if (updateGALock[data.round_id]) {
+        setImmediate(updateForGAWrapper, data);
+        return;
+    }
+    let delay = Date.now() - data._id;
+    if (delay > 10) {
+        console.log('updateForGA scheduled delay: ' + delay);
+    }
+    updateGALock[data.round_id] = true;
+    await updateForGA(data);
+    updateGALock[data.round_id] = false;
+}
+
+async function updateForGA(data) {
+    // fetch the saved edges data of this round
+    let roundID = data.round_id;
+    let redis_key = 'round:' + roundID + ':edges:ga';
+    let edges_json = await redis.getAsync(redis_key);
+    let edges_saved = edges_json? JSON.parse(edges_json): {};
+
+    for (let key in data.edges) {
+        let e = data.edges[key];
+        // if the edge exists, update the size
+        if (edges_saved.hasOwnProperty(key)) {
+            let supporters = edges_saved[key].supporters;
+            let opposers = edges_saved[key].opposers;
+            if (e.size > 0) {
+                if (supporters.hasOwnProperty(data.player_name)) {
+                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                } else if (opposers.hasOwnProperty(data.player_name)) {
+                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                    delete opposers[data.player_name];
+                } else {
+                    supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                }
+            } else { // e.size<0(e.size==0?)
+                if (supporters.hasOwnProperty(data.player_name)) {
+                    opposers[data.player_name] = e.size * (e.size / e.nodes);
+                    delete supporters[data.player_name];
+                } else if (opposers.hasOwnProperty(data.player_name)) {
+                    opposers[data.player_name] = e.size * (e.size / e.nodes);
+                } else {
+                    opposers[data.player_name] = e.size * (e.size / e.nodes);
+                }
+            }
+        } else {
+            // if the edge not exists, create the edge
+            let supporters = {};
+            let opposers = {};
+            let weight = 0;
+            if (e.size > 0) {
+                supporters[data.player_name] = e.size * (e.beHinted ? constants.decay : 1) * (e.size / e.nodes);
+                weight += supporters[data.player_name];
+            } else {
+                opposers[data.player_name] = e.size * (e.size / e.nodes);
+            }
+            let confidence = 1;
+            edges_saved[key] = generateEdgeObject(e.x, e.y, e.tag, supporters, opposers, confidence, weight);
+        }
+    }
+    // update the confidence of every saved edge
+    for (let e in edges_saved) {
+        let edge = edges_saved[e];
+        let oldConfidence = edge.confidence;
+        let oldWeight = edge.weight;
+        let supporters = edge.supporters;
+        let opposers = edge.opposers;
+        let wp = 0;
+        let wn = 0;
+        for (let s in supporters) {
+            wp += supporters[s];
+        }
+        for (let o in opposers) {
+            wn += opposers[o];
+        }
+        edge.weight = wp;
+        if (wp + wn != 0) {
+            edge.confidence = wp / (wp + wn);
+        }
+    }
+    if (data.algorithm === 'distribute') {
+        await computeCog(data.round_id, edges_saved, Date.now(), data.tilesPerRow, data.tilesPerColumn, null);
+    }
+    await redis.setAsync(redis_key, JSON.stringify(edges_saved));
+
+    if (!data.focusGraph || !data.preFocusGraph) {
+        return;
+    }
+    let focusGraph = new Set(data.focusGraph);
+    let preFocusGraph = new Set(data.preFocusGraph);
+    if (!roundFocusGraph[data.round_id]) {
+        roundFocusGraph[data.round_id] = {};
+    }
+    preFocusGraph.forEach(idx => {
+        let pre = roundFocusGraph[data.round_id][idx];
+        roundFocusGraph[data.round_id][idx] = pre? pre - 1: pre;
+    });
+    focusGraph.forEach(idx => {
+        let pre = roundFocusGraph[data.round_id][idx];
+        roundFocusGraph[data.round_id][idx] = pre? pre + 1: 1;
+    });
+}
+
+async function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nodesAndHints){
+    var totalLinks = 2 * tilesPerRow * tilesPerColumn - tilesPerRow -tilesPerColumn;
+    var completeLinks = 0;
+    var correctLinks = 0;
+    var totalHints = 0;
+
+    var allPlayersTotalLinks = 0;
+    var allPlayersCorrectLinks = 0;
 
     var brief_edges_saved = {};
     for (var e in edges_saved) {
@@ -562,22 +679,69 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
             sLen: sLen,
             oLen: oLen
         }
+        if (sLen > 0) {
+            allPlayersTotalLinks += sLen;
+            completeLinks += 1;
+            if(edge.tag == 'L-R'){
+                if(edge.x + 1 == edge.y && edge.y % tilesPerRow != 0){
+                    correctLinks += 1;
+                    allPlayersCorrectLinks += sLen;
+                }
+            }
+            else{
+                if(edge.x + tilesPerColumn == edge.y){
+                    correctLinks += 1;
+                    allPlayersCorrectLinks += sLen;
+                }
+            }
+        }
     }
 
-    var correctHints = 0;
-    for (var i = 0; i < nodesAndHints.hints.length; i++) {
-        var hint = nodesAndHints.hints[i];
-        if(i >= tilesPerRow && (i - tilesPerRow) == hint[0]){ //up
-            correctHints += 1;
+    if (nodesAndHints) {
+        var correctHints = 0;
+        var hints = nodesAndHints.hints;
+        for (var i = 0; i < hints.length; i++) {
+            for (var d = 0; d < 4; d++) {
+                if (hints[i][d] >= 0) {
+                    totalHints += 1;
+                }
+            }
+            if(i % tilesPerRow < tilesPerRow - 1){ //right
+                if (i + 1 == hints[i][1] && i == hints[i+1][3]) {
+                    correctHints += 1;
+                }
+            }
+            if(i < (tilesPerColumn - 1) * tilesPerRow){ //bottom
+                if (i + tilesPerRow == hints[i][2] && i == hints[i + tilesPerRow][0]) {
+                    correctHints += 1;
+                }
+            }
         }
-        if(i % tilesPerRow < tilesPerRow - 1 && (i + 1) == hint[1]){ //right
-            correctHints += 1;
-        }
-        if(i < (tilesPerColumn - 1) * tilesPerRow && (i + tilesPerRow) == hint[2]){ //bottom
-            correctHints += 1;
-        }
-        if(i % tilesPerRow > 0 && (i - 1) == hint[3]){ //left
-            correctHints += 1;
+    }
+
+    let gaLinks = 0;
+    let gaCorrectLinks = 0;
+    let gaEdgesJson = await redis.getAsync('round:' + roundID + ':GA_edges');
+    let gaEdges = null;
+    if (gaEdgesJson) {
+        gaEdges = JSON.parse(gaEdgesJson);
+        gaLinks = gaEdges.length;
+        for (let i = 0; i < gaEdges.length; i++) {
+            let e = gaEdges[i];
+            let [l, r] = e.split('-');
+            let x = parseInt(l.substr(0, l.length - 1));
+            let tag = r[0] == 'R'? 'L-R': 'T-B';
+            let y = parseInt(r.substr(1));
+            if(tag == 'L-R'){
+                if(x + 1 == y && y % tilesPerRow != 0){
+                    gaCorrectLinks += 1;
+                }
+            }
+            else{
+                if(x + tilesPerColumn == y){
+                    gaCorrectLinks += 1;
+                }
+            }
         }
     }
 
@@ -585,14 +749,38 @@ function computeCog(roundID, edges_saved, time, tilesPerRow, tilesPerColumn, nod
         round_id: roundID,
         time: time,
         correctLinks: correctLinks,
-        correctHints: correctHints,
+        correctHints: correctHints? correctHints: null,
         completeLinks: completeLinks,
         totalLinks: totalLinks,
-        ga_edges: nodesAndHints.GA_edges,
-        nodes: nodesAndHints.nodes,
-        hints: nodesAndHints.hints,
+        ga_edges: gaEdges? gaEdges: null,
+        nodes: nodesAndHints? nodesAndHints.nodes: null,
+        hints: nodesAndHints? nodesAndHints.hints: null,
         edges_saved: brief_edges_saved,
     }
+    let redis_key = 'round:' + roundID + ':coglist';
+    let last = await redis.lindexAsync(redis_key, -1);
+
+    let brief_cog = {
+        time: Math.round(time),
+        correctHints: correctHints? correctHints: -1,
+        totalHints: totalHints / 2,
+        correctLinks: correctLinks,
+        completeLinks: completeLinks,
+        totalLinks: totalLinks,
+        allPlayersTotalLinks: allPlayersTotalLinks,
+        allPlayersCorrectLinks: allPlayersCorrectLinks,
+        gaLinks,
+        gaCorrectLinks,
+    }
+    if (last) {
+        let last_cog = JSON.parse(last);
+        if (parseInt(last_cog.correctLinks) >= brief_cog.correctLinks 
+            && parseInt(last_cog.completeLinks) >= brief_cog.completeLinks 
+            && parseInt(last_cog.correctHints) >= brief_cog.correctHints) {
+            return;
+        }
+    }
+    await redis.rpushAsync(redis_key, JSON.stringify(brief_cog));
     CogModel.create(Cog, function (err) {
         if (err) {
             console.log(err);
@@ -696,57 +884,107 @@ function mergyGA(round_id, time, ga_json, nodesAndHints){
     return mergedHints;
 }
 
+function getPlayersData(data) {
+    return new Promise(async (resolve, reject) => {
+        let redis_players_key = 'round:' + data.round_id + ':distributed:players';
+        let players = await redis.srandmemberAsync(redis_players_key, 4);
+        //console.log(players);
+        let playersData = new Array();
+        let playersPro = new Array();
+        let zeroCount = 0;
+        let minPro = 1;
+        let proSum = 0;
+        for (let i = 0; i < players.length; i++) {
+            let player = players[i];
+            if (player == data.player_name) {
+                continue;
+            }
+            let results = await Promise.join(
+                redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', player),
+                redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', player),
+                redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + player),
+            );
+            //console.log(results);
+            let sup = results[0] ? parseInt(results[0]): 0;
+            let opp = results[1] ? parseInt(results[1]): 0;
+            let edges = results[2] ? results[2]: [];
+            playersData.push({
+                from: player, 
+                sup: sup,
+                opp: opp,
+                edges: edges
+            });
+            if(sup + opp > 0) {
+                let pro = sup / (sup + opp)
+                playersPro.push(pro);
+                proSum += pro;
+                minPro = Math.min(minPro, pro);
+            } else {
+                zeroCount += 1;
+                playersPro.push(0);
+            }
+        }
+        proSum += zeroCount * minPro;
+        for (let i = 0; i < playersPro.length; i++) {
+            let pro = playersPro[i];
+            playersPro[i] = (pro > 0 ? pro : minPro) / proSum;
+        }
+        //console.log(playersPro);
+        let results = await Promise.join(
+            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_sup', 0, -1, 'WITHSCORES'),
+            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_opp', 0, -1, 'WITHSCORES')
+        );
+        if (playersData.length <= 2) {
+            resolve({
+                players: playersData,
+                edge_sup: results[0],
+                edge_opp: results[1]
+            });
+            return;
+        }
+        let winnersData = new Array();
+        while(winnersData.length < 2) {
+            let rand = Math.random();
+            let preProSum = 0;
+            let winner_idx = -1;
+            while(preProSum < rand && winner_idx < playersPro.length) {
+                winner_idx += 1;
+                preProSum += playersPro[winner_idx];
+            }
+            if (winner_idx >= 0) {
+                winnersData.push(playersData[winner_idx]);
+            }
+        } 
+        //console.log(winnersData);
+        resolve({
+            players: winnersData,
+            edge_sup: results[0],
+            edge_opp: results[1]
+        });
+    });
+}
+
 module.exports = function (io) {
     io.on('connection', function (socket) {
         socket.on('uploadForGA', function (data) {
-            updateForGA(data);
-        });
-        socket.on('upload', function (data) {
-            distributed_update(data);
-            //update(data);
+            updateForGAWrapper(data);
         });
 
-        socket.on('distributed_fetchHints', function(data) {
-            let redis_players_key = 'round:' + data.round_id + ':distributed:players';
-            redis.srandmember(redis_players_key, 2, function(err, players) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (players.length == 2) {
-                        Promise.join(
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[0]),
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[0]),
-                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[0]),
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[1]),
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[1]),
-                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1]),
-                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_sup', 0, -1, 'WITHSCORES'),
-                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_opp', 0, -1, 'WITHSCORES')
-                        ).then(function(results){
-                            let playersData = new Array();
-                            for (var i = 0; i < results.length - 2; i += 3) {
-                                let player = players[i/3];
-                                if (player == data.player_name) {
-                                    continue;
-                                }
-                                let sup = results[i] ? parseInt(results[i]): 0;
-                                let opp = results[i+1] ? parseInt(results[i+1]): 0;
-                                let edges = results[i+2] ? results[i+2]: [];
-                                playersData.push({
-                                    from: player, 
-                                    sup: sup,
-                                    opp: opp,
-                                    edges: edges
-                                });
-                            }
-                            socket.emit('distributed_proactiveHints', {
-                                players: playersData,
-                                edge_sup: results[results.length - 2],
-                                edge_opp: results[results.length - 1]
-                            });
-                        });
-                    }
-                }
+        socket.on('distributed_upload', function (data) {
+            distributedUpdateWrapper(data);
+        });
+
+        socket.on('upload', function (data) {
+            updateWrapper(data);
+        });
+
+        socket.on('distributed_fetchHints', async function(data) {
+            let playersData = await getPlayersData(data);
+            socket.emit('distributed_proactiveHints', {
+                players: playersData.players,
+                edge_sup: playersData.edge_sup,
+                edge_opp: playersData.edge_opp,
+                roundFocusGraph: roundFocusGraph[data.round_id]
             });
         });
 
@@ -767,56 +1005,24 @@ module.exports = function (io) {
                     }
                     socket.emit('proactiveHints', {
                         sureHints: hints,
-                        unsureHints: unsureHints
+                        unsureHints: unsureHints,
+                        edgeMap: nodesAndHints.edgeMap,
+                        roundFocusGraph: roundFocusGraph[data.round_id]
                     });
                 });
             }
         });
 
-        socket.on('distributed_getHintsAround', function(data) {
-            let redis_players_key = 'round:' + data.round_id + ':distributed:players';
-            redis.srandmember(redis_players_key, 2, function(err, players) {
-                if (err) {
-                    console.log(err);
-                } else {
-                    if (players.length == 2) {
-                        Promise.join(
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[0]),
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[0]),
-                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[0]),
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_sup', players[1]),
-                            redis.zscoreAsync('round:' + data.round_id + ':distributed:hint_opp', players[1]),
-                            redis.smembersAsync('round:' + data.round_id + ':distributed:sup_edges:' + players[1]),
-                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_sup', 0, -1, 'WITHSCORES'),
-                            redis.zrangeAsync('round:' + data.round_id + ':distributed:edge_opp', 0, -1, 'WITHSCORES')
-                        ).then(function(results){
-                            let playersData = new Array();
-                            for (var i = 0; i < results.length - 2; i += 3) {
-                                let player = players[i/3];
-                                if (player == data.player_name) {
-                                    continue;
-                                }
-                                let sup = results[i] ? parseInt(results[i]): 0;
-                                let opp = results[i+1] ? parseInt(results[i+1]): 0;
-                                let edges = results[i+2] ? results[i+2]: [];
-                                playersData.push({
-                                    from: player, 
-                                    sup: sup,
-                                    opp: opp,
-                                    edges: edges
-                                });
-                            }
-                            socket.emit('distributed_reactiveHints', {
-                                players: playersData,
-                                indexes: data.indexes,
-                                selectedTileIndexes: data.selectedTileIndexes,
-                                currentStep: data.currentStep,
-                                edge_sup: results[results.length - 2],
-                                edge_opp: results[results.length - 1]
-                            });
-                        });
-                    }
-                }
+        socket.on('distributed_getHintsAround', async function(data) {
+            let playersData = await getPlayersData(data);
+            socket.emit('distributed_reactiveHints', {
+                players: playersData.players,
+                edge_sup: playersData.edge_sup,
+                edge_opp: playersData.edge_opp,
+                indexes: data.indexes,
+                selectedTileIndexes: data.selectedTileIndexes,
+                currentStep: data.currentStep,
+                roundFocusGraph: roundFocusGraph[data.round_id]
             });
         });
 
@@ -840,7 +1046,9 @@ module.exports = function (io) {
                         selectedTileIndexes: data.selectedTileIndexes,
                         currentStep: data.currentStep,
                         sureHints: hints,
-                        unsureHints: unsureHints
+                        unsureHints: unsureHints,
+                        edgeMap: nodesAndHints.edgeMap,
+                        roundFocusGraph: roundFocusGraph[data.round_id]
                     });
                 });
             }

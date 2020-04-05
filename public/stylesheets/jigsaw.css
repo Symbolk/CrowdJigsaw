@@ -5,25 +5,6 @@
     margin: 0;     
 }
 
-
-
-.canvas
-{
-    overflow: hidden;    
-    position: absolute;
-    /* top: 10px;
-    right:10px; 
-    left:10px; 
-     bottom: 10px;  
-    /* */  
-    /*border: 2px dashed #000;*/
-}
-
-canvas[resize]{
-    width: 100%;
-    height: 100%;
-}
-
 .puzzle-image
 {
     overflow: hidden;   
@@ -31,57 +12,6 @@ canvas[resize]{
     left: 50%;
     top: 50%;
 }
-
-
-/*.zoomIn,*/
-/*.zoomOut,*/
-/*.restart,*/
-/*.quit,*/
-/*.returnCenter*/
-/*{*/
-    /*z-index: 100;*/
-    /*position: absolute;*/
-    /*opacity: 1.0 ;*/
-    /*cursor: pointer;*/
-/*}*/
-
-
-/*.quit.hover,*/
-/*.zoomIn:hover,*/
-/*.zoomOut:hover,*/
-/*.returnCenter:hover,*/
-/*.restart.hover*/
-/*{*/
-    /*opacity: 1.0;*/
-/*}*/
-
-
-/*.zoomIn*/
-/*{*/
-    /*margin: 60px 0 0 50px;*/
-/*}*/
-
-
-/*.zoomOut*/
-/*{*/
-    /*margin: 120px 0 0 50px;*/
-/*}*/
-
-/*.restart*/
-/*{*/
-    /*margin: 180px 0 0 50px;*/
-/*}*/
-
-/*.quit*/
-/*{*/
-    /*margin: 240px 0 0 50px;*/
-/*}*/
-
-/*.returnCenter*/
-/*{*/
-    /*margin: 300px 0 0 50px;*/
-/*}*/
-
 
 
 .info{
@@ -114,13 +44,34 @@ canvas[resize]{
     right: 20px;
 }
 
-#undo_help img{
+#quit_menu{
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+}
+
+#addon_menu{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+#guess_menu{
+    position: fixed;
+    top: 30%;
+    right: 20px;
+}
+
+#share_menu{
+    position: fixed;
+    top: 60%;
+    right: 20px;
+}
+
+.menu_png img{
     background-color: rgba(200, 200, 200, 0);
-    height: 10%;
-    width: height;
-    border-style: dashed;
-    border-width: thick;
-    border-color: rgba(200, 200, 200, 0.5);
+    height: 75px;
+    width: 75px;
 }
 
 
@@ -132,22 +83,6 @@ canvas[resize]{
     width:135px;
 }
 
-/*#drag-mode-button{*/
-    /*width:15px;*/
-    /*margin: 20px 0 0 0px;*/
-/*}*/
-
-/*#myselect{*/
-    /*width:125px;*/
-    /*margin: 345px 0 0 0px;*/
-    /*font-size: 10px;*/
-/*}*/
-
-/* .progress{
-    position: fixed;
-  bottom: 0;
-  margin-bottom: 40px;
-} */
 
 .mask{
     /* position:fixed;
@@ -159,9 +94,17 @@ canvas[resize]{
 }
 
 #button_group{
-    height: 5%;
-    width: 80px;
     position: absolute;
     top: 20px;
     left: 20px;
+}
+
+#timer_wrap {
+    position: fixed;
+    top: 30px;
+    left: 25px;
+}
+
+#timer{
+    font-size: 40px;
 }

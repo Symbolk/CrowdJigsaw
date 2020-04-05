@@ -18,12 +18,14 @@ var RecordSchema = new mongoose.Schema({
     correct_hints: { type: String, default: "-1" }, // # of correct hints the player got
     rating: { type: Number, default: -1 }, // how the player feels about the hint
     score: { type: Number, default: 0 },
+    official: { type: Boolean, default: false }, // whether the tile has edge
     create_correct_link: { type: Number, default: 0 },
     remove_correct_link: { type: Number, default: 0 },
     create_wrong_link: { type: Number, default: 0 },
     remove_wrong_link: { type: Number, default: 0 },
     remove_hinted_wrong_link: { type: Number, default: 0 },
     edges: { type: Object},
+    first_edges: { type: Object},
 }, { collection: 'records' });
 
 console.log('[OK] Record Schema Created.');

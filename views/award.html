@@ -31,7 +31,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <!--<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-blue.min.css" />-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.teal-blue.min.css" />
+    <link rel="stylesheet" href="/stylesheets/material.teal-blue.min.css" />
     <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
     <link rel="stylesheet" href="/stylesheets/display.css" />
     <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css">
@@ -49,7 +49,10 @@ scratch. This page gets rid of all links and provides the needed markup only.
         var username = '<%-username-%>';
         var round_id = '<%-round_id-%>';
         var players_num = '<%-players_num-%>';
+        players_num = parseInt(players_num);
         scoreboard = JSON.parse(scoreboard);
+
+        console.log(scoreboard);
 
         var defeat_num = 0;
         var my_score = 0;
@@ -58,7 +61,9 @@ scratch. This page gets rid of all links and provides the needed markup only.
         var player3 = '';
         for (var i = 0; i < scoreboard.length; i += 2) {
             if (username == scoreboard[i]) {
-                defeat_num = players_num - 1 - i / 2;
+                console.log(i, scoreboard.length);
+                defeat_num = (1 - (i + 2) / scoreboard.length) * 100;
+                console.log(defeat_num);
                 my_score = scoreboard[i+1]
             }
             if (i == 0) {
@@ -418,7 +423,7 @@ desired effect
         document.getElementById('player1').innerText = player1;
         document.getElementById('player2').innerText = player2;
         document.getElementById('player3').innerText = player3;
-        var defeat_html = "You defeated " + defeat_num + " people. <br> Your score is " + my_score + ". ";
+        var defeat_html = "You defeated " + defeat_num + "% of players. <br> Your score is " + my_score + ". ";
         document.getElementById('defeat_message').innerHTML = defeat_html;
     </script>
 
@@ -434,90 +439,6 @@ desired effect
                 <a href="#">******</a>.</strong> All rights reserved.
         </footer>
 
-        <!-- Control Sidebar -->
-        <aside class="control-sidebar control-sidebar-dark">
-            <!-- Create the tabs -->
-            <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
-                <li class="active">
-                    <a href="#control-sidebar-home-tab" data-toggle="tab">
-                        <i class="fa fa-home"></i>
-                    </a>
-                </li>
-                <li>
-                    <a href="#control-sidebar-settings-tab" data-toggle="tab">
-                        <i class="fa fa-gears"></i>
-                    </a>
-                </li>
-            </ul>
-            <!-- Tab panes -->
-            <div class="tab-content">
-                <!-- Home tab content -->
-                <div class="tab-pane active" id="control-sidebar-home-tab">
-                    <h3 class="control-sidebar-heading">Recent Activity</h3>
-                    <ul class="control-sidebar-menu">
-                        <li>
-                            <a href="javascript:;">
-                                <i class="menu-icon fa fa-birthday-cake bg-red"></i>
-
-                                <div class="menu-info">
-                                    <h4 class="control-sidebar-subheading">Last login</h4>
-
-                                    <p>Last login just now.</p>
-                                </div>
-                            </a>
-                        </li>
-                    </ul>
-                    <!-- /.control-sidebar-menu -->
-
-                    <h3 class="control-sidebar-heading">Tasks Progress</h3>
-                    <ul class="control-sidebar-menu">
-                        <li>
-                            <a href="javascript:;">
-                                <h4 class="control-sidebar-subheading">
-                                    Profile Completion
-                                    <span class="pull-right-container">
-                                        <span class="label label-danger pull-right">50%</span>
-                                    </span>
-                                </h4>
-
-                                <div class="progress progress-xxs">
-                                    <div class="progress-bar progress-bar-danger" style="width: 50%"></div>
-                                </div>
-                            </a>
-                        </li>
-                    </ul>
-                    <!-- /.control-sidebar-menu -->
-
-                </div>
-                <!-- /.tab-pane -->
-                <!-- Stats tab content -->
-                <div class="tab-pane" id="control-sidebar-stats-tab">Stats Tab Content</div>
-                <!-- /.tab-pane -->
-                <!-- Settings tab content -->
-                <div class="tab-pane" id="control-sidebar-settings-tab">
-                    <form method="post">
-                        <h3 class="control-sidebar-heading">General Settings</h3>
-
-                        <div class="form-group">
-                            <label class="control-sidebar-subheading">
-                                Report personal usage
-                                <input type="checkbox" class="pull-right" checked>
-                            </label>
-
-                            <p>
-                                Send your data to our server for analysis.
-                            </p>
-                        </div>
-                        <!-- /.form-group -->
-                    </form>
-                </div>
-                <!-- /.tab-pane -->
-            </div>
-        </aside>
-        <!-- /.control-sidebar -->
-        <!-- Add the sidebar's background. This div must be placed
-      immediately after the control sidebar -->
-        <div class="control-sidebar-bg"></div>
     </div>
     <!-- ./wrapper -->
 
@@ -540,7 +461,7 @@ desired effect
 
     <!-- <script src="/javascripts/bootstrap-table.min.js" ></script> -->
     <!--<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>-->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.min.js"></script>
+    <script src="/javascripts/material.min.js"></script>
 
 </body>
 

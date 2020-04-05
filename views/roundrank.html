@@ -17,6 +17,8 @@
             </h1>
         </section>
 
+        <div id="progress" style="width:100%;height:400px;display:none;"></div>
+        <div id="precision" style="width:100%;height:400px;display:none;"></div>
         <div id="score" style="width:100%;height:400px;display:none;"></div>
         <div id="links" style="width:100%;height:400px;display:none;"></div>
 
@@ -284,4 +286,12 @@
         </section>
         <!-- /.content -->
     </div>
+    <script type="text/javascript">
+        let endTime = ((hms) => {
+            let [h, m, s] = hms.split(':');
+            return parseInt(h) * 3600 + parseInt(m) * 60 + parseInt(s);
+        })('<%-endTime%>');
+        console.log('<%-endTime%>', endTime);
+        getProgress(endTime);
+    </script>
     <% include footer2.html %>

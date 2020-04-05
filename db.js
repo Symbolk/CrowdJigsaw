@@ -7,10 +7,11 @@ mongoose.Promise = require('bluebird');
  * Comment the auth/user/pass if your db requires no auth
 */
 var options = {
-    useMongoClient: true,
-    // auth: { authdb: 'CrowdJigsaw' },
-    // user: config.user,
-    // pass: config.pass
+    useNewUrlParser: true,
+    //useMongoClient: true,
+    auth: { authdb: config.mongodb.authdb },
+    user: config.mongodb.user,
+    pass: config.mongodb.password
 };
 mongoose.connect(DB_URL, options);
 const db = mongoose.connection;

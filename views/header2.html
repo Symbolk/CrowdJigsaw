@@ -31,7 +31,7 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
   <!--<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-blue.min.css" />-->
   <link rel="stylesheet" href="/stylesheets/font-awesome.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.teal-blue.min.css" />
+  <link rel="stylesheet" href="/stylesheets/material.teal-blue.min.css" />
   <link rel="stylesheet" href="/stylesheets/bootstrap.min.css" />
   <link rel="stylesheet" href="/stylesheets/display.css" />
   <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css">  
@@ -160,14 +160,19 @@ desired effect
       <!-- Sidebar Menu -->
       <ul class="sidebar-menu" data-widget="tree">
         <li class="header">Pages</li>
+        <% if(title === 'Home' || title === 'Records') { %>
+        <li style="display: none;"><a><i class="fa fa-clipboard fa-lg"></i> <span>Official Rounds: <%= round_attend %></a></li>
+        <li style="display: none;"><a><i class="fa fa-clipboard fa-lg"></i> <span>Score: <%= total_score %></a></li>
+        <li style="display: none;"><a><i class="fa fa-clipboard fa-lg"></i> <span>After Class Score: <%= after_class_score %></a></li>
+        <% } %>
         <!-- Optionally, you can add icons to the links -->
         <li class="active"><a href="/home"><i class="fa fa-gamepad fa-lg"></i> <span>Playground</span></a></li>
         <li><a href="/records"><i class="fa fa-calendar fa-lg"></i> <span>Records</span></a></li>
         <li><a href="/settings"><i class="fa fa-gears fa-lg"></i> <span>Settings</span></a></li>
-        <li><a href="/statistics"><i class="fa fa-area-chart fa-lg"></i> <span>Statistics</span></a></li>
-        <li><a href="/help"><i class="fa fa-question-circle fa-lg"></i> <span>Help</span></a></li>        
+        <li style="display: none;"><a href="/statistics"><i class="fa fa-area-chart fa-lg"></i> <span>Statistics</span></a></li>
+        <li style="display: none;"><a href="/help"><i class="fa fa-question-circle fa-lg"></i> <span>Help</span></a></li>        
 
-        <li class="treeview">
+        <li style="display: none;" class="treeview">
           <a href="#"><i class="fa fa-link fa-lg"></i> <span>Links</span>
             <span class="pull-right-container">
                 <i class="fa fa-angle-right pull-right"></i>
