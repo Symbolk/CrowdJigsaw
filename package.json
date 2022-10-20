@@ -21,7 +21,7 @@
     "images": "^3.0.1",
     "jsdom": "^16.5.0",
     "mongodb": "~3.1.13",
-    "mongoose": "~4.12.1",
+    "mongoose": "~4.13.21",
     "morgan": "~1.9.1",
     "node-schedule": "~1.2.5",
     "node-xlsx": "^0.12.1",
